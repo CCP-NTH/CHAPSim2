@@ -482,7 +482,7 @@ contains
     use precision_mod, only: WP
     use parameters_constant_mod, only: ZERO
     use boundary_conditions_mod
-    use index_mod
+    
     implicit none
     type(t_domain),  intent(in) :: dm
     type(t_flow), intent(inout) :: fl
@@ -695,7 +695,7 @@ contains
     use parameters_constant_mod!, only : HALF, ZERO, SIXTEEN, TWO
     use udf_type_mod
     use math_mod
-    use index_mod
+    
     implicit none
     type(t_domain), intent(in ) :: dm
     type(t_flow), intent(inout) :: fl
@@ -760,7 +760,7 @@ contains
     use udf_type_mod
     use math_mod
     use io_files_mod
-    use index_mod
+    
     !use iso_fortran_env
     implicit none
 
@@ -893,7 +893,7 @@ contains
     use parameters_constant_mod!, only : HALF, ZERO, SIXTEEN, TWO, PI
     use udf_type_mod
     use math_mod
-    use index_mod
+    
     implicit none
     type(t_domain), intent(in ) :: dm
     type(t_flow), intent(inout) :: fl

@@ -45,7 +45,7 @@ module boundary_conditions_mod
   public  :: allocate_fbc_flow   ! applied once only
   public  :: allocate_fbc_thermo ! applied once only
 
-  private :: get_fbcy_circle_centre
+  private :: get_interior_axis_fbcy
   public  :: update_fbcy_cc_flow_halo   ! for pipe only, applied every NS, cc for circle central point and var stored in xcx
   public  :: update_fbcy_cc_thermo_halo ! for pipe only, applied every NS, cc for circle central point and var stored in xcx
 
@@ -320,7 +320,7 @@ end function
     allocate( dm%fbcz_gz(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )! default z pencil
 
     if(dm%icoordinate == ICYLINDRICAL) then 
-      allocate( dm%fbcy_gyr(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) )
+      !allocate( dm%fbcy_gyr(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) )
       allocate( dm%fbcy_gzr(dm%dccp%ysz(1), 4, dm%dccp%ysz(3)) )
       allocate( dm%fbcz_gyr(dm%dcpc%zsz(1), dm%dcpc%zsz(2), 4) )
       allocate( dm%fbcz_gzr(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )
@@ -341,7 +341,7 @@ end function
 
 !==========================================================================================================
 !==========================================================================================================
-  subroutine get_fbcy_circle_centre(var_xpencil, fbcy, ksym, dtmp)
+  subroutine get_interior_axis_fbcy(var_xpencil, fbcy, ksym, dtmp)
     type(DECOMP_INFO), intent(in) :: dtmp
     real(WP), intent(in) :: var_xpencil(:, :, :)
     real(WP), intent(inout) :: fbcy(:, :, :)
@@ -373,35 +373,47 @@ end function
 !==========================================================================================================
 !==========================================================================================================
   subroutine update_fbcy_cc_flow_halo(fl, dm)  ! for cylindrical only
+    use find_max_min_ave_mod
+    use cylindrical_rn_mod
+    implicit none 
     type(t_domain), intent(inout) :: dm
-    type(t_flow), intent(in)      :: fl
+    type(t_flow), intent(inout)      :: fl
 
-    if(dm%icase /= ICASE_PIPE) return
-    if(dm%icoordinate /= ICYLINDRICAL) return
+    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
 
+    ! Check if the case and coordinate system are valid
+    if (dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
+#ifdef DEBUG_STEPS
+    if(nrank == 0) &
+    call Print_debug_mid_msg('Update boundary conditions in y-direction for the centre of the pipe.')
+#endif
 !----------------------------------------------------------------------------------------------------------
-!   ! qx bc in y - direction, interior
+!   ! Update qx boundary condition in y-direction (interior cell center)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qx(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qx for the centre of the pipe.')
-    call get_fbcy_circle_centre(fl%qx, dm%fbcy_qx, dm%knc_sym, dm%dpcc)
+    call get_interior_axis_fbcy(fl%qx, dm%fbcy_qx, dm%knc_sym, dm%dpcc)
 !----------------------------------------------------------------------------------------------------------
-!   ! qy bc in y - direction, interior
+!   ! Update qy and qy/r boundary conditions in y-direction (on nodes)
 !----------------------------------------------------------------------------------------------------------
-    if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qy for the centre of the pipe.') ! check, axial-symmetric at y=2?
-    dm%fbcy_qy (:, 1, :) = ZERO
-    dm%fbcy_qyr(:, 1, :) = ZERO
+    if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qy for the centre of the pipe.')
+    call estimate_radial_xpx_on_axis(fl%qy, dm%dcpc, IPENCIL(1), dm)
+    call transpose_x_to_y(fl%qy, acpc_ypencil, dm%dcpc)
+    call extract_dirichlet_fbcy(dm%fbcy_qy, acpc_ypencil, dm%dcpc, dm)
+    call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2)) ! qr/r
+    call estimate_radial_xpx_on_axis(acpc_ypencil, dm%dcpc, IPENCIL(2), dm)
+    call extract_dirichlet_fbcy(dm%fbcy_qyr, acpc_ypencil, dm%dcpc, dm)
 !----------------------------------------------------------------------------------------------------------
-!   ! qz, gz bc in y - direction, interior
+!   Update qz boundary condition in y-direction (interior cell center)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qz(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qz for the centre of the pipe.') ! 
-    call get_fbcy_circle_centre(fl%qz, dm%fbcy_qz, dm%knc_sym, dm%dccp)
-    dm%fbcy_qzr(:, 1, :) = dm%fbcy_qz(:, 1, :) * dm%rci(1)
+    call get_interior_axis_fbcy(fl%qz, dm%fbcy_qz, dm%knc_sym, dm%dccp)
+    dm%fbcy_qzr(:, 1, :) = dm%fbcy_qz(:, 1, :) * dm%rci(1) ! interior, not at axis
     dm%fbcy_qzr(:, 3, :) = dm%fbcy_qz(:, 3, :) * dm%rci(2)
 !----------------------------------------------------------------------------------------------------------
-!   ! pressure bc in y - direction, interior
+!   Update pressure boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_pr(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_pr for the centre of the pipe.') ! 
-    call get_fbcy_circle_centre(fl%pres, dm%fbcy_pr, dm%knc_sym, dm%dccc)
+    call get_interior_axis_fbcy(fl%pres, dm%fbcy_pr, dm%knc_sym, dm%dccc)
 
     return
   end subroutine
@@ -410,40 +422,47 @@ end function
 !==========================================================================================================
   subroutine update_fbcy_cc_thermo_halo(fl, tm, dm)  ! for cylindrical only
     use thermo_info_mod
+    use find_max_min_ave_mod
+    use cylindrical_rn_mod
+    implicit none 
     type(t_domain), intent(inout) :: dm
     type(t_thermo), intent(in)    :: tm
-    type(t_flow),   intent(in)    :: fl
+    type(t_flow),   intent(inout) :: fl
     real(WP) :: fbcy(dm%dccc%ysz(1), 4, dm%dccc%ysz(3))
-    integer :: i, j, k
+    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
 
-    if(.not. dm%is_thermo) return
-    if(dm%icase /= ICASE_PIPE) return
-    if(dm%icoordinate /= ICYLINDRICAL) return
+    ! Check if thermo is enabled and the case and coordinate system are valid
+    if (.not. dm%is_thermo .or. dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
     
 !----------------------------------------------------------------------------------------------------------
-!   ! gx bc in y - direction, interior
+!   ! Update gx boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qx(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_gx for the centre of the pipe.')
-    call get_fbcy_circle_centre(fl%gx, dm%fbcy_gx, dm%knc_sym, dm%dpcc)
+    call get_interior_axis_fbcy(fl%gx, dm%fbcy_gx, dm%knc_sym, dm%dpcc)
 !----------------------------------------------------------------------------------------------------------
-!   ! qy, gy bc in y - direction, interior
+!   ! Update gy ang gy/r boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
-    if(dm%ibcy_qy(1) /= IBC_DIRICHLET) call Print_error_msg('Error in ibcy_gy for the centre of the pipe.') 
-    dm%fbcy_gy (:, 1, :) = ZERO
-    dm%fbcy_gyr(:, 1, :) = ZERO
+    if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_gy for the centre of the pipe.')
+    call estimate_radial_xpx_on_axis(fl%gy, dm%dcpc, IPENCIL(1), dm)
+    call transpose_x_to_y(fl%gy, acpc_ypencil, dm%dcpc)
+    call extract_dirichlet_fbcy(dm%fbcy_gy, acpc_ypencil, dm%dcpc, dm)
+    
+    ! call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2)) ! qr/r
+    ! call estimate_radial_xpx_on_axis(acpc_ypencil, dm%dcpc, IPENCIL(2), dm)
+    ! call extract_dirichlet_fbcy(dm%fbcy_gyr, acpc_ypencil, dm%dcpc, dm)
 !----------------------------------------------------------------------------------------------------------
-!   ! gz bc in y - direction, interior
+!   ! Update gz boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qz(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qz for the centre of the pipe.') ! 
-    call get_fbcy_circle_centre(fl%gz, dm%fbcy_gz, dm%knc_sym, dm%dccp)
+    call get_interior_axis_fbcy(fl%gz, dm%fbcy_gz, dm%knc_sym, dm%dccp)
     dm%fbcy_gzr(:, 1, :) = dm%fbcy_gz(:, 1, :) * dm%rci(1)
     dm%fbcy_gzr(:, 3, :) = dm%fbcy_gz(:, 3, :) * dm%rci(2)
 !----------------------------------------------------------------------------------------------------------
-!   ! thermo bc in y - direction, interior
+!   ! Update thermo boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_Tm(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_Tm for the centre of the pipe.') !
     fbcy = dm%fbcy_ftp%t
-    call get_fbcy_circle_centre(tm%tTemp, fbcy, dm%knc_sym, dm%dccc)
+    call get_interior_axis_fbcy(tm%tTemp, fbcy, dm%knc_sym, dm%dccc)
     dm%fbcy_ftp%t = fbcy
     call ftp_refresh_thermal_properties_from_T_undim_3D(dm%fbcy_ftp)
 
@@ -540,7 +559,7 @@ end function
     bc(1:2) = mbc(1:2, JBC_GRAD)
     call build_bc_symm_operation(dm%ibcy_ftp, mbc, bc) ! mu_ppc * du/dy_ppc
     call build_bc_symm_operation(dm%ibcy_ftp, mbc0, dm%ibcy_qy) ! mu_ppc * dv/dx_ppc
-    if(dm%icase == ICASE_PIPE) mbc(1, JBC_PROD) = IBC_DIRICHLET
+    !if(dm%icase == ICASE_PIPE) mbc(1, JBC_PROD) = IBC_DIRICHLET
     if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BCy in mbcy_tau1 is wrong.")
     mbcy_tau1(1:2) = mbc(1:2, JBC_PROD)
     if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom y-diffusion  is ", get_name_bc(mbcy_tau1(1)), get_name_bc(mbcy_tau1(2))
@@ -647,7 +666,10 @@ end function
     if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom z-diffusion  is ", get_name_bc(mbcz_tau3(1)), get_name_bc(mbcz_tau3(2))
 
     if(dm%icoordinate == ICYLINDRICAL) then
-      call build_bc_symm_operation(dm%ibcy_ftp, mbc, dm%ibcy_qz)
+      call build_bc_symm_operation(dm%ibcy_qz, mbc)
+      bc(1:2) = mbc(1:2, JBC_GRAD)
+      call build_bc_symm_operation(dm%ibcy_ftp, mbc, bc)
+      call build_bc_symm_operation(dm%ibcy_ftp, mbc0, dm%ibcy_qz)
       if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BCr in mbcy_tau3 is wrong.")
       mbcr_tau3(1:2) = mbc(1:2, JBC_PROD)
       if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom r-diffusion  is ", get_name_bc(mbcr_tau3(1)), get_name_bc(mbcr_tau3(2))

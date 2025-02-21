@@ -1,4 +1,4 @@
-module bc_ndomain_interior_mod
+module bc_ndomain_interior_mod ! not used anymore
   use parameters_constant_mod
   use udf_type_mod
   use decomp_2d
@@ -131,14 +131,14 @@ contains
             if (dm%is_thermo) &
             call apply_fbcy_2dm_halo(dm%fbcy_gy, fl%gy, iside, dm%dcpc)
             if (dm%icoordinate == ICYLINDRICAL) then
-                ac4c_ypencil = dm%fbcy_qy
-                call multiple_cylindrical_rn_x4x(ac4c_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
-                dm%fbcy_qyr = ac4c_ypencil
-                if (dm%is_thermo) then
-                    ac4c_ypencil = dm%fbcy_gy
-                    call multiple_cylindrical_rn_x4x(ac4c_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
-                    dm%fbcy_gyr = ac4c_ypencil
-                end if
+                ! ac4c_ypencil = dm%fbcy_qy
+                ! call multiple_cylindrical_rn_x4x(ac4c_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
+                ! dm%fbcy_qyr = ac4c_ypencil
+                !if (dm%is_thermo) then
+                    !ac4c_ypencil = dm%fbcy_gy
+                    !call multiple_cylindrical_rn_x4x(ac4c_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
+                    !dm%fbcy_gyr = ac4c_ypencil
+               ! end if
             end if
         end if
         if (dm%ibcy_qz(iside) == IBC_INTERIOR) then
@@ -146,14 +146,14 @@ contains
             if (dm%is_thermo) &
             call apply_fbcy_2dm_halo(dm%fbcy_gz, fl%gz, iside, dm%dccp)
             if (dm%icoordinate == ICYLINDRICAL) then
-                ac4p_ypencil = dm%fbcy_qz
-                call multiple_cylindrical_rn_x4x(ac4p_ypencil, dm%dccp, dm%rci, 1, IPENCIL(2))
-                dm%fbcy_qzr = ac4p_ypencil
-                if (dm%is_thermo) then
-                  ac4p_ypencil = dm%fbcy_gz
-                  call multiple_cylindrical_rn_x4x(ac4p_ypencil, dm%dccp, dm%rci, 1, IPENCIL(2))
-                  dm%fbcy_gzr = ac4p_ypencil
-                end if
+                ! ac4p_ypencil = dm%fbcy_qz
+                ! call multiple_cylindrical_rn_x4x(ac4p_ypencil, dm%dcpp, dm%rci, 1, IPENCIL(2))
+                ! dm%fbcy_qzr = ac4p_ypencil
+                ! if (dm%is_thermo) then
+                !   ac4p_ypencil = dm%fbcy_gz
+                !   call multiple_cylindrical_rn_x4x(ac4p_ypencil, dm%dcpp, dm%rci, 1, IPENCIL(2))
+                !   dm%fbcy_gzr = ac4p_ypencil
+                ! end if
             end if
         end if
         if (dm%ibcy_pr(iside) == IBC_INTERIOR) then
@@ -170,14 +170,14 @@ contains
             if (dm%is_thermo) &
             call apply_fbcz_2dm_halo(dm%fbcz_gy, fl%gy, iside, dm%dcpc)
             if (dm%icoordinate == ICYLINDRICAL) then
-                acp4_zpencil = dm%fbcz_qy
-                call multiple_cylindrical_rn_xx4(acp4_zpencil, dm%dcpc, dm%rpi, 1, IPENCIL(3))
-                dm%fbcz_qyr = acp4_zpencil
-                if (dm%is_thermo) then
-                  acp4_zpencil = dm%fbcz_gy
-                  call multiple_cylindrical_rn_xx4(acp4_zpencil, dm%dcpc, dm%rpi, 1, IPENCIL(3))
-                  dm%fbcz_gyr = acp4_zpencil
-                end if
+                ! acp4_zpencil = dm%fbcz_qy
+                ! call multiple_cylindrical_rn_xx4(acp4_zpencil, dm%dcpc, dm%rpi, 1, IPENCIL(3))
+                ! dm%fbcz_qyr = acp4_zpencil
+                ! if (dm%is_thermo) then
+                !   acp4_zpencil = dm%fbcz_gy
+                !   call multiple_cylindrical_rn_xx4(acp4_zpencil, dm%dcpc, dm%rpi, 1, IPENCIL(3))
+                !   dm%fbcz_gyr = acp4_zpencil
+                ! end if
             end if
         end if
         if (dm%ibcz_qz(iside) == IBC_INTERIOR) then
@@ -185,14 +185,14 @@ contains
             if (dm%is_thermo) &
             call apply_fbcz_2dm_halo(dm%fbcz_gz, fl%gz, iside, dm%dccp)
             if (dm%icoordinate == ICYLINDRICAL) then
-                acc4_zpencil = dm%fbcz_qz
-                call multiple_cylindrical_rn_xx4(acc4_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
-                dm%fbcz_qzr = acc4_zpencil
-                if (dm%is_thermo) then
-                  acc4_zpencil = dm%fbcz_gz
-                  call multiple_cylindrical_rn_xx4(acc4_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
-                  dm%fbcz_gzr = acc4_zpencil
-                end if
+                ! acc4_zpencil = dm%fbcz_qz
+                ! call multiple_cylindrical_rn_xx4(acc4_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+                ! dm%fbcz_qzr = acc4_zpencil
+                ! if (dm%is_thermo) then
+                !   acc4_zpencil = dm%fbcz_gz
+                !   call multiple_cylindrical_rn_xx4(acc4_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+                !   dm%fbcz_gzr = acc4_zpencil
+                ! end if
             end if
         end if
         if (dm%ibcz_pr(iside) == IBC_INTERIOR) then
@@ -232,8 +232,8 @@ contains
         dm2%fbcy_gx(:, n, :) = dm2%fbcy_qx(:, n, :) * dm2%fbcy_ftp(:, 1, :)%d
         if(dm2%ibcy_qy(1) == IBC_INTERIOR) then
           dm2%fbcy_gy(:, n, :) = dm2%fbcy_qy(:, n, :) * dm2%fbcy_ftp(:, 1, :)%d
-          if(dm2%icoordinate == ICYLINDRICAL) &
-          dm2%fbcy_gyr(:, n, :)= dm2%fbcy_qyr(:, n, :) * dm2%fbcy_ftp(:, 1, :)%d
+          !if(dm2%icoordinate == ICYLINDRICAL) &
+          !dm2%fbcy_gyr(:, n, :)= dm2%fbcy_qyr(:, n, :) * dm2%fbcy_ftp(:, 1, :)%d
         end if
         if(dm2%ibcy_qz(1) == IBC_INTERIOR) then
           dm2%fbcy_gz(:, n, :) = dm2%fbcy_qz(:, n, :) * dm2%fbcy_ftp(:, 1, :)%d

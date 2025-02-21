@@ -534,7 +534,7 @@ module udf_type_mod
     real(wp), allocatable :: fbcx_gy(:, :, :) ! variable bc
     real(wp), allocatable :: fbcy_gy(:, :, :) ! variable bc
     real(wp), allocatable :: fbcz_gy(:, :, :) ! variable bc
-    real(wp), allocatable :: fbcy_gyr(:, :, :) ! gy/r = rho * ur bc at y dirction
+    !real(wp), allocatable :: fbcy_gyr(:, :, :) ! gy/r = rho * ur bc at y dirction
     real(wp), allocatable :: fbcz_gyr(:, :, :) ! gy/r = rho * ur bc at z dirction
 
     real(wp), allocatable :: fbcx_qz(:, :, :) ! variable bc

@@ -105,7 +105,7 @@ contains
     use mpi_mod
     use udf_type_mod
     use parameters_constant_mod
-    use index_mod
+    
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
     real(WP), dimension(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)), intent(in)  :: var ! x-pencil default
@@ -172,7 +172,7 @@ contains
   subroutine Adjust_to_xzmean_zero(var, dtmp, n, varxz)
     use mpi_mod
     use udf_type_mod
-    use index_mod
+    
     implicit none
     type(DECOMP_INFO),  intent(in) :: dtmp
     integer,            intent(in) :: n
@@ -223,34 +223,59 @@ contains
     use mpi_mod
     use wtformat_mod
     use print_msg_mod
-    use index_mod
+    
     implicit none
     type(t_flow), intent(in) :: fl
     type(t_domain), intent(in) :: dm
 
-    real(WP) :: cfl_diff, cfl_diff_work, rtmp, dyi
+    real(WP) :: cfl_diff, cfl_diff_work, rtmp, dyi, dtmax, dtmax_work
     integer :: i, j, k, jj
+    real(wp) :: rsp(3), rmax(3), rmax_work(3)
     
+    rmax(:) = ZERO
     cfl_diff = ZERO
+
+    rsp(1) = dm%h2r(1)
+    rsp(2) = dm%h2r(2)
+    rsp(3) = dm%h2r(3)
     do j = 1, dm%dccc%xsz(2)
       jj = dm%dccc%xst(2) + j - 1 !local2global_yid(j, dm%dccc)
-      dyi = ONE/(dm%yp(jj+1) - dm%yp(jj))
-      do i = 1, dm%dccc%xsz(1)
-        do k = 1, dm%dccc%xsz(3)
-          rtmp = dm%h2r(1) + dm%h2r(3) * dm%rci(j) * dm%rci(j) + dyi * dyi
+      if(dm%is_stretching(2)) then
+        dyi = dm%yMappingcc(jj, 1) / dm%h(2)
+        rsp(2) = dyi * dyi
+      end if
+      do k = 1, dm%dccc%xsz(3)
+        if(dm%icoordinate == ICYLINDRICAL) &
+        rsp(3) = dm%h2r(3) * dm%rci(jj) * dm%rci(jj)
+        do i = 1, dm%dccc%xsz(1)
+          rtmp = rsp(1) + rsp(2) + rsp(3)
           if(dm%is_thermo) rtmp = rtmp * fl%mVisc(i, j, k) / fl%dDens(i, j, k)
-          if(rtmp > cfl_diff) cfl_diff = rtmp
+          if(rtmp > cfl_diff) then
+            cfl_diff = rtmp
+            rmax(:) = rsp(:)
+          end if
         end do
       end do
     end do 
+
+    dtmax = ONE/(TWO*fl%rre * cfl_diff)
     cfl_diff = cfl_diff * TWO * dm%dt *  fl%rre
 
     call mpi_barrier(MPI_COMM_WORLD, ierror)
     call mpi_allreduce(cfl_diff, cfl_diff_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    call mpi_allreduce(dtmax, dtmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    call mpi_allreduce(rmax(1), rmax_work(1), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    call mpi_allreduce(rmax(2), rmax_work(2), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    call mpi_allreduce(rmax(3), rmax_work(3), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
 
     if(nrank == 0) then
-      if(cfl_diff_work > ONE) call Print_warning_msg("Warning: Diffusion number is larger than 1. Numerical instability could occur. Pleaes reduce your mesh spacing.")
       write (*, wrtfmt1e) "  Diffusion number :", cfl_diff_work
+      if(cfl_diff_work > ONE) then 
+        call Print_warning_msg("Warning: Diffusion number is larger than 1. Numerical instability could occur.")
+        write(*,*) 'Please reduce the time step size lower than ', dtmax_work
+        write(*,*) 'Or Please consider increase your mesh size'
+        write(*,*) '1/delta^2 Contributes from x, y, z directions:', rmax_work(1:3)
+      end if
     end if
     
     return
@@ -466,7 +491,7 @@ contains
         allocate( vcp_ypencil(dtmp%ysz(1), noy, dtmp%ysz(3)) )
         vcp_ypencil = ZERO
 
-        call Get_y_midp_P2C_3D(var_ypencil, vcp_ypencil, dm, dm%iAccuracy, ibcy)
+        call Get_y_midp_P2C_3D(var_ypencil, vcp_ypencil, dm, dm%iAccuracy, ibcy, fbcy)
 
         fo = ZERO
         vol = ZERO

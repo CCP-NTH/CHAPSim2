@@ -39,18 +39,42 @@ contains
     return
   end subroutine 
   !==========================================================================================================
-  subroutine extract_dirichlet_fbcy(fbc, var, dtmp)
+  subroutine extract_dirichlet_fbcy(fbc, var, dtmp, dm)
     use udf_type_mod
     use parameters_constant_mod
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
+    type(t_domain), intent(in) :: dm
     real(WP), intent(out) :: fbc(dtmp%ysz(1), 4,           dtmp%ysz(3))
     real(WP), intent(in)  :: var(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3))
 
+    real(WP), dimension( dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3) ) :: var_zpencil, var_zpencil1 
+    real(WP), dimension( dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3) ) :: var_ypencil1
+
+    integer :: k
+    !------------------------------------------------------------------------------------------------------
+    ! Check if the input data is in y-pencil format
+    !------------------------------------------------------------------------------------------------------
     if(dtmp%ysz(2) /= dtmp%yen(2)) call Print_error_msg("Error. This is not y-pencil.")
-    fbc(:, 1,   :) = var(:, 1,           :)
-    fbc(:, 2,   :) = var(:, dtmp%ysz(2), :)
-    fbc(:, 3:4, :) = fbc(:, 1:2,         :)
+    !------------------------------------------------------------------------------------------------------
+    ! Extract Dirichlet boundary conditions in the y-direction
+    !------------------------------------------------------------------------------------------------------
+    fbc(:, 1, :) = var(:, 1,           :) ! Lower boundary
+    fbc(:, 2, :) = var(:, dtmp%ysz(2), :) ! Upper boundary
+    fbc(:, 4, :) = fbc(:, 2, :)! Upper boundary
+    !------------------------------------------------------------------------------------------------------
+    ! Handle special treatment of the lower boundary for pipe geometry (ICASE_PIPE)
+    !------------------------------------------------------------------------------------------------------
+    if(dm%icase == ICASE_PIPE) then
+      call transpose_y_to_z(var, var_zpencil, dtmp)
+      do k = 1, dtmp%zsz(3)
+        var_zpencil1(:, :, k) = var_zpencil(:, :, dm%knc_sym(k))
+      end do
+      call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
+      fbc(:, 3, :) = var_ypencil1(:, 2, :)
+    else
+      fbc(:, 3, :) = var(:, 1, :)
+    end if
 
     return
   end subroutine 
@@ -221,7 +245,9 @@ contains
     do k = 1, size(fbcy, 3)
       do i = 1, size(fbcy, 1)
         do n = 1, 2
-          fbcy(i, n,   k) =  fbcy_const(n) / ri_new(n) ! check  rpi=maxp?
+          if(ri_new(n) < (MAXP * HALF)) then
+            fbcy(i, n,   k) =  fbcy_const(n) * ri_new(n)
+          end if
           fbcy(i, n+2, k) =  fbcy(i, n, k)
         end do
       end do
@@ -368,7 +394,7 @@ contains
         dm%fbcy_gy(:, n, :) = dm%fbcy_qy(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
         dm%fbcy_gz(:, n, :) = dm%fbcy_qz(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
         if(dm%icoordinate == ICYLINDRICAL) then
-          dm%fbcy_gyr(:, n, :) = dm%fbcy_qyr(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
+          !dm%fbcy_gyr(:, n, :) = dm%fbcy_qyr(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
           dm%fbcy_gzr(:, n, :) = dm%fbcy_qzr(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
         end if
 !----------------------------------------------------------------------------------------------------------

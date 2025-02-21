@@ -32,7 +32,7 @@ module decomp_extended_mod
 !==========================================================================================================
   subroutine zpencil_index_llg2ggg(vin, vou, dtmp)
     use decomp_2d
-    use index_mod
+    
     implicit none
 
     type(DECOMP_INFO), intent(in) :: dtmp
@@ -56,7 +56,7 @@ module decomp_extended_mod
 !==========================================================================================================  
   subroutine zpencil_index_ggg2llg(vin, vou, dtmp)
     use decomp_2d
-    use index_mod
+    
     implicit none
 
     type(DECOMP_INFO), intent(in) :: dtmp

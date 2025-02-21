@@ -135,9 +135,10 @@ contains
     div0_ypencil = ZERO
     div0 = ZERO
     call transpose_x_to_y(qy, qy_ypencil, dm%dcpc)
-    call Get_y_1der_P2C_3D(qy_ypencil, div0_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:))
+    call Get_y_1der_P2C_3D(qy_ypencil, div0_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:), dm%fbcy_qy)
     call transpose_y_to_x(div0_ypencil, div0, dm%dccc)
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 1, IPENCIL(1))
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 1, IPENCIL(1))
     div(:, :, :) = div(:, :, :) + div0(:, :, :)
 !----------------------------------------------------------------------------------------------------------
 ! operation in z pencil, dw/dz * (1/r)^2
@@ -149,10 +150,11 @@ contains
     div0 = ZERO
     call transpose_x_to_y(qz,         qz_ypencil, dm%dccp)
     call transpose_y_to_z(qz_ypencil, qz_zpencil, dm%dccp)
-    call Get_z_1der_P2C_3D(qz_zpencil, div0_zpencil, dm, dm%iAccuracy, dm%ibcz_qz)
+    call Get_z_1der_P2C_3D(qz_zpencil, div0_zpencil, dm, dm%iAccuracy, dm%ibcz_qz, dm%fbcz_qz)
     call transpose_z_to_y(div0_zpencil, div0_ypencil, dm%dccc)
     call transpose_y_to_x(div0_ypencil, div0,         dm%dccc)
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 2, IPENCIL(1))
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 2, IPENCIL(1))
     div(:, :, :) = div(:, :, :) + div0(:, :, :)
 
     ! check: CHAPSim1 using the r^2 * continuity format. 
@@ -209,9 +211,10 @@ contains
     div0_ypencil = ZERO
     div0 = ZERO
     call transpose_x_to_y(uy, uy_ypencil, dm%dcpc)
-    call Get_y_1der_P2C_3D(uy_ypencil, div0_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:))
+    call Get_y_1der_P2C_3D(uy_ypencil, div0_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:), dm%fbcy_qy)
     call transpose_y_to_x(div0_ypencil, div0, dm%dccc)
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 1, IPENCIL(1))
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 1, IPENCIL(1))
     div(:, :, :) = div(:, :, :) + div0(:, :, :)
     !write(*,*) 'div, y', div0(1, 1, 1), div0(2, 2, 2), div0(8, 8, 8)!, div0(16, 8, 8), div0(32, 8, 8)
 !----------------------------------------------------------------------------------------------------------
@@ -224,10 +227,11 @@ contains
     div0 = ZERO
     call transpose_x_to_y(uz,         uz_ypencil, dm%dccp)
     call transpose_y_to_z(uz_ypencil, uz_zpencil, dm%dccp)
-    call Get_z_1der_P2C_3D(uz_zpencil, div0_zpencil, dm, dm%iAccuracy, dm%ibcz_qz(:))
+    call Get_z_1der_P2C_3D(uz_zpencil, div0_zpencil, dm, dm%iAccuracy, dm%ibcz_qz(:), dm%fbcz_qz)
     call transpose_z_to_y(div0_zpencil, div0_ypencil, dm%dccc)
     call transpose_y_to_x(div0_ypencil, div0,         dm%dccc)
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 2, IPENCIL(1))
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 2, IPENCIL(1))
     div(:, :, :) = div(:, :, :) + div0(:, :, :)
     !write(*,*) 'div, z', div0(1, 1, 1), div0(2, 2, 2), div0(8, 8, 8)!, div0(16, 8, 8), div0(32, 8, 8)
     !write(*,*) 'divall', div0(1, 1, 1), div(8, 8, 8)
@@ -298,8 +302,9 @@ contains
     div0_ypencil = ZERO
     div0_ypencil_ggl = ZERO
     call transpose_x_to_y(uy, uy_ypencil, dm%dcpc)
-    call Get_y_1der_P2C_3D(uy_ypencil, div0_ypencil, dm, dm%iAccuracy, dm%ibcy_qy)
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(div0_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
+    call Get_y_1der_P2C_3D(uy_ypencil, div0_ypencil, dm, dm%iAccuracy, dm%ibcy_qy, dm%fbcy_qy)
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(div0_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
     call ypencil_index_lgl2ggl(div0_ypencil, div0_ypencil_ggl, dm%dccc)
     div_ypencil_ggl = div_ypencil_ggl + div0_ypencil_ggl
     call transpose_y_to_z(div_ypencil_ggl, div_zpencil_ggg, dm%dccc)
@@ -312,8 +317,9 @@ contains
     div0_zpencil_ggg = ZERO
     call transpose_x_to_y(uz,         uz_ypencil, dm%dccp)
     call transpose_y_to_z(uz_ypencil, uz_zpencil, dm%dccp)
-    call Get_z_1der_P2C_3D(uz_zpencil, div0_zpencil, dm, dm%iAccuracy, dm%ibcz_qz(:))
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(div0_zpencil, dm%dccc, dm%rci, 2, IPENCIL(3))
+    call Get_z_1der_P2C_3D(uz_zpencil, div0_zpencil, dm, dm%iAccuracy, dm%ibcz_qz(:), dm%fbcz_qz)
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(div0_zpencil, dm%dccc, dm%rci, 2, IPENCIL(3))
     call zpencil_index_llg2ggg(div0_zpencil, div0_zpencil_ggg, dm%dccc)
     div_zpencil_ggg = div_zpencil_ggg + div0_zpencil_ggg
 

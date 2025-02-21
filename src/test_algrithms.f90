@@ -607,7 +607,7 @@ subroutine test_poisson(dm)
   use math_mod
   use operations
   use boundary_conditions_mod
-  use index_mod
+  
 ! based on TGV3D mesh
   type(t_domain), intent(inout) :: dm
 

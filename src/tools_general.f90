@@ -602,12 +602,12 @@ contains
   
 end module random_number_generation_mod
 
-module index_mod
+!module index_mod
   !public :: which_pencil
-  public :: local2global_3indices
+  !public :: local2global_3indices
   !public :: local2global_yid
 
-  contains 
+  !contains 
 !==========================================================================================================
 !   function which_pencil(dtmp) result(a)
 !     use parameters_constant_mod
@@ -680,7 +680,7 @@ module index_mod
   ! end function
   
 
-end module 
+!end module 
 
 
 !==========================================================================================================
@@ -693,7 +693,7 @@ contains
     use udf_type_mod
     use print_msg_mod
     use io_files_mod
-    use index_mod
+    
     implicit none 
     type(DECOMP_INFO), intent(in) :: dtmp
     real(wp), intent(in)     :: var(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3))
@@ -754,7 +754,7 @@ contains
     use udf_type_mod
     use print_msg_mod
     use io_files_mod
-    use index_mod
+    
     implicit none 
     type(DECOMP_INFO), intent(in) :: dtmp
     real(wp), intent(in)     :: var(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3))
@@ -793,168 +793,307 @@ contains
   end subroutine
 
 end module 
-
-
+!============================================================================
+!============================================================================
 module cylindrical_rn_mod
+  use udf_type_mod
+  use parameters_constant_mod
+  use print_msg_mod
+  implicit none
 
+  private :: transpose_to_y_pencil
+  private :: transpose_to_z_pencil
+  private :: transpose_from_z_pencil
+  private :: transpose_from_y_pencil
+  private :: get_dimensions
+
+  public :: estimate_radial_xpx_on_axis
+  public :: estimate_azimuthal_xpx_on_axis
   public :: multiple_cylindrical_rn
   public :: multiple_cylindrical_rn_xx4
   public :: multiple_cylindrical_rn_x4x
 
-  contains
-!==========================================================================================================
+contains
+
+  !============================================================================
+  ! Estimate azimuthal component on the axis
+  !============================================================================
+  subroutine estimate_azimuthal_xpx_on_axis(var, dtmp, pencil, dm)
+    implicit none
+    type(DECOMP_INFO), intent(in) :: dtmp
+    type(t_domain), intent(in)    :: dm ! not used
+    real(WP), intent(inout)      :: var(:, :, :)
+    integer, intent(in)          :: pencil
+
+    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
+    real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil
+
+    if (dm%icase /= ICASE_PIPE) return
+
+    ! Transpose input data to z-pencil
+    call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
+
+    ! Set the value on the axis to zero
+    var_zpencil(:, :, 1) = ZERO
+
+    ! Transpose back to the original pencil
+    call transpose_from_z_pencil(var_zpencil, var, dtmp, pencil)
+
+  end subroutine estimate_azimuthal_xpx_on_axis
+
+  !============================================================================
+  ! Estimate radial component on the axis
+  !============================================================================
+  subroutine estimate_radial_xpx_on_axis(var, dtmp, pencil, dm)
+    implicit none
+    type(DECOMP_INFO), intent(in) :: dtmp
+    type(t_domain), intent(in)    :: dm
+    real(WP), intent(inout)      :: var(:, :, :)
+    integer, intent(in)          :: pencil
+
+    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil, var_ypencil1
+    real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil, var_zpencil1
+    integer :: k
+
+    ! Transpose input data to z-pencil
+    call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
+    ! Transpose input data to y-pencil
+    call transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
+    ! Apply symmetry condition to find neighboring points
+    do k = 1, dtmp%zsz(3)
+      var_zpencil1(:, :, k) = var_zpencil(:, :, dm%knc_sym(k))
+    end do
+    ! Transpose back to y-pencil and apply boundary condition
+    call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
+    var_ypencil1(:, 1, :) = (var_ypencil1(:, 2, :) - var_ypencil(:, 2, :)) * HALF
+    ! Transpose back to the original pencil
+    call transpose_from_y_pencil(var_ypencil1, var, dtmp, pencil)
+
+  end subroutine estimate_radial_xpx_on_axis
+
+  !============================================================================
+  ! Multiply cylindrical variable by r^n
+  !============================================================================
   subroutine multiple_cylindrical_rn(var, dtmp, r, n, pencil)
-      use udf_type_mod
-      use parameters_constant_mod
-      use print_msg_mod
-      use index_mod
-      implicit none 
-      type(DECOMP_INFO), intent(in) :: dtmp
-      real(WP), intent(inout) :: var(:, :, :)
-      real(WP), intent(in) :: r(:)
-      integer, intent(in) :: n
-      integer, intent(in) :: pencil
+    implicit none
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(inout)      :: var(:, :, :)
+    real(WP), intent(in)         :: r(:)
+    integer, intent(in)          :: n
+    integer, intent(in)          :: pencil
 
-      integer :: i, j, k, jj, nx, ny, nz, nyst
-  
-      if(pencil == IPENCIL(1)) then
-          nx = dtmp%xsz(1)
-          ny = dtmp%xsz(2)
-          nz = dtmp%xsz(3)
-        nyst = dtmp%xst(2)
-      else if(pencil == IPENCIL(2)) then
-          nx = dtmp%ysz(1)
-          ny = dtmp%ysz(2)
-          nz = dtmp%ysz(3)
-        nyst = dtmp%yst(2)
-      else if(pencil == IPENCIL(3)) then
-          nx = dtmp%zsz(1)
-          ny = dtmp%zsz(2)
-          nz = dtmp%zsz(3)
-        nyst = dtmp%zst(2)
+    integer :: i, j, k, jj, nx, ny, nz, nyst
+    logical :: is_axis
+
+    ! Initialize dimensions based on pencil
+    call get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
+    is_axis = .false.
+    do j = 1, ny
+      jj = nyst + j - 1
+      if (r(jj) > (MAXP * HALF)) then
+        is_axis = .true.
+        if (jj /= 1) call Print_error_msg("Error: r(j) = 0 at j /= 1.")
       else
-          nx = 0
-          ny = 0
-          nz = 0
-        nyst = 0
-      end if
-
-      do k = 1, nz
-        do j = 1, ny
-          jj = nyst + j - 1
+        do k = 1, nz
           do i = 1, nx
             var(i, j, k) = var(i, j, k) * (r(jj)**n)
           end do
         end do
-      end do 
-    
-      return 
-    end subroutine
-    !==========================================================================================================
-    subroutine multiple_cylindrical_rn_xx4(var, dtmp, r, n, pencil)
-      use udf_type_mod
-      use parameters_constant_mod
-      use print_msg_mod
-      use index_mod
-      implicit none 
-      type(DECOMP_INFO), intent(in) :: dtmp
-      real(WP), intent(inout) :: var(:, :, :)
-      real(WP), intent(in) :: r(:)
-      integer, intent(in) :: n
-      integer, intent(in) :: pencil
-
-      integer :: i, j, jj, nx, ny, nz, nyst
-  
-      if(pencil == IPENCIL(1)) then
-        call Print_warning_msg("Warning: This is for z-pencil only.")
-          nx = dtmp%xsz(1)
-          ny = dtmp%xsz(2)
-          nz = dtmp%xsz(3)
-        nyst = dtmp%xst(2)
-      else if(pencil == IPENCIL(2)) then
-        call Print_warning_msg("Warning: This is for z-pencil only.")
-          nx = dtmp%ysz(1)
-          ny = dtmp%ysz(2)
-          nz = dtmp%ysz(3)
-        nyst = dtmp%yst(2)
-      else if(pencil == IPENCIL(3)) then
-          nx = dtmp%zsz(1)
-          ny = dtmp%zsz(2)
-          nz = dtmp%zsz(3)
-        nyst = dtmp%zst(2)
-      else
-          nx = 0
-          ny = 0
-          nz = 0
-        nyst = 0
       end if
+    end do
+  end subroutine multiple_cylindrical_rn
 
-      do j = 1, ny
-        jj = nyst + j - 1
+  !============================================================================
+  ! Multiply cylindrical variable by r^n (specific for xx4 configuration)
+  !============================================================================
+  subroutine multiple_cylindrical_rn_xx4(var, dtmp, r, n, pencil)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(inout)      :: var(:, :, :)
+    real(WP), intent(in)         :: r(:)
+    integer, intent(in)          :: n
+    integer, intent(in)          :: pencil
+
+    integer :: i, j, jj, nx, ny, nz, nyst
+
+    ! Initialize dimensions based on pencil
+    call get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
+
+    if (pencil /= IPENCIL(3)) then
+      call Print_warning_msg("Warning: This is for z-pencil only.")
+    end if
+
+    do j = 1, ny
+      jj = nyst + j - 1
+      if (r(jj) > (MAXP * HALF)) then
+        if (jj /= 1) call Print_error_msg("Error: r(j) = 0 at j /= 1.")
+      else
         do i = 1, nx
           var(i, j, 1) = var(i, j, 1) * (r(jj)**n)
-          var(i, j, 2) = var(i, j, 1) * (r(jj)**n)
+          var(i, j, 2) = var(i, j, 2) * (r(jj)**n)
           var(i, j, 3) = var(i, j, 1)
           var(i, j, 4) = var(i, j, 2)
         end do
-      end do
-    
-      return 
-    end subroutine
-  !==========================================================================================================
-    subroutine multiple_cylindrical_rn_x4x(var, dtmp, r, n, pencil)
-      use udf_type_mod
-      use parameters_constant_mod
-      use print_msg_mod
-      use index_mod
-      implicit none 
-      type(DECOMP_INFO), intent(in) :: dtmp
-      real(WP), intent(inout) :: var(:, :, :)
-      real(WP), intent(in) :: r(:)
-      integer, intent(in) :: n
-      integer, intent(in) :: pencil
-
-      integer :: i, k, jj, nx, ny, nz, nyst
-  
-      if(pencil == IPENCIL(1)) then
-        call Print_warning_msg("Warning: This is for y-pencil only.")
-          nx = dtmp%xsz(1)
-          ny = dtmp%xsz(2)
-          nz = dtmp%xsz(3)
-        nyst = dtmp%xst(2)
-      else if(pencil == IPENCIL(2)) then
-          nx = dtmp%ysz(1)
-          ny = dtmp%ysz(2)
-          nz = dtmp%ysz(3)
-        nyst = dtmp%yst(2)
-      else if(pencil == IPENCIL(3)) then
-        call Print_warning_msg("Warning: This is for y-pencil only.")
-          nx = dtmp%zsz(1)
-          ny = dtmp%zsz(2)
-          nz = dtmp%zsz(3)
-        nyst = dtmp%zst(2)
-      else
-        call Print_warning_msg("Warning: This is for y-pencil only.")
-          nx = 0
-          ny = 0
-          nz = 0
-        nyst = 0
       end if
+    end do
 
-      do k = 1, nz
-        do i = 1, nx
-          jj = nyst + ny - 1
+  end subroutine multiple_cylindrical_rn_xx4
+
+  !============================================================================
+  ! Multiply cylindrical variable by r^n (specific for x4x configuration)
+  !============================================================================
+  subroutine multiple_cylindrical_rn_x4x(var, dtmp, r, n, pencil)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(inout)      :: var(:, :, :)
+    real(WP), intent(in)         :: r(:)
+    integer, intent(in)          :: n
+    integer, intent(in)          :: pencil
+
+    integer :: i, k, jmax, nx, ny, nz, nyst
+
+    ! Initialize dimensions based on pencil
+    call get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
+
+    if (pencil /= IPENCIL(2)) then
+      call Print_warning_msg("Warning: This is for y-pencil only.")
+    end if
+
+    do k = 1, nz
+      do i = 1, nx
+        if (r(1) > (MAXP * HALF)) then
+          ! Axis handling using estimate_azimuthal_xpx_on_axis or estimate_radial_xpx_on_axis
+        else
           var(i, 1, k) = var(i, 1, k) * (r(1)**n)
-          var(i, 2, k) = var(i, 2, k) * (r(jj)**n)
-          var(i, 3, k) = var(i, 1, k)
-          var(i, 4, k) = var(i, 2, k)
-        end do
-      end do 
-    
-      return 
-    end subroutine
+        end if
+        jmax = nyst + ny - 1
+        var(i, 2, k) = var(i, 2, k) * (r(jmax)**n)
+        var(i, 3, k) = var(i, 1, k)
+        var(i, 4, k) = var(i, 2, k)
+      end do
+    end do
 
-end module 
+  end subroutine multiple_cylindrical_rn_x4x
+
+  !============================================================================
+  ! Helper subroutine: Get dimensions based on pencil
+  !============================================================================
+  subroutine get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    integer, intent(in)          :: pencil
+    integer, intent(out)         :: nx, ny, nz, nyst
+
+    select case (pencil)
+      case (IPENCIL(1))
+        nx = dtmp%xsz(1)
+        ny = dtmp%xsz(2)
+        nz = dtmp%xsz(3)
+        nyst = dtmp%xst(2)
+      case (IPENCIL(2))
+        nx = dtmp%ysz(1)
+        ny = dtmp%ysz(2)
+        nz = dtmp%ysz(3)
+        nyst = dtmp%yst(2)
+      case (IPENCIL(3))
+        nx = dtmp%zsz(1)
+        ny = dtmp%zsz(2)
+        nz = dtmp%zsz(3)
+        nyst = dtmp%zst(2)
+      case default
+        nx = 0
+        ny = 0
+        nz = 0
+        nyst = 0
+    end select
+  end subroutine get_dimensions
+
+  !============================================================================
+  ! Helper subroutine: Transpose input data to y-pencil
+  !============================================================================
+  subroutine transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(in)         :: var(:, :, :)
+    real(WP), intent(out)        :: var_ypencil(:, :, :)
+    integer, intent(in)          :: pencil
+
+    select case (pencil)
+      case (IPENCIL(1))
+        call transpose_x_to_y(var, var_ypencil, dtmp)
+      case (IPENCIL(2))
+        var_ypencil = var
+      case (IPENCIL(3))
+        call transpose_z_to_y(var, var_ypencil, dtmp)
+      case default
+        ! Handle invalid pencil case (optional: add error handling)
+    end select
+  end subroutine transpose_to_y_pencil
+  !============================================================================
+  ! Helper subroutine: Transpose input data to z-pencil
+  !============================================================================
+  subroutine transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(in)         :: var(:, :, :)
+    real(WP), intent(out)        :: var_zpencil(:, :, :)
+    integer, intent(in)          :: pencil
+
+    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
+
+    select case (pencil)
+      case (IPENCIL(1))
+        call transpose_x_to_y(var, var_ypencil, dtmp)
+        call transpose_y_to_z(var_ypencil, var_zpencil, dtmp)
+      case (IPENCIL(2))
+        call transpose_y_to_z(var, var_zpencil, dtmp)
+      case (IPENCIL(3))
+        var_zpencil = var
+      case default
+        ! Handle invalid pencil case (optional: add error handling)
+    end select
+  end subroutine transpose_to_z_pencil
+  !============================================================================
+  ! Helper subroutine: Transpose data from z-pencil back to original pencil
+  !============================================================================
+  subroutine transpose_from_z_pencil(var_zpencil, var, dtmp, pencil)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(in)         :: var_zpencil(:, :, :)
+    real(WP), intent(out)        :: var(:, :, :)
+    integer, intent(in)          :: pencil
+
+    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
+
+    select case (pencil)
+      case (IPENCIL(1))
+        call transpose_z_to_y(var_zpencil, var_ypencil, dtmp)
+        call transpose_y_to_x(var_ypencil, var, dtmp)
+      case (IPENCIL(2))
+        call transpose_z_to_y(var_zpencil, var, dtmp)
+      case (IPENCIL(3))
+        var = var_zpencil
+      case default
+        ! Handle invalid pencil case (optional: add error handling)
+    end select
+  end subroutine transpose_from_z_pencil
+
+  !============================================================================
+  ! Helper subroutine: Transpose data from y-pencil back to original pencil
+  !============================================================================
+  subroutine transpose_from_y_pencil(var_ypencil, var, dtmp, pencil)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(in)         :: var_ypencil(:, :, :)
+    real(WP), intent(out)        :: var(:, :, :)
+    integer, intent(in)          :: pencil
+
+    select case (pencil)
+      case (IPENCIL(1))
+        call transpose_y_to_x(var_ypencil, var, dtmp)
+      case (IPENCIL(2))
+        var = var_ypencil
+      case (IPENCIL(3))
+        call transpose_y_to_z(var_ypencil, var, dtmp)
+      case default
+        ! Handle invalid pencil case (optional: add error handling)
+    end select
+  end subroutine transpose_from_y_pencil
+
+end module cylindrical_rn_mod
 !==========================================================================================================
 !==========================================================================================================
   subroutine profile_interpolation(nin, yin, uin, nout, ycase, ucase)
@@ -994,13 +1133,41 @@ end module
 
 
 module find_max_min_ave_mod
-  use index_mod
+  
 
   public  :: Get_volumetric_average_3d_for_var_xcx
   public  :: Find_maximum_absvar3d
   public  :: Find_max_min_3d
   public  :: Find_max_min_absvar3d
+  public  :: is_large_number_3D
 contains
+!==========================================================================================================
+  subroutine is_valid_number_3D(var, varname)
+    use parameters_constant_mod
+    use ieee_arithmetic
+    implicit none
+
+    real(WP), intent(in) :: var(:, :, :)
+    character(len=*), intent(in) :: varname
+    integer :: nx, ny, nz
+
+    nx = size(var, 1)
+    ny = size(var, 2)
+    nz = size(var, 3)
+
+    ! Check for large numbers
+    if (maxval(dabs(var)) > 1.0e+10) then
+        write(*,*) 'Large number detected (nrank=', nrank, ') in ', trim(varname)
+        stop 'A large number is found. Stopping execution.'
+    end if
+
+    ! Check for NaN values
+    if (any(ieee_is_nan(var))) then
+        write(*,*) 'NaN detected (nrank=', nrank, ') in ', trim(varname)
+        stop 'NaN is found. Stopping execution.'
+    end if
+
+  end subroutine is_valid_number_3D
 !==========================================================================================================
   subroutine Find_maximum_absvar3d(var,  varmax_work, dtmp, str, fmt)
     use precision_mod
@@ -1205,7 +1372,7 @@ contains
     use parameters_constant_mod
     use decomp_2d
     use wtformat_mod
-    use index_mod
+    
     implicit none
     type(t_domain),  intent(in) :: dm
     type(DECOMP_INFO), intent(in) :: dtmp

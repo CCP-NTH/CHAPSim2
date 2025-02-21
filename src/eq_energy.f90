@@ -283,8 +283,14 @@ contains
     ! end if
     !------bulk------
     apcc_xpencil = - fl%gx * hEnth_pcc_xpencil
+    !------b.c.------
+    if(is_fbcx_velo_required) then
+      call extract_dirichlet_fbcx(fbcx_4cc, apcc_xpencil, dm%dpcc)
+    else
+      fbcx_4cc = MAXP
+    end if
     !------PDE------
-    call Get_x_1der_P2C_3D(apcc_xpencil, accc_xpencil, dm, dm%iAccuracy, ebcx_conv)!, fbcx_4cc) 
+    call Get_x_1der_P2C_3D(apcc_xpencil, accc_xpencil, dm, dm%iAccuracy, ebcx_conv, fbcx_4cc) 
     tm%ene_rhs = tm%ene_rhs + accc_xpencil
 
 #ifdef DEBUG_STEPS
@@ -295,9 +301,16 @@ contains
 !----------------------------------------------------------------------------------------------------------
     !------bulk------
     acpc_ypencil = - gy_cpc_ypencil * hEnth_cpc_ypencil
+    !------b.c.------
+    if(is_fbcy_velo_required) then
+      call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm)
+    else
+      fbcy_c4c = MAXP
+    end if
     !------PDE------
-    call Get_y_1der_P2C_3D(acpc_ypencil, accc_ypencil, dm, dm%iAccuracy, ebcy_conv)
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(accc_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
+    call Get_y_1der_P2C_3D(acpc_ypencil, accc_ypencil, dm, dm%iAccuracy, ebcy_conv, fbcy_c4c)
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(accc_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
     ene_rhs_ccc_ypencil = ene_rhs_ccc_ypencil + accc_ypencil
 
 #ifdef DEBUG_STEPS
@@ -308,10 +321,17 @@ contains
 !----------------------------------------------------------------------------------------------------------
     !------bulk------
     accp_zpencil = - gz_ccp_zpencil * hEnth_ccp_zpencil
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+    if(is_fbcz_velo_required) then
+      call extract_dirichlet_fbcz(fbcz_cc4, accp_zpencil, dm%dccp)
+    else
+      fbcz_cc4 = MAXP
+    end if
     !------PDE------
-    call Get_z_1der_P2C_3D( accp_zpencil, accc_zpencil, dm, dm%iAccuracy, ebcz_conv)
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(accc_zpencil, dm%dccc, dm%rci, 1, IPENCIL(3))
+    call Get_z_1der_P2C_3D( accp_zpencil, accc_zpencil, dm, dm%iAccuracy, ebcz_conv, fbcz_cc4)
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(accc_zpencil, dm%dccc, dm%rci, 1, IPENCIL(3))
     ene_rhs_ccc_zpencil = ene_rhs_ccc_zpencil + accc_zpencil
 
 #ifdef DEBUG_STEPS
@@ -350,16 +370,18 @@ contains
     write(*,*) 'diy-dT', acpc_ypencil(4, 1:4, 4)
     write(*,*) 'dify-k', kCond_cpc_ypencil(4, 1:4, 4)
 #endif
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rp, 1, IPENCIL(2))
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rp, 1, IPENCIL(2))
     !------B.C.------
     if(is_fbcx_velo_required) then
-      call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc)
+      call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm)
     else
       fbcy_c4c = MAXP
     end if  
     !------PDE------
     call Get_y_1der_P2C_3D(acpc_ypencil, accc_ypencil, dm, dm%iAccuracy, ebcy_difu, fbcy_c4c) ! check, dirichlet, r treatment
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(accc_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(accc_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
     ene_rhs_ccc_ypencil = ene_rhs_ccc_ypencil + accc_ypencil * tm%rPrRen
     
 #ifdef DEBUG_STEPS
@@ -372,10 +394,17 @@ contains
     call get_fbcz_iTh(dm%ibcz_Tm, dm, fbcz_cc4)
     call Get_z_1der_C2P_3D(tTemp_ccc_zpencil, accp_zpencil, dm, dm%iAccuracy, dm%ibcz_Tm, fbcz_cc4 )
     accp_zpencil = accp_zpencil * kCond_ccp_zpencil
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+    if(is_fbcz_velo_required) then
+      call extract_dirichlet_fbcz(fbcz_cc4, accp_zpencil, dm%dccp)
+    else
+      fbcz_cc4 = MAXP
+    end if  
     !------PDE------
-    call Get_z_1der_P2C_3D(accp_zpencil, accc_zpencil, dm, dm%iAccuracy, ebcz_difu)
-    if(dm%icoordinate == ICYLINDRICAL) call multiple_cylindrical_rn(accc_zpencil, dm%dccc, dm%rci, 1, IPENCIL(3))
+    call Get_z_1der_P2C_3D(accp_zpencil, accc_zpencil, dm, dm%iAccuracy, ebcz_difu, fbcz_cc4)
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(accc_zpencil, dm%dccc, dm%rci, 1, IPENCIL(3))
     ene_rhs_ccc_zpencil = ene_rhs_ccc_zpencil + accc_zpencil * tm%rPrRen
     
 #ifdef DEBUG_STEPS

@@ -221,7 +221,7 @@ contains
     integer :: ibcx(2), ibcz(2)
     integer :: nx, ny, nz, np
     integer :: j, i, k, ii, kk
-    real(WP) :: dyfi(dm%nc(2)), dyci(dm%np_geo(2)) 
+    !real(WP) :: dyfi(dm%nc(2)), dyci(dm%np_geo(2)) 
     !-----------------------------------------------------------
     ! assign key info from domain
     !-----------------------------------------------------------
@@ -327,23 +327,23 @@ contains
     !-----------------------------------------------------------
     ! data check
     !-----------------------------------------------------------
-    if(nrank == 0) then
-      open(221, file = trim(dir_chkp)//'/check_mesh_dyfi.dat')
-      write(221, *) 'index, dyfi'
-      do j = 1, dm%nc(2)
-        write (221, *) j, dyfi(j)
-      end do
-      open(223, file = trim(dir_chkp)//'/check_mesh_dyci.dat')
-      write(223, *) 'index, dyci'
-      do j = 1, dm%np_geo(2)
-        write (223, *) j, dyci(j)
-      end do
-      open(224, file = trim(dir_chkp)//'/check_mesh_abc.dat')
-      write(224, *) 'index, a, b, c'
-      do j = 1, dm%nc(2)
-        write (224, *) j, a(j), b(j), c(j)
-      end do
-    end if
+    ! if(nrank == 0) then
+    !   open(221, file = trim(dir_chkp)//'/check_mesh_dyfi.dat')
+    !   write(221, *) 'index, dyfi'
+    !   do j = 1, dm%nc(2)
+    !     write (221, *) j, dyfi(j)
+    !   end do
+    !   open(223, file = trim(dir_chkp)//'/check_mesh_dyci.dat')
+    !   write(223, *) 'index, dyci'
+    !   do j = 1, dm%np_geo(2)
+    !     write (223, *) j, dyci(j)
+    !   end do
+    !   open(224, file = trim(dir_chkp)//'/check_mesh_abc.dat')
+    !   write(224, *) 'index, a, b, c'
+    !   do j = 1, dm%nc(2)
+    !     write (224, *) j, a(j), b(j), c(j)
+    !   end do
+    ! end if
     
 
   return
