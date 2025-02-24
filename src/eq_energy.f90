@@ -101,7 +101,7 @@ contains
        dm%dcpc%yen(2) == dm%np(2)) then 
       do i = 1, size(dm%fbcy_ftp, 1)
         do k = 1, size(dm%fbcy_ftp, 3)
-          ftp%rhoh = dh_cpc_ypencil(i, dm%np(1), k)
+          ftp%rhoh = dh_cpc_ypencil(i, dm%np(2), k)
           call ftp_refresh_thermal_properties_from_DH(ftp)
           dm%fbcy_ftp(i, 2, k) = ftp
           dm%fbcy_ftp(i, 4, k) = ftp

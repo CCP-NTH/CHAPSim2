@@ -706,6 +706,8 @@ contains
       call transpose_x_to_y(apcc_xpencil, apcc_ypencil, dm%dpcc)
       call transpose_y_to_z(apcc_ypencil, apcc_zpencil, dm%dpcc)
       call Get_z_midp_C2P_3D(apcc_zpencil, muixz_pcp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp)!, fbcz_pc4)
+      call transpose_z_to_y(muixz_pcp_zpencil, apcp_ypencil, dm%dpcp)
+      call transpose_y_to_x(apcp_ypencil, muixz_pcp_xpencil, dm%dpcp)
 
       !call Get_y_midp_C2P_3D(mu_ccc_ypencil, acpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp, fbcy_c4c) ! acpc_ypencil = muiy_cpc_ypencil
       call transpose_y_to_z(acpc_ypencil, acpc_zpencil, dm%dcpc) !muiy_cpc_zpencil
@@ -1491,6 +1493,10 @@ contains
 !----------------------------------------------------------------------------------------------------------
     call Get_z_1der_C2P_3D( -pres_zpencil, accp_zpencil, dm, dm%iAccuracy, dm%ibcz_pr, -dm%fbcz_pr)
     mz_rhs_pfc_zpencil =  mz_rhs_pfc_zpencil + accp_zpencil
+#ifdef DEBUG_STEPS
+      write(*,*) 'pz-31', mz_rhs_pfc_zpencil(1, 1:4, 1)
+      call is_valid_number_3D(mz_rhs_pfc_zpencil, 'pz-31')
+#endif
 !----------------------------------------------------------------------------------------------------------
 ! Z-mom gravity in z direction, Z-pencil
 !----------------------------------------------------------------------------------------------------------
@@ -1498,12 +1504,20 @@ contains
       fbcz_cc4(:, :, :) = dm%fbcz_ftp(:, :, :)%d
       call Get_z_midp_C2P_3D(dDens_zpencil, accp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp, fbcz_cc4 )
       mz_rhs_pfc_zpencil =  mz_rhs_pfc_zpencil + fl%fgravity(i) * accp_zpencil
+#ifdef DEBUG_STEPS
+      write(*,*) 'pz-32', mz_rhs_pfc_zpencil(1, 1:4, 1)
+      call is_valid_number_3D(mz_rhs_pfc_zpencil, 'pz-32')
+#endif
     end if
 !----------------------------------------------------------------------------------------------------------
 ! Z-mom Lorentz Force in z direction, x-pencil
 !----------------------------------------------------------------------------------------------------------
     if(dm%is_mhd) then
       mz_rhs_pfc_xpencil = mz_rhs_pfc_xpencil + fl%lrfz
+#ifdef DEBUG_STEPS
+      write(*,*) 'pz-33', mz_rhs_pfc_xpencil(1, 1:4, 1)
+      call is_valid_number_3D(mz_rhs_pfc_xpencil, 'pz-33')
+#endif
     end if
 !----------------------------------------------------------------------------------------------------------
 ! Z-mom diffusion term 1/4  at (i, j, k')
