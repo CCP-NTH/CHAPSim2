@@ -22,8 +22,11 @@ module io_visualisation_mod
   integer, allocatable :: nnd_visu(:, :)
   integer, allocatable :: ncl_visu(:, :)
 
-  real(WP), allocatable :: xp(:), yp(:), zp(:)
-
+  !real(WP), allocatable :: xp(:), yp(:), zp(:)
+  real(WP), allocatable :: rp(:, :, :), ta(:, :, :)
+  real(WP), allocatable :: xp(:, :, :), yp(:, :, :), zp(:, :, :)
+  real(WP), allocatable :: xp1(:), yp1(:), zp1(:)
+  character(120):: grids_filename = "geometry_data.dat"
   !character(6)  :: svisudim
 
   private :: write_visu_headerfooter
@@ -40,8 +43,6 @@ module io_visualisation_mod
 
   public  :: write_visu_stats_flow
   public  :: write_visu_stats_thermo
-  
-  
   
 contains
 
@@ -101,7 +102,6 @@ contains
         if (nrank == 0) call Print_debug_mid_msg("Error: Invalid direction in process_and_write_field.")
     end select
   end subroutine process_and_write_field
-
 !==========================================================================================================
 ! xszV means:
 ! x - xpencil, could also be y, z
@@ -114,11 +114,11 @@ contains
     use parameters_constant_mod, only: MAXP
     use decomp_2d, only: xszV, yszV, zszV
     use io_files_mod
+    use math_mod
     implicit none 
     type(t_domain), intent(in) :: dm
 
     integer :: i, j ,k
-    
     character(120):: grid_flname
     character(120):: keyword
     integer :: iogrid
@@ -214,51 +214,115 @@ contains
 !     !   end do
 !     ! end if
 !----------------------------------------------------------------------------------------------------------
-! write grids
+! calculated structured grids geometry - Cartesian Coordinates
 !----------------------------------------------------------------------------------------------------------    
     nnd_visu(1:3, dm%idom) = dm%np_geo(1:3)
     ncl_visu(1:3, dm%idom) = dm%nc(1:3)
     if(nrank == 0) then
+      if(dm%icoordinate == ICARTESIAN) then
+        if(.not. allocated(xp)) allocate ( xp1(nnd_visu(1, dm%idom)))
+        if(.not. allocated(yp)) allocate ( yp1(nnd_visu(2, dm%idom)))
+        if(.not. allocated(zp)) allocate ( zp1(nnd_visu(3, dm%idom)))
+        xp1 = MAXP
+        yp1 = MAXP
+        zp1 = MAXP
 
-      if(.not. allocated(xp)) allocate ( xp(nnd_visu(1, dm%idom)))
-      if(.not. allocated(yp)) allocate ( yp(nnd_visu(2, dm%idom)))
-      if(.not. allocated(zp)) allocate ( zp(nnd_visu(3, dm%idom)))
+        do i = 1, nnd_visu(1, dm%idom)
+          xp1(i) = real(i-1, WP) * dm%h(1)
+        enddo
+        do j = 1, nnd_visu(2, dm%idom)
+          if(dm%is_stretching(2)) then 
+            yp1(j) = dm%yp(j)
+          else 
+            yp1(j) = real(j-1, WP) * dm%h(2)
+          end if
+        end do
+        do k = 1, nnd_visu(3, dm%idom)
+          zp1(k) = real(k-1, WP) * dm%h(3)
+        enddo
+      end if
+!----------------------------------------------------------------------------------------------------------
+! calculated structured grids geometry - Cylindrical Coordinates
+!---------------------------------------------------------------------------------------------------------- 
+      if(dm%icoordinate == ICYLINDRICAL) then
+        if(.not. allocated(xp)) allocate ( xp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
+        if(.not. allocated(yp)) allocate ( yp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
+        if(.not. allocated(zp)) allocate ( zp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
+        if(.not. allocated(rp)) allocate ( rp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
+        if(.not. allocated(ta)) allocate ( ta(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
+        rp = MAXP
+        ta = MAXP
+        xp = MAXP
+        yp = MAXP
+        zp = MAXP
 
-      xp = MAXP
-      yp = MAXP
-      zp = MAXP
+        do i = 1, nnd_visu(1, dm%idom)
+          xp(i, :, :) = real(i-1, WP) * dm%h(1)
+        enddo
+        do j = 1, nnd_visu(2, dm%idom)
+          if(dm%is_stretching(2)) then 
+            yp(:, j, :) = dm%yp(j)
+          else 
+            yp(:, j, :) = real(j-1, WP) * dm%h(2)
+          end if
+        end do
+        do k = 1, nnd_visu(3, dm%idom)
+          zp(:, :, k) = real(k-1, WP) * dm%h(3)
+        enddo
 
-      do i = 1, nnd_visu(1, dm%idom)
-        xp(i) = real(i-1, WP) * dm%h(1)
-      enddo
-      do j = 1, nnd_visu(2, dm%idom)
-        if(dm%is_stretching(2)) then 
-          yp(j) = dm%yp(j)
-        else 
-          yp(j) = real(j-1, WP) * dm%h(2)
-        end if
-      end do
-      do k = 1, nnd_visu(3, dm%idom)
-        zp(k) = real(k-1, WP) * dm%h(3)
-      enddo
+        rp(:, :, :) = yp(:, :, :) 
+        ta(:, :, :) = zp(:, :, :) 
+        do k = 1, nnd_visu(3, dm%idom)
+          do j = 1, nnd_visu(2, dm%idom)
+            do i = 1, nnd_visu(1, dm%idom)
+              zp(i, j, k) = rp(i, j, k) * dcos(ta(i, j, k))
+              yp(i, j, k) = rp(i, j, k) * dsin(ta(i, j, k))
+            end do
+          end do
+        end do
+      end if
+!----------------------------------------------------------------------------------------------------------
+! write grids - Cartesian Coordinates, well-structured rectangular grid
+!---------------------------------------------------------------------------------------------------------- 
+      if(dm%icoordinate == ICARTESIAN) then
+        keyword = "grid_x"
+        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
+        open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
+        write(iogrid, *) xp1
+        close(iogrid)
 
-      keyword = "grid_x"
-      call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
-      open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
-      write(iogrid, *) xp
-      close(iogrid)
+        keyword = "grid_y"
+        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
+        open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
+        write(iogrid, *) yp1
+        close(iogrid)
 
-      keyword = "grid_y"
-      call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
-      open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
-      write(iogrid, *) yp
-      close(iogrid)
-
-      keyword = "grid_z"
-      call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
-      open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
-      write(iogrid, *) zp
-      close(iogrid)
+        keyword = "grid_z"
+        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
+        open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
+        write(iogrid, *) zp1
+        close(iogrid)
+      end if
+!----------------------------------------------------------------------------------------------------------
+! write grids - Cylindrical Coordinates, well-structured non-rectangular grid
+!---------------------------------------------------------------------------------------------------------- 
+      if(dm%icoordinate == ICYLINDRICAL) then
+        keyword = "grids"
+        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
+        open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
+        do k = 1, nnd_visu(3, dm%idom)
+          do j = 1, nnd_visu(2, dm%idom)
+            do i = 1, nnd_visu(1, dm%idom)
+              write(iogrid, *) xp(i, j, k), yp(i, j, k), zp(i, j, k)
+            end do
+          end do
+        end do
+        close(iogrid)
+      end if
+    ! ! Write XDMF header 
+    ! call write_visu_headerfooter(dm, 'grid', XDMF_HEADER, 0)
+    ! ! Write XDMF footer
+    ! call write_visu_headerfooter(dm, 'grid', XDMF_FOOTER, 0)
 
     end if
 
@@ -276,6 +340,7 @@ contains
     use decomp_2d_constants, only: mytype
     use decomp_2d_mpi
     use io_files_mod
+    use typeconvert_mod
     implicit none 
     integer, intent(in)        :: iheadfoot
     integer, intent(in)        :: iter
@@ -284,12 +349,11 @@ contains
 
     character(120):: keyword
     character(120):: visu_flname
-    !character(120):: grid_flname(3)
-    !character(1)  :: str(3)
+    character(12):: istr(3)
 
     integer :: ioxdmf
     
-    !integer :: i, j, k
+    integer :: nsz, i, j, k
     if(nrank /= 0) return
 !----------------------------------------------------------------------------------------------------------
 ! visu file name
@@ -297,53 +361,57 @@ contains
     keyword = trim(visuname)
     call generate_pathfile_name(visu_flname, dm%idom, keyword, dir_visu, 'xdmf', iter)
     open(newunit = ioxdmf, file = trim(visu_flname), action = "write", position="append")
+    nsz = nnd_visu(3, dm%idom) * nnd_visu(2, dm%idom) * nnd_visu(1, dm%idom)
 !----------------------------------------------------------------------------------------------------------
 ! xdmf head
 !----------------------------------------------------------------------------------------------------------
     if(iheadfoot == XDMF_HEADER) then
-!----------------------------------------------------------------------------------------------------------
-! grid file
-! to do: check why the binary/ascii file does not work.
-!----------------------------------------------------------------------------------------------------------
-      ! str(1) = "x"
-      ! str(2) = "y"
-      ! str(3) = "z"
-      ! do i = 1, 3
-      !   keyword = trim(svisudim)//"_grid_"//trim(str(i))
-      !   call generate_file_name(grid_flname(i), dm%idom, keyword, 'dat')
-      !   if(.not.file_exists(trim(trim(dir_visu)//"/"//trim(grid_flname(i))))) then
-      !     call Print_error_msg("Mesh file for visu does not exist. Filename = "//trim(trim(dir_visu)//"/"//trim(grid_flname(i))))
-      !   end if
-      ! end do
-
+      istr(1) = trim(int2str(nnd_visu(1, dm%idom)))
+      istr(2) = trim(int2str(nnd_visu(2, dm%idom)))
+      istr(3) = trim(int2str(nnd_visu(3, dm%idom)))
 !----------------------------------------------------------------------------------------------------------
 ! write header
 ! geometry is based on node coordinates
 ! to do: write mesh into mesh.bin 
 !----------------------------------------------------------------------------------------------------------
+      ! Write XDMF header
       write(ioxdmf, '(A)')'<?xml version="1.0" ?>'
-      write(ioxdmf, '(A)')'<!DOCTYPE Xdmf SYSTEM "Xdmf.dtd" []>'
-      write(ioxdmf, '(A)')'<Xdmf xmlns:xi="http://www.w3.org/2001/XInclude" Version="2.0">'
+      write(ioxdmf, '(A)')'<Xdmf Version="3.0">'
       write(ioxdmf, *)' <Domain>'
       write(ioxdmf, *)'   <Grid Name="'//trim(keyword)//'" GridType="Uniform">'
-      write(ioxdmf, *)'     <Topology name="topo" TopologyType="3DRectMesh"'
-      write(ioxdmf, *)'        Dimensions="', nnd_visu(3, dm%idom), nnd_visu(2, dm%idom), nnd_visu(1, dm%idom),'">'
-      write(ioxdmf, *)'     </Topology>'
-      write(ioxdmf, *)'     <Geometry name="geo" GeometryType="VXVYVZ">'
-      write(ioxdmf, *)'        <DataItem Format="XML"'
-      write(ioxdmf, *)'            NumberType="Float" Precision="8" '
-      write(ioxdmf, *)'            Dimensions="', nnd_visu(1, dm%idom), '">'
-      write(ioxdmf, *)'              ', xp(1:nnd_visu(1, dm%idom))
-      write(ioxdmf, *)'        </DataItem>'
-      write(ioxdmf, *)'        <DataItem Format="XML"'
-      write(ioxdmf, *)'            NumberType="Float" Precision="8" '
-      write(ioxdmf, *)'            Dimensions="', nnd_visu(2, dm%idom), '">'
-      write(ioxdmf, *)'              ', yp(1:nnd_visu(2, dm%idom))
-      write(ioxdmf, *)'        </DataItem>'
-      write(ioxdmf, *)'        <DataItem Format="XML"'
-      write(ioxdmf, *)'            NumberType="Float" Precision="8" '
-      write(ioxdmf, *)'            Dimensions="', nnd_visu(3, dm%idom), '">'
-      write(ioxdmf, *)'              ', zp(1:nnd_visu(3, dm%idom))
+      
+      if(dm%icoordinate == ICARTESIAN) then
+        ! Write topology
+        write(ioxdmf, *)'     <Topology TopologyType="3DRectMesh" Dimensions="&
+                                '//trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
+        write(ioxdmf, *)'     </Topology>'
+        ! Write geometry
+        write(ioxdmf, *)'     <Geometry GeometryType="VXVYVZ">'
+        write(ioxdmf, *)'        <DataItem Format="XML" NumberType="Float" Precision="8" Dimensions="'//trim(istr(1))//'">'
+        write(ioxdmf, *)'         ', xp1(1:nnd_visu(1, dm%idom))
+        write(ioxdmf, *)'        </DataItem>'
+        write(ioxdmf, *)'        <DataItem Format="XML" NumberType="Float" Precision="8" Dimensions="'//trim(istr(2))//'">'
+        write(ioxdmf, *)'         ', yp1(1:nnd_visu(2, dm%idom))
+        write(ioxdmf, *)'        </DataItem>'
+        write(ioxdmf, *)'        <DataItem Format="XML" NumberType="Float" Precision="8" Dimensions="'//trim(istr(3))//'">'
+        write(ioxdmf, *)'         ', zp1(1:nnd_visu(3, dm%idom))
+      end if
+      if(dm%icoordinate == ICYLINDRICAL) then
+        ! Write topology
+        write(ioxdmf, *)'     <Topology TopologyType="3DSMesh" Dimensions="&
+                                '//trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
+        write(ioxdmf, *)'     </Topology>'
+        ! Write geometry
+        write(ioxdmf, *)'     <Geometry GeometryType="XYZ">'
+        write(ioxdmf, *)'        <DataItem Dimensions="' // trim(int2str(nsz)) // ' 3" NumberType="Float" Precision="8" Format="XML">'
+        do k = 1, nnd_visu(3, dm%idom)
+          do j = 1, nnd_visu(2, dm%idom)
+            do i = 1, nnd_visu(1, dm%idom)
+              write(ioxdmf, *) xp(i, j, k), yp(i, j, k), zp(i, j, k)
+            end do
+          end do
+        end do
+      end if  
       write(ioxdmf, *)'        </DataItem>'
       write(ioxdmf, *)'      </Geometry>'
     else if (iheadfoot == XDMF_FOOTER) then 
@@ -365,6 +433,7 @@ contains
     use udf_type_mod, only: t_domain
     use io_files_mod
     use decomp_operation_mod
+    use typeconvert_mod
     implicit none
     type(t_domain), intent(in) :: dm
     real(WP), contiguous, intent(in) :: var(:, :, :)
@@ -379,7 +448,7 @@ contains
     character(120):: data_flname_path
     character(120):: visu_flname_path
     character(120):: keyword
-    integer :: nsz(3)
+    integer :: nsz(3), nsz0
     integer :: ioxdmf
 
     if((.not. is_same_decomp(dtmp, dm%dccc))) then
@@ -420,15 +489,15 @@ contains
         nsz(1:3) = nnd_visu(1:3, dm%idom)
       else
       end if
+      nsz0 = nsz(1) * nsz(2) * nsz(3)
       write(ioxdmf, *)'      <Attribute Name="'//trim(varname)// &
                             '" AttributeType="'//trim(attributetype)// &
                             '" Center="'//trim(centring)//'">'
-      write(ioxdmf, *)'           <DataItem Format="Binary"'
-      write(ioxdmf, *)'            NumberType="Float" Precision="8" Endian="little" Seek="0"'
-      write(ioxdmf, *)'            Dimensions="', nsz(3), nsz(2), nsz(1), '">'
+      write(ioxdmf, *)'        <DataItem Dimensions="' // trim(int2str(nsz0)) // &
+                                '" NumberType="Float" Precision="8" Format="Binary">'
       write(ioxdmf, *)'              '//"../"//trim(data_flname_path)
-      write(ioxdmf, *)'           </DataItem>'
-      write(ioxdmf, *)'        </Attribute>'
+      write(ioxdmf, *)'        </DataItem>'
+      write(ioxdmf, *)'       </Attribute>'
       close(ioxdmf)
     end if
 
@@ -444,6 +513,7 @@ contains
     use udf_type_mod, only: t_domain
     use io_files_mod
     use decomp_operation_mod
+    use typeconvert_mod
     implicit none
     type(t_domain), intent(in) :: dm
     real(WP), intent(in) :: var(:)
