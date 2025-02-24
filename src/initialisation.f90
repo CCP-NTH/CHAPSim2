@@ -287,7 +287,7 @@ contains
       a = (ymax - ymin)
       b = ZERO
       c = TWO
-    else if (dm%icase == ICASE_ANNUAL) then
+    else if (dm%icase == ICASE_ANNULAR) then
       a = (ymax - ymin) * HALF
       b = (ymax + ymin) * HALF
       c = TWO

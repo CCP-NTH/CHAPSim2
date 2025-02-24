@@ -50,8 +50,8 @@ contains
       str = 'Channel flow'
     case ( ICASE_PIPE )
       str = 'Pipe flow'
-    case ( ICASE_ANNUAL )
-      str = 'Annual flow'
+    case ( ICASE_ANNULAR )
+      str = 'Annular flow'
     case ( ICASE_TGV2D )
       str = '2D Taylor Green Vortex'
     case ( ICASE_TGV3D )
@@ -370,7 +370,7 @@ contains
             domain(i)%lyb = ZERO
             domain(i)%lyt = ONE
             domain(i)%lzz = TWOPI
-          else if (domain(i)%icase == ICASE_ANNUAL) then
+          else if (domain(i)%icase == ICASE_ANNULAR) then
             domain(i)%lyt = ONE
             domain(i)%lzz = TWOPI
           else if (domain(i)%icase == ICASE_TGV2D .or. domain(i)%icase == ICASE_TGV3D) then
@@ -397,7 +397,7 @@ contains
           !----------------------------------------------------------------------------------------------------------
           if (domain(i)%icase == ICASE_PIPE) then
             domain(i)%icoordinate = ICYLINDRICAL
-          else if (domain(i)%icase == ICASE_ANNUAL) then
+          else if (domain(i)%icase == ICASE_ANNULAR) then
             domain(i)%icoordinate = ICYLINDRICAL
           else 
             domain(i)%icoordinate = ICARTESIAN
@@ -532,7 +532,7 @@ contains
 
             if(nrank == 0) call Print_warning_msg ("Grids are not near-wall clustered.")
 
-          else if (domain(i)%icase == ICASE_ANNUAL .and. &
+          else if (domain(i)%icase == ICASE_ANNULAR .and. &
                    domain(i)%istret /= ISTRET_2SIDES .and. &
                    domain(i)%istret /= ISTRET_NO) then
 
@@ -639,7 +639,7 @@ contains
           flow(i)%init_velo3d(1:3) = flow(1)%init_velo3d(1:3)
 
           if(domain(i)%icase /= ICASE_CHANNEL .and. &
-             domain(i)%icase /= ICASE_ANNUAL  .and. &
+             domain(i)%icase /= ICASE_ANNULAR  .and. &
              domain(i)%icase /= ICASE_PIPE ) then
             flow(i)%idriven = IDRVF_NO
           end if
