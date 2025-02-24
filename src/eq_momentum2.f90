@@ -295,8 +295,8 @@ contains
 
     real(WP), dimension( 4, dm%dppc%xsz(2), dm%dppc%xsz(3) ) :: fbcx_4pc 
     real(WP), dimension( 4, dm%dpcp%xsz(2), dm%dpcp%xsz(3) ) :: fbcx_4cp
-    real(WP), dimension( dm%dpcp%xsz(1), dm%dpcp%xsz(2), 4 ) :: fbcz_pc4 
-    real(WP), dimension( dm%dppp%xsz(1), dm%dppp%xsz(2), 4 ) :: fbcz_cp4
+    real(WP), dimension( dm%dpcp%zsz(1), dm%dpcp%zsz(2), 4 ) :: fbcz_pc4 
+    real(WP), dimension( dm%dppp%zsz(1), dm%dppp%zsz(2), 4 ) :: fbcz_cp4
     real(WP), dimension( dm%dppc%ysz(1), 4, dm%dppc%ysz(3) ) :: fbcy_p4c
     real(WP), dimension( dm%dcpp%ysz(1), 4, dm%dcpp%ysz(3) ) :: fbcy_c4p, fbcy_c4p1
     

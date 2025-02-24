@@ -366,9 +366,9 @@ contains
     !real(WP)   :: divmax 
 
     if(present(str0)) then
-      str = trim(str0)//' iter '//int2str(iter)
+      str = trim(str0)//'_iter_'//int2str(iter)
     else
-      str = ' iter '//int2str(iter)
+      str = '_iter_'//int2str(iter)
     end if
 
     fl%pcor = ZERO

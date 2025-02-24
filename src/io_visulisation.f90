@@ -490,11 +490,20 @@ contains
       else
       end if
       nsz0 = nsz(1) * nsz(2) * nsz(3)
+
+      if(dm%icoordinate == ICARTESIAN) then
+        keyword = trim(int2str(nsz(3)))//' '//trim(int2str(nsz(2)))//' '//trim(int2str(nsz(1)))
+      end if
+      if(dm%icoordinate == ICYLINDRICAL) then
+        !keyword = trim(int2str(nsz0))//' 3'
+        keyword = trim(int2str(nsz(3)))//' '//trim(int2str(nsz(2)))//' '//trim(int2str(nsz(1)))
+      end if  
+
       write(ioxdmf, *)'      <Attribute Name="'//trim(varname)// &
                             '" AttributeType="'//trim(attributetype)// &
                             '" Center="'//trim(centring)//'">'
-      write(ioxdmf, *)'        <DataItem Dimensions="' // trim(int2str(nsz0)) // &
-                                '" NumberType="Float" Precision="8" Format="Binary">'
+      write(ioxdmf, *)'        <DataItem NumberType="Float" Precision="8" Format="Binary" Dimensions="' &
+                                //trim(keyword)//'">'
       write(ioxdmf, *)'              '//"../"//trim(data_flname_path)
       write(ioxdmf, *)'        </DataItem>'
       write(ioxdmf, *)'       </Attribute>'
