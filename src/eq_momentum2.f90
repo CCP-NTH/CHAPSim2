@@ -701,7 +701,7 @@ contains
       call transpose_y_to_x(acpc_ypencil, acpc_xpencil, dm%dcpc) !acpc_xpencil = muiy_cpc_xpencil
       call get_fbcx_ftp_4pc(fbcx_4cc, fbcx_4pc, dm)
       call Get_x_midp_C2P_3D(acpc_xpencil, muixy_ppc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4pc)
-      
+      call transpose_x_to_y(muixy_ppc_xpencil, muixy_ppc_ypencil, dm%dppc)
       call Get_x_midp_C2P_3D(mu_ccc_xpencil, apcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4cc)
       call transpose_x_to_y(apcc_xpencil, apcc_ypencil, dm%dpcc)
       call transpose_y_to_z(apcc_ypencil, apcc_zpencil, dm%dpcc)
@@ -715,21 +715,15 @@ contains
       call Get_z_midp_C2P_3D(mu_ccc_zpencil, accp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp, fbcz_cc4) ! accp_zpencil = muiz_ccp_zpencil
 
       if(is_fbcx_velo_required) then
-        ! apcc_xpencil = mu_pcc_xpencil
-        fbcx_mu_4cc(1, :, :) = apcc_xpencil(1, :, :)
-        fbcx_mu_4cc(2, :, :) = apcc_xpencil(dm%dpcc%xsz(1), :, :)
+        call extract_dirichlet_fbcx(fbcx_mu_4cc, apcc_xpencil, dm%dpcc)
       end if
 
       if(is_fbcy_velo_required) then
-        ! acpc_ypencil = mu_cpc_ypencil
-        fbcy_mu_c4c(:, 1, :) = acpc_ypencil(:, 1, :)
-        fbcy_mu_c4c(:, 2, :) = acpc_ypencil(:, dm%dcpc%ysz(2), :)
+        call extract_dirichlet_fbcy(fbcy_mu_c4c, acpc_ypencil, dm%dcpc, dm)
       end if
 
       if(is_fbcz_velo_required) then
-        ! accp_zpencil = mu_ccp_zpencil
-        fbcz_mu_cc4(:, :, 1) = accp_zpencil(:, :, 1)
-        fbcz_mu_cc4(:, :, 2) = accp_zpencil(:, :, dm%dccp%zsz(3))
+        call extract_dirichlet_fbcz(fbcz_mu_cc4, accp_zpencil, dm%dccp)
       end if
 
     end if
@@ -774,7 +768,9 @@ contains
       call multiple_cylindrical_rn(accp_xpencil, dm%dccp, dm%rci, 1, IPENCIL(1)) ! qz/r
       call transpose_x_to_y(accp_xpencil, accp_ypencil, dm%dccp)
       call Get_y_midp_C2P_3D(accp_ypencil, qzriy_cpp_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_qzr)
-      if(dm%rp(1)<MINP) qzriy_cpp_ypencil(:, 1, :) = ZERO ! qz/r = 0 at r=0 due to continuity and smoothness of the velocity field.
+      call estimate_radial_xpx_on_axis(qzriy_cpp_ypencil, dm%dcpp, IPENCIL(2), dm)
+      !if(dm%rp(1)<MINP) qzriy_cpp_ypencil(:, 1, :) = ZERO !check ! qz/r = 0 at r=0 due to continuity and smoothness of the velocity field.
+      !write(*,*)'qzriy_cpp_ypencil', qzriy_cpp_ypencil(1, 1:4, 1)
       call transpose_y_to_z(qzriy_cpp_ypencil, qzriy_cpp_zpencil, dm%dcpp)
       call Get_y_1der_C2P_3D(accp_ypencil, qzrdy_cpp_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_qzr)
       call transpose_y_to_z(qzrdy_cpp_ypencil, qzrdy_cpp_zpencil, dm%dcpp)
