@@ -1685,14 +1685,14 @@ contains
 ! x-pencil : flow drive terms (source terms) in periodic Streamwise flow
 !==========================================================================================================
     if (fl%idriven == IDRVF_X_MASSFLUX) then
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%mx_rhs, rhsx_bulk, LF3D_VOL_AVE, "mx_rhs")
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%mx_rhs, rhsx_bulk, SPACE_AVERAGE, "mx_rhs")
       !call Get_volumetric_average_3d(.false., dm%ibcy(:, 1), dm%fbcy_var(:, :, :, 1), dm, dm%dpcc, fl%mx_rhs, rhsx_bulk, "mx_rhs")
       fl%mx_rhs = fl%mx_rhs - rhsx_bulk
     else if (fl%idriven == IDRVF_X_Cf) then
       rhsx_bulk = - HALF * fl%drvfc * dm%tAlpha(isub) * dm%dt
       fl%mx_rhs = fl%mx_rhs - rhsx_bulk
     else if (fl%idriven == IDRVF_Z_MASSFLUX) then
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, fl%mz_rhs, rhsz_bulk, LF3D_VOL_AVE, "mz_rhs")
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, fl%mz_rhs, rhsz_bulk, SPACE_AVERAGE, "mz_rhs")
       !call Get_volumetric_average_3d(.false., dm%ibcy(:, 3), dm%fbcy_var(:, :, :, 3), dm, dm%dccp, fl%mz_rhs, rhsz_bulk, "mz_rhs")
       fl%mz_rhs = fl%mz_rhs - rhsz_bulk
     else if (fl%idriven == IDRVF_Z_Cf) then

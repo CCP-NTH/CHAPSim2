@@ -347,12 +347,12 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       !if(domain(i)%icase == ICASE_TGV2D) call Validate_TGV2D_error (flow(i), domain(i))
       if((.not. domain(i)%is_thermo) .and. is_flow(i)) then
-        call write_monitor_total(flow(i), domain(i))
-        call write_monitor_point(flow(i), domain(i))
+        call write_monitor_bulk(flow(i), domain(i))
+        call write_monitor_probe(flow(i), domain(i))
       end if
       if(domain(i)%is_thermo .and. is_thermo(i)) then
-        call write_monitor_total(flow(i), domain(i), thermo(i))
-        call write_monitor_point(flow(i), domain(i), thermo(i))
+        call write_monitor_bulk(flow(i), domain(i), thermo(i))
+        call write_monitor_probe(flow(i), domain(i), thermo(i))
       end if
       !----------------------------------------------------------------------------------------------------------
       !  write out check point data for restart

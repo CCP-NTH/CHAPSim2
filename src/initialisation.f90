@@ -399,7 +399,7 @@ contains
     call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2e)
     call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2e)
 
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, LF3D_VOL_AVE, str)
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
     if(nrank == 0) then
       write(*, wrtfmt1e) "The initial, [original] bulk "//str//" = ", ubulk
     end if
@@ -413,7 +413,7 @@ contains
       fl%qx = ux
     end if
 
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, LF3D_VOL_AVE, str)
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
     if(nrank == 0) then
       write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     end if
