@@ -6,7 +6,6 @@ module continuity_eq_mod
   public :: Get_divergence_vector
   public :: Get_divergence_flow
   public :: Get_divergence_vel_x2z
-  public :: Check_domain_mass_conservation
   public :: Check_element_mass_conservation
 contains
 !==========================================================================================================
