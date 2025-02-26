@@ -187,6 +187,7 @@ module bc_convective_outlet_mod
     use wtformat_mod
     use bc_dirichlet_mod
     use find_max_min_ave_mod
+    use cylindrical_rn_mod
     implicit none
     type(t_flow),   intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
@@ -194,132 +195,84 @@ module bc_convective_outlet_mod
     real(WP), dimension(4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) :: fbcx
     real(WP), dimension(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) :: fbcy
     real(WP), dimension(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) :: fbcz
-    real(WP) :: mass_rate_net
-    real(WP) :: mass_rate_scaling
-    real(WP) :: mass_rate_iin(3), mass_rate_iin_work(3)
-    real(WP) :: mass_rate_out(3), mass_rate_out_work(3)
-    real(WP) :: mass_rate_core, mass_rate_core_work
-    real(WP) :: mass_rate_iin_net, mass_rate_out_net
-    real(WP) :: dummy(7), dummy_work(7)
-    real(WP) :: dx, dy, dz
-    integer :: nn, i, j, k, jj
+    real(WP) :: scale
+    real(WP) :: fbcm_x(2), fbcm_y(2), fbcm_z(2)
+    real(WP) :: bulkm
+    logical :: iconv(3)
     
+    ! only 1 direction could be convective outlet
     if (.not. dm%is_conv_outlet) return
 
-    mass_rate_iin = ZERO
-    mass_rate_out = ZERO
-    mass_rate_core= ZERO
-
-    mass_rate_net = ZERO
-    mass_rate_scaling = ONE
-
     if(dm%is_thermo) then
-      fbcx = dm%fbcx_gx
-      fbcy = dm%fbcy_gy
-      fbcz = dm%fbcz_gz
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%drhodt, mass_rate_core, LF3D_VOL_SUM, "mass_rate_core")
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%drhodt, bulkm, SPACE_INTEGRAL)
     else
-      fbcx = dm%fbcx_qx
-      fbcy = dm%fbcy_qy
-      fbcz = dm%fbcz_qz
-      mass_rate_core = ZERO
+      bulkm = ZERO
     end if
 
+    iconv = .false.
+    fbcm_x = ZERO
+    fbcm_y = ZERO
+    fbcm_z = ZERO
 !----------------------------------------------------------------------------------------------------------
-! x - inlet/outlet
+! x - inlet/outlet, qx
 !----------------------------------------------------------------------------------------------------------
-    nn = 1
-    if( dm%ibcx_nominal(2, nn) == IBC_CONVECTIVE) then
-      dtmp = dm%dpcc
-      do j = 1, dtmp%xsz(2)
-        jj = dtmp%xst(2) + j - 1 !local2global_yid(j, dtmp)
-        dy = dm%h(2)/dm%yMappingcc(jj, 1) !dm%yp(jj+1) - dm%yp(jj)
-        do k = 1, dtmp%xsz(3)
-          dz = dm%h(3) * dm%rc(jj)
-          mass_rate_iin(nn) = mass_rate_iin(nn) + fbcx(1, j, k) * dy * dz
-          mass_rate_out(nn) = mass_rate_out(nn) + fbcx(2, j, k) * dy * dz
-        end do
-      end do 
+    if(dm%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
+      iconv(1) = .true.
+      if(dm%is_thermo) then
+        fbcx = dm%fbcx_gx
+      else
+        fbcx = dm%fbcx_qx
+      end if
+      call Get_area_average_2d_for_fbcx(dm, dm%dpcc, fbcx, fbcm_x, SPACE_INTEGRAL, 'fbcx')
+    else if(dm%ibcy_nominal(2, 2) == IBC_CONVECTIVE) then
+!----------------------------------------------------------------------------------------------------------
+! y - inlet/outlet - qy
+!----------------------------------------------------------------------------------------------------------
+      iconv(2) = .true.
+      if(dm%is_thermo) then
+        fbcy = dm%fbcy_gy
+      else
+        fbcy = dm%fbcy_qy
+      end if
+      if(dm%icoordinate == ICYLINDRICAL) then
+        call multiple_cylindrical_rn_x4x(fbcy, dm%dcpc, dm%rpi, 1, IPENCIL(2))
+        !call estimate_radial_xpx_on_axis(acpc_ypencil, dm%dcpc, IPENCIL(2), dm) ! to do here
+      end if
+      call Get_area_average_2d_for_fbcy(dm, dm%dcpc, fbcy, fbcm_y, SPACE_INTEGRAL, 'fbcy')
+    else if (dm%ibcz_nominal(2, 3) == IBC_CONVECTIVE) then
+      iconv(3) = .true.
+!----------------------------------------------------------------------------------------------------------
+! z - inlet/outlet - qz
+!----------------------------------------------------------------------------------------------------------
+      if(dm%is_thermo) then
+        fbcz = dm%fbcz_gz
+      else
+        fbcz = dm%fbcz_qz
+      end if
+      if(dm%icoordinate == ICYLINDRICAL) then
+        call multiple_cylindrical_rn_xx4(fbcz, dm%dccp, dm%rci, 1, IPENCIL(3))
+      end if
+      call Get_area_average_2d_for_fbcz(dm, dm%dccp, fbcz, fbcm_z, SPACE_INTEGRAL, 'fbcz')
     end if
-!----------------------------------------------------------------------------------------------------------
-! y - inlet/outlet - still x-pencil
-!----------------------------------------------------------------------------------------------------------
-    nn = 2
-    if( dm%ibcy_nominal(2, nn) == IBC_CONVECTIVE) then
-      dtmp = dm%dcpc
-      do i = 1, dtmp%xsz(1)
-        dx = dm%h(1)
-        do k = 1, dtmp%xsz(3)
-          dz = dm%h(3)
-          if(dtmp%xst(nn) ==         1) mass_rate_iin(nn) = mass_rate_iin(nn) + fbcy(i, 1, k) * dx * dz * dm%rc(1)
-          if(dtmp%xen(nn) == dm%np(nn)) mass_rate_out(nn) = mass_rate_out(nn) + fbcy(i, 2, k) * dx * dz * dm%rc(dm%np(2))
-        end do
-      end do 
-    end if
-!----------------------------------------------------------------------------------------------------------
-! z - inlet/outlet - still x-pencil
-!----------------------------------------------------------------------------------------------------------
-    nn = 3
-    if( dm%ibcz_nominal(2, nn) == IBC_CONVECTIVE) then
-      dtmp = dm%dccp
-      do j = 1, dtmp%xsz(2)
-        jj = dtmp%xst(2) + j - 1 !local2global_yid(j, dtmp)
-        dy = dm%h(2)/dm%yMappingcc(jj, 1)
-        do i = 1, dtmp%xsz(1)
-          dx = dm%h(1)
-          if(dtmp%xst(nn) ==        1)  mass_rate_iin(nn) = mass_rate_iin(nn) + fbcz(i, j, 1) * dx * dy
-          if(dtmp%xen(nn) == dm%np(nn)) mass_rate_out(nn) = mass_rate_out(nn) + fbcz(i, j, 2) * dx * dy
-        end do
-      end do 
-    end if
-!----------------------------------------------------------------------------------------------------------
-! add from all ranks
-!----------------------------------------------------------------------------------------------------------
-    dummy(1:3) = mass_rate_iin(1:3)  ! unit: kg/s
-    dummy(4:6) = mass_rate_out(1:3)  ! unit: kg/s 
-    dummy(7)   = mass_rate_core ! unit: kg/s
-
-    call mpi_barrier(MPI_COMM_WORLD, ierror)
-    call mpi_allreduce( dummy,  dummy_work, 7, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
-
-    mass_rate_iin_work(1:3)  = dummy(1:3)
-    mass_rate_out_work(1:3)  = dummy(4:6)
-    mass_rate_core_work = dummy(7) 
 !----------------------------------------------------------------------------------------------------------
 ! scaling factor for a mass conservation
-!----------------------------------------------------------------------------------------------------------
-    mass_rate_iin_net = mass_rate_iin_work(1) + mass_rate_iin_work(2) + mass_rate_iin_work(3)
-    mass_rate_out_net = mass_rate_out_work(1) + mass_rate_out_work(2) + mass_rate_out_work(3)
-    do nn = 1, 3
-      mass_rate_net = mass_rate_core_work + mass_rate_iin_net - mass_rate_out_net! check 1st term plus or minus?                
-      mass_rate_scaling = (mass_rate_core_work + mass_rate_iin_net) / mass_rate_out_net
-    end do
-
-!#ifdef DEBUG_STEPS 
-    if(nrank == 0) then 
-      !write (*, *) ">------convective outlet-------------->"
-      !write (*, *) "mass_in(3) = ", mass_rate_iin_work(:)
-      !write (*, *) "massout(3) = ", mass_rate_out_work(:)
-      write (*, '(10X, A, 4ES13.5)') " mass_rate_iin_net, out_net, core = ", mass_rate_iin_net, mass_rate_out_net, mass_rate_core_work
-      write (*, '(10X, A, 1ES13.5, 1F16.13)') " mass rate net change and scaling = ", mass_rate_net, mass_rate_scaling
-      !write (*, *) "<------convective outlet--------------<"
-    end if
-!#endif
-!----------------------------------------------------------------------------------------------------------
+! fbcm_x(1) - scaling * fbcm_x(2) + bulkm = 0
 ! scale the dynamic bc
 !----------------------------------------------------------------------------------------------------------
-    if( dm%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
-      fbcx(2, :, :) = fbcx(2, :, :) * mass_rate_scaling
+    if(iconv(1)) then
+      scale = ( fbcm_x(1) + bulkm ) / fbcm_x(2)
+      fbcx(2, :, :) = fbcx(2, :, :) * scale
       fbcx(4, :, :) = fbcx(2, :, :)
-    end if
-    if( dm%ibcy_nominal(2, 2) == IBC_CONVECTIVE) then
-      fbcy(:, 2, :) = fbcy(:, 2, :) * mass_rate_scaling
+    else if(iconv(2)) then
+      scale = ( fbcm_y(1) + bulkm ) / fbcm_y(2)
+      fbcy(:, 2, :) = fbcy(:, 2, :) * scale
       fbcy(:, 4, :) = fbcy(:, 2, :)
+    else if(iconv(3)) then
+      scale = ( fbcm_z(1) + bulkm ) / fbcm_z(2)
+      fbcz(:, :, 2) = fbcz(:, :, 2) * scale
+      fbcz(:, :, 4) = fbcz(:, :, 2)
+    else
     end if
-    if( dm%ibcz_nominal(2, 3) == IBC_CONVECTIVE) then
-      fbcz(:, :, 2) = fbcz(:, :, 2) * mass_rate_scaling
-      fbcz(:, :, 2) = fbcz(:, :, 4)
-    end if 
 !----------------------------------------------------------------------------------------------------------
 ! back to real fbc
 !----------------------------------------------------------------------------------------------------------
@@ -337,7 +290,17 @@ module bc_convective_outlet_mod
       if( dm%ibcz_nominal(2, 3) == IBC_CONVECTIVE) dm%fbcz_qz(2, :, :) = fbcz(2, :, :)
     end if
     !call update_flow_from_dyn_fbcx(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcx_qy, dm%fbcx_qz)
-    
+!#ifdef DEBUG_STEPS 
+    if(nrank == 0) then 
+      write(*, *) "m_in, m_out, m_bulk, m_net, scale"
+      if(iconv(1)) &
+      write (*, '(10X, A, 4ES13.5, 1F16.13)') 'x: ', fbcm_x(1), fbcm_x(2), bulkm, fbcm_x(1)-fbcm_x(2)+bulkm, scale
+      if(iconv(2)) &
+      write (*, '(10X, A, 4ES13.5, 1F16.13)') 'y: ', fbcm_y(1), fbcm_y(2), bulkm, fbcm_y(1)-fbcm_y(2)+bulkm, scale
+      if(iconv(3)) &
+      write (*, '(10X, A, 4ES13.5, 1F16.13)') 'z: ', fbcm_z(1), fbcm_z(2), bulkm, fbcm_z(1)-fbcm_z(2)+bulkm, scale
+    end if
+!#endif
     return
   end subroutine enforce_domain_mass_balance_dyn_fbc
 

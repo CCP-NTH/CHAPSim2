@@ -382,8 +382,8 @@ contains
       
       if(dm%icoordinate == ICARTESIAN) then
         ! Write topology
-        write(ioxdmf, *)'     <Topology TopologyType="3DRectMesh" Dimensions="&
-                                '//trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
+        write(ioxdmf, *)'     <Topology TopologyType="3DRectMesh" Dimensions=" '&
+                                //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
         write(ioxdmf, *)'     </Topology>'
         ! Write geometry
         write(ioxdmf, *)'     <Geometry GeometryType="VXVYVZ">'
@@ -398,8 +398,8 @@ contains
       end if
       if(dm%icoordinate == ICYLINDRICAL) then
         ! Write topology
-        write(ioxdmf, *)'     <Topology TopologyType="3DSMesh" Dimensions="&
-                                '//trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
+        write(ioxdmf, *)'     <Topology TopologyType="3DSMesh" Dimensions=" '&
+                               //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
         write(ioxdmf, *)'     </Topology>'
         ! Write geometry
         write(ioxdmf, *)'     <Geometry GeometryType="XYZ">'

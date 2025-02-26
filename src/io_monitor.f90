@@ -4,10 +4,13 @@ module io_monitor_mod
   implicit none
 
   private
-  real(WP), save :: bulk_MKE0
+  !real(WP), save :: bulk_MKE0
   public :: write_monitor_ini
-  public :: write_monitor_total
-  public :: write_monitor_point
+  public :: write_monitor_bulk
+  public :: write_monitor_probe
+
+  character(len=120), parameter :: fl_bulk = "monitor_bulk_history"
+  character(len=120), parameter :: fl_mass = "monitor_change_history"
   
 contains
   subroutine write_monitor_ini(dm)
@@ -23,8 +26,7 @@ contains
     integer :: myunit
     integer :: i, j
     logical :: exist
-    character(len=120) :: flname
-    character(len=120) :: keyword
+    character(len=120) :: flname, keyword
 
     integer :: idgb(3)
     integer :: nplc
@@ -35,8 +37,7 @@ contains
 ! create history file for total variables
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) then
-      keyword = "monitor_bulk"
-      call generate_pathfile_name(flname, dm%idom, keyword, dir_moni, 'dat')
+      call generate_pathfile_name(flname, dm%idom, trim(fl_bulk), dir_moni, 'log')
       inquire(file = trim(flname), exist = exist)
       if (exist) then
         !open(newunit = myunit, file = trim(flname), status="old", position="append", action="write")
@@ -44,28 +45,25 @@ contains
         open(newunit = myunit, file = trim(flname), status="new", action="write")
         write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
         if(dm%is_thermo) then
-          write(myunit, *) "# time, MKE, dMKE, qx_b, gx_b, T_b"
+          write(myunit, *) "# time, MKE, qx_b, gx_b, T_b, h_b"
         else
-          write(myunit, *) "# time, MKE, dMKE, qx_b"
+          write(myunit, *) "# time, MKE, qx_b"
         end if
 
         close(myunit)
       end if
 
-      keyword = "monitor_mass_conservation_flow"
-      call generate_pathfile_name(flname, dm%idom, keyword, dir_moni, 'dat')
+      call generate_pathfile_name(flname, dm%idom, trim(fl_mass), dir_moni, 'log')
       inquire(file = trim(flname), exist = exist)
       if (exist) then
         !open(newunit = myunit, file = trim(flname), status="old", position="append", action="write")
       else
         open(newunit = myunit, file = trim(flname), status="new", action="write")
         write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
-        write(myunit, *) "# t, mass-conservation at inlet, bulk, outlet" ! to add more instantanous or statistics
+        write(myunit, *) "# time, mass_conservation at inlet, bulk, outlet, total mass change rate, kinetic energy change rate" ! to add more instantanous or statistics
         close(myunit)
       end if
     end if
-    bulk_MKE0 = ZERO
-
 !----------------------------------------------------------------------------------------------------------
     if(dm%proben <= 0) return
 
@@ -157,7 +155,7 @@ contains
     return
   end subroutine
 !==========================================================================================================
-  subroutine write_monitor_total(fl, dm, tm)
+  subroutine write_monitor_bulk(fl, dm, tm)
     use typeconvert_mod
     use parameters_constant_mod
     use wtformat_mod
@@ -167,10 +165,11 @@ contains
     use solver_tools_mod
     use operations
     use find_max_min_ave_mod
+    use cylindrical_rn_mod
     implicit none 
 
     type(t_domain),  intent(in) :: dm
-    type(t_flow), intent(in) :: fl
+    type(t_flow), intent(inout) :: fl
     type(t_thermo), optional, intent(in) :: tm
 
     character(len=120) :: flname
@@ -178,84 +177,128 @@ contains
     character(200) :: iotxt
     integer :: ioerr, myunit
 
-    real(WP) :: bulk_MKE, bulk_qx, bulk_gx, bulk_T
+    real(WP) :: bulk_MKE, bulk_qx, bulk_gx, bulk_T, bulk_m, bulk_h
+    real(WP) :: bulk_fbcx(2), bulk_fbcy(2), bulk_fbcz(2)
+    real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: apcc_xpencil
+    real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc
+    real(WP), dimension( dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3) ) :: accp
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: accc1
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: accc2
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: accc3
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: fenergy
     real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: accc_ypencil
     real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: accc_zpencil
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
+    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil, qy_ypencil
     real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3) ) :: accp_ypencil
-    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil
-!----------------------------------------------------------------------------------------------------------
-! open file
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) then
-      keyword = "monitor_bulk"
-      call generate_pathfile_name(flname, dm%idom, keyword, dir_moni, 'dat')
+    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil, qz_zpencil
 
-      open(newunit = myunit, file = trim(flname), status = "old", action = "write", position = "append", &
-          iostat = ioerr, iomsg = iotxt)
-      if(ioerr /= 0) then
-        !write (*, *) 'Problem openning probing file'
-        !write (*, *) 'Message: ', trim (iotxt)
-        error stop 'Problem openning probing file'
-      end if 
-    end if      
+    real(WP) :: dMKEdt
+
 !----------------------------------------------------------------------------------------------------------
-!   ux
+!   calculate the volumetric average of kinetic energy
 !----------------------------------------------------------------------------------------------------------
+    ! ux
     call Get_x_midp_P2C_3D(fl%qx, accc1, dm, dm%iAccuracy, dm%ibcx_qx(:), dm%fbcx_qx)
-!----------------------------------------------------------------------------------------------------------
-!   uy
-!----------------------------------------------------------------------------------------------------------
+    ! uy = qy/r
     call transpose_x_to_y(fl%qy, acpc_ypencil, dm%dcpc)
     call Get_y_midp_P2C_3D(acpc_ypencil, accc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:), dm%fbcy_qy)
+    if(dm%icoordinate == ICYLINDRICAL)&
+    call multiple_cylindrical_rn(accc_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
     call transpose_y_to_x(accc_ypencil, accc2, dm%dccc)
-!----------------------------------------------------------------------------------------------------------
-!   uz
-!----------------------------------------------------------------------------------------------------------
+    ! qz = uz * r
     call transpose_x_to_y(fl%qz, accp_ypencil, dm%dccp)
     call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
     call Get_z_midp_P2C_3D(accp_zpencil, accc_zpencil, dm, dm%iAccuracy, dm%ibcz_qz(:), dm%fbcz_qz)
     call transpose_z_to_y(accc_zpencil, accc_ypencil, dm%dccc)
     call transpose_y_to_x(accc_ypencil, accc3, dm%dccc)
-!----------------------------------------------------------------------------------------------------------
-!   x-pencil, 1/2*(uu+vv+ww) - calculation
-!----------------------------------------------------------------------------------------------------------
+    !volumetric averaged kinetic energy - interiror: 1/2*rho * (uu+vv+ww)
     fenergy = HALF * (accc1 * accc1 + accc2 * accc2 + accc3 * accc3)
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fenergy, bulk_MKE, LF3D_VOL_AVE)
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%qx,   bulk_qx,  LF3D_VOL_AVE)
+    if(dm%is_thermo) then
+      fenergy = fenergy * fl%dDens
+    end if
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fenergy, bulk_MKE, SPACE_AVERAGE)
+    dMKEdt = (bulk_MKE - fl%tt_kinetic_energy)/dm%dt
+    fl%tt_kinetic_energy = bulk_MKE
+!----------------------------------------------------------------------------------------------------------
+!   calculate mass flux and mass change
+!----------------------------------------------------------------------------------------------------------
+    !density change introduced mass change 
+    if(dm%is_thermo) then
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%drhodt, bulk_m, SPACE_INTEGRAL)
+    else
+      bulk_m = ZERO
+    end if
+    !area averaged mass flux - x - boundary: rho*uy
+    if(dm%is_thermo) then
+      apcc_xpencil = fl%gx
+    else
+      apcc_xpencil = fl%qx
+    end if
+    call Get_area_average_2d_for_fbcx(dm, dm%dpcc, apcc_xpencil, bulk_fbcx, SPACE_INTEGRAL, 'varx')
+    !area averaged mass flux - y - boundary: rho*uy
+    if(dm%is_thermo) then
+      call transpose_x_to_y(fl%gy, acpc_ypencil, dm%dcpc)
+    else
+      call transpose_x_to_y(fl%qy, acpc_ypencil, dm%dcpc)
+    end if
+    if(dm%icoordinate == ICYLINDRICAL) then
+      call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
+      call estimate_radial_xpx_on_axis(acpc_ypencil, dm%dcpc, IPENCIL(2), dm)
+    end if
+    call Get_area_average_2d_for_fbcy(dm, dm%dcpc, acpc_ypencil, bulk_fbcy, SPACE_INTEGRAL, 'vary')
+    !area averaged mass flux - z - boundary: rho*uz
+    if(dm%is_thermo) then
+      call transpose_x_to_y(fl%gz,        accp_ypencil, dm%dccp)
+      call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
+    else
+      call transpose_x_to_y(fl%qz,        accp_ypencil, dm%dccp)
+      call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
+    end if
+    if(dm%icoordinate == ICYLINDRICAL) then
+      call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+    end if
+    call Get_area_average_2d_for_fbcz(dm, dm%dccp, accp_zpencil, bulk_fbcz, SPACE_INTEGRAL, 'varz')
+    ! mass change rate, kg/s
+    fl%tt_mass_change = bulk_m + &
+                        bulk_fbcx(1) - bulk_fbcx(2) + &
+                        bulk_fbcy(1) - bulk_fbcy(2) +&
+                        bulk_fbcz(1) - bulk_fbcz(2)
+!----------------------------------------------------------------------------------------------------------
+!   Bulk quantities
+!----------------------------------------------------------------------------------------------------------
+    ! bulk streamwise velocity
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%qx,   bulk_qx,  SPACE_AVERAGE)
+    ! bulk thermal parameters
     if(dm%is_thermo .and. present(tm)) then
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%gx,    bulk_gx, LF3D_VOL_AVE)
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, tm%tTemp, bulk_T,  LF3D_VOL_AVE)
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%gx,    bulk_gx, SPACE_AVERAGE)
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, tm%tTemp, bulk_T,  SPACE_AVERAGE)
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, tm%hEnth, bulk_h,  SPACE_AVERAGE)
     end if
 !----------------------------------------------------------------------------------------------------------
-!   write data out
+! open file
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) then
-      if(dm%is_thermo .and. present(tm)) then
-        write(myunit, *) fl%time, bulk_MKE, (bulk_MKE - bulk_MKE0)/dm%dt, bulk_qx, bulk_gx, bulk_T
-      else
-        write(myunit, *) fl%time, bulk_MKE, (bulk_MKE - bulk_MKE0)/dm%dt, bulk_qx
-      end if
-      close(myunit)
-    end if
-    bulk_MKE0 = bulk_MKE
-
-    if(nrank == 0) then
-      keyword = "monitor_mass_conservation_flow"
-      call generate_pathfile_name(flname, dm%idom, keyword, dir_moni, 'dat')
-
+      ! write out history of key conservative variables
+      call generate_pathfile_name(flname, dm%idom, trim(fl_mass), dir_moni, 'log')
       open(newunit = myunit, file = trim(flname), status = "old", action = "write", position = "append", &
           iostat = ioerr, iomsg = iotxt)
       if(ioerr /= 0) then
-        !write (*, *) 'Problem openning probing file'
-        !write (*, *) 'Message: ', trim (iotxt)
-        error stop 'Problem openning probing file'
+        error stop 'Problem openning conservation file'
       end if 
-      write(myunit, *) fl%time, fl%mcon(1:3)
+      write(myunit, *) fl%time, fl%mcon(1:3), fl%tt_mass_change, dMKEdt
+      close(myunit)
+      ! write out history of bulk variables
+      call generate_pathfile_name(flname, dm%idom, trim(fl_bulk), dir_moni, 'log')
+      open(newunit = myunit, file = trim(flname), status = "old", action = "write", position = "append", &
+          iostat = ioerr, iomsg = iotxt)
+      if(ioerr /= 0) then
+        error stop 'Problem openning bulk file'
+      end if 
+      if(dm%is_thermo .and. present(tm)) then
+        write(myunit, *) fl%time, fl%tt_kinetic_energy, bulk_qx, bulk_gx, bulk_T, bulk_h
+      else
+        write(myunit, *) fl%time, fl%tt_kinetic_energy, bulk_qx
+      end if
       close(myunit)
     end if     
 
@@ -263,7 +306,7 @@ contains
   end subroutine
 
 !==========================================================================================================
-  subroutine write_monitor_point(fl, dm, tm)
+  subroutine write_monitor_probe(fl, dm, tm)
     use typeconvert_mod
     use parameters_constant_mod
     use wtformat_mod

@@ -238,8 +238,8 @@ module parameters_constant_mod
   integer, parameter :: JBC_SELF = 1, &
                         JBC_GRAD = 2, &
                         JBC_PROD = 3
-  integer, parameter :: LF3D_VOL_SUM = 0, &
-                        LF3D_VOL_AVE = 1
+  integer, parameter :: SPACE_INTEGRAL = 0, &
+                        SPACE_AVERAGE = 1
   integer, parameter :: IG2Q = -1, &
                         IQ2G = 1
 !----------------------------------------------------------------------------------------------------------
@@ -606,6 +606,8 @@ module udf_type_mod
 
     real(wp) :: noiselevel
     real(wp) :: mcon(3)
+    real(wp) :: tt_mass_change
+    real(wp) :: tt_kinetic_energy
 
     real(WP), allocatable :: qx(:, :, :)  !
     real(WP), allocatable :: qy(:, :, :)
@@ -666,6 +668,7 @@ module udf_type_mod
     real(WP) :: init_T0 ! dim
     real(WP) :: time
     real(WP) :: rPrRen
+    real(WP) :: tt_enthalpy
 
     real(WP), allocatable :: rhoh(:, :, :)
     real(WP), allocatable :: hEnth(:, :, :)

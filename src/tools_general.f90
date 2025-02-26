@@ -1133,8 +1133,7 @@ end module cylindrical_rn_mod
 
 
 module find_max_min_ave_mod
-  
-
+  use print_msg_mod
   public  :: Get_volumetric_average_3d_for_var_xcx
   public  :: Find_maximum_absvar3d
   public  :: Find_max_min_3d
@@ -1365,7 +1364,7 @@ contains
 
     return
   end subroutine
-
+!==========================================================================================================
   subroutine Get_volumetric_average_3d_for_var_xcx(dm, dtmp, var, fo_work, itype, str)
     use mpi_mod
     use udf_type_mod
@@ -1416,15 +1415,15 @@ contains
       call mpi_barrier(MPI_COMM_WORLD, ierror)
       call mpi_allreduce( fo,  fo_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
       call mpi_allreduce(vol, vol_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
-      if(itype == LF3D_VOL_AVE) then
+      if(itype == SPACE_AVERAGE) then
         fo_work = fo_work / vol_work
-      else if(itype == LF3D_VOL_SUM) then
+      else if(itype == SPACE_INTEGRAL) then
         ! do nothing
       end if
 
 #ifdef DEBUG_STEPS  
       if(nrank == 0 .and. present(str)) then
-        if(itype == LF3D_VOL_AVE) then
+        if(itype == SPACE_AVERAGE) then
           write (*, wrtfmt1e) " volumetric average of "//trim(str)//" = ", fo_work
         else 
           write (*, wrtfmt1e) " volumetric integeral of "//trim(str)//" = ", fo_work
@@ -1433,6 +1432,217 @@ contains
 #endif
     return
   end subroutine 
+!==========================================================================================================
+  subroutine Get_area_average_2d_for_fbcx(dm, dtmp, var, fo_work, itype, str)
+    use mpi_mod
+    use udf_type_mod
+    use parameters_constant_mod
+    use decomp_2d
+    use wtformat_mod
+    
+    implicit none
+    type(t_domain),  intent(in) :: dm
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP),          intent(in) :: var(:, :, :)
+    real(WP),          intent(out):: fo_work(2)
+    integer,           intent(in) :: itype
+    character(4),      intent(in) :: str
+ 
+    real(WP) :: area, fo(2), area_work!
+#ifdef DEBUG_STEPS 
+    real(WP) :: area_real
+#endif
+    integer :: j, k, jj, nx, ny, nz
+    real(WP) :: dy, dz
 
+    !if(dtmp /= dm%dpcc) call Print_error_msg("Error: Get_area_average_2d_for_yz_pcc is for pcc only.")
+    if(dtmp%xsz(1) /= dtmp%xen(1)) call Print_error_msg("Error. This is not x-pencil.")
+    ! x pencil only
+    !----------------------------------------------------------------------------------------------------------
+    ! default: x-pencil
+    ! use the chain rule to get integral in the stretching function
+    ! integral(f(y), dy) = integral(f(y(s)), dy(s)) = integral(f(y(s)) * dy/ds, ds)
+    !----------------------------------------------------------------------------------------------------------
+      area = ZERO
+      fo  = ZERO
+      dy = dm%h(2)
+      dz = dm%h(3)
+      if(str=='varx') then
+        nx = dtmp%xsz(1)
+      else if(str=='fbcx') then
+        nx = 2
+      else
+        call Print_error_msg("Error: Get_area_average_2d_for_fbcx is for varx or fbcx only.")
+      end if
+      ny = dtmp%xsz(2)
+      nz = dtmp%xsz(3)
+      do j = 1, ny
+        jj = dtmp%xst(2) + j - 1 !(j, dtmp)
+        !dy = dm%yp(jj+1) - dm%yp(jj)
+        if(dm%is_stretching(2)) &
+        dy = dm%h(2) / dm%yMappingcc(jj, 1)
+        if(dm%icoordinate == ICYLINDRICAL) then
+          dz = dm%h(3) * dm%rc(jj)
+        end if
+        do k = 1, nz
+          fo(1) = fo(1) + var(1,  j, k) * dy * dz
+          fo(2) = fo(2) + var(nx, j, k) * dy * dz
+          area = area + dy * dz
+        end do
+      end do
+
+      call mpi_barrier(MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(  fo,   fo_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(area, area_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      if(itype == SPACE_AVERAGE) then
+        fo_work(:) = fo_work(:) / area_work
+      else if(itype == SPACE_INTEGRAL) then
+        ! do nothing
+      end if
+
+    return
+  end subroutine
+!==========================================================================================================
+!==========================================================================================================
+  subroutine Get_area_average_2d_for_fbcz(dm, dtmp, var, fo_work, itype, str)
+    use mpi_mod
+    use udf_type_mod
+    use parameters_constant_mod
+    use decomp_2d
+    use wtformat_mod
+    
+    implicit none
+    type(t_domain),  intent(in) :: dm
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP),          intent(in) :: var(:, :, :)
+    real(WP),          intent(out):: fo_work(2)
+    integer,           intent(in) :: itype
+    character(4),      intent(in) :: str
+ 
+    real(WP) :: area, fo(2), area_work!
+#ifdef DEBUG_STEPS 
+    real(WP) :: area_real
+#endif
+    integer :: j, i, jj, nx, ny, nz
+    real(WP) :: dy, dx
+
+    !if(dtmp /= dm%dccp) call Print_error_msg("Error: Get_area_average_2d_for_yz_pcc is for ccp only.")
+    if(dtmp%zsz(3) /= dtmp%zen(3)) call Print_error_msg("Error. This is not z-pencil.")
+    !----------------------------------------------------------------------------------------------------------
+    ! default: x-pencil
+    ! use the chain rule to get integral in the stretching function
+    ! integral(f(y), dy) = integral(f(y(s)), dy(s)) = integral(f(y(s)) * dy/ds, ds)
+    !----------------------------------------------------------------------------------------------------------
+      area = ZERO
+      fo  = ZERO
+      dy = dm%h(2)
+      dx = dm%h(1)
+      nx = dtmp%zsz(1)
+      ny = dtmp%zsz(2)
+      if(str=='varz') then
+        nz = dtmp%zsz(3)
+      else if(str=='fbcz') then
+        nz = 2
+      else
+        call Print_error_msg("Error: Get_area_average_2d_for_fbcz is for varz or fbcz only.")
+      end if
+      do j = 1, ny
+        jj = dtmp%zst(2) + j - 1 !(j, dtmp)
+        if(dm%is_stretching(2)) &
+        dy = dm%h(2) / dm%yMappingcc(jj, 1)
+        do i = 1, nx
+          fo(1) = fo(1) + var(i, j, 1)  * dy * dx
+          fo(2) = fo(2) + var(i, j, nz) * dy * dx
+          area = area + dy * dx
+        end do
+      end do
+
+      call mpi_barrier(MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(  fo,   fo_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(area, area_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      if(itype == SPACE_AVERAGE) then
+        fo_work(:) = fo_work(:) / area_work
+      else if(itype == SPACE_INTEGRAL) then
+        ! do nothing
+      end if
+
+    return
+  end subroutine
+!==========================================================================================================
+  subroutine Get_area_average_2d_for_fbcy(dm, dtmp, var, fo_work, itype, str)
+    use mpi_mod
+    use udf_type_mod
+    use parameters_constant_mod
+    use decomp_2d
+    use wtformat_mod
+    
+    implicit none
+    type(t_domain),  intent(in) :: dm
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP),          intent(in) :: var(:, :, :)
+    real(WP),          intent(out):: fo_work(2)
+    integer,           intent(in) :: itype
+    character(4),      intent(in) :: str
+ 
+    real(WP) :: area(2), fo(2), area_work(2)
+#ifdef DEBUG_STEPS 
+    real(WP) :: area_real
+#endif
+    integer :: i, k, jj, ny, nz, nx
+    real(WP) :: dz1, dzn, dx
+
+    !if(dtmp /= dm%dcpc) call Print_error_msg("Error: Get_area_average_2d_for_yz_pcc is for pcc only.")
+    if(dtmp%ysz(2) /= dtmp%yen(2)) call Print_error_msg("Error. This is not y-pencil.")
+    !----------------------------------------------------------------------------------------------------------
+    ! default: x-pencil
+    ! use the chain rule to get integral in the stretching function
+    ! integral(f(y), dy) = integral(f(y(s)), dy(s)) = integral(f(y(s)) * dy/ds, ds)
+    !----------------------------------------------------------------------------------------------------------
+      area = ZERO
+      fo  = ZERO
+      
+      nx = dtmp%ysz(1)
+      if(str=='vary') then
+        ny = dtmp%ysz(2)
+      else if(str=='fbcy') then
+        ny = 2
+      else
+        call Print_error_msg("Error: Get_area_average_2d_for_fbcy is for vary or fbcy only.")
+      end if
+      nz = dtmp%ysz(3)
+
+      dx  = dm%h(1)
+      dz1 = dm%h(3)
+      dzn = dm%h(3)
+
+      if(dm%icoordinate == ICYLINDRICAL) then
+        dz1 = dm%h(3) * dm%rp(1)
+        dzn = dm%h(3) * dm%rp(ny)
+      end if
+      do k = 1, nz
+        do i = 1, nx
+          fo(1) = fo(1) + var(i, 1,  k) * dx * dz1
+          fo(2) = fo(2) + var(i, ny, k) * dx * dzn
+          area(1) = area(1) + dx * dz1
+          area(2) = area(2) + dx * dzn
+        end do
+      end do
+
+      call mpi_barrier(MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(  fo,   fo_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(area, area_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      if(itype == SPACE_AVERAGE) then
+        if(dm%icase == ICASE_PIPE) then
+          fo_work(2) = fo_work(2) / area_work(2)
+          fo_work(1) = ZERO
+        else
+          fo_work(:) = fo_work(:) / area_work(:)
+        end if
+      else if(itype == SPACE_INTEGRAL) then
+        if(dm%icase == ICASE_PIPE) fo_work(1) = ZERO
+      end if
+
+    return
+  end subroutine
  end module
 
