@@ -237,21 +237,21 @@ contains
         end if
         if(dm2%ibcy_qz(1) == IBC_INTERIOR) then
           dm2%fbcy_gz(:, n, :) = dm2%fbcy_qz(:, n, :) * dm2%fbcy_ftp(:, 1, :)%d
-          if(dm2%icoordinate == ICYLINDRICAL) &
-          dm2%fbcy_gzr(:, n, :)= dm2%fbcy_qzr(:, n, :) * dm2%fbcy_ftp(:, 1, :)%d
+          !if(dm2%icoordinate == ICYLINDRICAL) &
+          !dm2%fbcy_gzr(:, n, :)= dm2%fbcy_qzr(:, n, :) * dm2%fbcy_ftp(:, 1, :)%d
         end if
         ! z-boundary conditions
         if(dm2%ibcz_qx(1) == IBC_INTERIOR) &
         dm2%fbcz_gx(:, :, n) = dm2%fbcz_qx(:, :, n) * dm2%fbcz_ftp(:, :, 1)%d
         if(dm2%ibcz_qy(1) == IBC_INTERIOR) then
           dm2%fbcz_gy(:, :, n) = dm2%fbcz_qy(:, :, n) * dm2%fbcz_ftp(:, :, 1)%d
-          if(dm2%icoordinate == ICYLINDRICAL) &
-          dm2%fbcz_gyr(:, :, n) = dm2%fbcz_qyr(:, :, n) * dm2%fbcz_ftp(:, :, 1)%d
+          !if(dm2%icoordinate == ICYLINDRICAL) &
+          !dm2%fbcz_gyr(:, :, n) = dm2%fbcz_qyr(:, :, n) * dm2%fbcz_ftp(:, :, 1)%d
         end if
         if(dm2%ibcz_qz(1) == IBC_INTERIOR) then
           dm2%fbcz_gz(:, :, n) = dm2%fbcz_qz(:, :, n) * dm2%fbcz_ftp(:, :, 1)%d
-          if(dm2%icoordinate == ICYLINDRICAL) &
-          dm2%fbcz_gzr(:, :, n) = dm2%fbcz_qzr(:, :, n) * dm2%fbcz_ftp(:, :, 1)%d
+          !if(dm2%icoordinate == ICYLINDRICAL) &
+          !dm2%fbcz_gzr(:, :, n) = dm2%fbcz_qzr(:, :, n) * dm2%fbcz_ftp(:, :, 1)%d
         end if
       end do
     end if

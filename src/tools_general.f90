@@ -883,15 +883,15 @@ contains
     integer, intent(in)          :: pencil
 
     integer :: i, j, k, jj, nx, ny, nz, nyst
-    logical :: is_axis
+    !logical :: is_axis
 
     ! Initialize dimensions based on pencil
     call get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
-    is_axis = .false.
+    !is_axis = .false.
     do j = 1, ny
       jj = nyst + j - 1
       if (r(jj) > (MAXP * HALF)) then
-        is_axis = .true.
+        !is_axis = .true.
         if (jj /= 1) call Print_error_msg("Error: r(j) = 0 at j /= 1.")
       else
         do k = 1, nz

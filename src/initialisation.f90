@@ -220,7 +220,7 @@ contains
             call Generate_r_random( -ONE, ONE, rd)
             if(n == 1) fl%qx(i, j, k) = lownoise * rd
             if(n == 2) fl%qy(i, j, k) = lownoise * rd * dm%rp(jj)
-            if(n == 3) fl%qz(i, j, k) = lownoise * rd * dm%rc(jj)
+            if(n == 3) fl%qz(i, j, k) = lownoise * rd! * dm%rc(jj)
           end do
         end do
       end do

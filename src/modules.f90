@@ -535,19 +535,19 @@ module udf_type_mod
     real(wp), allocatable :: fbcy_gy(:, :, :) ! variable bc
     real(wp), allocatable :: fbcz_gy(:, :, :) ! variable bc
     !real(wp), allocatable :: fbcy_gyr(:, :, :) ! gy/r = rho * ur bc at y dirction
-    real(wp), allocatable :: fbcz_gyr(:, :, :) ! gy/r = rho * ur bc at z dirction
+    !real(wp), allocatable :: fbcz_gyr(:, :, :) ! gy/r = rho * ur bc at z dirction
 
     real(wp), allocatable :: fbcx_qz(:, :, :) ! variable bc
     real(wp), allocatable :: fbcy_qz(:, :, :) ! variable bc
     real(wp), allocatable :: fbcz_qz(:, :, :) ! variable bc
-    real(wp), allocatable :: fbcy_qzr(:, :, :) ! qz/r = u_theta bc at y dirction
-    real(wp), allocatable :: fbcz_qzr(:, :, :) ! qz/r = u_theta bc at z dirction
+    !real(wp), allocatable :: fbcy_qzr(:, :, :) ! qz/r = u_theta bc at y dirction
+    !real(wp), allocatable :: fbcz_qzr(:, :, :) ! qz/r = u_theta bc at z dirction
 
     real(wp), allocatable :: fbcx_gz(:, :, :) ! variable bc
     real(wp), allocatable :: fbcy_gz(:, :, :) ! variable bc
     real(wp), allocatable :: fbcz_gz(:, :, :) ! variable bc
-    real(wp), allocatable :: fbcy_gzr(:, :, :) ! gz/r = rho * u_theta bc at y dirction
-    real(wp), allocatable :: fbcz_gzr(:, :, :) ! gz/r = rho * u_theta bc at z dirction
+    !real(wp), allocatable :: fbcy_gzr(:, :, :) ! gz/r = rho * u_theta bc at y dirction
+    !real(wp), allocatable :: fbcz_gzr(:, :, :) ! gz/r = rho * u_theta bc at z dirction
 
     real(wp), allocatable :: fbcx_pr(:, :, :) ! variable bc
     real(wp), allocatable :: fbcy_pr(:, :, :) ! variable bc
@@ -609,12 +609,12 @@ module udf_type_mod
     real(wp) :: tt_mass_change
     real(wp) :: tt_kinetic_energy
 
-    real(WP), allocatable :: qx(:, :, :)  !
-    real(WP), allocatable :: qy(:, :, :)
-    real(WP), allocatable :: qz(:, :, :)
-    real(WP), allocatable :: gx(:, :, :)
-    real(WP), allocatable :: gy(:, :, :)
-    real(WP), allocatable :: gz(:, :, :)
+    real(WP), allocatable :: qx(:, :, :)  ! qx = u_x,     axial direction
+    real(WP), allocatable :: qy(:, :, :)  ! qy = u_r * r, radial direction
+    real(WP), allocatable :: qz(:, :, :)  ! qz = u_theta, azimuthal direction
+    real(WP), allocatable :: gx(:, :, :)  ! gx = rho * q_x
+    real(WP), allocatable :: gy(:, :, :)  ! gy = rho * q_y
+    real(WP), allocatable :: gz(:, :, :)  ! gz = rho * q_z
     real(WP), allocatable :: gx0(:, :, :)
     real(WP), allocatable :: gy0(:, :, :)
     real(WP), allocatable :: gz0(:, :, :)

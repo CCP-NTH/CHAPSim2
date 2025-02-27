@@ -204,7 +204,7 @@ module bc_convective_outlet_mod
     if (.not. dm%is_conv_outlet) return
 
     if(dm%is_thermo) then
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%drhodt, bulkm, SPACE_INTEGRAL)
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%drhodt, bulkm, SPACE_INTEGRAL, 'drhodt')
     else
       bulkm = ZERO
     end if
@@ -226,7 +226,7 @@ module bc_convective_outlet_mod
       call Get_area_average_2d_for_fbcx(dm, dm%dpcc, fbcx, fbcm_x, SPACE_INTEGRAL, 'fbcx')
     else if(dm%ibcy_nominal(2, 2) == IBC_CONVECTIVE) then
 !----------------------------------------------------------------------------------------------------------
-! y - inlet/outlet - qy
+! y - inlet/outlet - qy = ur * r
 !----------------------------------------------------------------------------------------------------------
       iconv(2) = .true.
       if(dm%is_thermo) then
@@ -242,16 +242,16 @@ module bc_convective_outlet_mod
     else if (dm%ibcz_nominal(2, 3) == IBC_CONVECTIVE) then
       iconv(3) = .true.
 !----------------------------------------------------------------------------------------------------------
-! z - inlet/outlet - qz
+! z - inlet/outlet - qz = u_theta
 !----------------------------------------------------------------------------------------------------------
       if(dm%is_thermo) then
         fbcz = dm%fbcz_gz
       else
         fbcz = dm%fbcz_qz
       end if
-      if(dm%icoordinate == ICYLINDRICAL) then
-        call multiple_cylindrical_rn_xx4(fbcz, dm%dccp, dm%rci, 1, IPENCIL(3))
-      end if
+      ! if(dm%icoordinate == ICYLINDRICAL) then
+      !   call multiple_cylindrical_rn_xx4(fbcz, dm%dccp, dm%rci, 1, IPENCIL(3))
+      ! end if
       call Get_area_average_2d_for_fbcz(dm, dm%dccp, fbcz, fbcm_z, SPACE_INTEGRAL, 'fbcz')
     end if
 !----------------------------------------------------------------------------------------------------------

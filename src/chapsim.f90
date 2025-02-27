@@ -110,6 +110,7 @@ subroutine initialise_chapsim
 ! build up boundary condition
 !----------------------------------------------------------------------------------------------------------
   do i = 1, nxdomain
+    if(nrank == 0 ) call Print_debug_start_msg("initialising boundary conditions ...")
     if(domain(i)%is_thermo) then
       call Convert_thermal_input_2undim(thermo(i), domain(i))
       call allocate_fbc_thermo(domain(i)) 
@@ -117,6 +118,7 @@ subroutine initialise_chapsim
     end if
     call allocate_fbc_flow(domain(i)) 
     call initialise_fbc_flow_given(domain(i)) 
+    if(nrank == 0 ) call Print_debug_end_msg
   end do
 !----------------------------------------------------------------------------------------------------------
 ! initialise flow and thermo fields
@@ -268,7 +270,7 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       if ( (iter >= flow(i)%nIterFlowStart) .and. (iter <=flow(i)%nIterFlowEnd)) then
         is_flow(i) = .true.
-        if (nrank == 0) write(*, wrtfmt1r) "flow field physical time (s) = ", flow(i)%time
+        if (nrank == 0) write(*, wrtfmt1e) "flow field physical time (s) = ", flow(i)%time
         flow(i)%time = flow(i)%time + domain(i)%dt
         flow(i)%iteration = flow(i)%iteration + 1
         call Check_cfl_diffusion (flow(i), domain(i))

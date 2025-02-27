@@ -121,6 +121,12 @@ contains
     end if
 
     div = ZERO
+
+!----------------------------------------------------------------------------------------------------------
+! For cylindrical coordinate:
+! Poisson eq is r^2 * d2/dx2 + r * d(r * d/dy)/dy + d2/dz2  = r^2 * div
+!----------------------------------------------------------------------------------------------------------
+
 !----------------------------------------------------------------------------------------------------------
 ! operation in x pencil, dqx/dx
 !----------------------------------------------------------------------------------------------------------
@@ -140,7 +146,7 @@ contains
     call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 1, IPENCIL(1))
     div(:, :, :) = div(:, :, :) + div0(:, :, :)
 !----------------------------------------------------------------------------------------------------------
-! operation in z pencil, dw/dz * (1/r)^2
+! operation in z pencil, dw/dz * (1/r)
 !----------------------------------------------------------------------------------------------------------
     qz_ypencil = ZERO
     qz_zpencil = ZERO
@@ -153,10 +159,8 @@ contains
     call transpose_z_to_y(div0_zpencil, div0_ypencil, dm%dccc)
     call transpose_y_to_x(div0_ypencil, div0,         dm%dccc)
     if(dm%icoordinate == ICYLINDRICAL) &
-    call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 2, IPENCIL(1))
+    call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 1, IPENCIL(1))
     div(:, :, :) = div(:, :, :) + div0(:, :, :)
-
-    ! check: CHAPSim1 using the r^2 * continuity format. 
     
     return
   end subroutine
@@ -217,7 +221,7 @@ contains
     div(:, :, :) = div(:, :, :) + div0(:, :, :)
     !write(*,*) 'div, y', div0(1, 1, 1), div0(2, 2, 2), div0(8, 8, 8)!, div0(16, 8, 8), div0(32, 8, 8)
 !----------------------------------------------------------------------------------------------------------
-! operation in z pencil, dw/dz * (1/r)^2
+! operation in z pencil, dw/dz * (1/r)
 !----------------------------------------------------------------------------------------------------------
     uz_ypencil = ZERO
     uz_zpencil = ZERO
@@ -230,7 +234,7 @@ contains
     call transpose_z_to_y(div0_zpencil, div0_ypencil, dm%dccc)
     call transpose_y_to_x(div0_ypencil, div0,         dm%dccc)
     if(dm%icoordinate == ICYLINDRICAL) &
-    call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 2, IPENCIL(1))
+    call multiple_cylindrical_rn(div0, dm%dccc, dm%rci, 1, IPENCIL(1))
     div(:, :, :) = div(:, :, :) + div0(:, :, :)
     !write(*,*) 'div, z', div0(1, 1, 1), div0(2, 2, 2), div0(8, 8, 8)!, div0(16, 8, 8), div0(32, 8, 8)
     !write(*,*) 'divall', div0(1, 1, 1), div(8, 8, 8)
@@ -308,7 +312,7 @@ contains
     div_ypencil_ggl = div_ypencil_ggl + div0_ypencil_ggl
     call transpose_y_to_z(div_ypencil_ggl, div_zpencil_ggg, dm%dccc)
 !----------------------------------------------------------------------------------------------------------
-! operation in z pencil, dw/dz * (1/r)^2
+! operation in z pencil, dw/dz * (1/r)
 !----------------------------------------------------------------------------------------------------------
     uz_ypencil = ZERO
     uz_zpencil = ZERO
@@ -318,7 +322,7 @@ contains
     call transpose_y_to_z(uz_ypencil, uz_zpencil, dm%dccp)
     call Get_z_1der_P2C_3D(uz_zpencil, div0_zpencil, dm, dm%iAccuracy, dm%ibcz_qz(:), dm%fbcz_qz)
     if(dm%icoordinate == ICYLINDRICAL) &
-    call multiple_cylindrical_rn(div0_zpencil, dm%dccc, dm%rci, 2, IPENCIL(3))
+    call multiple_cylindrical_rn(div0_zpencil, dm%dccc, dm%rci, 1, IPENCIL(3))
     call zpencil_index_llg2ggg(div0_zpencil, div0_zpencil_ggg, dm%dccc)
     div_zpencil_ggg = div_zpencil_ggg + div0_zpencil_ggg
 

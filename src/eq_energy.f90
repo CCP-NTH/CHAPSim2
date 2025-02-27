@@ -317,12 +317,12 @@ contains
     write(*,*) 'cony-e', accc_ypencil(4, 1:4, 4)
 #endif
 !----------------------------------------------------------------------------------------------------------
-! conv-z-e, z-pencil : d (gz/r * h_ccp) / dz   * (1/r)
+! conv-z-e, z-pencil : d (gz * h_ccp) / dz   * (1/r)
 !----------------------------------------------------------------------------------------------------------
     !------bulk------
     accp_zpencil = - gz_ccp_zpencil * hEnth_ccp_zpencil
-    if(dm%icoordinate == ICYLINDRICAL) &
-    call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+    ! if(dm%icoordinate == ICYLINDRICAL) &
+    ! call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
     if(is_fbcz_velo_required) then
       call extract_dirichlet_fbcz(fbcz_cc4, accp_zpencil, dm%dccp)
     else

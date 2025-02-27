@@ -205,7 +205,7 @@ contains
     if(dm%icoordinate == ICYLINDRICAL)&
     call multiple_cylindrical_rn(accc_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
     call transpose_y_to_x(accc_ypencil, accc2, dm%dccc)
-    ! qz = uz * r
+    ! qz = uz
     call transpose_x_to_y(fl%qz, accp_ypencil, dm%dccp)
     call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
     call Get_z_midp_P2C_3D(accp_zpencil, accc_zpencil, dm, dm%iAccuracy, dm%ibcz_qz(:), dm%fbcz_qz)
@@ -216,7 +216,7 @@ contains
     if(dm%is_thermo) then
       fenergy = fenergy * fl%dDens
     end if
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fenergy, bulk_MKE, SPACE_AVERAGE)
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fenergy, bulk_MKE, SPACE_AVERAGE, 'MKE')
     dMKEdt = (bulk_MKE - fl%tt_kinetic_energy)/dm%dt
     fl%tt_kinetic_energy = bulk_MKE
 !----------------------------------------------------------------------------------------------------------
@@ -224,7 +224,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     !density change introduced mass change 
     if(dm%is_thermo) then
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%drhodt, bulk_m, SPACE_INTEGRAL)
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%drhodt, bulk_m, SPACE_INTEGRAL, 'drhodt')
     else
       bulk_m = ZERO
     end if
@@ -254,9 +254,9 @@ contains
       call transpose_x_to_y(fl%qz,        accp_ypencil, dm%dccp)
       call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
     end if
-    if(dm%icoordinate == ICYLINDRICAL) then
-      call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
-    end if
+    ! if(dm%icoordinate == ICYLINDRICAL) then
+    !   call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+    ! end if
     call Get_area_average_2d_for_fbcz(dm, dm%dccp, accp_zpencil, bulk_fbcz, SPACE_INTEGRAL, 'varz')
     ! mass change rate, kg/s
     fl%tt_mass_change = bulk_m + &
@@ -267,12 +267,12 @@ contains
 !   Bulk quantities
 !----------------------------------------------------------------------------------------------------------
     ! bulk streamwise velocity
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%qx,   bulk_qx,  SPACE_AVERAGE)
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%qx,   bulk_qx,  SPACE_AVERAGE, 'qx')
     ! bulk thermal parameters
     if(dm%is_thermo .and. present(tm)) then
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%gx,    bulk_gx, SPACE_AVERAGE)
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, tm%tTemp, bulk_T,  SPACE_AVERAGE)
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, tm%hEnth, bulk_h,  SPACE_AVERAGE)
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%gx,    bulk_gx, SPACE_AVERAGE, 'gx')
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, tm%tTemp, bulk_T,  SPACE_AVERAGE, 'T')
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, tm%hEnth, bulk_h,  SPACE_AVERAGE, 'h')
     end if
 !----------------------------------------------------------------------------------------------------------
 ! open file

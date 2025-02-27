@@ -220,6 +220,7 @@ contains
     real(WP) :: w1, w2
     real(WP) :: t1, dummy
 
+    call Print_debug_start_msg("ftp_refresh_thermal_properties_from_T_undim")
     if(fluidparam%ipropertyState == IPROPERTY_TABLE) then 
       i1 = 1
       i2 = fluidparam%nlist
@@ -1162,6 +1163,7 @@ contains
   subroutine Buildup_thermo_mapping_relations(tm)
     type(t_thermo), intent(inout) :: tm
 
+    if(nrank == 0) call Print_debug_start_msg("initialising thermal mapping relations ...")
     call Buildup_fluidparam(tm)
     if (fluidparam%ipropertyState == IPROPERTY_TABLE) call buildup_property_relations_from_table
     if (fluidparam%ipropertyState == IPROPERTY_FUNCS) call buildup_property_relations_from_function
@@ -1169,6 +1171,7 @@ contains
     tm%ftp_ini%t = tm%init_T0 / tm%ref_T0 ! already undim
     call ftp_refresh_thermal_properties_from_T_undim(tm%ftp_ini)
 
+    if(nrank == 0) call Print_debug_end_msg
     return
   end subroutine Buildup_thermo_mapping_relations
 

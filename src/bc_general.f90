@@ -272,8 +272,8 @@ end function
     if(dm%icoordinate == ICYLINDRICAL) then 
       allocate( dm%fbcy_qyr(dm%dcpc%ysz(1), 4,              dm%dcpc%ysz(3)) )
       allocate( dm%fbcz_qyr(dm%dcpc%zsz(1), dm%dcpc%zsz(2), 4             ) )
-      allocate( dm%fbcy_qzr(dm%dccp%ysz(1), 4,              dm%dccp%ysz(3)) )
-      allocate( dm%fbcz_qzr(dm%dccp%zsz(1), dm%dccp%zsz(2), 4             ) )
+      !allocate( dm%fbcy_qzr(dm%dccp%ysz(1), 4,              dm%dccp%ysz(3)) )
+      !allocate( dm%fbcz_qzr(dm%dccp%zsz(1), dm%dccp%zsz(2), 4             ) )
     end if
 
     if(dm%is_record_xoutlet) then
@@ -319,12 +319,12 @@ end function
     allocate( dm%fbcz_gy(dm%dcpc%zsz(1), dm%dcpc%zsz(2), 4) )! default z pencil
     allocate( dm%fbcz_gz(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )! default z pencil
 
-    if(dm%icoordinate == ICYLINDRICAL) then 
+    !if(dm%icoordinate == ICYLINDRICAL) then 
       !allocate( dm%fbcy_gyr(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) )
-      allocate( dm%fbcy_gzr(dm%dccp%ysz(1), 4, dm%dccp%ysz(3)) )
-      allocate( dm%fbcz_gyr(dm%dcpc%zsz(1), dm%dcpc%zsz(2), 4) )
-      allocate( dm%fbcz_gzr(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )
-    end if
+      !allocate( dm%fbcy_gzr(dm%dccp%ysz(1), 4, dm%dccp%ysz(3)) )
+      !allocate( dm%fbcz_gyr(dm%dcpc%zsz(1), dm%dcpc%zsz(2), 4) )
+      !allocate( dm%fbcz_gzr(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )
+    !end if
 
     allocate( dm%fbcx_qw (4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) )! default x pencil
     allocate( dm%fbcx_ftp(4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) )! default x pencil
@@ -407,8 +407,8 @@ end function
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qz(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qz for the centre of the pipe.') ! 
     call get_interior_axis_fbcy(fl%qz, dm%fbcy_qz, dm%knc_sym, dm%dccp)
-    dm%fbcy_qzr(:, 1, :) = dm%fbcy_qz(:, 1, :) * dm%rci(1) ! interior, not at axis
-    dm%fbcy_qzr(:, 3, :) = dm%fbcy_qz(:, 3, :) * dm%rci(2)
+    !dm%fbcy_qzr(:, 1, :) = dm%fbcy_qz(:, 1, :) * dm%rci(1) ! interior, not at axis
+    !dm%fbcy_qzr(:, 3, :) = dm%fbcy_qz(:, 3, :) * dm%rci(2)
 !----------------------------------------------------------------------------------------------------------
 !   Update pressure boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
@@ -455,8 +455,8 @@ end function
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qz(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qz for the centre of the pipe.') ! 
     call get_interior_axis_fbcy(fl%gz, dm%fbcy_gz, dm%knc_sym, dm%dccp)
-    dm%fbcy_gzr(:, 1, :) = dm%fbcy_gz(:, 1, :) * dm%rci(1)
-    dm%fbcy_gzr(:, 3, :) = dm%fbcy_gz(:, 3, :) * dm%rci(2)
+    !dm%fbcy_gzr(:, 1, :) = dm%fbcy_gz(:, 1, :) * dm%rci(1)
+    !dm%fbcy_gzr(:, 3, :) = dm%fbcy_gz(:, 3, :) * dm%rci(2)
 !----------------------------------------------------------------------------------------------------------
 !   ! Update thermo boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------

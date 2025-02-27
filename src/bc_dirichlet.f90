@@ -313,10 +313,10 @@ contains
     call initialise_fbcy_given_const(dm%fbcy_pr, dm%fbcy_const(:, 4))
     if(dm%icoordinate == ICYLINDRICAL) then
 !----------------------------------------------------------------------------------------------------------
-! y-bc in y-pencil, qyr = qy/r = uy; qzr = qz/r = uz
+! y-bc in y-pencil, qyr = qy/r = uy
 !----------------------------------------------------------------------------------------------------------
       call initialise_fbcy_given_const(dm%fbcy_qyr, dm%fbcy_const(:, 2), dm%rpi)
-      call initialise_fbcy_given_const(dm%fbcy_qzr, dm%fbcy_const(:, 3), dm%rci)
+      !call initialise_fbcy_given_const(dm%fbcy_qzr, dm%fbcy_const(:, 3), dm%rci)
     end if
 !----------------------------------------------------------------------------------------------------------
 ! z-bc in z-pencil, qx, qy, qz, pr
@@ -327,10 +327,10 @@ contains
     call initialise_fbcz_given_const(dm%fbcz_pr, dm%fbcz_const(:, 4))
     if(dm%icoordinate == ICYLINDRICAL) then
 !----------------------------------------------------------------------------------------------------------
-! z-bc in z-pencil, qyr = qy/r = uy; qzr = qz/r = uz
+! z-bc in z-pencil, qyr = qy/r = uy
 !----------------------------------------------------------------------------------------------------------
       call initialise_fbcz_given_const(dm%fbcz_qyr, dm%fbcz_const(:, 2), dm%rpi, dm%dcpc%zst(2))
-      call initialise_fbcz_given_const(dm%fbcz_qzr, dm%fbcz_const(:, 3), dm%rci, dm%dccp%zst(2))
+      !call initialise_fbcz_given_const(dm%fbcz_qzr, dm%fbcz_const(:, 3), dm%rci, dm%dccp%zst(2))
     end if
 
 !==========================================================================================================
@@ -388,25 +388,25 @@ contains
         dm%fbcx_gy(n, :, :) = dm%fbcx_qy(n, :, :) * dm%fbcx_ftp(n, 1, 1)%d
         dm%fbcx_gz(n, :, :) = dm%fbcx_qz(n, :, :) * dm%fbcx_ftp(n, 1, 1)%d
 !----------------------------------------------------------------------------------------------------------
-! y-bc in y-pencil, gx, gy, gz, qyr = qy/r = uy; qzr = qz/r = uz
+! y-bc in y-pencil, gx, gy, gz, qyr = qy/r = uy
 !----------------------------------------------------------------------------------------------------------
         dm%fbcy_gx(:, n, :) = dm%fbcy_qx(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
         dm%fbcy_gy(:, n, :) = dm%fbcy_qy(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
         dm%fbcy_gz(:, n, :) = dm%fbcy_qz(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
-        if(dm%icoordinate == ICYLINDRICAL) then
+        !if(dm%icoordinate == ICYLINDRICAL) then
           !dm%fbcy_gyr(:, n, :) = dm%fbcy_qyr(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
-          dm%fbcy_gzr(:, n, :) = dm%fbcy_qzr(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
-        end if
+          !dm%fbcy_gzr(:, n, :) = dm%fbcy_qzr(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
+        !end if
 !----------------------------------------------------------------------------------------------------------
-! z-bc in z-pencil, gx, gy, gz, gyr = gy/r ; gzr = gz/r
+! z-bc in z-pencil, gx, gy, gz, gyr = gy/r
 !----------------------------------------------------------------------------------------------------------
         dm%fbcz_gx(:, :, n) = dm%fbcz_qx(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
         dm%fbcz_gy(:, :, n) = dm%fbcz_qy(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
         dm%fbcz_gz(:, :, n) = dm%fbcz_qz(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
-        if(dm%icoordinate == ICYLINDRICAL) then
-          dm%fbcz_gyr(:, :, n) = dm%fbcz_qyr(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
-          dm%fbcz_gzr(:, :, n) = dm%fbcz_qzr(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
-        end if
+        !if(dm%icoordinate == ICYLINDRICAL) then
+          !dm%fbcz_gyr(:, :, n) = dm%fbcz_qyr(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
+          !dm%fbcz_gzr(:, :, n) = dm%fbcz_qzr(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
+        !end if
 
       end do
     end if
