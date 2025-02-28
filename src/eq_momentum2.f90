@@ -165,8 +165,8 @@ contains
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: qydy_ccp_zpencil  ! for div b.c., common
 
     real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: qyrdy_ccc_ypencil ! diff-y-m2, cly1
-    real(WP), dimension( dm%dcpp%zsz(1), dm%dcpp%zsz(2), dm%dcpp%zsz(3) ) :: qyrdz_cpp_zpencil ! diff-z-m2, cly2
-    real(WP), dimension( dm%dcpp%ysz(1), dm%dcpp%ysz(2), dm%dcpp%ysz(3) ) :: qyrdz_cpp_ypencil ! diff-y-m3, cly3
+    real(WP), dimension( dm%dcpp%zsz(1), dm%dcpp%zsz(2), dm%dcpp%zsz(3) ) :: qyr2dz_cpp_zpencil ! diff-z-m2, cly2
+    real(WP), dimension( dm%dcpp%ysz(1), dm%dcpp%ysz(2), dm%dcpp%ysz(3) ) :: qyrdz_cpp_ypencil, qyr2dz_cpp_ypencil ! diff-y-m3, cly3
 !----------------------------------------------------------------------------------------------------------
 ! qz, gz
 !----------------------------------------------------------------------------------------------------------
@@ -724,11 +724,17 @@ contains
 
       call transpose_y_to_z(qyr_ypencil, acpc_zpencil, dm%dcpc)
       call Get_z_midp_C2P_3D(acpc_zpencil, qyriz_cpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qy, dm%fbcz_qyr)
-      call Get_z_1der_C2P_3D(acpc_zpencil, qyrdz_cpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qy, dm%fbcz_qyr)
-
       if(.not. dm%is_thermo) call transpose_z_to_y(qyriz_cpp_zpencil, qyriz_cpp_ypencil, dm%dcpp)
-      call transpose_z_to_y(qyrdz_cpp_zpencil, qyrdz_cpp_ypencil, dm%dcpp)
+      call Get_z_1der_C2P_3D(acpc_zpencil, acpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qy, dm%fbcz_qyr)
+      call transpose_z_to_y(acpp_zpencil, qyrdz_cpp_ypencil, dm%dcpp)
 
+      acpc_xpencil = fl%qy
+      call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 2, IPENCIL(1)) ! qr/r^2
+      call estimate_radial_xpx_on_axis(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
+      call transpose_x_to_y(acpc_xpencil, acpc_ypencil, dm%dcpc) ! acpc_ypencil = qr/r^2_ypencil
+      call transpose_x_to_y(acpc_ypencil, acpc_zpencil, dm%dcpc)
+      call Get_z_1der_C2P_3D(acpc_zpencil, qyr2dz_cpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qy, dm%fbcz_qyr) ! to check, this bc is not used for peridoic z
+      call transpose_z_to_y(qyr2dz_cpp_zpencil, qyr2dz_cpp_ypencil, dm%dcpp)
 !----------------------------------------------------------------------------------------------------------
 !    qz/r=qzr
 !    | -[x2y]-> qzr_ypencil(temp) 
@@ -1256,13 +1262,13 @@ contains
 !----------------------------------------------------------------------------------------------------------
     !------bulk-----
     if(dm%icoordinate == ICYLINDRICAL) then
-      acpp_zpencil = qyrdz_cpp_zpencil ! acpp_zpencil = d(qr/r)/dz
-      call multiple_cylindrical_rn(acpp_zpencil, dm%dcpp, dm%rpi, 1, IPENCIL(3)) ! acpp_zpencil = 1/r * d(qr/r)/dz
-      call estimate_radial_xpx_on_axis(acpp_zpencil1, dm%dcpp, IPENCIL(3), dm)    ! 
+      ! acpp_zpencil = qyrdz_cpp_zpencil ! acpp_zpencil = d(qr/r)/dz
+      ! call multiple_cylindrical_rn(acpp_zpencil, dm%dcpp, dm%rpi, 1, IPENCIL(3)) ! acpp_zpencil = 1/r * d(qr/r)/dz
+      ! call estimate_radial_xpx_on_axis(acpp_zpencil1, dm%dcpp, IPENCIL(3), dm)    ! 
       acpp_zpencil1 = qziy_cpp_zpencil ! acpp_zpencil1 = (qz)^r
       call multiple_cylindrical_rn(acpp_zpencil1, dm%dcpp, dm%rpi, 1, IPENCIL(3)) ! acpp_zpencil1 = 1/r * (dz)^r
       call estimate_azimuthal_xpx_on_axis(acpp_zpencil1, dm%dcpp, IPENCIL(3), dm)  
-      acpp_zpencil = qzdy_cpp_zpencil + acpp_zpencil - acpp_zpencil1
+      acpp_zpencil = qzdy_cpp_zpencil + qyr2dz_cpp_zpencil - acpp_zpencil1
     else
       acpp_zpencil  = qzdy_cpp_zpencil + qydz_cpp_zpencil - ZERO
     end if
@@ -1600,10 +1606,10 @@ contains
 !---------------------------------------------------------------------------------------------------------
     if(dm%icoordinate == ICYLINDRICAL) then
       !------bulk------
-      acpp_ypencil = qydz_cpp_ypencil
-      call multiple_cylindrical_rn(acpp_ypencil, dm%dcpp, dm%rpi, 2, IPENCIL(2))
-      call estimate_radial_xpx_on_axis(acpp_ypencil, dm%dcpp, IPENCIL(2), dm)
-      acpp_ypencil = qzdy_cpp_ypencil + acpp_ypencil
+      ! acpp_ypencil = qydz_cpp_ypencil
+      ! call multiple_cylindrical_rn(acpp_ypencil, dm%dcpp, dm%rpi, 2, IPENCIL(2))
+      ! call estimate_radial_xpx_on_axis(acpp_ypencil, dm%dcpp, IPENCIL(2), dm)
+      acpp_ypencil = qzdy_cpp_ypencil + qyr2dz_cpp_ypencil
       acpp_ypencil1 = qziy_cpp_ypencil
       call multiple_cylindrical_rn(acpp_ypencil1, dm%dcpp, dm%rpi, 1, IPENCIL(2))
       call estimate_azimuthal_xpx_on_axis(acpp_ypencil1, dm%dcpp, IPENCIL(2), dm)

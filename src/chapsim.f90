@@ -68,7 +68,7 @@ subroutine initialise_chapsim
 !----------------------------------------------------------------------------------------------------------
   call Read_input_parameters
 !----------------------------------------------------------------------------------------------------------
-! build up geometry information, mesh size, grid spacing/spacing, streching factor etc... 
+! build up geometry information, mesh size, grid spacing/spacing, stretching factor etc... 
 !----------------------------------------------------------------------------------------------------------
   do i = 1, nxdomain
     call Buildup_geometry_mesh_info(domain(i))

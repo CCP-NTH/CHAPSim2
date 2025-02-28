@@ -341,11 +341,12 @@ end function
 
 !==========================================================================================================
 !==========================================================================================================
-  subroutine get_interior_axis_fbcy(var_xpencil, fbcy, ksym, dtmp)
+  subroutine get_interior_axis_fbcy(var_xpencil, fbcy, ksym, dtmp, opt_str)
     type(DECOMP_INFO), intent(in) :: dtmp
     real(WP), intent(in) :: var_xpencil(:, :, :)
     real(WP), intent(inout) :: fbcy(:, :, :)
     integer, intent(in) :: ksym(:)
+    character(len = *), intent(in), optional :: opt_str
 
     real(WP), dimension( dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3) ) :: var_ypencil
     real(WP), dimension( dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3) ) :: var_zpencil
@@ -357,6 +358,9 @@ end function
 !   no overlap of values
 !----------------------------------------------------------------------------------------------------------
     call transpose_x_to_y(var_xpencil, var_ypencil, dtmp)
+    if(present(opt_str) .and. opt_str == 'qy') then
+      var_ypencil(:, 1, :) = ZERO
+    end if
     call transpose_y_to_z(var_ypencil, var_zpencil, dtmp)
 
     do k = 1, dtmp%zsz(3)
@@ -380,6 +384,7 @@ end function
     type(t_flow), intent(inout)      :: fl
 
     real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
+    real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc_xpencil
 
     ! Check if the case and coordinate system are valid
     if (dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
@@ -396,12 +401,12 @@ end function
 !   ! Update qy and qy/r boundary conditions in y-direction (on nodes)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qy for the centre of the pipe.')
-    call estimate_radial_xpx_on_axis(fl%qy, dm%dcpc, IPENCIL(1), dm)
-    call transpose_x_to_y(fl%qy, acpc_ypencil, dm%dcpc)
-    call extract_dirichlet_fbcy(dm%fbcy_qy, acpc_ypencil, dm%dcpc, dm)
-    call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2)) ! qr/r
-    call estimate_radial_xpx_on_axis(acpc_ypencil, dm%dcpc, IPENCIL(2), dm)
-    call extract_dirichlet_fbcy(dm%fbcy_qyr, acpc_ypencil, dm%dcpc, dm)
+    call get_interior_axis_fbcy(fl%qy, dm%fbcy_qy, dm%knc_sym, dm%dcpc, 'qy')
+
+    acpc_xpencil = fl%qy
+    call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! qr/r
+    call estimate_radial_xpx_on_axis(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
+    call extract_dirichlet_fbcy(dm%fbcy_qyr, acpc_xpencil, dm%dcpc, dm)
 !----------------------------------------------------------------------------------------------------------
 !   Update qz boundary condition in y-direction (interior cell center)
 !----------------------------------------------------------------------------------------------------------
