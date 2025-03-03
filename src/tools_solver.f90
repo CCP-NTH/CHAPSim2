@@ -601,6 +601,7 @@ contains
             if (j==1) then
               a4pc_ypencil(i, j, k) = (THREE * a4cc_ypencil(i, j, k) - a4cc_ypencil(i, j+1, k))/TWO
             else if (j==dm%d4pc%ysz(2)) then
+              if(j<=2) call Print_error_msg('get_fbcx_ftp_4pc decomposition error')
               a4pc_ypencil(i, j, k) = (THREE * a4cc_ypencil(i, j-1, k) - a4cc_ypencil(i, j-2, k))/TWO
             else
               a4pc_ypencil(i, j, k) = (a4cc_ypencil(i, j-1, k) + a4cc_ypencil(i, j, k))/TWO

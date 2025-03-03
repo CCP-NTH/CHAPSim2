@@ -808,7 +808,7 @@ module cylindrical_rn_mod
   private :: get_dimensions
 
   public :: estimate_radial_xpx_on_axis
-  public :: estimate_azimuthal_xpx_on_axis
+  !public :: estimate_azimuthal_xpx_on_axis
   public :: multiple_cylindrical_rn
   public :: multiple_cylindrical_rn_xx4
   public :: multiple_cylindrical_rn_x4x
@@ -818,33 +818,34 @@ contains
   !============================================================================
   ! Estimate azimuthal component on the axis
   !============================================================================
-  subroutine estimate_azimuthal_xpx_on_axis(var, dtmp, pencil, dm)
-    implicit none
-    type(DECOMP_INFO), intent(in) :: dtmp
-    type(t_domain), intent(in)    :: dm ! not used
-    real(WP), intent(inout)      :: var(:, :, :)
-    integer, intent(in)          :: pencil
+  ! subroutine estimate_azimuthal_xpx_on_axis(var, dtmp, pencil, dm)
+  !   implicit none
+  !   type(DECOMP_INFO), intent(in) :: dtmp
+  !   type(t_domain), intent(in)    :: dm ! not used
+  !   real(WP), intent(inout)      :: var(:, :, :)
+  !   integer, intent(in)          :: pencil
 
-    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
-    real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil
+  !   real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
+  !   real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil
 
-    if (dm%icase /= ICASE_PIPE) return
+  !   if (dm%icase /= ICASE_PIPE) return
 
-    ! Transpose input data to z-pencil
-    call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
+  !   ! Transpose input data to z-pencil
+  !   call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
 
-    ! Set the value on the axis to zero
-    var_zpencil(:, :, 1) = ZERO
+  !   ! Set the value on the axis to zero
+  !   var_zpencil(:, :, 1) = ZERO
 
-    ! Transpose back to the original pencil
-    call transpose_from_z_pencil(var_zpencil, var, dtmp, pencil)
+  !   ! Transpose back to the original pencil
+  !   call transpose_from_z_pencil(var_zpencil, var, dtmp, pencil)
 
-  end subroutine estimate_azimuthal_xpx_on_axis
+  ! end subroutine estimate_azimuthal_xpx_on_axis
 
   !============================================================================
   ! Estimate radial component on the axis
   !============================================================================
   subroutine estimate_radial_xpx_on_axis(var, dtmp, pencil, dm)
+    use math_mod
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
     type(t_domain), intent(in)    :: dm
@@ -853,7 +854,9 @@ contains
 
     real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil, var_ypencil1
     real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil, var_zpencil1
-    integer :: k
+    real(WP), dimension(dtmp%zsz(1)) :: uz, uy
+    integer :: k, i
+    real(WP) :: theta
 
     ! Transpose input data to z-pencil
     call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
@@ -863,11 +866,35 @@ contains
     do k = 1, dtmp%zsz(3)
       var_zpencil1(:, :, k) = var_zpencil(:, :, dm%knc_sym(k))
     end do
-    ! Transpose back to y-pencil and apply boundary condition
+    ! Transpose back to y-pencil and get the multiple valued ur at axis
     call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
     var_ypencil1(:, 1, :) = (var_ypencil1(:, 2, :) - var_ypencil(:, 2, :)) * HALF
+    ! Transpose to z-pencil for decomposition
+    call transpose_y_to_z(var_ypencil1, var_zpencil1, dtmp)
+
+    ! below is eq(83) & (76) of https://doi.org/10.1016/j.jcp.2003.12.015 (Morinishi2004JCP)
+    ! coorindates like: https://en.m.wikipedia.org/wiki/File:3D_coordinate_system.svg
+    if(dtmp%zst(2) == 1) then ! for axis jj == 1 only
+      do i = 1, dtmp%zsz(1)
+        uy(i) = ZERO
+        uz(i) = ZERO
+        do k = 1, dtmp%zsz(3)
+          theta = dm%h(3) * real((k-1), WP)
+          uz(i) = uy(i) + var_zpencil1(i, 1, k) * cos_wp(theta)
+          uy(i) = uz(i) + var_zpencil1(i, 1, k) * sin_wp(theta)
+        end do
+        uy(i) = uy(i) * TWO / dtmp%zsz(3)
+        uz(i) = uz(i) * TWO / dtmp%zsz(3)
+
+        do k = 1, dtmp%zsz(3)
+          theta = dm%h(3) * real((k-1), WP)
+          var_zpencil1(i, 1, k) = uz(i) * cos_wp(theta) + uy(i) * sin_wp(theta)
+        end do
+      end do
+    end if
+
     ! Transpose back to the original pencil
-    call transpose_from_y_pencil(var_ypencil1, var, dtmp, pencil)
+    call transpose_from_z_pencil(var_zpencil1, var, dtmp, pencil)
 
   end subroutine estimate_radial_xpx_on_axis
 

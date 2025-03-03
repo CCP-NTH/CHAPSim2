@@ -540,8 +540,8 @@ module udf_type_mod
     real(wp), allocatable :: fbcx_qz(:, :, :) ! variable bc
     real(wp), allocatable :: fbcy_qz(:, :, :) ! variable bc
     real(wp), allocatable :: fbcz_qz(:, :, :) ! variable bc
-    !real(wp), allocatable :: fbcy_qzr(:, :, :) ! qz/r = u_theta bc at y dirction
-    !real(wp), allocatable :: fbcz_qzr(:, :, :) ! qz/r = u_theta bc at z dirction
+    real(wp), allocatable :: fbcy_qzr(:, :, :) ! qz/r = u_theta bc at y dirction
+    real(wp), allocatable :: fbcz_qzr(:, :, :) ! qz/r = u_theta bc at z dirction
 
     real(wp), allocatable :: fbcx_gz(:, :, :) ! variable bc
     real(wp), allocatable :: fbcy_gz(:, :, :) ! variable bc

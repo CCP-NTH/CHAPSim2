@@ -220,7 +220,7 @@ contains
     real(WP) :: w1, w2
     real(WP) :: t1, dummy
 
-    call Print_debug_start_msg("ftp_refresh_thermal_properties_from_T_undim")
+    !call Print_debug_start_msg("ftp_refresh_thermal_properties_from_T_undim")
     if(fluidparam%ipropertyState == IPROPERTY_TABLE) then 
       i1 = 1
       i2 = fluidparam%nlist

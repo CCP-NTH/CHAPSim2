@@ -316,7 +316,7 @@ contains
 ! y-bc in y-pencil, qyr = qy/r = uy
 !----------------------------------------------------------------------------------------------------------
       call initialise_fbcy_given_const(dm%fbcy_qyr, dm%fbcy_const(:, 2), dm%rpi)
-      !call initialise_fbcy_given_const(dm%fbcy_qzr, dm%fbcy_const(:, 3), dm%rci)
+      call initialise_fbcy_given_const(dm%fbcy_qzr, dm%fbcy_const(:, 3), dm%rci)
     end if
 !----------------------------------------------------------------------------------------------------------
 ! z-bc in z-pencil, qx, qy, qz, pr
@@ -330,7 +330,7 @@ contains
 ! z-bc in z-pencil, qyr = qy/r = uy
 !----------------------------------------------------------------------------------------------------------
       call initialise_fbcz_given_const(dm%fbcz_qyr, dm%fbcz_const(:, 2), dm%rpi, dm%dcpc%zst(2))
-      !call initialise_fbcz_given_const(dm%fbcz_qzr, dm%fbcz_const(:, 3), dm%rci, dm%dccp%zst(2))
+      call initialise_fbcz_given_const(dm%fbcz_qzr, dm%fbcz_const(:, 3), dm%rci, dm%dccp%zst(2))
     end if
 
 !==========================================================================================================
@@ -524,6 +524,11 @@ contains
       call transpose_x_to_y(uy, acpc_ypencil, dm%dcpc)
       if(dm%ibcy_qy(1) == IBC_DIRICHLET) acpc_ypencil(:, 1,              :) = fbcy(:, 1, :)
       if(dm%ibcy_qy(2) == IBC_DIRICHLET) acpc_ypencil(:, dm%dcpc%ysz(2), :) = fbcy(:, 2, :)
+      call transpose_y_to_x(acpc_ypencil, uy, dm%dcpc)
+    end if
+    if(dm%icase == ICASE_PIPE) then
+      call transpose_x_to_y(uy, acpc_ypencil, dm%dcpc)
+      acpc_ypencil(:, 1, :) = ZERO
       call transpose_y_to_x(acpc_ypencil, uy, dm%dcpc)
     end if
     !-mz_rhs-
