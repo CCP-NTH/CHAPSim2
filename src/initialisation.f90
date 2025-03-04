@@ -567,7 +567,7 @@ contains
     if(fl%inittype == INIT_RESTART) then
       fl%iteration = fl%iterfrom
       fl%time = real(fl%iterfrom, WP) * dm%dt 
-      call read_instantanous_flow(fl, dm)
+      call read_instantaneous_flow(fl, dm)
       call restore_flow_variables_from_restart(fl, dm)
       !call read_statistics_flow(fl, dm)
       
@@ -660,7 +660,7 @@ contains
     if(tm%inittype == INIT_RESTART) then
       tm%iteration = tm%iterfrom
       tm%time = real(tm%iterfrom, WP) * dm%dt 
-      call read_instantanous_thermo  (tm, dm)
+      call read_instantaneous_thermo  (tm, dm)
       call restore_thermo_variables_from_restart(fl, tm, dm)
       call read_statistics_thermo(tm, dm)
     else if (tm%inittype == INIT_INTERPL) then

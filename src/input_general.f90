@@ -794,6 +794,10 @@ contains
             write (*, wrtfmt3i) '  visu data skips in x, y, z  :', domain(i)%visu_nskip(1:3)
             write (*, wrtfmt1i) '  statistics written from     :', domain(i)%stat_istart
             write (*, wrtfmt3i) '  statistics skips in x, y, z :', domain(i)%stat_nskip(1:3)
+            write (*, wrtfmt1l) '  recording outlet plane?     :', domain(1)%is_record_xoutlet
+            write (*, wrtfmt1l) '  reading inlet plane?        :', domain(1)%is_read_xinlet
+            write (*, wrtfmt1i) '  reading/recording plane freqency :', domain(1)%ndbfre
+            write (*, wrtfmt1i) '  reading/recording plane period   :', domain(1)%ndbend
           end do
         end if
       !----------------------------------------------------------------------------------------------------------

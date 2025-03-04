@@ -281,12 +281,12 @@ subroutine Solve_eqs_iteration
       !  append and write out outlet data every real-iteration (not RK sub)
       !----------------------------------------------------------------------------------------------------------
       if(is_flow(i) .and. domain(i)%is_record_xoutlet) then
-        call write_instantanous_xoutlet(flow(i), domain(i))
+        call write_instantaneous_xoutlet(flow(i), domain(i))
       end if
       !----------------------------------------------------------------------------------------------------------
-      ! to read instantanous inlet from database, real, not sub-RK
+      ! to read instantaneous inlet from database, real, not sub-RK
       !----------------------------------------------------------------------------------------------------------
-      if(domain(i)%is_read_xinlet) call read_instantanous_xinlet(flow(i), domain(i))     
+      if(domain(i)%is_read_xinlet) call read_instantaneous_xinlet(flow(i), domain(i))     
     end do
     !==========================================================================================================
     !  main solver, domain coupling in each sub-iteration (check)
@@ -361,11 +361,11 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       if (mod(iter, domain(i)%ckpt_nfre) == 0) then
         if(is_flow(i)) then
-          call write_instantanous_flow(flow(i), domain(i))
+          call write_instantaneous_flow(flow(i), domain(i))
           if(iter > domain(i)%stat_istart) call write_statistics_flow(flow(i), domain(i))
         end if
         if(domain(i)%is_thermo .and. is_thermo(i)) then
-          call write_instantanous_thermo(thermo(i), domain(i))
+          call write_instantaneous_thermo(thermo(i), domain(i))
           if(iter > domain(i)%stat_istart) call write_statistics_thermo(thermo(i), domain(i))
         end if
       end if
