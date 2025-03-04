@@ -419,23 +419,23 @@ contains
   subroutine read_instantaneous_plane(var, keyword, idom, iter, nfre, dtmp)
     use decomp_2d_io
     implicit none 
-    real(WP), intent(inout) :: var( :, :, :)
+    real(WP), contiguous, intent(inout) :: var( :, :, :)
     type(DECOMP_INFO), intent(in) :: dtmp
     character(*), intent(in) :: keyword
     integer, intent(in) :: idom
     integer, intent(in) :: iter
     integer, intent(in) :: nfre
 
-    character(120):: data_flname_path
+    character(120):: data_flname_path, flname
 
-    call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
+    call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter, flname)
 
     !call decomp_2d_open_io (io_in2outlet, trim(data_flname_path), decomp_2d_read_mode)
     if(nrank == 0) call Print_debug_mid_msg("Read data on a plane from file: "//trim(data_flname_path))
     !call decomp_2d_read_inflow(trim(data_flname_path), trim(keyword), nfre, var, io_in2outlet, dtmp)
-    call decomp_2d_read_plane(X_PENCIL, var, trim(keyword), nfre, &
-                                opt_dirname = trim(data_flname_path), &
+    call decomp_2d_read_plane(X_PENCIL, var, data_flname_path, nfre, &
                                 opt_decomp = dtmp)
+
     !write(*,*) var
     !call decomp_2d_close_io(io_in2outlet, trim(data_flname_path))
 
@@ -483,6 +483,8 @@ contains
     call assign_instantaneous_xinlet(fl, dm) ! every iteration
 
 
+    !call process_and_write_field(dm%fbcx_qx, dm, "fbcx_qx", trim('inlet'), fl%iteration, &
+    !                            X_DIRECTION, opt_bc=dm%ibcx_qx)
 
     return
   end subroutine

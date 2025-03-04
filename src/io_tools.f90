@@ -7,11 +7,11 @@ module io_tools_mod
   character(*), parameter :: io_restart = "restart-io"
   character(*), parameter :: io_in2outlet = "outlet2inlet-io"
 
-  integer, parameter :: Ivisudim_3D    = 0, &
-                        Ivisudim_2D_Xa = 1, & ! x averaged, should not change this value. 
-                        Ivisudim_2D_Ya = 2, & ! y averaged
-                        Ivisudim_2D_Za = 3, & ! z averaged
-                        Ivisudim_1D_XZa= 4    ! xz averaged
+  integer, parameter :: Ivisu_3D    = 0, &
+                        Ivisu_2D_YZ = 1, & ! yz plane, should not change this value. 
+                        Ivisu_2D_XZ = 2, & ! xz plane
+                        Ivisu_2D_XY = 3, & ! xy plane
+                        Ivisu_1D_Y  = 4    ! y profile
 
   public :: initialise_decomp_io
   public :: generate_file_name
@@ -41,21 +41,27 @@ contains
 
   end subroutine 
 !==========================================================================================================
-  subroutine generate_pathfile_name(flname, dmtag, keyword, path, extension, timetag)
+  subroutine generate_pathfile_name(flname_path, dmtag, keyword, path, extension, opt_timetag, opt_flname)
     use typeconvert_mod
     implicit none 
     integer, intent(in)      :: dmtag
     character(*), intent(in) :: keyword
     character(*), intent(in) :: path
     character(*), intent(in) :: extension
-    character(120), intent(out) :: flname
-    integer, intent(in), optional     :: timetag
+    character(120), intent(inout), optional :: opt_flname
+    character(120), intent(out) :: flname_path
+    integer, intent(in), optional     :: opt_timetag
+    character(120) :: flname
 
-    if(present(timetag)) then
-      flname = trim(path)//"/domain"//trim(int2str(dmtag))//'_'//trim(keyword)//'_'//trim(int2str(timetag))//"."//trim(extension)
+    if(present(opt_timetag)) then
+      flname = "/domain"//trim(int2str(dmtag))//'_'//trim(keyword)//'_'//trim(int2str(opt_timetag))//"."//trim(extension)
     else 
-      flname = trim(path)//"/domain"//trim(int2str(dmtag))//'_'//trim(keyword)//"."//trim(extension)
+      flname = "/domain"//trim(int2str(dmtag))//'_'//trim(keyword)//"."//trim(extension)
     end if
+    if(present(opt_flname)) then
+      opt_flname = flname
+    end if
+    flname_path = trim(path)//trim(flname)
 
     return
   end subroutine

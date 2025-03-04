@@ -104,6 +104,8 @@ contains
     implicit none 
     type(t_domain), intent(in) :: dm
 
+    if(nrank == 0 ) call Print_debug_start_msg("initialising Poisson solver ...")
+    
     if(dm%ifft_lib == FFT_2DECOMP_3DFFT ) then 
       call build_up_fft2decomp_interface(dm)
       call decomp_2d_poisson_init()
@@ -112,7 +114,10 @@ contains
     else 
       error stop  'Error in selecting FFT libs'
     end if
-  return 
+
+    if(nrank == 0 ) call Print_debug_end_msg
+
+    return 
   end subroutine 
 !==========================================================================================================
 !==========================================================================================================

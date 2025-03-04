@@ -93,9 +93,7 @@ subroutine initialise_chapsim
 ! build up fft basic info
 !----------------------------------------------------------------------------------------------------------
   do i = 1, nxdomain
-    if(nrank == 0 ) call Print_debug_start_msg("initialising Poisson solver ...")
     call initialise_fft(domain(i))
-    if(nrank == 0 ) call Print_debug_end_msg
   end do
 !----------------------------------------------------------------------------------------------------------
 ! build up thermo_mapping_relations, independent of any domains
@@ -134,7 +132,7 @@ subroutine initialise_chapsim
       call initialise_mhd(flow(i), mhd(i), domain(i))
       call compute_Lorentz_force(flow(i), mhd(i), domain(i))
     end if
-    call Solve_momentum_eq(flow(i), domain(i), 0)
+    !call Solve_momentum_eq(flow(i), domain(i), 0)
     call Check_element_mass_conservation(flow(i), domain(i), 0, 'init-div-free') 
     call write_visu_flow(flow(i), domain(i))
     if(domain(i)%is_mhd) call write_visu_mhd(mhd(i), flow(i), domain(i))

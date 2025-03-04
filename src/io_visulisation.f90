@@ -26,7 +26,7 @@ module io_visualisation_mod
   real(WP), allocatable :: rp(:, :, :), ta(:, :, :)
   real(WP), allocatable :: xp(:, :, :), yp(:, :, :), zp(:, :, :)
   real(WP), allocatable :: xp1(:), yp1(:), zp1(:)
-  character(120):: grids_filename = "geometry_data.dat"
+  character(120):: grid_flname
   !character(6)  :: svisudim
 
   private :: write_visu_headerfooter
@@ -70,7 +70,8 @@ contains
 
 #ifdef DEBUG_STEPS
     if(nrank == 0) &
-    call Print_debug_mid_msg("Writing field: " // trim(field_name) // " to file: " // trim(filename))
+    call Print_debug_mid_msg("Writing the field [" // trim(field_name) // &
+         "] to the file with a keyword [" // trim(filename)//"]")
 #endif
 
     select case (direction)
@@ -115,13 +116,16 @@ contains
     use decomp_2d, only: xszV, yszV, zszV
     use io_files_mod
     use math_mod
+    use typeconvert_mod 
     implicit none 
     type(t_domain), intent(in) :: dm
 
     integer :: i, j ,k
-    character(120):: grid_flname
     character(120):: keyword
     integer :: iogrid
+    character(12) :: istr(3)
+
+    if(nrank == 0) call Print_debug_start_msg("Writing visu initial files ...")
 ! note:: skip_nodes is not considered here, the visualisation is based on the nodes.
 !----------------------------------------------------------------------------------------------------------
 ! allocate
@@ -134,7 +138,7 @@ contains
 ! ! global size
 ! !----------------------------------------------------------------------------------------------------------
 !     !svisudim = ''
-!     !if(dm%visu_idim == Ivisudim_3D) then
+!     !if(dm%visu_idim == Ivisu_3D) then
 !       !svisudim = "3d"
 !       nnd_visu(1, dm%idom) = xszV(1)
 !       nnd_visu(2, dm%idom) = yszV(2)
@@ -147,7 +151,7 @@ contains
 !           ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
 !         end if
 !       end do
-!     ! !else if(dm%visu_idim == Ivisudim_2D_Xa) then
+!     ! !else if(dm%visu_idim == Ivisu_2D_YZ) then
 !     !   svisudim = "2d_xa"
 !     !   nnd_visu(1, dm%idom) = 1
 !     !   nnd_visu(2, dm%idom) = yszV(2)
@@ -160,7 +164,7 @@ contains
 !     !       ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
 !     !     end if
 !     !   end do
-!     ! else if(dm%visu_idim == Ivisudim_2D_Ya) then
+!     ! else if(dm%visu_idim == Ivisu_2D_XZ) then
 !     !   svisudim = "2d_ya"
 !     !   nnd_visu(1, dm%idom) = xszV(1)
 !     !   nnd_visu(2, dm%idom) = 1
@@ -173,7 +177,7 @@ contains
 !     !       ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
 !     !     end if
 !     !   end do
-!     ! else if(dm%visu_idim == Ivisudim_2D_Za) then
+!     ! else if(dm%visu_idim == Ivisu_2D_XY) then
 !     !   svisudim = "2d_za"
 !     !   nnd_visu(1, dm%idom) = xszV(1)
 !     !   nnd_visu(2, dm%idom) = yszV(2)
@@ -186,7 +190,7 @@ contains
 !     !       ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
 !     !     end if
 !     !   end do
-!     ! else if(dm%visu_idim == Ivisudim_1D_XZa) then
+!     ! else if(dm%visu_idim == Ivisu_1D_Y) then
 !     !   svisudim = "2d_xza"
 !     !   nnd_visu(1, dm%idom) = 1
 !     !   nnd_visu(2, dm%idom) = yszV(2)
@@ -284,6 +288,10 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write grids - Cartesian Coordinates, well-structured rectangular grid
 !---------------------------------------------------------------------------------------------------------- 
+      istr(1) = trim(int2str(nnd_visu(1, dm%idom)))
+      istr(2) = trim(int2str(nnd_visu(2, dm%idom)))
+      istr(3) = trim(int2str(nnd_visu(3, dm%idom)))
+
       if(dm%icoordinate == ICARTESIAN) then
         keyword = "grid_x"
         call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
@@ -308,12 +316,15 @@ contains
 !---------------------------------------------------------------------------------------------------------- 
       if(dm%icoordinate == ICYLINDRICAL) then
         keyword = "grids"
-        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
-        open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
+        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_data, 'bin')
+        open(newunit = iogrid, file = trim(grid_flname), access="stream", form="unformatted", status="replace")
+        ! Write topology
+        !write(iogrid, *) "Topology: 3D Grid"
+        !write(iogrid, *) "Dimensions: ", trim(istr(3)), trim(istr(2)), trim(istr(1))
         do k = 1, nnd_visu(3, dm%idom)
           do j = 1, nnd_visu(2, dm%idom)
             do i = 1, nnd_visu(1, dm%idom)
-              write(iogrid, *) xp(i, j, k), yp(i, j, k), zp(i, j, k)
+              write(iogrid) xp(i, j, k), yp(i, j, k), zp(i, j, k)
             end do
           end do
         end do
@@ -325,6 +336,8 @@ contains
     ! call write_visu_headerfooter(dm, 'grid', XDMF_FOOTER, 0)
 
     end if
+
+    if(nrank == 0) call Print_debug_end_msg
 
     return
   end subroutine
@@ -403,14 +416,16 @@ contains
         write(ioxdmf, *)'     </Topology>'
         ! Write geometry
         write(ioxdmf, *)'     <Geometry GeometryType="XYZ">'
-        write(ioxdmf, *)'        <DataItem Dimensions="' // trim(int2str(nsz)) // ' 3" NumberType="Float" Precision="8" Format="XML">'
-        do k = 1, nnd_visu(3, dm%idom)
-          do j = 1, nnd_visu(2, dm%idom)
-            do i = 1, nnd_visu(1, dm%idom)
-              write(ioxdmf, *) xp(i, j, k), yp(i, j, k), zp(i, j, k)
-            end do
-          end do
-        end do
+        write(ioxdmf, *)'        <DataItem Dimensions="' // trim(int2str(nsz)) // &
+                              ' 3" NumberType="Float" Precision="8" Format="Binary">'
+        write(ioxdmf, *)'          ', trim(grid_flname)
+        ! do k = 1, nnd_visu(3, dm%idom)
+        !   do j = 1, nnd_visu(2, dm%idom)
+        !     do i = 1, nnd_visu(1, dm%idom)
+        !       write(ioxdmf, *) xp(i, j, k), yp(i, j, k), zp(i, j, k)
+        !     end do
+        !   end do
+        ! end do
       end if  
       write(ioxdmf, *)'        </DataItem>'
       write(ioxdmf, *)'      </Geometry>'
@@ -462,13 +477,13 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write data into binary file
 !----------------------------------------------------------------------------------------------------------
-    if(dm%visu_idim == Ivisudim_3D) then
+    if(dm%visu_idim == Ivisu_3D) then
       keyword = trim(varname)
       call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'bin', iter)
       if(.not.file_exists(data_flname_path)) &
       call decomp_2d_write_one(X_PENCIL, var, trim(data_flname_path), opt_decomp=dtmp)
 
-    else if(dm%visu_idim == Ivisudim_1D_XZa) then
+    else if(dm%visu_idim == Ivisu_1D_Y) then
       !to add 1D profile
     else 
       keyword = trim(varname)

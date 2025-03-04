@@ -33,6 +33,7 @@ contains
     logical :: is_y, is_z
     integer, allocatable :: probeid(:, :)
 
+    if(nrank == 0) call Print_debug_start_msg("Writing monitor initial files ...")
 !----------------------------------------------------------------------------------------------------------
 ! create history file for total variables
 !----------------------------------------------------------------------------------------------------------
@@ -60,7 +61,7 @@ contains
       else
         open(newunit = myunit, file = trim(flname), status="new", action="write")
         write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
-        write(myunit, *) "# time, mass_conservation at inlet, bulk, outlet, total mass change rate, kinetic energy change rate" ! to add more instantaneous or statistics
+        write(myunit, *) "# time, mass_conservation at inlet, bulk, outlet, total mass change rate, kinetic energy change rate" ! to add more instantanous or statistics
         close(myunit)
       end if
     end if
@@ -146,7 +147,7 @@ contains
         open(newunit = myunit, file = trim(flname), status="new", action="write")
         write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
         write(myunit, *) "# probe pts location ",  dm%probexyz(1:3, i)
-        write(myunit, *) "# t, u, v, w, T" ! to add more instantaneous or statistics
+        write(myunit, *) "# t, u, v, w, T" ! to add more instantanous or statistics
         close(myunit)
       end if
     end do
