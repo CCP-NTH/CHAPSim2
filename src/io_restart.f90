@@ -295,18 +295,16 @@ contains
 
     call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
 
-    if(nrank==0) write(*, *) 'Write outflow data to '//trim(data_flname_path)
+    if(nrank==0) write(*, *) 'Write outlet plane data to ['//trim(data_flname_path)//"]"
  
     !call decomp_2d_open_io (io_in2outlet, trim(data_flname_path), decomp_2d_write_mode)
     !call decomp_2d_start_io(io_in2outlet, trim(data_flname_path))!
 
     !call decomp_2d_write_outflow(trim(data_flname_path), trim(keyword), niter, var, io_in2outlet, dtmp)
     !call decomp_2d_write_plane(X_PENCIL, var, 1, dtmp%xsz(1), trim(data_flname_path), dtmp)
-    call decomp_2d_write_plane(X_PENCIL, var, trim(keyword), &
+    call decomp_2d_write_plane(X_PENCIL, var, data_flname_path, &
                                 opt_nplanes=niter, &
-                                opt_dirname = trim(data_flname_path), &
                                 opt_decomp = dtmp)
-
     !call decomp_2d_end_io(io_in2outlet, trim(data_flname_path))
     !call decomp_2d_close_io(io_in2outlet, trim(data_flname_path))
 
@@ -319,7 +317,7 @@ contains
     type(t_domain), intent(inout) :: dm
     
     character(120):: data_flname_path
-    integer :: idom, iter
+    integer :: idom, niter, iter, j
 
 
     if(.not. dm%is_record_xoutlet) return
@@ -327,15 +325,37 @@ contains
     call append_instantaneous_xoutlet(fl, dm)
 
     if(mod(fl%iteration, dm%ndbfre) /= 0) return
-    call write_instantaneous_plane(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
-    call write_instantaneous_plane(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
-    call write_instantaneous_plane(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, fl%iteration, dm%ndbfre, dm%dxpc)
-    call write_instantaneous_plane(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, fl%iteration, dm%ndbfre, dm%dxpc)
-    call write_instantaneous_plane(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, fl%iteration, dm%ndbfre, dm%dxcp)
-    call write_instantaneous_plane(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, fl%iteration, dm%ndbfre, dm%dxcp)
-    call write_instantaneous_plane(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
-    call write_instantaneous_plane(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
+    niter = fl%iteration
+    call write_instantaneous_plane(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
+    call write_instantaneous_plane(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
+    call write_instantaneous_plane(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
+    call write_instantaneous_plane(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
+    call write_instantaneous_plane(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
+    call write_instantaneous_plane(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
+    call write_instantaneous_plane(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
+    call write_instantaneous_plane(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
+! #ifdef DEBUG_STEPS
+!     write(*,*) 'outlet bc'
+!     do j = 1, dm%dpcc%xsz(2)
+!       write(*,*) dm%dpcc%xst(2) + j - 1, &
+!       dm%fbcx_qx_outl1(niter, j, 1), dm%fbcx_qx_outl2(niter, j, 1)
+!     end do
 
+!     call read_instantaneous_plane(dm%fbcx_qx_out1, 'outlet1_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
+!     call read_instantaneous_plane(dm%fbcx_qx_out2, 'outlet2_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
+!     call read_instantaneous_plane(dm%fbcx_qy_out1, 'outlet1_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
+!     call read_instantaneous_plane(dm%fbcx_qy_out2, 'outlet2_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
+!     call read_instantaneous_plane(dm%fbcx_qz_out1, 'outlet1_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
+!     call read_instantaneous_plane(dm%fbcx_qz_out2, 'outlet2_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
+!     call read_instantaneous_plane(dm%fbcx_pr_out1, 'outlet1_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
+!     call read_instantaneous_plane(dm%fbcx_pr_out2, 'outlet2_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
+
+!     write(*,*) 'inlet bc'
+!     do j = 1, dm%dpcc%xsz(2)
+!       write(*,*) dm%dpcc%xst(2) + j - 1, &
+!       dm%fbcx_qx_out1(niter, j, 1), dm%fbcx_qx_out2(niter, j, 1)
+!     end do
+! #endif
     return
   end subroutine
 !==========================================================================================================
@@ -419,7 +439,7 @@ contains
   subroutine read_instantaneous_plane(var, keyword, idom, iter, nfre, dtmp)
     use decomp_2d_io
     implicit none 
-    real(WP), contiguous, intent(inout) :: var( :, :, :)
+    real(WP), contiguous, intent(out) :: var( :, :, :)
     type(DECOMP_INFO), intent(in) :: dtmp
     character(*), intent(in) :: keyword
     integer, intent(in) :: idom
@@ -436,6 +456,14 @@ contains
     call decomp_2d_read_plane(X_PENCIL, var, data_flname_path, nfre, &
                                 opt_decomp = dtmp)
 
+    !decomp_2d_read_plane(ipencil, var, varname, nplanes, &
+                              !  opt_dirname, &
+                              !  opt_mpi_file_open_info, &
+                              !  opt_mpi_file_set_view_info, &
+                              !  opt_reduce_prec, &
+                              !  opt_decomp, &
+                              !  opt_nb_req, &
+                              !  opt_io)
     !write(*,*) var
     !call decomp_2d_close_io(io_in2outlet, trim(data_flname_path))
 
@@ -449,7 +477,7 @@ contains
     type(t_domain), intent(inout) :: dm
     
     character(120):: data_flname_path
-    integer :: idom, iter, niter
+    integer :: idom, iter, niter, j
 
 
     if(.not. dm%is_read_xinlet) return
@@ -468,7 +496,7 @@ contains
     if(mod(iter - 1, dm%ndbfre) == 0 .or. &
        fl%iteration == 0) then
       if(nrank == 0) call Print_debug_mid_msg("Read inlet database at "&
-        //trim(int2str(iter))//' in '//trim(int2str(niter)))
+        //trim(int2str(iter))//' in '//trim(int2str(niter)) //'iterations stored.')
 
       call read_instantaneous_plane(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
       call read_instantaneous_plane(dm%fbcx_qx_inl2, 'outlet2_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
@@ -478,13 +506,17 @@ contains
       call read_instantaneous_plane(dm%fbcx_qz_inl2, 'outlet2_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
       call read_instantaneous_plane(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
       call read_instantaneous_plane(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
+! #ifdef DEBUG_STEPS
+!       write(*,*) 'inlet bc', niter
+!       do j = 1, dm%dpcc%xsz(2)
+!         write(*,*) dm%dpcc%xst(2) + j - 1, &
+!         dm%fbcx_qx_inl1(niter, j, 1),  &
+!         dm%fbcx_qx_inl2(niter, j, 1)
+!       end do
+! #endif
     end if
 
     call assign_instantaneous_xinlet(fl, dm) ! every iteration
-
-
-    !call process_and_write_field(dm%fbcx_qx, dm, "fbcx_qx", trim('inlet'), fl%iteration, &
-    !                            X_DIRECTION, opt_bc=dm%ibcx_qx)
 
     return
   end subroutine

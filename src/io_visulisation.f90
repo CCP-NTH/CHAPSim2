@@ -417,15 +417,15 @@ contains
         ! Write geometry
         write(ioxdmf, *)'     <Geometry GeometryType="XYZ">'
         write(ioxdmf, *)'        <DataItem Dimensions="' // trim(int2str(nsz)) // &
-                              ' 3" NumberType="Float" Precision="8" Format="Binary">'
-        write(ioxdmf, *)'          ', trim(grid_flname)
-        ! do k = 1, nnd_visu(3, dm%idom)
-        !   do j = 1, nnd_visu(2, dm%idom)
-        !     do i = 1, nnd_visu(1, dm%idom)
-        !       write(ioxdmf, *) xp(i, j, k), yp(i, j, k), zp(i, j, k)
-        !     end do
-        !   end do
-        ! end do
+                              ' 3" NumberType="Float" Precision="8" Format="XML">'
+        !write(ioxdmf, *)'          ', trim(grid_flname)
+        do k = 1, nnd_visu(3, dm%idom)
+          do j = 1, nnd_visu(2, dm%idom)
+            do i = 1, nnd_visu(1, dm%idom)
+              write(ioxdmf, *) xp(i, j, k), yp(i, j, k), zp(i, j, k)
+            end do
+          end do
+        end do
       end if  
       write(ioxdmf, *)'        </DataItem>'
       write(ioxdmf, *)'      </Geometry>'
