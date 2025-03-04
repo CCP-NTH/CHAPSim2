@@ -11,7 +11,7 @@ module solver_tools_mod
   public  :: Update_PrGr
   public  :: Calculate_xz_mean_yprofile
   public  :: Adjust_to_xzmean_zero
-  public  :: Get_volumetric_average_3d ! not used anymore
+  !public  :: Get_volumetric_average_3d ! not used anymore
   public  :: get_fbcx_ftp_4pc
   
 
@@ -424,154 +424,154 @@ contains
 !----------------------------------------------------------------------------------------------------------
 !> \param[inout]         
 !==========================================================================================================
-  subroutine Get_volumetric_average_3d(is_ynp, ibcy, fbcy, dm, dtmp, var, fo_work)
-    use mpi_mod
-    use udf_type_mod
-    use parameters_constant_mod
-    use operations
-    use decomp_2d
-    use wtformat_mod
-    implicit none
-    type(t_domain),  intent(in) :: dm
-    logical,           intent(in) :: is_ynp
-    integer,           intent(in) :: ibcy(2)
-    real(WP),          intent(in) :: fbcy(:, :, :)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    real(WP),          intent(in) :: var(:, :, :)
-    real(WP),          intent(out):: fo_work
+!   subroutine Get_volumetric_average_3d(is_ynp, ibcy, fbcy, dm, dtmp, var, fo_work)
+!     use mpi_mod
+!     use udf_type_mod
+!     use parameters_constant_mod
+!     use operations
+!     use decomp_2d
+!     use wtformat_mod
+!     implicit none
+!     type(t_domain),  intent(in) :: dm
+!     logical,           intent(in) :: is_ynp
+!     integer,           intent(in) :: ibcy(2)
+!     real(WP),          intent(in) :: fbcy(:, :, :)
+!     type(DECOMP_INFO), intent(in) :: dtmp
+!     real(WP),          intent(in) :: var(:, :, :)
+!     real(WP),          intent(out):: fo_work
  
-    real(WP), dimension( dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3) )  :: var_ypencil
-    real(WP), allocatable   :: vcp_ypencil(:, :, :)
-    real(WP)   :: vol, fo, vol_work
-    integer :: i, j, k, noy, jp
+!     real(WP), dimension( dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3) )  :: var_ypencil
+!     real(WP), allocatable   :: vcp_ypencil(:, :, :)
+!     real(WP)   :: vol, fo, vol_work
+!     integer :: i, j, k, noy, jp
+
+! ! #ifdef DEBUG_STEPS  
+! !     if(nrank == 0) then
+! !       if(present(str)) then
+! !         call Print_debug_mid_msg("Calculating volumeric average of "//trim(str)//" in 3-D ...")
+! !       else
+! !         call Print_debug_mid_msg("Calculating volumeric average in 3-D ...")
+! !       end if
+! !     end if
+! ! #endif
+
+!     if(.not. dm%is_stretching(2) ) then 
+!       vol = ZERO
+!       fo  = ZERO
+!       do k = 1, dtmp%xsz(3)
+!         do j = 1, dtmp%xsz(2)
+!           do i = 1, dtmp%xsz(1)
+!             fo = fo + var(i, j, k)
+!             vol = vol + ONE
+!           end do
+!         end do
+!       end do
+      
+!     else
+!     !----------------------------------------------------------------------------------------------------------
+!     !   transpose to y pencil. Default is x-pencil.
+!     !----------------------------------------------------------------------------------------------------------
+!       var_ypencil = ZERO
+
+!       call transpose_x_to_y(var, var_ypencil, dtmp)
+!       !----------------------------------------------------------------------------------------------------------
+!       !   In Y-pencil now
+!       !----------------------------------------------------------------------------------------------------------
+!       if( is_ynp )then
+!         !----------------------------------------------------------------------------------------------------------
+!         !   if variable is stored in y-nodes, extend them to y-cell centres (P2C)
+!         !   for example, uy.
+!         !----------------------------------------------------------------------------------------------------------
+!         if( dm%is_periodic(2) ) then
+!           noy = dtmp%ysz(2)
+!         else
+!           noy = dtmp%ysz(2) - 1
+!         end if
+
+!         allocate( vcp_ypencil(dtmp%ysz(1), noy, dtmp%ysz(3)) )
+!         vcp_ypencil = ZERO
+
+!         call Get_y_midp_P2C_3D(var_ypencil, vcp_ypencil, dm, dm%iAccuracy, ibcy, fbcy)
+
+!         fo = ZERO
+!         vol = ZERO
+!         do k = 1, dtmp%ysz(3)
+!           do i = 1, dtmp%ysz(1)
+!             do j = 1, noy
+!               !----------------------------------------------------------------------------------------------------------
+!               !       j'    j'+1
+!               !      _|__.__|_
+!               !         j     
+!               !----------------------------------------------------------------------------------------------------------
+!               jp = j + 1
+!               if( dm%is_periodic(2) .and. jp > dtmp%ysz(2)) jp = 1
+!               fo = fo + &      
+!                   ( var_ypencil(i, jp, k) + vcp_ypencil(i, j, k) ) * &
+!                   ( dm%yp(j + 1) - dm%yc(j) ) * HALF + &
+!                   ( var_ypencil(i, j,     k) + vcp_ypencil(i, j, k) ) * &
+!                   ( dm%yc(j    ) - dm%yp(j) ) * HALF
+!               vol = vol + ( dm%yp(j + 1) - dm%yp(j) )
+!             end do
+!           end do
+!         end do
+!         deallocate(vcp_ypencil)
+!       else
+!         !----------------------------------------------------------------------------------------------------------
+!         !   if variable is not stored in y-nodes, extends them to y-nodes. C2P
+!         !   for example, ux, density, etc.
+!         !----------------------------------------------------------------------------------------------------------
+!         if( dm%is_periodic(2) ) then
+!           noy = dtmp%ysz(2)
+!         else
+!           noy = dtmp%ysz(2) + 1
+!         end if
+!         allocate( vcp_ypencil(dtmp%ysz(1), noy, dtmp%ysz(3)) )
+!         vcp_ypencil = ZERO
+!         call Get_y_midp_C2P_3D(var_ypencil, vcp_ypencil, dm, dm%iAccuracy, ibcy, fbcy)
+
+!         fo = ZERO
+!         vol = ZERO
+!         do k = 1, dtmp%ysz(3)
+!           do i = 1, dtmp%ysz(1)
+!             do j = 1, dtmp%ysz(2)
+!               !----------------------------------------------------------------------------------------------------------
+!               !      j'    j'+1
+!               !      _|__.__|_
+!               !         j
+!               !----------------------------------------------------------------------------------------------------------
+!               jp = j + 1
+!               if( dm%is_periodic(2) .and. jp > noy) jp = 1
+!               ! method 1: 2nd order
+!               ! fo = fo + &
+!               !     ( vcp_ypencil(i, jp, k) + var_ypencil(i, j, k) ) * &
+!               !     ( dm%yp(j + 1) - dm%yc(j) ) * HALF + &
+!               !     ( var_ypencil(i, j,     k) + var_ypencil(i, j, k) ) * &
+!               !     ( dm%yc(j    ) - dm%yp(j) ) * HALF
+!               ! method 2: 1st order, same as CHAPSim1
+!               fo = fo + vcp_ypencil(i, j, k)*(dm%yp(j + 1) - dm%yp(j))
+!               vol = vol + ( dm%yp(j + 1) - dm%yp(j) )
+!             end do
+!           end do
+!         end do
+!         deallocate(vcp_ypencil)
+!       end if
+
+!     end if
+
+
+!     call mpi_barrier(MPI_COMM_WORLD, ierror)
+!     call mpi_allreduce( fo,  fo_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+!     call mpi_allreduce(vol, vol_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+!     fo_work = fo_work / vol_work
 
 ! #ifdef DEBUG_STEPS  
-!     if(nrank == 0) then
-!       if(present(str)) then
-!         call Print_debug_mid_msg("Calculating volumeric average of "//trim(str)//" in 3-D ...")
-!       else
-!         call Print_debug_mid_msg("Calculating volumeric average in 3-D ...")
-!       end if
+!     if(nrank == 0 ) then
+!       write (*, wrtfmt1e) " volumetric average is ", fo_work
 !     end if
 ! #endif
 
-    if(.not. dm%is_stretching(2) ) then 
-      vol = ZERO
-      fo  = ZERO
-      do k = 1, dtmp%xsz(3)
-        do j = 1, dtmp%xsz(2)
-          do i = 1, dtmp%xsz(1)
-            fo = fo + var(i, j, k)
-            vol = vol + ONE
-          end do
-        end do
-      end do
-      
-    else
-    !----------------------------------------------------------------------------------------------------------
-    !   transpose to y pencil. Default is x-pencil.
-    !----------------------------------------------------------------------------------------------------------
-      var_ypencil = ZERO
-
-      call transpose_x_to_y(var, var_ypencil, dtmp)
-      !----------------------------------------------------------------------------------------------------------
-      !   In Y-pencil now
-      !----------------------------------------------------------------------------------------------------------
-      if( is_ynp )then
-        !----------------------------------------------------------------------------------------------------------
-        !   if variable is stored in y-nodes, extend them to y-cell centres (P2C)
-        !   for example, uy.
-        !----------------------------------------------------------------------------------------------------------
-        if( dm%is_periodic(2) ) then
-          noy = dtmp%ysz(2)
-        else
-          noy = dtmp%ysz(2) - 1
-        end if
-
-        allocate( vcp_ypencil(dtmp%ysz(1), noy, dtmp%ysz(3)) )
-        vcp_ypencil = ZERO
-
-        call Get_y_midp_P2C_3D(var_ypencil, vcp_ypencil, dm, dm%iAccuracy, ibcy, fbcy)
-
-        fo = ZERO
-        vol = ZERO
-        do k = 1, dtmp%ysz(3)
-          do i = 1, dtmp%ysz(1)
-            do j = 1, noy
-              !----------------------------------------------------------------------------------------------------------
-              !       j'    j'+1
-              !      _|__.__|_
-              !         j     
-              !----------------------------------------------------------------------------------------------------------
-              jp = j + 1
-              if( dm%is_periodic(2) .and. jp > dtmp%ysz(2)) jp = 1
-              fo = fo + &      
-                  ( var_ypencil(i, jp, k) + vcp_ypencil(i, j, k) ) * &
-                  ( dm%yp(j + 1) - dm%yc(j) ) * HALF + &
-                  ( var_ypencil(i, j,     k) + vcp_ypencil(i, j, k) ) * &
-                  ( dm%yc(j    ) - dm%yp(j) ) * HALF
-              vol = vol + ( dm%yp(j + 1) - dm%yp(j) )
-            end do
-          end do
-        end do
-        deallocate(vcp_ypencil)
-      else
-        !----------------------------------------------------------------------------------------------------------
-        !   if variable is not stored in y-nodes, extends them to y-nodes. C2P
-        !   for example, ux, density, etc.
-        !----------------------------------------------------------------------------------------------------------
-        if( dm%is_periodic(2) ) then
-          noy = dtmp%ysz(2)
-        else
-          noy = dtmp%ysz(2) + 1
-        end if
-        allocate( vcp_ypencil(dtmp%ysz(1), noy, dtmp%ysz(3)) )
-        vcp_ypencil = ZERO
-        call Get_y_midp_C2P_3D(var_ypencil, vcp_ypencil, dm, dm%iAccuracy, ibcy, fbcy)
-
-        fo = ZERO
-        vol = ZERO
-        do k = 1, dtmp%ysz(3)
-          do i = 1, dtmp%ysz(1)
-            do j = 1, dtmp%ysz(2)
-              !----------------------------------------------------------------------------------------------------------
-              !      j'    j'+1
-              !      _|__.__|_
-              !         j
-              !----------------------------------------------------------------------------------------------------------
-              jp = j + 1
-              if( dm%is_periodic(2) .and. jp > noy) jp = 1
-              ! method 1: 2nd order
-              ! fo = fo + &
-              !     ( vcp_ypencil(i, jp, k) + var_ypencil(i, j, k) ) * &
-              !     ( dm%yp(j + 1) - dm%yc(j) ) * HALF + &
-              !     ( var_ypencil(i, j,     k) + var_ypencil(i, j, k) ) * &
-              !     ( dm%yc(j    ) - dm%yp(j) ) * HALF
-              ! method 2: 1st order, same as CHAPSim1
-              fo = fo + vcp_ypencil(i, j, k)*(dm%yp(j + 1) - dm%yp(j))
-              vol = vol + ( dm%yp(j + 1) - dm%yp(j) )
-            end do
-          end do
-        end do
-        deallocate(vcp_ypencil)
-      end if
-
-    end if
-
-
-    call mpi_barrier(MPI_COMM_WORLD, ierror)
-    call mpi_allreduce( fo,  fo_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(vol, vol_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
-    fo_work = fo_work / vol_work
-
-#ifdef DEBUG_STEPS  
-    if(nrank == 0 ) then
-      write (*, wrtfmt1e) " volumetric average is ", fo_work
-    end if
-#endif
-
-    return 
-  end subroutine Get_volumetric_average_3d
+!     return 
+!   end subroutine Get_volumetric_average_3d
 
   !==========================================================================================================
   !==========================================================================================================

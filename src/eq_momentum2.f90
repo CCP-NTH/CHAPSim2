@@ -1098,6 +1098,7 @@ contains
     my_rhs_zpencil     = ZERO
     my_rhs_pfc_xpencil = ZERO
     my_rhs_pfc_ypencil = ZERO
+    mz_rhs_pfc_zpencil = ZERO
 !----------------------------------------------------------------------------------------------------------
 ! Y-mom convection term 1/4 at (i, j', k)
 ! conv-x-m2 = - d(gxiy * qyix)/dx
@@ -1254,7 +1255,6 @@ contains
     if(dm%is_thermo .and. (fl%igravity == i .or. fl%igravity == -i) )  then
       if(dm%icoordinate == ICYLINDRICAL) then
         call gravity_decomposition_to_rz(fl%dDens, fl%igravity, fl%fgravity(i), acpc_ypencil, accp_zpencil, dm)
-        mz_rhs_pfc_zpencil = ZERO
         mz_rhs_pfc_zpencil = mz_rhs_pfc_zpencil + accp_zpencil
       else
         fbcy_c4c(:, :, :) = dm%fbcy_ftp(:, :, :)%d
@@ -1613,7 +1613,7 @@ contains
     end if
     acpp_ypencil = acpp_ypencil * muiyz_cpp_ypencil
     !------b.c.-----
-    if(is_fbcz_velo_required) then
+    if(is_fbcy_velo_required) then
       call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm)
     else
       fbcy_c4p = MAXP
