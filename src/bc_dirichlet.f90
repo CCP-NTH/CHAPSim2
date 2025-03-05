@@ -281,9 +281,8 @@ contains
 
     return
   end subroutine
-  !==========================================================================================================
 
-  !==========================================================================================================
+!==========================================================================================================
 !==========================================================================================================
   subroutine initialise_fbc_flow_given (dm) ! apply once only
     type(t_domain), intent(inout)   :: dm
@@ -439,6 +438,9 @@ contains
       call map_bc_1d_uprofile( filename(4), ny, dm%yc, var1y(1:ny) )
       call initialise_fbcx_given_profile(dm%fbcx_ftp(:,:,:)%t, var1y, dm%dccc%xst(2),'Ty')
       call ftp_refresh_thermal_properties_from_T_undim_3d(dm%fbcx_ftp)
+    else 
+      if(nrank == 0 .and. dm%ibcx_nominal(1, 1) == IBC_DATABASE) &
+      call Print_warning_msg("The thermal field's inlet temperature is the same as Tini given.")
     end if
     
     do n = 1, 2 

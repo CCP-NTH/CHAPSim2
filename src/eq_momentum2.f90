@@ -1373,9 +1373,6 @@ contains
       ! acpp_zpencil1 = qziy_cpp_zpencil ! acpp_zpencil1 = (qz)^r
       ! call multiple_cylindrical_rn(acpp_zpencil1, dm%dcpp, dm%rpi, 1, IPENCIL(3)) ! acpp_zpencil1 = 1/r * (dz)^r
       ! call estimate_azimuthal_xpx_on_axis(acpp_zpencil1, dm%dcpp, IPENCIL(3), dm)  
-      write(*,*) 'visy-23--1', qzdy_cpp_zpencil(1, 1:4, 1)
-       write(*,*) 'visy-23--2', qyr2dz_cpp_zpencil(1, 1:4, 1)
-        write(*,*) 'visy-23--3', qzriy_cpp_zpencil(1, 1:4, 1)
       acpp_zpencil = qzdy_cpp_zpencil + qyr2dz_cpp_zpencil - qzriy_cpp_zpencil
       
     else
