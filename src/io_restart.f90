@@ -77,7 +77,7 @@ contains
     character(120):: data_flname_path
     character(120):: keyword
 
-    if(nrank == 0) call Print_debug_start_msg("writing out instantaneous 3d flow data ...")
+    if(nrank == 0) call Print_debug_mid_msg("writing out instantaneous 3d flow data ...")
 
     call write_instantaneous_array(fl%qx, 'qx', dm%idom, fl%iteration, dm%dpcc)
     call write_instantaneous_array(fl%qy, 'qy', dm%idom, fl%iteration, dm%dcpc)
@@ -99,7 +99,7 @@ contains
     character(120):: keyword
     
 
-    if(nrank == 0) call Print_debug_start_msg("writing out instantaneous 3d thermo data ...")
+    if(nrank == 0) call Print_debug_mid_msg("writing out instantaneous 3d thermo data ...")
 
     call write_instantaneous_array(tm%rhoh,    'rhoh', dm%idom, tm%iteration, dm%dccc)
     call write_instantaneous_array(tm%tTemp, 'temp', dm%idom, tm%iteration, dm%dccc)
@@ -118,7 +118,7 @@ contains
     character(120):: keyword
 
 
-    if(nrank == 0) call Print_debug_start_msg("read instantaneous flow data ... ...")
+    if(nrank == 0) call Print_debug_mid_msg("read instantaneous flow data ...")
 
     call read_instantaneous_array(fl%qx, 'qx', dm%idom, fl%iterfrom, dm%dpcc)
     call read_instantaneous_array(fl%qy, 'qy', dm%idom, fl%iterfrom, dm%dcpc)
@@ -146,7 +146,7 @@ contains
     !call Get_volumetric_average_3d(.false., dm%ibcy_qx(:), dm%fbcy_qx(:, :, :), dm, dm%dpcc, fl%qx, ubulk, "ux")
     call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%qx, ubulk, SPACE_AVERAGE, "ux")
     if(nrank == 0) then
-        Call Print_debug_mid_msg("  The restarted mass flux is:")
+        Call Print_debug_mid_msg("The restarted mass flux is:")
         write (*, wrtfmt1e) ' average[u(x,y,z)]_[x,y,z]: ', ubulk
     end if
     !----------------------------------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ contains
     character(120):: keyword
 
     if (.not. dm%is_thermo) return
-    if(nrank == 0) call Print_debug_start_msg("read instantaneous thermo data ... ...")
+    if(nrank == 0) call Print_debug_mid_msg("read instantaneous thermo data ...")
 
     tm%iteration = tm%iterfrom
 

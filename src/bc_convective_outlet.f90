@@ -50,8 +50,10 @@ module bc_convective_outlet_mod
 
     uxdx = HALF * (uxmax_work + uxmin_work)
     uxdx = uxdx * dm%h1r(1)
+#ifdef DEBUG_STEPS 
     if(nrank == 0) write(*, '(10X, A, 3ES13.5, A, 1I5.1)') 'convective outlet uxmax, min, ave = ', &
       uxmax_work, uxmin_work, HALF * (uxmax_work + uxmin_work), ' at iter(real) =', fl%iteration
+#endif
 
     return
   end subroutine
@@ -290,7 +292,7 @@ module bc_convective_outlet_mod
       if( dm%ibcz_nominal(2, 3) == IBC_CONVECTIVE) dm%fbcz_qz(2, :, :) = fbcz(2, :, :)
     end if
     !call update_flow_from_dyn_fbcx(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcx_qy, dm%fbcx_qz)
-!#ifdef DEBUG_STEPS 
+#ifdef DEBUG_STEPS 
     if(nrank == 0) then 
       write(*, *) "m_in, m_out, m_bulk, m_net, scale"
       if(iconv(1)) &
@@ -300,7 +302,7 @@ module bc_convective_outlet_mod
       if(iconv(3)) &
       write (*, '(10X, A, 4ES13.5, 1F16.13)') 'z: ', fbcm_z(1), fbcm_z(2), bulkm, fbcm_z(1)-fbcm_z(2)+bulkm, scale
     end if
-!#endif
+#endif
     return
   end subroutine enforce_domain_mass_balance_dyn_fbc
 
@@ -316,7 +318,9 @@ module bc_convective_outlet_mod
     integer :: i
 
     if(.not. dm%is_conv_outlet) return
+#ifdef DEBUG_STEPS
     if(nrank == 0) call Print_debug_mid_msg("Calculate convective outlet for flow ...")
+#endif
     ! work on fbcx, not fl directly
     call get_convective_outlet_ux(fl, dm, uxdx)
     if ( .not. dm%is_thermo) then

@@ -230,7 +230,7 @@ contains
     !     for dirichelt, the perturbation velocity should be zero.
     call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz)
 
-    if(nrank == 0) Call Print_debug_mid_msg(" Max/min velocity for generated random velocities:")
+    if(nrank == 0) Call Print_debug_mid_msg("Max/min velocity for generated random velocities:")
     call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2e)
     call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2e)
     call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2e)
@@ -394,7 +394,7 @@ contains
       str = 'qx'
     end if
 
-    if(nrank == 0) Call Print_debug_mid_msg(" Max/min velocity for generated initial velocities:")
+    if(nrank == 0) Call Print_debug_mid_msg("Max/min velocity for generated initial velocities:")
     call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2e)
     call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2e)
     call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2e)
@@ -417,13 +417,13 @@ contains
     if(nrank == 0) then
       write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     end if
-    if(nrank == 0) call Print_debug_mid_msg(" Maximum [velocity] for real initial flow field:")
+    if(nrank == 0) call Print_debug_mid_msg("Maximum [velocity] for real initial flow field:")
     call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2e)
     call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2e)
     call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2e)
 
     if(dm%is_thermo) then
-      if(nrank == 0) call Print_debug_mid_msg(" Maximum [mass flux] for real initial flow field:")
+      if(nrank == 0) call Print_debug_mid_msg("Maximum [mass flux] for real initial flow field:")
       call Find_max_min_absvar3d(fl%gx, "gx", wrtfmt2e)
       call Find_max_min_absvar3d(fl%gy, "gy", wrtfmt2e)
       call Find_max_min_absvar3d(fl%gz, "gz", wrtfmt2e)
