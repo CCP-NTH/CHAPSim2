@@ -152,7 +152,7 @@ contains
       end if
     end do
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 !==========================================================================================================

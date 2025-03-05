@@ -265,12 +265,12 @@ contains
     !-----------------------------------------------------------
     ! Build up fft root for x
     !-----------------------------------------------------------
-    allocate(XRT(nx), WX(2*nx + 15))
+    allocate(XRT(nx), WX(2*nx + 64))
     call fishpack_root_1D(nx, LPx, dm%h2r(1), SCALx, Wx, xRT)
     !-----------------------------------------------------------
     ! Build up fft root for z
     !-----------------------------------------------------------
-    allocate(ZRT(nz), WZ(2*nz + 15))
+    allocate(ZRT(nz), WZ(2*nz + 64))
     call fishpack_root_1D(nz, LPz, dm%h2r(3), SCALz, Wz, zRT)
 
 ! if(nrank==0) WRITE(*,*)'fft-scl ', SCALX, SCALz
