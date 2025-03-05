@@ -495,8 +495,8 @@ contains
 
     if(mod(iter - 1, dm%ndbfre) == 0 .or. &
        fl%iteration == 0) then
-      if(nrank == 0) call Print_debug_mid_msg("Read inlet database at "&
-        //trim(int2str(iter))//' in '//trim(int2str(niter)) //'iterations stored.')
+      if(nrank == 0) call Print_debug_mid_msg("Read inlet database at iteration "&
+        //trim(int2str(iter))//'/'//trim(int2str(niter)))
 
       call read_instantaneous_plane(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
       call read_instantaneous_plane(dm%fbcx_qx_inl2, 'outlet2_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)

@@ -214,6 +214,7 @@ contains
     use udf_type_mod
     use parameters_constant_mod
     use io_files_mod
+    use print_msg_mod
     implicit none
     type(t_domain), intent(in) :: dm
 
@@ -222,6 +223,8 @@ contains
     integer :: nx, ny, nz, np
     integer :: j, i, k, ii, kk
     !real(WP) :: dyfi(dm%nc(2)), dyci(dm%np_geo(2)) 
+
+    if(nrank==0) call Print_debug_mid_msg("Initialising fishpack fft lib ...")
     !-----------------------------------------------------------
     ! assign key info from domain
     !-----------------------------------------------------------
@@ -345,7 +348,7 @@ contains
     !   end do
     ! end if
     
-
+    if(nrank == 0) call Print_debug_end_msg()
   return
   end subroutine
 

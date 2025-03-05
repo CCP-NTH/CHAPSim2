@@ -478,6 +478,14 @@ contains
             domain(i)%fbcx_const(1, 2) = ZERO
             domain(i)%is_periodic(2) = .false.
           end if
+          if(domain(i)%ibcx_nominal(1, 1) == IBC_DATABASE) then
+            domain(i)%ibcx_nominal(1, 2:3) = IBC_DATABASE
+            domain(i)%ibcx_nominal(1, 4:5) = IBC_NEUMANN
+          end if
+          if(domain(i)%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
+            domain(i)%ibcx_nominal(2, 2:3) = IBC_CONVECTIVE
+            domain(i)%ibcx_nominal(2, 4:5) = IBC_NEUMANN
+          end if
           !----------------------------------------------------------------------------------------------------------
           ! to exclude non-resonable input
           !----------------------------------------------------------------------------------------------------------
