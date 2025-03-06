@@ -829,25 +829,25 @@ contains
     close (ftp_unit2)
 
     if (nrank == 0 ) then
-      call Print_debug_start_msg("The reference thermal properties (dim) are")
-      write (*, wrtfmt1r) '  Temperature(K):',              fluidparam%ftp0ref%t
-      write (*, wrtfmt1r) '  Density(Kg/m3):',              fluidparam%ftp0ref%d
-      write (*, wrtfmt1e) '  Dynamic Viscosity(Pa-s):',     fluidparam%ftp0ref%m
-      write (*, wrtfmt1r) '  Thermal Conductivity(W/m-K):', fluidparam%ftp0ref%k
-      write (*, wrtfmt1r) '  Cp(J/Kg/K):',                  fluidparam%ftp0ref%cp
-      write (*, wrtfmt1e) '  Enthalphy(J):',                fluidparam%ftp0ref%h
-      write (*, wrtfmt1e) '  mass enthaphy(Kg J/m3):',      fluidparam%ftp0ref%rhoh
-
-      call Print_debug_start_msg("The initial thermal properties (dim) are")
-      write (*, wrtfmt1r) '  Temperature(K):',              fluidparam%ftpini%t
-      write (*, wrtfmt1r) '  Density(Kg/m3):',              fluidparam%ftpini%d
-      write (*, wrtfmt1e) '  Dynamic Viscosity(Pa-s):',     fluidparam%ftpini%m
-      write (*, wrtfmt1r) '  Thermal Conductivity(W/m-K):', fluidparam%ftpini%k
-      write (*, wrtfmt1r) '  Cp(J/Kg/K):',                  fluidparam%ftpini%cp
-      write (*, wrtfmt1e) '  Enthalphy(J):',                fluidparam%ftpini%h
-      write (*, wrtfmt1e) '  mass enthaphy(Kg J/m3):',      fluidparam%ftpini%rhoh
       call Print_debug_mid_msg("The range of the property table (undim)")
-      write (*, wrtfmt2r) '  rho*h(Kg J/m3)',                  fluidparam%dhmin, fluidparam%dhmax
+      write (*, wrtfmt2e) 'rho*h(Kg J/m3):',              fluidparam%dhmin, fluidparam%dhmax
+      call Print_debug_mid_msg("The reference thermal properties (dimensional) are")
+      write (*, wrtfmt1r) 'Temperature(K):',              fluidparam%ftp0ref%t
+      write (*, wrtfmt1r) 'Density(Kg/m3):',              fluidparam%ftp0ref%d
+      write (*, wrtfmt1e) 'Dynamic Viscosity(Pa-s):',     fluidparam%ftp0ref%m
+      write (*, wrtfmt1r) 'Thermal Conductivity(W/m-K):', fluidparam%ftp0ref%k
+      write (*, wrtfmt1r) 'Cp(J/Kg/K):',                  fluidparam%ftp0ref%cp
+      write (*, wrtfmt1e) 'Enthalphy(J):',                fluidparam%ftp0ref%h
+      write (*, wrtfmt1e) 'mass enthaphy(Kg J/m3):',      fluidparam%ftp0ref%rhoh
+
+      call Print_debug_mid_msg("The initial thermal properties (dimensional) are")
+      write (*, wrtfmt1r) 'Temperature(K):',              fluidparam%ftpini%t
+      write (*, wrtfmt1r) 'Density(Kg/m3):',              fluidparam%ftpini%d
+      write (*, wrtfmt1e) 'Dynamic Viscosity(Pa-s):',     fluidparam%ftpini%m
+      write (*, wrtfmt1r) 'Thermal Conductivity(W/m-K):', fluidparam%ftpini%k
+      write (*, wrtfmt1r) 'Cp(J/Kg/K):',                  fluidparam%ftpini%cp
+      write (*, wrtfmt1e) 'Enthalphy(J):',                fluidparam%ftpini%h
+      write (*, wrtfmt1e) 'mass enthaphy(Kg J/m3):',      fluidparam%ftpini%rhoh
     end if
 
     return
@@ -868,7 +868,7 @@ contains
   subroutine Buildup_fluidparam(tm)
     type(t_thermo), intent(in) :: tm
 
-    if(nrank == 0) call Print_debug_start_msg("initialising thermal parameters ...")
+    if(nrank == 0) call Print_debug_inline_msg("Initialising thermal parameters ...")
 
     is_ftplist_dim = .true.
     fluidparam%ifluid    = tm%ifluid
@@ -952,8 +952,6 @@ contains
       fluidparam%CoM(-1:1) = CoM_Na(-1:1)
     end select
 
-
-    if(nrank == 0) call Print_debug_end_msg
     return
   end subroutine Buildup_fluidparam
 
@@ -1072,12 +1070,12 @@ contains
     type(t_flow),   intent(inout) :: fl
     type(t_thermo), intent(inout) :: tm
     
-    if(nrank == 0) call Print_debug_mid_msg("initialise thermal variables ...")
+    if(nrank == 0) call Print_debug_start_msg("Initialise thermal variables ...")
     !----------------------------------------------------------------------------------------------------------
     !   initialise thermal fields
     !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) then
-      call Print_debug_start_msg("The initial thermal properties (undim) are")
+      call Print_debug_mid_msg("The initial thermal properties (undim) are")
       write (*, wrtfmt1r) '  Temperature:',          tm%ftp_ini%t
       write (*, wrtfmt1r) '  Density:',              tm%ftp_ini%d
       write (*, wrtfmt1r) '  Dynamic Viscosity:',    tm%ftp_ini%m
@@ -1097,9 +1095,7 @@ contains
     fl%dDensm2(:, :, :) = fl%dDensm1(:, :, :)
     fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
 
-    
-
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine initialise_thermal_properties
 
@@ -1163,7 +1159,7 @@ contains
   subroutine Buildup_thermo_mapping_relations(tm)
     type(t_thermo), intent(inout) :: tm
 
-    if(nrank == 0) call Print_debug_start_msg("initialising thermal mapping relations ...")
+    if(nrank == 0) call Print_debug_start_msg("Initialising thermal mapping relations ...")
     call Buildup_fluidparam(tm)
     if (fluidparam%ipropertyState == IPROPERTY_TABLE) call buildup_property_relations_from_table
     if (fluidparam%ipropertyState == IPROPERTY_FUNCS) call buildup_property_relations_from_function
@@ -1171,7 +1167,7 @@ contains
     tm%ftp_ini%t = tm%init_T0 / tm%ref_T0 ! already undim
     call ftp_refresh_thermal_properties_from_T_undim(tm%ftp_ini)
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine Buildup_thermo_mapping_relations
 

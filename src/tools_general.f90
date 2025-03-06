@@ -1,6 +1,7 @@
 module print_msg_mod
   public :: Print_error_msg
   public :: Print_warning_msg
+  public :: Print_note_msg
   public :: Print_debug_start_msg
   public :: Print_debug_mid_msg
   public :: Print_debug_end_msg
@@ -24,10 +25,20 @@ contains
     implicit none
     character(len=*), intent(IN) :: msg
     
-    write (*, *) 'WARNNING: ' // msg
+    write (*, *) '>>>> WARNNING <<<< ' // msg
 
     return
   end subroutine Print_warning_msg
+  !==========================================================================================================
+  subroutine Print_note_msg(msg)
+    !use iso_fortran_env
+    implicit none
+    character(len=*), intent(IN) :: msg
+    
+    write (*, *) '  [NOTE] ' // msg
+
+    return
+  end subroutine Print_note_msg
   !==========================================================================================================
   subroutine Print_debug_start_msg(msg)
     !use iso_fortran_env
@@ -40,12 +51,21 @@ contains
     return
   end subroutine Print_debug_start_msg
 !==========================================================================================================
+  subroutine Print_debug_inline_msg(msg)
+    !use iso_fortran_env
+    implicit none
+    character(len=*), intent(IN) :: msg
+
+    write (*, *) "    "//msg
+    return
+  end subroutine Print_debug_inline_msg
+  !==========================================================================================================
   subroutine Print_debug_mid_msg(msg)
     !use iso_fortran_env
     implicit none
     character(len=*), intent(IN) :: msg
 
-    write (*, *) "       "//msg
+    write (*, *) "  ------ "//msg//" ------"
     return
   end subroutine Print_debug_mid_msg
 !==========================================================================================================
@@ -53,7 +73,7 @@ contains
     !use iso_fortran_env
     implicit none
 
-    write (*, *) "... done."
+    write (*, *) "        ... done."
     return
   end subroutine Print_debug_end_msg
 !==========================================================================================================
@@ -165,8 +185,8 @@ module code_performance_mod
       t_preparation = t_step_start - t_code_start
       call mpi_barrier(MPI_COMM_WORLD, ierror)
       call mpi_allreduce(t_preparation, t_preparation0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-      if(nrank == 0) call Print_debug_start_msg ("---------- Code Performance Info----------")
-      if(nrank == 0) call Print_debug_mid_msg ("    Time for code preparation : " // &
+      if(nrank == 0) call Print_debug_mid_msg ("Code Performance Info")
+      if(nrank == 0) call Print_debug_inline_msg ("    Time for code preparation : " // &
           trim(real2str(t_preparation0))//' s')
 !----------------------------------------------------------------------------------------------------------
     else if (itype == CPU_TIME_ITER_START) then
@@ -181,15 +201,15 @@ module code_performance_mod
       t_this_iter = t_iter_end - t_iter_start
       call mpi_barrier(MPI_COMM_WORLD, ierror)
       call mpi_allreduce(t_this_iter, t_this_iter0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-      if(nrank == 0) call Print_debug_mid_msg ("---------- Code Performance Info----------")
-      if(nrank == 0) call Print_debug_mid_msg ("    Time for this time step : " // &
+      if(nrank == 0) call Print_debug_mid_msg ("Code Performance Info")
+      if(nrank == 0) call Print_debug_inline_msg ("    Time for this time step : " // &
           trim(real2str(t_this_iter0))//' s')
 
       t_elaspsed  = t_iter_end - t_step_start
       call mpi_barrier(MPI_COMM_WORLD, ierror)
       call mpi_allreduce(t_elaspsed, t_elaspsed0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
       call Convert_sec_to_hms (t_elaspsed0, hrs, mins, secs)
-      if(nrank == 0) call Print_debug_mid_msg ("    Elaspsed Wallclock Time : "// &
+      if(nrank == 0) call Print_debug_inline_msg ("    Elaspsed Wallclock Time : "// &
            trim(int2str(hrs)) // ' h ' // &
            trim(int2str(mins)) // ' m ' // &
            trim(real2str(secs)) // ' s ')
@@ -203,11 +223,11 @@ module code_performance_mod
       call Convert_sec_to_hms (t_remaining0, hrs, mins, secs)
 
       if(nrank == 0) then
-        call Print_debug_mid_msg ("    Remaning Wallclock Time : "// &
+        call Print_debug_inline_msg ("    Remaning Wallclock Time : "// &
            trim(int2str(hrs)) // ' h ' // &
            trim(int2str(mins)) // ' m ' // &
            trim(real2str(secs)) // ' s ')
-        call Print_debug_mid_msg ("    Moving averaged time per iteration  : "// &
+        call Print_debug_inline_msg ("    Moving averaged time per iteration  : "// &
            trim(real2str(t_aveiter0))//' s')
         
       end if
@@ -223,10 +243,10 @@ module code_performance_mod
       
       call Convert_sec_to_hms (t_total0, hrs, mins, secs)
       if(nrank == 0) then
-        call Print_debug_start_msg ("---------- Code Performance Info----------")
-        call Print_debug_mid_msg   ("    Averaged time per iteration  : "// &
+        call Print_debug_mid_msg ("Code Performance Info")
+        call Print_debug_inline_msg   ("    Averaged time per iteration  : "// &
            trim(real2str(t_aveiter0))//' s')
-        call Print_debug_mid_msg ("    Wallclock time of all iterations : "// &
+        call Print_debug_inline_msg ("    Wallclock time of all iterations : "// &
            trim(int2str(hrs)) // ' h ' // &
            trim(int2str(mins)) // ' m ' // &
            trim(real2str(secs)) // ' s ')
@@ -243,14 +263,14 @@ module code_performance_mod
       
       call Convert_sec_to_hms (t_total0, hrs, mins, secs)
       if(nrank == 0) then
-        call Print_debug_start_msg ("---------- Code Performance Info----------")
-        call Print_debug_mid_msg    ("    Wallclock time for postprocessing : "// &
+        call Print_debug_mid_msg ("Code Performance Info")
+        call Print_debug_inline_msg    ("    Wallclock time for postprocessing : "// &
            trim(real2str(t_postprocessing0))//' s')
-        call Print_debug_mid_msg ("    Total wallclock time of this run : "// &
+        call Print_debug_inline_msg ("    Total wallclock time of this run : "// &
            trim(int2str(hrs)) // ' h ' // &
            trim(int2str(mins)) // ' m ' // &
            trim(real2str(secs)) // ' s ')
-        call Print_debug_mid_msg("CHAPSim Simulation is finished successfully.")
+        call Print_debug_inline_msg("CHAPSim Simulation is finished successfully.")
       end if
     else
     end if
@@ -1195,7 +1215,7 @@ contains
 
   end subroutine is_valid_number_3D
 !==========================================================================================================
-  subroutine Find_maximum_absvar3d(var,  varmax_work, dtmp, str, fmt)
+  subroutine Find_maximum_absvar3d(var, varmax_work, dtmp, str, nxst0)
     use precision_mod
     use math_mod
     use mpi_mod
@@ -1204,16 +1224,21 @@ contains
     implicit none
 
     real(WP), intent(in)  :: var(:, :, :)
+    integer, intent(in), optional   :: nxst0
     type(DECOMP_INFO), intent(in) :: dtmp
     character(len = *), intent(in) :: str
-    character(len = *), intent(in) :: fmt
     real(WP), intent(out) :: varmax_work
 
     real(WP)   :: varmax
     integer :: idg(3), idl(3), idg_work(3)
     integer :: i, j, k, nx, ny, nz
-    integer :: idgmax(3)
+    integer :: idgmax(3), nxst
 
+    if(present(nxst0)) then 
+      nxst = nxst0
+    else
+      nxst = 1
+    end if
     nx = size(var, 1)
     ny = size(var, 2)
     nz = size(var, 3)
@@ -1230,14 +1255,14 @@ contains
         do i = 1, nx
           if(abs_wp(var(i, j, k)) > varmax) then
             varmax = abs_wp(var(i, j, k))
-            idl(1:3) = (/i, j, k/)
             !idg = local2global_3indices(idl, dtmp)
-            idg(1:3) = dtmp%xst(1:3) + idl(1:3) - 1
+            idg(1) = nxst + i - 1
+            idg(2) = dtmp%xst(2) + j - 1
+            idg(3) = dtmp%xst(3) + k - 1
           end if
         end do
       end do
     end do
-
     !varmax = MAXVAL( abs_wp( var ) ) 
     call mpi_barrier(MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
@@ -1248,12 +1273,15 @@ contains
 
     if(nrank == 0) then
       call mpi_recv(idg_work, 3, MPI_INTEGER, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE, ierror)
-      write (*, '(2X, A48, 1ES19.12, A, 3(1I6.1, A6))') 'maximum '//trim(str), varmax_work, ' at global index', &
+      !write (*, '(1X, A33, 1ES19.12)') 'maximum '//trim(str), varmax_work
+!#ifdef DEBUG_STEPS   
+      write (*, '(3X, A33, 1ES19.12, A, 3(1I6.1, A6))') 'maximum '//trim(str), varmax_work, ' at index', &
       idg_work(1), '/'//int2str(idgmax(1)), &
       idg_work(2), '/'//int2str(idgmax(2)), &
       idg_work(3), '/'//int2str(idgmax(3))
+!#ifdef 
     end if
-#ifdef DEBUG_FFT
+#ifdef DEBUG_STEPS
     if(varmax_work > MAXVELO) stop ! test
 #endif
     return

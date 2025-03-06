@@ -63,7 +63,7 @@ contains
     if(dm%mstret /= MSTRET_POWL) then 
       error stop 'Grid stretching method is not MSTRET_POWL.'
     end if
-    if(nrank == 0) call Print_debug_mid_msg("Buildup_grid_mapping_1D_powerlaw for "//trim(str))
+    if(nrank == 0) call Print_debug_inline_msg("Buildup_grid_mapping_1D_powerlaw for "//trim(str))
     !----------------------------------------------------------------------------------------------------------
     ! note: (1)if both yc and yp are calculated using the stretching function,
     !          yc_i /= (yp_i + yp_i+1)
@@ -171,7 +171,7 @@ contains
     if(dm%mstret /= MSTRET_TANH) then 
       error stop 'Grid stretching method is not MSTRET_TANH.'
     end if
-    if(nrank == 0) call Print_debug_mid_msg("Buildup_grid_mapping_1D_tanh for "//trim(str))
+    if(nrank == 0) call Print_debug_inline_msg("Buildup_grid_mapping_1D_tanh for "//trim(str))
     !----------------------------------------------------------------------------------------------------------
     ! note: (1)if both yc and yp are calculated using the stretching function,
     !          yc_i /= (yp_i + yp_i+1)
@@ -306,7 +306,7 @@ contains
     if(dm%mstret /= MSTRET_3FMD) then 
       error stop 'Grid stretching method is not MSTRET_3FMD.'
     end if
-    if(nrank == 0) call Print_debug_mid_msg("Buildup_grid_mapping_1D_3fmd for "//trim(str))
+    if(nrank == 0) call Print_debug_inline_msg("Buildup_grid_mapping_1D_3fmd for "//trim(str))
     !----------------------------------------------------------------------------------------------------------
     !----------------------------------------------------------------------------------------------------------
     eta_shift = ZERO
@@ -426,7 +426,7 @@ contains
     integer  :: wrt_unit
     real(WP) :: dyp, dyn, ddy
     real(WP) :: dy(dm%nc(2))
-    if(nrank == 0) call Print_debug_start_msg("initialising domain geometric ...")
+    if(nrank == 0) call Print_debug_start_msg("Initialising domain geometric ...")
 
     !----------------------------------------------------------------------------------------------------------
     ! set up node number in geometry domain
@@ -532,13 +532,13 @@ contains
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) then
       !write (*, wrtfmt1i) '------For the domain-x------ ', dm%idom
-      write (*, *)        '  is periodic in x, y, z :', dm%is_periodic(1:NDIM)
-      write (*, wrtfmt3i) '  geometry number of nodes     in x, y, z: :', dm%np_geo(1:NDIM)
-      write (*, wrtfmt3i) '  calculation number of cells  in x, y, z: :', dm%nc(1:NDIM)
-      write (*, wrtfmt3i) '  calculation number of points in x, y, z: :', dm%np(1:NDIM)
-      write (*, wrtfmt3r) '  grid spacing in x, z: :', dm%h(1), dm%h(3)
-      write (*, wrtfmt3r) '  grid spacing in y(geometric     uniform)', (dm%lyt - dm%lyb) / real(dm%nc(2), WP)
-      write (*, wrtfmt3r) '  grid spacing in y(computational uniform)', dm%h(2)
+      write (*, wrtfmt3l) 'is periodic in xyz :', dm%is_periodic(1:NDIM)
+      write (*, wrtfmt3i) 'geometry number of nodes     in xyz :', dm%np_geo(1:NDIM)
+      write (*, wrtfmt3i) 'calculation number of cells  in xyz :', dm%nc(1:NDIM)
+      write (*, wrtfmt3i) 'calculation number of points in xyz :', dm%np(1:NDIM)
+      write (*, wrtfmt3r) 'grid spacing in x, z: ', dm%h(1), dm%h(3)
+      write (*, wrtfmt1e) 'grid spacing in y(geometric     uniform) :', (dm%lyt - dm%lyb) / real(dm%nc(2), WP)
+      write (*, wrtfmt1e) 'grid spacing in y(computational uniform) :', dm%h(2)
     end if
     !----------------------------------------------------------------------------------------------------------
     ! print out data for debugging
@@ -588,7 +588,7 @@ contains
       end if
     end if
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine  Buildup_geometry_mesh_info
 

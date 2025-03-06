@@ -109,7 +109,7 @@ contains
 
     end if
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
 
   end subroutine Allocate_flow_variables
@@ -141,7 +141,7 @@ contains
       allocate (tm%fbcx_rhoh_rhs0(dm%dccc%xsz(2), dm%dccc%xsz(3))); tm%fbcx_rhoh_rhs0 = ZERO
     end if
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
 
   end subroutine Allocate_thermo_variables
@@ -180,7 +180,7 @@ contains
     real(WP) :: rd, lownoise
     type(DECOMP_INFO) :: dtmp
 
-    if(nrank == 0) call Print_debug_mid_msg("Generating random field ...")
+    if(nrank == 0) call Print_debug_inline_msg("Generating random field ...")
     !----------------------------------------------------------------------------------------------------------
     !   Initialisation in x pencil
     !----------------------------------------------------------------------------------------------------------
@@ -230,10 +230,10 @@ contains
     !     for dirichelt, the perturbation velocity should be zero.
     call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz)
 
-    if(nrank == 0) Call Print_debug_mid_msg("Max/min velocity for generated random velocities:")
-    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2e)
-    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2e)
-    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2e)
+    if(nrank == 0) call Print_debug_inline_msg("Max/min velocity for generated random velocities:")
+    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2ae)
+    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2ae)
+    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2ae)
 ! to validate the random number generated is MPI processor independent.
 #ifdef DEBUG_STEPS
     call wrt_3d_pt_debug(fl%qx, dm%dpcc,   fl%iteration, 0, 'qx@af radm') ! debug_ww
@@ -273,7 +273,7 @@ contains
     integer :: pf_unit
     integer :: j
     
-    if(nrank == 0) call Print_debug_mid_msg("Generate poiseuille flow profile ...")
+    if(nrank == 0) call Print_debug_inline_msg("Generate poiseuille flow profile ...")
 
     ux_1c1 (:) = ZERO
 
@@ -358,7 +358,7 @@ contains
 
     type(DECOMP_INFO) :: dtmp
 
-    if(nrank == 0) call Print_debug_start_msg("initialising Poiseuille flow field ...")
+    if(nrank == 0) call Print_debug_start_msg("Initialising Poiseuille flow field ...")
     !----------------------------------------------------------------------------------------------------------
     !   x-pencil : to get Poiseuille profile for all ranks
     !----------------------------------------------------------------------------------------------------------
@@ -394,10 +394,10 @@ contains
       str = 'qx'
     end if
 
-    if(nrank == 0) Call Print_debug_mid_msg("Max/min velocity for generated initial velocities:")
-    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2e)
-    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2e)
-    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2e)
+    if(nrank == 0) call Print_debug_inline_msg("Max/min velocity for generated initial velocities:")
+    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2ae)
+    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2ae)
+    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2ae)
 
     call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
     if(nrank == 0) then
@@ -417,16 +417,16 @@ contains
     if(nrank == 0) then
       write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     end if
-    if(nrank == 0) call Print_debug_mid_msg("Maximum [velocity] for real initial flow field:")
-    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2e)
-    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2e)
-    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2e)
+    if(nrank == 0) call Print_debug_inline_msg("Maximum [velocity] for real initial flow field:")
+    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2ae)
+    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2ae)
+    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2ae)
 
     if(dm%is_thermo) then
-      if(nrank == 0) call Print_debug_mid_msg("Maximum [mass flux] for real initial flow field:")
-      call Find_max_min_absvar3d(fl%gx, "gx", wrtfmt2e)
-      call Find_max_min_absvar3d(fl%gy, "gy", wrtfmt2e)
-      call Find_max_min_absvar3d(fl%gz, "gz", wrtfmt2e)
+      if(nrank == 0) call Print_debug_inline_msg("Maximum [mass flux] for real initial flow field:")
+      call Find_max_min_absvar3d(fl%gx, "gx", wrtfmt2ae)
+      call Find_max_min_absvar3d(fl%gy, "gy", wrtfmt2ae)
+      call Find_max_min_absvar3d(fl%gz, "gz", wrtfmt2ae)
     end if
 
     ! to do : to add a scaling for turbulence generator inlet scaling, u = u * m / rho
@@ -445,7 +445,7 @@ contains
       call extract_dirichlet_fbcx(dm%fbcx_qz, fl%qz, dm%dccp)
     end if
     
-    !if(nrank == 0) call Print_debug_end_msg
+    !if(nrank == 0) call Print_debug_end_msg()
 
     return
   end subroutine  initialise_poiseuille_flow
@@ -460,7 +460,7 @@ contains
     !type(t_domain),  intent(in) :: dm
     type(t_flow), intent(inout) :: fl
     
-    if(nrank == 0) call Print_debug_mid_msg("initialising flow field with given values...")
+    if(nrank == 0) call Print_debug_inline_msg("Initialising flow field with given values...")
     !----------------------------------------------------------------------------------------------------------
     !   x-pencil : update values
     !----------------------------------------------------------------------------------------------------------
@@ -471,7 +471,7 @@ contains
     !   x-pencil : apply b.c.
     !----------------------------------------------------------------------------------------------------------
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 
@@ -489,7 +489,7 @@ contains
 
     integer :: i, j, k, ii, jj, kk
     
-    if(nrank == 0) call Print_debug_mid_msg("initialising flow field with given profile...")
+    if(nrank == 0) call Print_debug_inline_msg("Initialising flow field with given profile...")
     !----------------------------------------------------------------------------------------------------------
     !   x-pencil : update values
     !----------------------------------------------------------------------------------------------------------
@@ -529,7 +529,7 @@ contains
     !   x-pencil : apply b.c.
     !----------------------------------------------------------------------------------------------------------
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 
@@ -553,7 +553,7 @@ contains
 
     real(WP) :: velo(3)
 
-    if(nrank == 0) call Print_debug_start_msg("initialise flow fields ...")
+    if(nrank == 0) call Print_debug_start_msg("Initialise flow fields ...")
   !----------------------------------------------------------------------------------------------------------
   ! to set up Re
   !----------------------------------------------------------------------------------------------------------
@@ -625,7 +625,7 @@ contains
     call Check_element_mass_conservation(fl, dm, 0, 'initial') 
     call write_visu_flow(fl, dm, 'init')
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
 
     return
   end subroutine
@@ -648,7 +648,7 @@ contains
     integer :: i
 
     if(.not. dm%is_thermo) return
-    if(nrank == 0) call Print_debug_start_msg("initialise thermo fields ...")  
+    if(nrank == 0) call Print_debug_start_msg("Initialise thermo fields ...")  
 !----------------------------------------------------------------------------------------------------------
 ! to set up Fr etc, require update flow Re first
 !----------------------------------------------------------------------------------------------------------
@@ -675,6 +675,7 @@ contains
  
     call write_visu_thermo(tm, fl, dm, 'init')
 
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 !==========================================================================================================
@@ -704,7 +705,7 @@ contains
     integer :: i, j, ii, jj
     type(DECOMP_INFO) :: dtmp
 
-    if(nrank == 0) call Print_debug_mid_msg("initialising vortexgreen 2dflow ...")
+    if(nrank == 0) call Print_debug_inline_msg("Initialising vortexgreen 2dflow ...")
 !----------------------------------------------------------------------------------------------------------
 !   ux in x-pencil
 !----------------------------------------------------------------------------------------------------------
@@ -750,7 +751,7 @@ contains
     !   end do
     ! end do
     
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine initialise_vortexgreen_2dflow
 !==========================================================================================================
@@ -781,7 +782,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
 !   X-pencil : Find Max. error of ux
 !----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) call Print_debug_mid_msg("Validat TGV2D error ...")
+    if(nrank == 0) call Print_debug_inline_msg("Validat TGV2D error ...")
 
     dtmp = dm%dpcc
     uerr = ZERO
@@ -871,7 +872,7 @@ contains
       close(outputunit)
     end if
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
 
     return
   end subroutine
@@ -902,7 +903,7 @@ contains
     integer :: i, j, k, ii, jj, kk
     type(DECOMP_INFO) :: dtmp
 
-    if(nrank == 0) call Print_debug_mid_msg("initialising Taylor Green Vortex flow field ...")
+    if(nrank == 0) call Print_debug_inline_msg("Initialising Taylor Green Vortex flow field ...")
 !----------------------------------------------------------------------------------------------------------
 !   ux in x-pencil
 !---------------------------------------------------------------------------------------------------------- 
@@ -969,7 +970,7 @@ contains
       end do
     end do
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     
     return
   end subroutine initialise_vortexgreen_3dflow

@@ -69,7 +69,7 @@ contains
     if(dm%proben <= 0) return
 
     if(nrank == 0) then
-      Call Print_debug_start_msg("  Probed points for monitoring ...")
+      call Print_debug_inline_msg("  Probed points for monitoring ...")
     end if
 !----------------------------------------------------------------------------------------------------------    
     allocate( dm%probe_is_in(dm%proben) )

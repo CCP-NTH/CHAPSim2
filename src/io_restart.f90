@@ -41,7 +41,7 @@ contains
     character(120):: data_flname
 
     call generate_file_name(data_flname, idom, trim(keyword), 'bin', iter)
-    if(nrank == 0) call Print_debug_mid_msg("Reading "//trim(dir_data)//"/"//trim(data_flname))
+    if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(dir_data)//"/"//trim(data_flname))
 
     call decomp_2d_read_one(X_PENCIL, var, trim(data_flname), &
           opt_dirname=trim(dir_data), &
@@ -77,14 +77,14 @@ contains
     character(120):: data_flname_path
     character(120):: keyword
 
-    if(nrank == 0) call Print_debug_mid_msg("writing out instantaneous 3d flow data ...")
+    if(nrank == 0) call Print_debug_inline_msg("writing out instantaneous 3d flow data ...")
 
     call write_instantaneous_array(fl%qx, 'qx', dm%idom, fl%iteration, dm%dpcc)
     call write_instantaneous_array(fl%qy, 'qy', dm%idom, fl%iteration, dm%dcpc)
     call write_instantaneous_array(fl%qz, 'qz', dm%idom, fl%iteration, dm%dccp)
     call write_instantaneous_array(fl%pres, 'pr', dm%idom, fl%iteration, dm%dccc)
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 !==========================================================================================================
@@ -99,12 +99,12 @@ contains
     character(120):: keyword
     
 
-    if(nrank == 0) call Print_debug_mid_msg("writing out instantaneous 3d thermo data ...")
+    if(nrank == 0) call Print_debug_inline_msg("writing out instantaneous 3d thermo data ...")
 
     call write_instantaneous_array(tm%rhoh,    'rhoh', dm%idom, tm%iteration, dm%dccc)
     call write_instantaneous_array(tm%tTemp, 'temp', dm%idom, tm%iteration, dm%dccc)
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 !==========================================================================================================
@@ -118,14 +118,14 @@ contains
     character(120):: keyword
 
 
-    if(nrank == 0) call Print_debug_mid_msg("read instantaneous flow data ...")
+    if(nrank == 0) call Print_debug_inline_msg("read instantaneous flow data ...")
 
     call read_instantaneous_array(fl%qx, 'qx', dm%idom, fl%iterfrom, dm%dpcc)
     call read_instantaneous_array(fl%qy, 'qy', dm%idom, fl%iterfrom, dm%dcpc)
     call read_instantaneous_array(fl%qz, 'qz', dm%idom, fl%iterfrom, dm%dccp)
     call read_instantaneous_array(fl%pres, 'pr', dm%idom, fl%iterfrom, dm%dccc)
     
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 
@@ -146,15 +146,15 @@ contains
     !call Get_volumetric_average_3d(.false., dm%ibcy_qx(:), dm%fbcy_qx(:, :, :), dm, dm%dpcc, fl%qx, ubulk, "ux")
     call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%qx, ubulk, SPACE_AVERAGE, "ux")
     if(nrank == 0) then
-        Call Print_debug_mid_msg("The restarted mass flux is:")
+        call Print_debug_inline_msg("The restarted mass flux is:")
         write (*, wrtfmt1e) ' average[u(x,y,z)]_[x,y,z]: ', ubulk
     end if
     !----------------------------------------------------------------------------------------------------------
     ! to check maximum velocity
     !----------------------------------------------------------------------------------------------------------
-    call Find_max_min_3d(fl%qx, "qx: ", wrtfmt2e)
-    call Find_max_min_3d(fl%qy, "qy: ", wrtfmt2e)
-    call Find_max_min_3d(fl%qz, "qz: ", wrtfmt2e)
+    call Find_max_min_3d(fl%qx, "qx: ", wrtfmt2ae)
+    call Find_max_min_3d(fl%qy, "qy: ", wrtfmt2ae)
+    call Find_max_min_3d(fl%qz, "qz: ", wrtfmt2ae)
     !----------------------------------------------------------------------------------------------------------
     ! to set up other parameters for flow only, which will be updated in thermo flow.
     !----------------------------------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ contains
     character(120):: keyword
 
     if (.not. dm%is_thermo) return
-    if(nrank == 0) call Print_debug_mid_msg("read instantaneous thermo data ...")
+    if(nrank == 0) call Print_debug_inline_msg("read instantaneous thermo data ...")
 
     tm%iteration = tm%iterfrom
 
@@ -199,7 +199,7 @@ contains
           opt_reduce_prec=.false.)
     tm%time = real(tm%iterfrom, WP) * dm%dt 
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 !==========================================================================================================
@@ -451,7 +451,7 @@ contains
     call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter, flname)
 
     !call decomp_2d_open_io (io_in2outlet, trim(data_flname_path), decomp_2d_read_mode)
-    if(nrank == 0) call Print_debug_mid_msg("Read data on a plane from file: "//trim(data_flname_path))
+    if(nrank == 0) call Print_debug_inline_msg("Read data on a plane from file: "//trim(data_flname_path))
     !call decomp_2d_read_inflow(trim(data_flname_path), trim(keyword), nfre, var, io_in2outlet, dtmp)
     call decomp_2d_read_plane(X_PENCIL, var, data_flname_path, nfre, &
                                 opt_decomp = dtmp)

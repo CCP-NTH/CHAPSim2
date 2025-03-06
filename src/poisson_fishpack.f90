@@ -224,7 +224,7 @@ contains
     integer :: j, i, k, ii, kk
     !real(WP) :: dyfi(dm%nc(2)), dyci(dm%np_geo(2)) 
 
-    if(nrank==0) call Print_debug_mid_msg("Initialising fishpack fft lib ...")
+    if(nrank==0) call Print_debug_inline_msg("Initialising fishpack fft lib ...")
     !-----------------------------------------------------------
     ! assign key info from domain
     !-----------------------------------------------------------

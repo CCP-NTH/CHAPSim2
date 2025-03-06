@@ -108,7 +108,7 @@ subroutine initialise_chapsim
 ! build up boundary condition
 !----------------------------------------------------------------------------------------------------------
   do i = 1, nxdomain
-    if(nrank == 0 ) call Print_debug_start_msg("initialising boundary conditions ...")
+    if(nrank == 0 ) call Print_debug_start_msg("Initialising boundary conditions ...")
     if(domain(i)%is_thermo) then
       call Convert_thermal_input_2undim(thermo(i), domain(i))
       call allocate_fbc_thermo(domain(i)) 
@@ -116,7 +116,7 @@ subroutine initialise_chapsim
     end if
     call allocate_fbc_flow(domain(i)) 
     call initialise_fbc_flow_given(domain(i)) 
-    if(nrank == 0 ) call Print_debug_end_msg
+    if(nrank == 0 ) call Print_debug_end_msg()
   end do
 !----------------------------------------------------------------------------------------------------------
 ! initialise flow and thermo fields
@@ -258,7 +258,7 @@ subroutine Solve_eqs_iteration
         call Update_PrGr(flow(i), thermo(i))
         if ( (iter >= thermo(i)%nIterThermoStart) .and. (iter <= thermo(i)%nIterThermoEnd)) then
           is_thermo(i) = .true.
-          if (nrank == 0) write(*, wrtfmt1r) "thermal field physical time (s) = ", thermo(i)%time
+          if (nrank == 0) write(*, wrtfmt1e) "thermal field physical time (s) : ", thermo(i)%time
           thermo(i)%time = thermo(i)%time  + domain(i)%dt
           thermo(i)%iteration = thermo(i)%iteration + 1
         end if
@@ -268,7 +268,7 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       if ( (iter >= flow(i)%nIterFlowStart) .and. (iter <=flow(i)%nIterFlowEnd)) then
         is_flow(i) = .true.
-        if (nrank == 0) write(*, wrtfmt1e) "flow field physical time (s) = ", flow(i)%time
+        if (nrank == 0) write(*, wrtfmt1e) "flow field physical time (s) : ", flow(i)%time
         flow(i)%time = flow(i)%time + domain(i)%dt
         flow(i)%iteration = flow(i)%iteration + 1
         call Check_cfl_diffusion (flow(i), domain(i))
@@ -323,12 +323,12 @@ subroutine Solve_eqs_iteration
       if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
       if(is_flow(i)) then
         if(is_thermo(i)) then
-          call Find_max_min_3d(thermo(i)%tTemp, "T : ", wrtfmt2e)
-          call Find_max_min_3d(thermo(i)%rhoh,  "rhoh:", wrtfmt2e)
+          call Find_max_min_3d(thermo(i)%tTemp, "T:   ", wrtfmt2ae)
+          call Find_max_min_3d(thermo(i)%rhoh,  "rhoh:", wrtfmt2ae)
         end if
-        call Find_max_min_3d(flow(i)%qx, "qx: ", wrtfmt2e)
-        call Find_max_min_3d(flow(i)%qy, "qy: ", wrtfmt2e)
-        call Find_max_min_3d(flow(i)%qz, "qz: ", wrtfmt2e)
+        call Find_max_min_3d(flow(i)%qx, "qx:  ", wrtfmt2ae)
+        call Find_max_min_3d(flow(i)%qy, "qy:  ", wrtfmt2ae)
+        call Find_max_min_3d(flow(i)%qz, "qz:  ", wrtfmt2ae)
         call Check_element_mass_conservation(flow(i), domain(i), iter) 
       end if
       !----------------------------------------------------------------------------------------------------------

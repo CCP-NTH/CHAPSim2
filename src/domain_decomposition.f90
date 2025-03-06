@@ -41,7 +41,7 @@ contains
 !   sizes of the sub-domains held by the current process. 
 !   The first letter refers to the pencil orientation and the three 1D array elements 
 !   contain the sub-domain sizes in X, Y and Z directions, respectively. 
-!   example: xsize(1:3) means the subdomain size in x, y, z direction of x-pencil
+!   example: xsize(1:3) means the subdomain size in xyz direction of x-pencil
 !   In a 2D pencil decomposition, there is always one dimension which completely 
 !   resides in local memory. So by definition, below relations hold 
 !   xsize(1)==nx_global, ysize(2)==ny_global and zsize(3)==nz_global
@@ -77,7 +77,7 @@ contains
 
 #ifdef DEBUG_STEPS
     call mpi_barrier(MPI_COMM_WORLD, ierror)
-    if(nrank==0) call Print_debug_mid_msg(' domain decomposition info')
+    if(nrank==0) call Print_debug_inline_msg(' domain decomposition info')
     do i = 1, 7
       select case(i)
       case(1)
@@ -119,7 +119,7 @@ contains
     end do
 #endif
 
-    if(nrank==0) call Print_debug_end_msg
+    if(nrank==0) call Print_debug_end_msg()
     return
   end subroutine initialise_domain_decomposition
 !==========================================================================================================

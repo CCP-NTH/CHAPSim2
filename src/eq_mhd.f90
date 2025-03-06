@@ -20,7 +20,7 @@ contains
     type(t_flow),   intent(inout) :: fl
     type(t_mhd),    intent(inout) :: mh
 
-    if(nrank==0) call Print_debug_start_msg('initialising MHD ...')
+    if(nrank==0) call Print_debug_start_msg('Initialising MHD ...')
 !----------------------------------------------------------------------------------------------------------
 !   allocate variables
 !----------------------------------------------------------------------------------------------------------
@@ -139,7 +139,7 @@ contains
 
     !call write_visu_mhd(mh, fl, dm, 'initial_mhd')
 
-    if(nrank==0) call Print_debug_end_msg
+    if(nrank==0) call Print_debug_end_msg()
     return
   end subroutine
 

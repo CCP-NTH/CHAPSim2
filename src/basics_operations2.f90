@@ -1504,7 +1504,7 @@ contains
       m1rP2C(:, :, IBC_DIRICHLET, :) = m1rP2C(:, :, IBC_INTERIOR, :)
     end if
     
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine Prepare_compact_coefficients
 !==========================================================================================================

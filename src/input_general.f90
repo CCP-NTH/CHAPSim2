@@ -41,7 +41,7 @@ contains
 !==========================================================================================================
   function get_name_case(icase) result(str)
     integer, intent(in) :: icase
-    character(22) :: str
+    character(72) :: str
 
     select case(icase)
     case ( ICASE_OTHERS) 
@@ -63,14 +63,14 @@ contains
     case default
       call Print_error_msg('The required case type is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
 !==========================================================================================================
   function get_name_cs(ics) result(str)
     integer, intent(in) :: ics
-    character(30) :: str
+    character(72) :: str
 
     select case(ics)
     case ( ICARTESIAN) 
@@ -80,7 +80,7 @@ contains
     case default
       call Print_error_msg('The required coordinate system is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
@@ -103,7 +103,7 @@ contains
     case default
       call Print_error_msg('The required mesh stretching is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
@@ -122,14 +122,14 @@ contains
     case default
       call Print_warning_msg('The required mesh stretching method is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
 !==========================================================================================================
   function get_name_fft(ist) result(str)
     integer, intent(in) :: ist
-    character(36) :: str
+    character(72) :: str
 
     select case(ist)
     case ( FFT_2DECOMP_3DFFT) 
@@ -139,14 +139,14 @@ contains
     case default
       call Print_error_msg('The required FFT lib is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
 !==========================================================================================================
   function get_name_iacc(iacc) result(str)
     integer, intent(in) :: iacc
-    character(32) :: str
+    character(72) :: str
 
     select case(iacc)
     case ( IACCU_CD2) 
@@ -160,14 +160,14 @@ contains
     case default
       call Print_error_msg('The required numerical scheme is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
 !==========================================================================================================
   function get_name_initial(irst) result(str)
     integer, intent(in) :: irst
-    character(56) :: str
+    character(72) :: str
 
     select case(irst)
     case ( INIT_RESTART) 
@@ -187,14 +187,14 @@ contains
     case default
       call Print_error_msg('The required initialisation method is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
 !==========================================================================================================
   function get_name_fluid(ifl) result(str)
     integer, intent(in) :: ifl
-    character(50) :: str
+    character(72) :: str
 
     select case(ifl)
     case ( ISCP_WATER) 
@@ -214,14 +214,14 @@ contains
     case default
       call Print_error_msg('The required flow medium is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
 !==========================================================================================================
   function get_name_drivenforce(ifl) result(str)
     integer, intent(in) :: ifl
-    character(50) :: str
+    character(72) :: str
 
     select case(ifl)
     case ( IDRVF_NO) 
@@ -237,7 +237,7 @@ contains
     case default
       call Print_error_msg('The required flow-driven method is not supported.')
     end select
-    str = trim(adjustl(str))
+    str = ' '//trim(adjustl(str))
 
     return
   end function
@@ -281,7 +281,7 @@ contains
     
     if(nrank == 0) then
       call Print_debug_start_msg("CHAPSim2.0 Starts ...")
-      write (*, wrtfmt1i) '  The precision is REAL*', WP
+      write (*, wrtfmt1i) 'The precision is REAL * ', WP
     end if
     is_any_energyeq = .false.
 
@@ -318,7 +318,7 @@ contains
            (slen == 0) ) then
         cycle
       end if
-      if(nrank == 0) call Print_debug_start_msg("Reading "//secname(1:slen))
+      if(nrank == 0) call Print_debug_mid_msg("Reading "//secname(1:slen))
       !----------------------------------------------------------------------------------------------------------
       ! [decomposition]
       !----------------------------------------------------------------------------------------------------------
@@ -335,10 +335,10 @@ contains
         end do
 
         if(nrank == 0) then
-          write (*,'(2X, A)') '  msg: if p_row = p_col = 0, the system will employ a default, automatic domain decomposition strategy.'
-          write (*, wrtfmt1i) '  x-dir domain number             :', nxdomain
-          write (*, wrtfmt1i) '  y-dir domain number (mpi Row)   :', p_row
-          write (*, wrtfmt1i) '  z-dir domain number (mpi Column):', p_col
+          call Print_note_msg('if p_row = p_col = 0, the system will employ a default, automatic domain decomposition strategy.')
+          write (*, wrtfmt1i) 'x-dir domain number             :', nxdomain
+          write (*, wrtfmt1i) 'y-dir domain number (mpi Row)   :', p_row
+          write (*, wrtfmt1i) 'z-dir domain number (mpi Column):', p_col
         end if
       !----------------------------------------------------------------------------------------------------------
       ! [domain]
@@ -410,12 +410,12 @@ contains
 
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
-            write (*, wrtfmt2s) '  current icase id  :', get_name_case(domain(i)%icase)
-            write (*, wrtfmt2s) '  current coordinates system  :', get_name_cs(domain(i)%icoordinate)
-            write (*, wrtfmt1r) '  scaled length in x-direction :', domain(i)%lxx
-            write (*, wrtfmt1r) '  scaled length in y-direction :', domain(i)%lyt - domain(i)%lyb
+            write (*, wrtfmt2s) 'current icase id :', get_name_case(domain(i)%icase)
+            write (*, wrtfmt2s) 'current coordinates system :', get_name_cs(domain(i)%icoordinate)
+            write (*, wrtfmt1r) 'scaled length in x-direction :', domain(i)%lxx
+            write (*, wrtfmt1r) 'scaled length in y-direction :', domain(i)%lyt - domain(i)%lyb
             if((domain(i)%lyt - domain(i)%lyb) < ZERO) call Print_error_msg("Y length is smaller than zero.")
-            write (*, wrtfmt1r) '  scaled length in z-direction :', domain(i)%lzz
+            write (*, wrtfmt1r) 'scaled length in z-direction :', domain(i)%lzz
           end do
         end if
         
@@ -564,16 +564,16 @@ contains
         if(nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
-            write (*, wrtfmt1i) '  mesh cell number - x :', domain(i)%nc(1)
-            write (*, wrtfmt1i) '  mesh cell number - y :', domain(i)%nc(2)
-            write (*, wrtfmt1i) '  mesh cell number - z :', domain(i)%nc(3)
-            write (*, wrtfmt2s) '  FFT lib   :', get_name_fft(domain(i)%ifft_lib)
-            write (*, wrtfmt3l) '  is mesh stretching in x, y, z :', domain(i)%is_stretching(1:3)
-            write (*, wrtfmt2s) '  mesh y-stretching type    :', get_name_mesh(domain(i)%istret)
+            write (*, wrtfmt1i) 'mesh cell number - x :', domain(i)%nc(1)
+            write (*, wrtfmt1i) 'mesh cell number - y :', domain(i)%nc(2)
+            write (*, wrtfmt1i) 'mesh cell number - z :', domain(i)%nc(3)
+            write (*, wrtfmt2s) 'FFT lib :', get_name_fft(domain(i)%ifft_lib)
+            write (*, wrtfmt3l) 'is mesh stretching in xyz :', domain(i)%is_stretching(1:3)
+            write (*, wrtfmt2s) 'mesh y-stretching type :', get_name_mesh(domain(i)%istret)
             if(domain(i)%istret /= ISTRET_NO) then
-              write (*, wrtfmt1r) '  mesh y-stretching factor : ', domain(i)%rstret
-              write (*, wrtfmt2s) '  mesh y-stretching method  :', get_name_mstret(domain(i)%mstret)
-              write (*, wrtfmt1s) '  msg: the recom. rstret range [0.2 - 0.3]'
+              write (*, wrtfmt1r) 'mesh y-stretching factor :', domain(i)%rstret
+              write (*, wrtfmt2s) 'mesh y-stretching method :', get_name_mstret(domain(i)%mstret)
+              call Print_note_msg('the recom. rstret range [0.2 - 0.3]')
             end if
           end do
         end if
@@ -589,8 +589,8 @@ contains
         if(nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
-            write (*, wrtfmt1e) '  physical time step(dt, unit = second) :', domain(i)%dt
-            write (*, wrtfmt1i) '  time marching scheme   :', domain(i)%iTimeScheme
+            write (*, wrtfmt1e) 'physical time step(dt, unit = second) :', domain(i)%dt
+            write (*, wrtfmt1i) 'time marching scheme :', domain(i)%iTimeScheme
           end do
         end if
       !----------------------------------------------------------------------------------------------------------
@@ -621,8 +621,8 @@ contains
         if(nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '  ------For the domain-x------ ', i
-            write (*, wrtfmt2s) '  current spatial accuracy scheme :', get_name_iacc(domain(i)%iAccuracy)
-            write (*, wrtfmt1i) '  viscous term treatment  :', domain(i)%iviscous
+            write (*, wrtfmt2s) 'current spatial accuracy scheme :', get_name_iacc(domain(i)%iAccuracy)
+            write (*, wrtfmt1i) 'viscous term treatment  :', domain(i)%iviscous
           end do
         end if
       !----------------------------------------------------------------------------------------------------------
@@ -662,18 +662,18 @@ contains
         if( nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
-            write (*, wrtfmt2s) '  flow initial type                  :', get_name_initial(flow(i)%inittype)
-            write (*, wrtfmt1i) '  iteration starting from            :', flow(i)%iterfrom
+            write (*, wrtfmt2s) 'flow initial type :', get_name_initial(flow(i)%inittype)
+            write (*, wrtfmt1i) 'iteration starting from :', flow(i)%iterfrom
             if(flow(i)%inittype == INIT_GVCONST) then
-            write (*, wrtfmt3r) '  initial velocity u, v, w           :', flow(i)%init_velo3d(1:3)
+            write (*, wrtfmt3r) 'initial velocity u, v, w :', flow(i)%init_velo3d(1:3)
             end if
-            write (*, wrtfmt1r) '  Initial velocity influction level  :', flow(i)%noiselevel
-            write (*, wrtfmt1r) '  Initial Reynolds No.               :', flow(i)%reninit
-            write (*, wrtfmt1i) '  Iteration for initial Reynolds No. :', flow(i)%initReTo
-            write (*, wrtfmt1r) '  flow Reynolds number               :', flow(i)%ren
-            write (*, wrtfmt2s) '  flow driven force type             :', get_name_drivenforce(flow(i)%idriven)
+            write (*, wrtfmt1r) 'Initial velocity influction level :', flow(i)%noiselevel
+            write (*, wrtfmt1r) 'Initial Reynolds No. :', flow(i)%reninit
+            write (*, wrtfmt1i) 'Iteration for initial Reynolds No.:', flow(i)%initReTo
+            write (*, wrtfmt1r) 'flow Reynolds number :', flow(i)%ren
+            write (*, wrtfmt2s) 'flow driven force type :', get_name_drivenforce(flow(i)%idriven)
             if(flow(i)%idriven == IDRVF_X_Cf .or. flow(i)%idriven == IDRVF_Z_Cf) &
-            write (*, wrtfmt1r) '  flow driven force(cf)              :', flow(i)%drvfc        
+            write (*, wrtfmt1r) 'flow driven force(cf)              :', flow(i)%drvfc        
           end do
         end if
       !----------------------------------------------------------------------------------------------------------
@@ -706,18 +706,18 @@ contains
         if(is_any_energyeq .and. nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
-            write (*, wrtfmt1l) '  is thermal field solved   ?', domain(i)%is_thermo
-            write (*, wrtfmt1l) '  is CHT solved             ?', domain(i)%icht
-            write (*, wrtfmt1i) '  gravity direction         :', flow(i)%igravity
-            write (*, wrtfmt2s) '  fluid medium              :' , get_name_fluid(thermo(i)%ifluid)
-            write (*, wrtfmt1r) '  reference length (m)      :', thermo(i)%ref_l0
-            write (*, wrtfmt1r) '  reference temperature (K) :', thermo(i)%ref_T0
-            write (*, wrtfmt1i) '  thermo field initial type :', thermo(i)%inittype
-            write (*, wrtfmt1i) '  iteration starting from   :', thermo(i)%iterfrom
-            write (*, wrtfmt1r) '  initial temperature (K)   :', thermo(i)%init_T0
+            write (*, wrtfmt1l) 'is thermal field solved ?', domain(i)%is_thermo
+            write (*, wrtfmt1l) 'is CHT solved ?', domain(i)%icht
+            write (*, wrtfmt1i) 'gravity direction ', flow(i)%igravity
+            write (*, wrtfmt2s) 'fluid medium :' , get_name_fluid(thermo(i)%ifluid)
+            write (*, wrtfmt1r) 'reference length (m) :', thermo(i)%ref_l0
+            write (*, wrtfmt1r) 'reference temperature (K) :', thermo(i)%ref_T0
+            write (*, wrtfmt1i) 'thermo field initial type :', thermo(i)%inittype
+            write (*, wrtfmt1i) 'iteration starting from :', thermo(i)%iterfrom
+            write (*, wrtfmt1r) 'initial temperature (K) :', thermo(i)%init_T0
           end do
         else if(nrank == 0) then
-          write(*, *) ' Note: Thermal field is not considered. '
+         call Print_note_msg ('Thermal field is not considered. ')
         end if
       !----------------------------------------------------------------------------------------------------------
       ! [mhd] 
@@ -740,15 +740,15 @@ contains
         if(domain(1)%is_mhd .and. nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
-            write (*, wrtfmt1l) '  is thermal field solved   ?', domain(i)%is_mhd
+            write (*, wrtfmt1l) 'is thermal field solved?', domain(i)%is_mhd
             if(mhd(1)%is_NStuart) &
-            write (*, wrtfmt1r) '  given Stuart Number   :', mhd(1)%NStuart
+            write (*, wrtfmt1r) 'given Stuart Number :', mhd(1)%NStuart
             if(mhd(1)%is_NHartmn) &
-            write (*, wrtfmt1r) '  given Hartmann Number :', mhd(1)%NHartmn
-            write (*, wrtfmt3r) ' Static Magnetic field  :', mhd(1)%B_static(1:3)
+            write (*, wrtfmt1r) 'given Hartmann Number :', mhd(1)%NHartmn
+            write (*, wrtfmt3r) 'Static Magnetic field :', mhd(1)%B_static(1:3)
           end do
         else if(nrank == 0) then
-          write(*, *) ' Note: MHD is not considered. '
+         call Print_note_msg(' MHD is not considered. ')
         end if
       !----------------------------------------------------------------------------------------------------------
       ! [simcontrol]
@@ -764,11 +764,11 @@ contains
         if( nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
-            write (*, wrtfmt1i) '  flow simulation starting from iteration    :', flow(i)%nIterFlowStart
-            write (*, wrtfmt1i) '  flow simulation ending   at   iteration    :', flow(i)%nIterFlowEnd
+            write (*, wrtfmt1i) 'flow simulation starting from :', flow(i)%nIterFlowStart
+            write (*, wrtfmt1i) 'flow simulation ending   at   :', flow(i)%nIterFlowEnd
             if(is_any_energyeq) then
-            write (*, wrtfmt1i) '  thermal simulation starting from iteration :', thermo(i)%nIterThermoStart
-            write (*, wrtfmt1i) '  thermal simulation ending   at   iteration :', thermo(i)%nIterThermoEnd
+            write (*, wrtfmt1i) 'thermal simulation starting from :', thermo(i)%nIterThermoStart
+            write (*, wrtfmt1i) 'thermal simulation ending   at   :', thermo(i)%nIterThermoEnd
             end if
           end do
         end if
@@ -796,16 +796,16 @@ contains
         if( nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
-            write (*, wrtfmt1i) '  data check freqency  :', domain(i)%ckpt_nfre
-            write (*, wrtfmt1i) '  visu data dimensions        :', domain(i)%visu_idim
-            write (*, wrtfmt1i) '  visu data written freqency  :', domain(i)%visu_nfre
-            write (*, wrtfmt3i) '  visu data skips in x, y, z  :', domain(i)%visu_nskip(1:3)
-            write (*, wrtfmt1i) '  statistics written from     :', domain(i)%stat_istart
-            write (*, wrtfmt3i) '  statistics skips in x, y, z :', domain(i)%stat_nskip(1:3)
-            write (*, wrtfmt1l) '  recording outlet plane?     :', domain(1)%is_record_xoutlet
-            write (*, wrtfmt1l) '  reading inlet plane?        :', domain(1)%is_read_xinlet
-            write (*, wrtfmt1i) '  reading/recording plane freqency :', domain(1)%ndbfre
-            write (*, wrtfmt1i) '  reading/recording plane period   :', domain(1)%ndbend
+            write (*, wrtfmt1i) 'data check freqency :', domain(i)%ckpt_nfre
+            write (*, wrtfmt1i) 'visu data dimensions :', domain(i)%visu_idim
+            write (*, wrtfmt1i) 'visu data written freqency :', domain(i)%visu_nfre
+            write (*, wrtfmt3i) 'visu data skips in xyz :', domain(i)%visu_nskip(1:3)
+            write (*, wrtfmt1i) 'statistics written from :', domain(i)%stat_istart
+            write (*, wrtfmt3i) 'statistics skips in xyz :', domain(i)%stat_nskip(1:3)
+            write (*, wrtfmt1l) 'recording outlet plane? :', domain(1)%is_record_xoutlet
+            write (*, wrtfmt1l) 'reading inlet plane? :', domain(1)%is_read_xinlet
+            write (*, wrtfmt1i) 'reading/recording plane freqency :', domain(1)%ndbfre
+            write (*, wrtfmt1i) 'reading/recording plane period :', domain(1)%ndbend
           end do
         end if
       !----------------------------------------------------------------------------------------------------------
@@ -821,7 +821,7 @@ contains
             do j = 1, domain(i)%proben
               read(inputUnit, *, iostat = ioerr) domain(i)%probexyz(1:3, j) 
               
-              if( nrank == 0) write (*, wrtfmt3r) '  probed points x, y, z: ', domain(i)%probexyz(1:3, j) 
+              if( nrank == 0) write (*, wrtfmt3r) 'probed points x, y, z :', domain(i)%probexyz(1:3, j) 
             end do 
           end if
         end do
@@ -898,7 +898,7 @@ contains
 
     end do
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
 
     return
   end subroutine Read_input_parameters

@@ -59,7 +59,7 @@ contains
       call read_statistics_flow(fl, dm)
     end if
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 !==========================================================================================================
@@ -73,7 +73,7 @@ contains
     type(t_flow),   intent(inout) :: fl
     !integer :: i
 
-    if(nrank == 0) call Print_debug_mid_msg("Reading flow statistics ...")
+    if(nrank == 0) call Print_debug_inline_msg("Reading flow statistics ...")
 
     if(fl%inittype == INIT_RESTART .and. fl%iteration > dm%stat_istart) then
       call read_statistics_array(fl%pr_mean,                     'time_averaged_pr', dm%idom, fl%iterfrom, dm%dccc)
@@ -123,7 +123,7 @@ contains
       call read_statistics_array(tm%t_mean,  'time_averaged_t',  dm%idom, tm%iterfrom, dm%dccc)
       call read_statistics_array(tm%tt_mean, 'time_averaged_tt', dm%idom, tm%iterfrom, dm%dccc)
     end if
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
 
     return
   end subroutine
@@ -138,7 +138,7 @@ contains
 
     if(.not. dm%is_thermo) return
 
-    if(nrank == 0) call Print_debug_mid_msg("Reading thermo statistics ...")
+    if(nrank == 0) call Print_debug_inline_msg("Reading thermo statistics ...")
 
     if(tm%inittype == INIT_RESTART .and. tm%iteration > dm%stat_istart) then
       call read_statistics_array(tm%t_mean,  'time_averaged_t',  dm%idom, tm%iterfrom, dm%dccc)
@@ -226,7 +226,7 @@ contains
 
     ! here is not only a repeat of those in io_visualisation
     ! because they have different written freqence and to be used for restart as well.
-    if(nrank == 0) call Print_debug_mid_msg("Writing flow statistics ...")
+    if(nrank == 0) call Print_debug_inline_msg("Writing flow statistics ...")
     call write_statistics_array(fl%pr_mean,                     'time_averaged_pr', dm%idom, fl%iteration, dm%dccc)
     call write_statistics_array(fl%u_vector_mean  (:, :, :, 1), 'time_averaged_ux', dm%idom, fl%iteration, dm%dccc)
     call write_statistics_array(fl%u_vector_mean  (:, :, :, 2), 'time_averaged_uy', dm%idom, fl%iteration, dm%dccc)
@@ -237,7 +237,7 @@ contains
     call write_statistics_array(fl%uu_tensor6_mean(:, :, :, 4), 'time_averaged_uv', dm%idom, fl%iteration, dm%dccc)
     call write_statistics_array(fl%uu_tensor6_mean(:, :, :, 5), 'time_averaged_uw', dm%idom, fl%iteration, dm%dccc)
     call write_statistics_array(fl%uu_tensor6_mean(:, :, :, 6), 'time_averaged_vw', dm%idom, fl%iteration, dm%dccc)
-
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 !==========================================================================================================
@@ -275,7 +275,7 @@ contains
     type(t_domain), intent(in) :: dm
     type(t_thermo), intent(in) :: tm
 
-    if(nrank == 0) call Print_debug_mid_msg("Writing thermo statistics ...")
+    if(nrank == 0) call Print_debug_inline_msg("Writing thermo statistics ...")
     call write_statistics_array(tm%t_mean,  'time_averaged_t', dm%idom, tm%iteration, dm%dccc)
     call write_statistics_array(tm%tt_mean, 'time_averaged_tt', dm%idom, tm%iteration, dm%dccc)
 
@@ -327,7 +327,7 @@ contains
 
 
     call generate_file_name(data_flname, idom, trim(keyword), 'bin', iter)
-    if(nrank == 0) call Print_debug_mid_msg("Reading "//trim(dir_data)//"/"//trim(data_flname))
+    if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(dir_data)//"/"//trim(data_flname))
 
     call decomp_2d_read_one(X_PENCIL, var, trim(data_flname), &
           opt_dirname=trim(dir_data), &

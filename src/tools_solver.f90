@@ -269,7 +269,7 @@ contains
     call mpi_allreduce(rmax(3), rmax_work(3), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
 
     if(nrank == 0) then
-      write (*, wrtfmt1e) "  Diffusion number :", cfl_diff_work
+      write (*, wrtfmt1e) "Diffusion number :", cfl_diff_work
       if(cfl_diff_work > ONE) then 
         call Print_warning_msg("Warning: Diffusion number is larger than 1. Numerical instability could occur.")
         write(*,*) 'Please reduce the time step size lower than ', dtmax_work
@@ -389,7 +389,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     call transpose_z_to_y(var_zpencil, var_ypencil, dm%dccc)
     call transpose_y_to_x(var_ypencil, var_xpencil, dm%dccc)
-    call Find_maximum_absvar3d(var_xpencil, dummy, dm%dccc, "CFL (convection) :", wrtfmt1e)
+    call Find_maximum_absvar3d(var_xpencil, dummy, dm%dccc, "CFL (convection) :")
 
     ! if(nrank == 0) then
     !   if(cfl_convection_work > ONE) call Print_warning_msg("Warning: CFL is larger than 1.")
@@ -448,9 +448,9 @@ contains
 ! ! #ifdef DEBUG_STEPS  
 ! !     if(nrank == 0) then
 ! !       if(present(str)) then
-! !         call Print_debug_mid_msg("Calculating volumeric average of "//trim(str)//" in 3-D ...")
+! !         call Print_debug_inline_msg("Calculating volumeric average of "//trim(str)//" in 3-D ...")
 ! !       else
-! !         call Print_debug_mid_msg("Calculating volumeric average in 3-D ...")
+! !         call Print_debug_inline_msg("Calculating volumeric average in 3-D ...")
 ! !       end if
 ! !     end if
 ! ! #endif
@@ -566,7 +566,7 @@ contains
 
 ! #ifdef DEBUG_STEPS  
 !     if(nrank == 0 ) then
-!       write (*, wrtfmt1e) " volumetric average is ", fo_work
+!       write (*, wrtfmt1e) " volumetric average :", fo_work
 !     end if
 ! #endif
 

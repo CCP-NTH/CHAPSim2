@@ -354,7 +354,7 @@ contains
     allocate(exs(nx))
     exs=zero
 
-    if (nrank == 0) call Print_debug_end_msg
+    if (nrank == 0) call Print_debug_end_msg()
 
     return
   end subroutine build_up_fft2decomp_interface

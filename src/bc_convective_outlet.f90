@@ -319,7 +319,7 @@ module bc_convective_outlet_mod
 
     if(.not. dm%is_conv_outlet) return
 #ifdef DEBUG_STEPS
-    if(nrank == 0) call Print_debug_mid_msg("Calculate convective outlet for flow ...")
+    if(nrank == 0) call Print_debug_inline_msg("Calculate convective outlet for flow ...")
 #endif
     ! work on fbcx, not fl directly
     call get_convective_outlet_ux(fl, dm, uxdx)
@@ -380,7 +380,9 @@ module bc_convective_outlet_mod
     if ( .not. dm%is_thermo) return
     if ( .not. dm%is_conv_outlet) return
 
-    if(nrank == 0) call Print_debug_mid_msg("Calculate convective outlet for thermo ...")
+#ifdef DEBUG_STEPS
+    if(nrank == 0) call Print_debug_inline_msg("Calculate convective outlet for thermo ...")
+#endif
     call get_convective_outlet_ux(fl, dm, uxdx)
 
     if(dm%ibcx_nominal(2, 5) == IBC_CONVECTIVE) then

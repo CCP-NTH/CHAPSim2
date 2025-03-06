@@ -37,14 +37,16 @@ fi
 # -----------------------------------------------------------------------------
 # Step 2: Prompt for Build Options
 # -----------------------------------------------------------------------------
-read -p "Run 'make clean' before compiling CHAPSim? (yes/no/only): " CLEAN_BUILD
-CLEAN_BUILD=$(echo "$CLEAN_BUILD" | tr '[:upper:]' '[:lower:]') # Normalize input
+read -p "Run 'make clean' before compiling CHAPSim? (yes/no/only) [default: no]: " CLEAN_BUILD
+CLEAN_BUILD=${CLEAN_BUILD,,}  # Normalize input to lowercase
+if [[ "$CLEAN_BUILD" != "yes" && "$CLEAN_BUILD" != "y" && "$CLEAN_BUILD" != "no" && "$CLEAN_BUILD" != "n" && "$CLEAN_BUILD" != "only" ]]; then
+  CLEAN_BUILD="no" # Default to "no" on invalid input
+fi
 
 case "$CLEAN_BUILD" in
   yes|y) CLEAN_BUILD="yes" ;;
   no|n) CLEAN_BUILD="no" ;;
   only) CLEAN_BUILD="only" ;;
-  *) echo "Invalid input. Please enter 'yes', 'no', or 'only'."; exit 1 ;;
 esac
 
 if [[ "$CLEAN_BUILD" == "only" ]]; then
@@ -54,13 +56,15 @@ if [[ "$CLEAN_BUILD" == "only" ]]; then
   exit 0
 fi
 
-read -p "Run in debug mode? (yes/no): " DEBUG_MODE
-DEBUG_MODE=$(echo "$DEBUG_MODE" | tr '[:upper:]' '[:lower:]')
+read -p "Run in debug mode? (yes/no) [default: no]: " DEBUG_MODE
+DEBUG_MODE=${DEBUG_MODE,,}  # Normalize input to lowercase
+if [[ "$DEBUG_MODE" != "yes" && "$DEBUG_MODE" != "y" && "$DEBUG_MODE" != "no" && "$DEBUG_MODE" != "n" ]]; then
+  DEBUG_MODE="no" # Default to "no" on invalid input
+fi
 
 case "$DEBUG_MODE" in
   yes|y) DEBUG_MODE="yes"; MAKE_TARGET="make cfg=gnu" ;;
   no|n) DEBUG_MODE="no"; MAKE_TARGET="make" ;;
-  *) echo "Invalid input. Please enter 'yes' or 'no'."; exit 1 ;;
 esac
 
 # -----------------------------------------------------------------------------

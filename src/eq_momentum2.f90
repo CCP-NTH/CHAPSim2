@@ -1855,7 +1855,7 @@ contains
     
 #ifdef DEBUG_STEPS  
     if(nrank == 0) &
-    call Print_debug_mid_msg("Updating the velocity/mass flux ...")
+    call Print_debug_inline_msg("Updating the velocity/mass flux ...")
 #endif
 
     if(dm%is_thermo) then
@@ -1930,7 +1930,7 @@ contains
 
 #ifdef DEBUG_STEPS  
     if(nrank == 0) &
-    call Print_debug_mid_msg("Calculating the RHS of Poisson Equation ...")
+    call Print_debug_inline_msg("Calculating the RHS of Poisson Equation ...")
 #endif
 
 !==========================================================================================================
@@ -2136,7 +2136,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! to solve Poisson equation
 !----------------------------------------------------------------------------------------------------------
-    !if(nrank == 0) call Print_debug_mid_msg("  Solving Poisson Equation ...") 
+    !if(nrank == 0) call Print_debug_inline_msg("  Solving Poisson Equation ...") 
     !call solve_poisson_x2z(fl, dm, isub) !
     call solve_poisson(fl, dm, isub) ! test show above two methods gave the same results. 
 !----------------------------------------------------------------------------------------------------------
@@ -2144,7 +2144,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
 #ifdef DEBUG_STEPS  
     if(nrank == 0) &
-    call Print_debug_mid_msg("Correcting the pressure term ...")
+    call Print_debug_inline_msg("Correcting the pressure term ...")
 #endif
     fl%pres = fl%pres + fl%pcor
 #ifdef DEBUG_STEPS
@@ -2153,7 +2153,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! to update velocity/massflux correction
 !----------------------------------------------------------------------------------------------------------
-    !if(nrank == 0) call Print_debug_mid_msg("  Updating velocity/mass flux ...")
+    !if(nrank == 0) call Print_debug_inline_msg("  Updating velocity/mass flux ...")
     call Correct_massflux(fl, fl%pcor, dm, isub)
     if ( .not. dm%is_thermo) then
       call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
@@ -2181,7 +2181,7 @@ contains
 
 
   if(nrank == 0) then
-    call Print_debug_mid_msg("Conservative parameters have been updated.")
+    call Print_debug_inline_msg("Conservative parameters have been updated.")
     ! write(*,*) 'updated qx', fl%qx(1:4, 1, 1)
     ! write(*,*) 'updated qx', fl%qx(1, 1:4, 1)
   end if

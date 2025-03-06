@@ -357,7 +357,7 @@ contains
     character(*), intent(in), optional :: str0                
 
     character(32) :: str
-    integer :: n
+    integer :: n, nlayer
 
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div
     !real(WP)   :: divmax 
@@ -365,7 +365,7 @@ contains
     if(present(str0)) then
       str = trim(str0)//'_iter_'//int2str(iter)
     else
-      str = '_iter_'//int2str(iter)
+      str = 'at iter = '//int2str(iter)
     end if
 
     fl%pcor = ZERO
@@ -387,9 +387,10 @@ contains
     call write_visu_any3darray(div, 'divU', 'debug'//trim(str), dm%dccc, dm, fl%iteration)
 #endif
     n = dm%dccc%xsz(1)
-    call Find_maximum_absvar3d(div(1:4,   :, :), fl%mcon(1), dm%dccc, trim(str)//" Mass Consv. at inlet  :", wrtfmt1e)
-    call Find_maximum_absvar3d(div(5:n-4, :, :), fl%mcon(2), dm%dccc, trim(str)//" Mass Consv. at bulk   :", wrtfmt1e)
-    call Find_maximum_absvar3d(div(n-5:n, :, :), fl%mcon(3), dm%dccc, trim(str)//" Mass Consv. at outlet :", wrtfmt1e)
+    nlayer = 4
+    call Find_maximum_absvar3d(div(1         : nlayer,   :, :), fl%mcon(1), dm%dccc, "Mass Consv. (inlet  4) =", 1  )
+    call Find_maximum_absvar3d(div(nlayer+1  : n-nlayer, :, :), fl%mcon(2), dm%dccc, "Mass Consv. (bulk    ) =", nlayer+1  )
+    call Find_maximum_absvar3d(div(n-nlayer+1: n,        :, :), fl%mcon(3), dm%dccc, "Mass Consv. (outlet 4) =", n-nlayer+1)
     
 
     ! if(nrank == 0) then

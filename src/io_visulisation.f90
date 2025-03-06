@@ -70,7 +70,7 @@ contains
 
 #ifdef DEBUG_STEPS
     if(nrank == 0) &
-    call Print_debug_mid_msg("Writing the field [" // trim(field_name) // &
+    call Print_debug_inline_msg("Writing the field [" // trim(field_name) // &
          "] to the file with a keyword [" // trim(filename)//"]")
 #endif
 
@@ -100,7 +100,7 @@ contains
         call write_visu_field(dm, accc_xpencil, dm%dccc, trim(field_name), trim(filename), SCALAR, CELL, iteration)
 
       case default
-        if (nrank == 0) call Print_debug_mid_msg("Error: Invalid direction in process_and_write_field.")
+        if (nrank == 0) call Print_debug_inline_msg("Error: Invalid direction in process_and_write_field.")
     end select
   end subroutine process_and_write_field
 !==========================================================================================================
@@ -337,7 +337,7 @@ contains
 
     end if
 
-    if(nrank == 0) call Print_debug_end_msg
+    if(nrank == 0) call Print_debug_end_msg()
 
     return
   end subroutine
@@ -627,7 +627,7 @@ contains
     call write_visu_headerfooter(dm, trim(visu_filename), XDMF_FOOTER, iteration)
 
     ! Debug message
-    if (nrank == 0) call Print_debug_mid_msg("Flow field visualization data written successfully.")
+    if (nrank == 0) call Print_debug_inline_msg("Flow field visualization data written successfully.")
 
     return
   end subroutine
@@ -666,7 +666,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     call write_visu_headerfooter(dm, trim(visuname), XDMF_FOOTER, iter)
 
-    if(nrank == 0) call Print_debug_mid_msg("Write out visualisation for thermal field.")
+    if(nrank == 0) call Print_debug_inline_msg("Write out visualisation for thermal field.")
     
     return
   end subroutine
@@ -718,7 +718,7 @@ contains
     call write_visu_headerfooter(dm, trim(visu_filename), XDMF_FOOTER, iteration)
 
     ! Debug message
-    if (nrank == 0) call Print_debug_mid_msg("MHD field visualization data written successfully.")
+    if (nrank == 0) call Print_debug_inline_msg("MHD field visualization data written successfully.")
 
     return
   end subroutine

@@ -90,6 +90,7 @@ function get_name_bc(ibc) result(str)
   case default
     call Print_error_msg('Boundary Conditions Not Supported.')
   end select
+  str = ' '//trim(adjustl(str))
 
   return
 end function
@@ -139,7 +140,7 @@ end function
     type(t_domain), intent(inout) :: dm
     integer :: n
     integer :: ibcx(2, 5), ibcy(2, 5), ibcz(2, 5)
-    character(len = 34) :: fmt = '(2X, A10, 2(A14, A3, A14), 2F13.4)'
+    character(len = 38) :: fmt = '(2X, A10, 2(A3, A14, A3, A14), 2F13.4)'
 !----------------------------------------------------------------------------------------------------------
 ! to check velocity symmetric and asymmetric
 !----------------------------------------------------------------------------------------------------------
@@ -207,38 +208,38 @@ end function
       call Print_debug_start_msg('Norminal and calculated boundary conditions')
       write (*, *) '      is periodic in xyz? ', dm%is_periodic(1:3)
       write (*, *) '      BC in the X direction: norminal BC Left, calc BC Left, norminal BC Right, calc BC Right'
-      write (*, fmt) '  u-bc :', get_name_bc(dm%ibcx_nominal(1, 1)), '=> ', get_name_bc(dm%ibcx_qx(1)), &
-                                 get_name_bc(dm%ibcx_nominal(2, 1)), '=> ', get_name_bc(dm%ibcx_qx(2)), dm%fbcx_const(1:2, 1)
-      write (*, fmt) '  v-bc :', get_name_bc(dm%ibcx_nominal(1, 2)), '=> ', get_name_bc(dm%ibcx_qy(1)), &
-                                 get_name_bc(dm%ibcx_nominal(2, 2)), '=> ', get_name_bc(dm%ibcx_qy(2)), dm%fbcx_const(1:2, 2)
-      write (*, fmt) '  w-bc :', get_name_bc(dm%ibcx_nominal(1, 3)), '=> ', get_name_bc(dm%ibcx_qz(1)), &
-                                 get_name_bc(dm%ibcx_nominal(2, 3)), '=> ', get_name_bc(dm%ibcx_qz(2)), dm%fbcx_const(1:2, 3)
-      write (*, fmt) '  p-bc :', get_name_bc(dm%ibcx_nominal(1, 4)), '=> ', get_name_bc(dm%ibcx_pr(1)), &
-                                 get_name_bc(dm%ibcx_nominal(2, 4)), '=> ', get_name_bc(dm%ibcx_pr(2)), dm%fbcx_const(1:2, 4)
-      write (*, fmt) '  T-bc :', get_name_bc(dm%ibcx_nominal(1, 5)), '=> ', get_name_bc(dm%ibcx_Tm(1)), &
-                                 get_name_bc(dm%ibcx_nominal(2, 5)), '=> ', get_name_bc(dm%ibcx_Tm(2)), dm%fbcx_const(1:2, 5)
+      write (*, fmt) '  u-bc :', '||', get_name_bc(dm%ibcx_nominal(1, 1)), '=> ', get_name_bc(dm%ibcx_qx(1)), &
+                                 '||', get_name_bc(dm%ibcx_nominal(2, 1)), '=> ', get_name_bc(dm%ibcx_qx(2)), dm%fbcx_const(1:2, 1)
+      write (*, fmt) '  v-bc :', '||', get_name_bc(dm%ibcx_nominal(1, 2)), '=> ', get_name_bc(dm%ibcx_qy(1)), &
+                                 '||', get_name_bc(dm%ibcx_nominal(2, 2)), '=> ', get_name_bc(dm%ibcx_qy(2)), dm%fbcx_const(1:2, 2)
+      write (*, fmt) '  w-bc :', '||', get_name_bc(dm%ibcx_nominal(1, 3)), '=> ', get_name_bc(dm%ibcx_qz(1)), &
+                                 '||', get_name_bc(dm%ibcx_nominal(2, 3)), '=> ', get_name_bc(dm%ibcx_qz(2)), dm%fbcx_const(1:2, 3)
+      write (*, fmt) '  p-bc :', '||', get_name_bc(dm%ibcx_nominal(1, 4)), '=> ', get_name_bc(dm%ibcx_pr(1)), &
+                                 '||', get_name_bc(dm%ibcx_nominal(2, 4)), '=> ', get_name_bc(dm%ibcx_pr(2)), dm%fbcx_const(1:2, 4)
+      write (*, fmt) '  T-bc :', '||', get_name_bc(dm%ibcx_nominal(1, 5)), '=> ', get_name_bc(dm%ibcx_Tm(1)), &
+                                 '||', get_name_bc(dm%ibcx_nominal(2, 5)), '=> ', get_name_bc(dm%ibcx_Tm(2)), dm%fbcx_const(1:2, 5)
       write (*, wrtfmt1s) '      BC in the Y direction: norminal BC, calc BC'
-      write (*, fmt) '  u-bc :', get_name_bc(dm%ibcy_nominal(1, 1)), '=> ', get_name_bc(dm%ibcy_qx(1)), &
-                                 get_name_bc(dm%ibcy_nominal(2, 1)), '=> ', get_name_bc(dm%ibcy_qx(2)), dm%fbcy_const(1:2, 1)
-      write (*, fmt) '  v-bc :', get_name_bc(dm%ibcy_nominal(1, 2)), '=> ', get_name_bc(dm%ibcy_qy(1)), &
-                                 get_name_bc(dm%ibcy_nominal(2, 2)), '=> ', get_name_bc(dm%ibcy_qy(2)), dm%fbcy_const(1:2, 2)
-      write (*, fmt) '  w-bc :', get_name_bc(dm%ibcy_nominal(1, 3)), '=> ', get_name_bc(dm%ibcy_qz(1)), &
-                                 get_name_bc(dm%ibcy_nominal(2, 3)), '=> ', get_name_bc(dm%ibcy_qz(2)), dm%fbcy_const(1:2, 3)
-      write (*, fmt) '  p-bc :', get_name_bc(dm%ibcy_nominal(1, 4)), '=> ', get_name_bc(dm%ibcy_pr(1)), &
-                                 get_name_bc(dm%ibcy_nominal(2, 4)), '=> ', get_name_bc(dm%ibcy_pr(2)), dm%fbcy_const(1:2, 4)
-      write (*, fmt) '  T-bc :', get_name_bc(dm%ibcy_nominal(1, 5)), '=> ', get_name_bc(dm%ibcy_Tm(1)), &
-                                 get_name_bc(dm%ibcy_nominal(2, 5)), '=> ', get_name_bc(dm%ibcy_Tm(2)), dm%fbcy_const(1:2, 5)
+      write (*, fmt) '  u-bc :', '||', get_name_bc(dm%ibcy_nominal(1, 1)), '=> ', get_name_bc(dm%ibcy_qx(1)), &
+                                 '||', get_name_bc(dm%ibcy_nominal(2, 1)), '=> ', get_name_bc(dm%ibcy_qx(2)), dm%fbcy_const(1:2, 1)
+      write (*, fmt) '  v-bc :', '||', get_name_bc(dm%ibcy_nominal(1, 2)), '=> ', get_name_bc(dm%ibcy_qy(1)), &
+                                 '||', get_name_bc(dm%ibcy_nominal(2, 2)), '=> ', get_name_bc(dm%ibcy_qy(2)), dm%fbcy_const(1:2, 2)
+      write (*, fmt) '  w-bc :', '||', get_name_bc(dm%ibcy_nominal(1, 3)), '=> ', get_name_bc(dm%ibcy_qz(1)), &
+                                 '||', get_name_bc(dm%ibcy_nominal(2, 3)), '=> ', get_name_bc(dm%ibcy_qz(2)), dm%fbcy_const(1:2, 3)
+      write (*, fmt) '  p-bc :', '||', get_name_bc(dm%ibcy_nominal(1, 4)), '=> ', get_name_bc(dm%ibcy_pr(1)), &
+                                 '||', get_name_bc(dm%ibcy_nominal(2, 4)), '=> ', get_name_bc(dm%ibcy_pr(2)), dm%fbcy_const(1:2, 4)
+      write (*, fmt) '  T-bc :', '||', get_name_bc(dm%ibcy_nominal(1, 5)), '=> ', get_name_bc(dm%ibcy_Tm(1)), &
+                                 '||', get_name_bc(dm%ibcy_nominal(2, 5)), '=> ', get_name_bc(dm%ibcy_Tm(2)), dm%fbcy_const(1:2, 5)
       write (*, wrtfmt1s) '      BC in the Z direction: norminal BC, calc BC'
-      write (*, fmt) '  u-bc :', get_name_bc(dm%ibcz_nominal(1, 1)), '=> ', get_name_bc(dm%ibcz_qx(1)), &
-                                 get_name_bc(dm%ibcz_nominal(2, 1)), '=> ', get_name_bc(dm%ibcz_qx(2)), dm%fbcz_const(1:2, 1)
-      write (*, fmt) '  v-bc :', get_name_bc(dm%ibcz_nominal(1, 2)), '=> ', get_name_bc(dm%ibcz_qy(1)), &
-                                 get_name_bc(dm%ibcz_nominal(2, 2)), '=> ', get_name_bc(dm%ibcz_qy(2)), dm%fbcz_const(1:2, 2)
-      write (*, fmt) '  w-bc :', get_name_bc(dm%ibcz_nominal(1, 3)), '=> ', get_name_bc(dm%ibcz_qz(1)), &
-                                 get_name_bc(dm%ibcz_nominal(2, 3)), '=> ', get_name_bc(dm%ibcz_qz(2)), dm%fbcz_const(1:2, 3)
-      write (*, fmt) '  p-bc :', get_name_bc(dm%ibcz_nominal(1, 4)), '=> ', get_name_bc(dm%ibcz_pr(1)), &
-                                 get_name_bc(dm%ibcz_nominal(2, 4)), '=> ', get_name_bc(dm%ibcz_pr(2)), dm%fbcz_const(1:2, 4)
-      write (*, fmt) '  T-bc :', get_name_bc(dm%ibcz_nominal(1, 5)), '=> ', get_name_bc(dm%ibcz_Tm(1)), &
-                                 get_name_bc(dm%ibcz_nominal(2, 5)), '=> ', get_name_bc(dm%ibcz_Tm(2)), dm%fbcz_const(1:2, 5)
+      write (*, fmt) '  u-bc :', '||', get_name_bc(dm%ibcz_nominal(1, 1)), '=> ', get_name_bc(dm%ibcz_qx(1)), &
+                                 '||', get_name_bc(dm%ibcz_nominal(2, 1)), '=> ', get_name_bc(dm%ibcz_qx(2)), dm%fbcz_const(1:2, 1)
+      write (*, fmt) '  v-bc :', '||', get_name_bc(dm%ibcz_nominal(1, 2)), '=> ', get_name_bc(dm%ibcz_qy(1)), &
+                                 '||', get_name_bc(dm%ibcz_nominal(2, 2)), '=> ', get_name_bc(dm%ibcz_qy(2)), dm%fbcz_const(1:2, 2)
+      write (*, fmt) '  w-bc :', '||', get_name_bc(dm%ibcz_nominal(1, 3)), '=> ', get_name_bc(dm%ibcz_qz(1)), &
+                                 '||', get_name_bc(dm%ibcz_nominal(2, 3)), '=> ', get_name_bc(dm%ibcz_qz(2)), dm%fbcz_const(1:2, 3)
+      write (*, fmt) '  p-bc :', '||', get_name_bc(dm%ibcz_nominal(1, 4)), '=> ', get_name_bc(dm%ibcz_pr(1)), &
+                                 '||', get_name_bc(dm%ibcz_nominal(2, 4)), '=> ', get_name_bc(dm%ibcz_pr(2)), dm%fbcz_const(1:2, 4)
+      write (*, fmt) '  T-bc :', '||', get_name_bc(dm%ibcz_nominal(1, 5)), '=> ', get_name_bc(dm%ibcz_Tm(1)), &
+                                 '||', get_name_bc(dm%ibcz_nominal(2, 5)), '=> ', get_name_bc(dm%ibcz_Tm(2)), dm%fbcz_const(1:2, 5)
     end if
 
     return
@@ -390,7 +391,7 @@ end function
     if (dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
 #ifdef DEBUG_STEPS
     if(nrank == 0) &
-    call Print_debug_mid_msg('Update boundary conditions in y-direction for the centre of the pipe.')
+    call Print_debug_inline_msg('Update boundary conditions in y-direction for the centre of the pipe.')
 #endif
 !----------------------------------------------------------------------------------------------------------
 !   ! Update qx boundary condition in y-direction (interior cell center)
@@ -540,21 +541,21 @@ end function
 !----------------------------------------------------------------------------------------------------------
     call build_bc_symm_operation(dm%ibcx_qx, mbc, dm%ibcx_qx)
     mbcx_cov1(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom x-convection is ", get_name_bc(mbcx_cov1(1)), get_name_bc(mbcx_cov1(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom x-convection :", get_name_bc(mbcx_cov1(1)), get_name_bc(mbcx_cov1(2))
 
     call build_bc_symm_operation(dm%ibcy_qy, mbc, dm%ibcy_qx)
     mbcy_cov1(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom y-convection is ", get_name_bc(mbcy_cov1(1)), get_name_bc(mbcy_cov1(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom y-convection :", get_name_bc(mbcy_cov1(1)), get_name_bc(mbcy_cov1(2))
 
     call build_bc_symm_operation(dm%ibcz_qz, mbc, dm%ibcz_qx)
     mbcz_cov1(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom z-convection is ", get_name_bc(mbcz_cov1(1)), get_name_bc(mbcz_cov1(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom z-convection :", get_name_bc(mbcz_cov1(1)), get_name_bc(mbcz_cov1(2))
 
     call build_bc_symm_operation(dm%ibcx_qx, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
     call build_bc_symm_operation(dm%ibcx_ftp, mbc, bc)
     mbcx_tau1(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom x-diffusion  is ", get_name_bc(mbcx_tau1(1)), get_name_bc(mbcx_tau1(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom x-diffusion  :", get_name_bc(mbcx_tau1(1)), get_name_bc(mbcx_tau1(2))
 
     call build_bc_symm_operation(dm%ibcy_qx, mbc) !du/dy_ppc
     bc(1:2) = mbc(1:2, JBC_GRAD)
@@ -563,7 +564,7 @@ end function
     !if(dm%icase == ICASE_PIPE) mbc(1, JBC_PROD) = IBC_DIRICHLET
     if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BCy in mbcy_tau1 is wrong.")
     mbcy_tau1(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom y-diffusion  is ", get_name_bc(mbcy_tau1(1)), get_name_bc(mbcy_tau1(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom y-diffusion  :", get_name_bc(mbcy_tau1(1)), get_name_bc(mbcy_tau1(2))
 
     call build_bc_symm_operation(dm%ibcz_qx, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
@@ -571,26 +572,26 @@ end function
     call build_bc_symm_operation(dm%ibcz_ftp, mbc0, dm%ibcz_qz)
     if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BCz in mbcy_tau1 is wrong.")
     mbcz_tau1(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom z-diffusion  is ", get_name_bc(mbcz_tau1(1)), get_name_bc(mbcz_tau1(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for x-mom z-diffusion  :", get_name_bc(mbcz_tau1(1)), get_name_bc(mbcz_tau1(2))
 !----------------------------------------------------------------------------------------------------------
 !   y-mom
 !----------------------------------------------------------------------------------------------------------
     call build_bc_symm_operation(dm%ibcx_qx, mbc, dm%ibcx_qy)
     mbcx_cov2(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom x-convection is ", get_name_bc(mbcx_cov2(1)), get_name_bc(mbcx_cov2(2)) 
+    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom x-convection :", get_name_bc(mbcx_cov2(1)), get_name_bc(mbcx_cov2(2)) 
 
     call build_bc_symm_operation(dm%ibcy_qy, mbc, dm%ibcy_qy)
     mbcy_cov2(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom y-convection is ", get_name_bc(mbcy_cov2(1)), get_name_bc(mbcy_cov2(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom y-convection :", get_name_bc(mbcy_cov2(1)), get_name_bc(mbcy_cov2(2))
 
     call build_bc_symm_operation(dm%ibcz_qz, mbc, dm%ibcz_qy)
     mbcz_cov2(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom z-convection is ", get_name_bc(mbcz_cov2(1)), get_name_bc(mbcz_cov2(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom z-convection :", get_name_bc(mbcz_cov2(1)), get_name_bc(mbcz_cov2(2))
 
     if(dm%icoordinate == ICYLINDRICAL) then
       call build_bc_symm_operation(dm%ibcy_qz, mbc, dm%ibcy_qz)
       mbcr_cov2(1:2) = mbc(1:2, JBC_PROD)
-      if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom r-convection is ", get_name_bc(mbcr_cov2(1)), get_name_bc(mbcr_cov2(2))
+      if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom r-convection :", get_name_bc(mbcr_cov2(1)), get_name_bc(mbcr_cov2(2))
     end if
 
     call build_bc_symm_operation(dm%ibcx_qy, mbc)
@@ -599,13 +600,13 @@ end function
     call build_bc_symm_operation(dm%ibcx_ftp, mbc0, dm%ibcx_qx)
     if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BC in mbcx_tau2 is wrong.")
     mbcx_tau2(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom x-diffusion  is ", get_name_bc(mbcx_tau2(1)), get_name_bc(mbcx_tau2(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom x-diffusion  :", get_name_bc(mbcx_tau2(1)), get_name_bc(mbcx_tau2(2))
 
     call build_bc_symm_operation(dm%ibcy_qy, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
     call build_bc_symm_operation(dm%ibcy_ftp, mbc, bc)
     mbcy_tau2(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom y-diffusion  is ", get_name_bc(mbcy_tau2(1)), get_name_bc(mbcy_tau2(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom y-diffusion  :", get_name_bc(mbcy_tau2(1)), get_name_bc(mbcy_tau2(2))
 
     call build_bc_symm_operation(dm%ibcz_qy, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
@@ -613,32 +614,32 @@ end function
     call build_bc_symm_operation(dm%ibcz_ftp, mbc0, dm%ibcz_qz)
     if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BC in mbcz_tau2 is wrong.")
     mbcz_tau2(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom z-diffusion  is ", get_name_bc(mbcz_tau2(1)), get_name_bc(mbcz_tau2(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom z-diffusion  :", get_name_bc(mbcz_tau2(1)), get_name_bc(mbcz_tau2(2))
 
     if(dm%icoordinate == ICYLINDRICAL) then
       call build_bc_symm_operation(dm%ibcy_qz, mbc, dm%ibcy_ftp)
       mbcr_tau2(1:2) = mbc(1:2, JBC_PROD)
-      if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom r-diffusion  is ", get_name_bc(mbcr_tau2(1)),  get_name_bc(mbcr_tau2(2))
+      if(nrank==0) write(*, wrtfmt3s) "The bc for y-mom r-diffusion  :", get_name_bc(mbcr_tau2(1)),  get_name_bc(mbcr_tau2(2))
     end if
 !----------------------------------------------------------------------------------------------------------
 !   z-mom
 !----------------------------------------------------------------------------------------------------------
     call build_bc_symm_operation(dm%ibcx_qx, mbc, dm%ibcx_qz)
     mbcx_cov3(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom x-convection is ", get_name_bc(mbcx_cov3(1)), get_name_bc(mbcx_cov3(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom x-convection :", get_name_bc(mbcx_cov3(1)), get_name_bc(mbcx_cov3(2))
 
     call build_bc_symm_operation(dm%ibcy_qy, mbc, dm%ibcy_qz)
     mbcy_cov3(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom y-convection is ", get_name_bc(mbcy_cov3(1)), get_name_bc(mbcy_cov3(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom y-convection :", get_name_bc(mbcy_cov3(1)), get_name_bc(mbcy_cov3(2))
 
     call build_bc_symm_operation(dm%ibcz_qz, mbc, dm%ibcz_qz)
     mbcz_cov3(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom z-convection is ", get_name_bc(mbcz_cov3(1)), get_name_bc(mbcz_cov3(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom z-convection :", get_name_bc(mbcz_cov3(1)), get_name_bc(mbcz_cov3(2))
 
     if(dm%icoordinate == ICYLINDRICAL) then
       call build_bc_symm_operation(dm%ibcy_qy, mbc, dm%ibcy_qz)
       mbcr_cov3(1:2) = mbc(1:2, JBC_PROD)
-      if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom r-convection is ", get_name_bc(mbcr_cov3(1)), get_name_bc(mbcr_cov3(2))
+      if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom r-convection :", get_name_bc(mbcr_cov3(1)), get_name_bc(mbcr_cov3(2))
     end if
 
     call build_bc_symm_operation(dm%ibcx_qz, mbc)
@@ -647,7 +648,7 @@ end function
     call build_bc_symm_operation(dm%ibcx_ftp, mbc0, dm%ibcx_qx)
     if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BCx in mbcx_tau3 is wrong.")
     mbcx_tau3(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom x-diffusion  is ", get_name_bc(mbcx_tau3(1)), get_name_bc(mbcx_tau3(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom x-diffusion  :", get_name_bc(mbcx_tau3(1)), get_name_bc(mbcx_tau3(2))
 
     call build_bc_symm_operation(dm%ibcy_qz, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
@@ -656,7 +657,7 @@ end function
     !write(*,*) get_name_bc(mbc0(1, JBC_PROD)), get_name_bc(mbc(1, JBC_PROD))
     if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BCy in mbcy_tau3 is wrong.")
     mbcy_tau3(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom y-diffusion  is ", get_name_bc(mbcy_tau3(1)), get_name_bc(mbcy_tau3(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom y-diffusion  :", get_name_bc(mbcy_tau3(1)), get_name_bc(mbcy_tau3(2))
 
     call build_bc_symm_operation(dm%ibcz_qz, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
@@ -664,7 +665,7 @@ end function
     call build_bc_symm_operation(dm%ibcz_ftp, mbc0, dm%ibcz_qz)
     if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BCz in mbcy_tau3 is wrong.")
     mbcz_tau3 = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom z-diffusion  is ", get_name_bc(mbcz_tau3(1)), get_name_bc(mbcz_tau3(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom z-diffusion  :", get_name_bc(mbcz_tau3(1)), get_name_bc(mbcz_tau3(2))
 
     if(dm%icoordinate == ICYLINDRICAL) then
       call build_bc_symm_operation(dm%ibcy_qz, mbc)
@@ -673,7 +674,7 @@ end function
       call build_bc_symm_operation(dm%ibcy_ftp, mbc0, dm%ibcy_qz)
       if(mbc0(1, JBC_PROD)/= mbc(1, JBC_PROD)) call Print_error_msg("BCr in mbcy_tau3 is wrong.")
       mbcr_tau3(1:2) = mbc(1:2, JBC_PROD)
-      if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom r-diffusion  is ", get_name_bc(mbcr_tau3(1)), get_name_bc(mbcr_tau3(2))
+      if(nrank==0) write(*, wrtfmt3s) "The bc for z-mom r-diffusion  :", get_name_bc(mbcr_tau3(1)), get_name_bc(mbcr_tau3(2))
     end if
 !----------------------------------------------------------------------------------------------------------
 !   energy-eqs
@@ -681,33 +682,33 @@ end function
     if(dm%is_thermo)  then
     call build_bc_symm_operation(dm%ibcx_qx, mbc, dm%ibcx_ftp)
     ebcx_conv(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for energy x-convection is ", get_name_bc(ebcx_conv(1)), get_name_bc(ebcx_conv(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for energy x-convection :", get_name_bc(ebcx_conv(1)), get_name_bc(ebcx_conv(2))
 
     call build_bc_symm_operation(dm%ibcy_qy, mbc, dm%ibcy_ftp)
     ebcy_conv(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for energy y-convection is ", get_name_bc(ebcy_conv(1)), get_name_bc(ebcy_conv(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for energy y-convection :", get_name_bc(ebcy_conv(1)), get_name_bc(ebcy_conv(2))
 
     call build_bc_symm_operation(dm%ibcz_qz, mbc, dm%ibcz_ftp)
     ebcz_conv(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for energy z-convection is ", get_name_bc(ebcz_conv(1)), get_name_bc(ebcz_conv(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for energy z-convection :", get_name_bc(ebcz_conv(1)), get_name_bc(ebcz_conv(2))
 
     call build_bc_symm_operation(dm%ibcx_Tm, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
     call build_bc_symm_operation(dm%ibcx_ftp, mbc, bc)
     ebcx_difu = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for energy x-diffusion  is ", get_name_bc(ebcx_difu(1)), get_name_bc(ebcx_difu(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for energy x-diffusion  :", get_name_bc(ebcx_difu(1)), get_name_bc(ebcx_difu(2))
 
     call build_bc_symm_operation(dm%ibcy_Tm, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
     call build_bc_symm_operation(dm%ibcy_ftp, mbc, bc)
     ebcy_difu(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for energy y-diffusion  is ", get_name_bc(ebcy_difu(1)), get_name_bc(ebcy_difu(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for energy y-diffusion  :", get_name_bc(ebcy_difu(1)), get_name_bc(ebcy_difu(2))
 
     call build_bc_symm_operation(dm%ibcz_Tm, mbc)
     bc(1:2) = mbc(1:2, JBC_GRAD)
     call build_bc_symm_operation(dm%ibcz_ftp, mbc, bc)
     ebcz_difu(1:2) = mbc(1:2, JBC_PROD)
-    if(nrank==0) write(*, wrtfmt3s) "The bc for energy z-diffusion  is ", get_name_bc(ebcz_difu(1)), get_name_bc(ebcz_difu(2))
+    if(nrank==0) write(*, wrtfmt3s) "The bc for energy z-diffusion  :", get_name_bc(ebcz_difu(1)), get_name_bc(ebcz_difu(2))
     end if
 !----------------------------------------------------------------------------------------------------------
 ! preparation for b.c. - Dirichlet

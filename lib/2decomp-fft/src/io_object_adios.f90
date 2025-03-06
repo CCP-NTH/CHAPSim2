@@ -457,7 +457,7 @@ contains
       call adios2_init(default_adios, trim(adios_xml), decomp_2d_comm, ierror)
       if (ierror /= 0) then
          call decomp_2d_abort(__FILE__, __LINE__, ierror, &
-                              "Error initialising ADIOS2 - is "//trim(adios_xml)//" present and valid?")
+                              "Error initialising ADIOS2 - :"//trim(adios_xml)//" present and valid?")
       end if
 
    end subroutine set_default_adios
