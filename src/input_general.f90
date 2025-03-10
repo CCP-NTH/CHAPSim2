@@ -538,8 +538,11 @@ contains
         if(nrank == 0) then
           do i = 1, nxdomain
             write (*, wrtfmt2s) 'flow driven force type :', get_name_drivenforce(flow(i)%idriven)
-            if(flow(i)%idriven == IDRVF_X_Cf .or. flow(i)%idriven == IDRVF_Z_Cf) &
-            write (*, wrtfmt1r) 'flow driven force(cf):', flow(i)%drvfc        
+            if(flow(i)%idriven /= IDRVF_NO .and. &
+               flow(i)%idriven /= IDRVF_X_MASSFLUX .and. &
+               flow(i)%idriven /= IDRVF_Z_MASSFLUX) then
+              write (*, wrtfmt1r) 'flow driven force(cf):', flow(i)%drvfc        
+            end if
           end do
         end if
       !----------------------------------------------------------------------------------------------------------

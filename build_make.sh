@@ -2,32 +2,26 @@
 
 # -----------------------------------------------------------------------------
 # CHAPSim2 Build Script
-# This script compiles the CHAPSim2 project while providing options for clean builds
-# and debug mode configuration. It handles library dependencies and user interaction.
+# This script compiles the CHAPSim2 project, handles dependencies, and offers
+# options for cleaning builds and enabling debug mode.
 # -----------------------------------------------------------------------------
 
-# Define relative paths to the directories containing the Makefiles
+# Define relative paths
 REL_PATH_LIB="./lib/2decomp-fft/build"
 REL_PATH_BUILD="./build"
 REL_PATH_BIN="./bin"
 LIB_FILE="$REL_PATH_LIB/opt/lib/libdecomp2d.a"
 LIB_FILE_64="$REL_PATH_LIB/opt/lib64/libdecomp2d.a"
 
-# Check if the directories exist, if not create them
-if [ ! -d "$REL_PATH_LIB" ]; then
-    echo "Directory $REL_PATH_LIB does not exist. Creating it..."
-    mkdir -p "$REL_PATH_LIB"
-fi
-if [ ! -d "$REL_PATH_BUILD" ]; then
-    echo "Directory $REL_PATH_BUILD does not exist. Creating it..."
-    mkdir -p "$REL_PATH_BUILD"
-fi
-if [ ! -d "$REL_PATH_BIN" ]; then
-    echo "Directory $REL_PATH_BIN does not exist. Creating it..."
-    mkdir -p "$REL_PATH_BIN"
-fi
+# Ensure necessary directories exist
+for dir in "$REL_PATH_LIB" "$REL_PATH_BUILD" "$REL_PATH_BIN"; do
+    if [ ! -d "$dir" ]; then
+        echo "Creating directory: $dir"
+        mkdir -p "$dir" || { echo "Error: Failed to create $dir"; exit 1; }
+    fi
+done
 
-# Check if the lib64 file exists, if so use it
+# Determine which library file to use
 if [ -f "$LIB_FILE_64" ]; then
     LIB_FILE="$LIB_FILE_64"
     echo "Using lib64 version: $LIB_FILE"
@@ -40,69 +34,63 @@ PATH_LIB=$(realpath "$REL_PATH_LIB" 2>/dev/null || readlink -f "$REL_PATH_LIB")
 PATH_BUILD=$(realpath "$REL_PATH_BUILD" 2>/dev/null || readlink -f "$REL_PATH_BUILD")
 PATH_BIN=$(realpath "$REL_PATH_BIN" 2>/dev/null || readlink -f "$REL_PATH_BIN")
 
-# Ensure the bin folder exists
-if [[ ! -d "$PATH_BIN" ]]; then
-  echo "Creating bin directory: $PATH_BIN"
-  mkdir -p "$PATH_BIN" || { echo "Error: Failed to create bin directory"; exit 1; }
-fi
+# -----------------------------------------------------------------------------
+# Function to get yes/no input
+get_yes_no_input() {
+    local prompt="$1"
+    local default="$2"
+    read -p "$prompt [$default]: " input
+    input=$(echo "$input" | tr '[:upper:]' '[:lower:]')  # Convert input to lowercase using tr
 
+    # Default to the given default if input is empty
+    input=${input:-$default}
+
+    # Check if the input is valid
+    if [[ "$input" != "yes" && "$input" != "no" && "$input" != "y" && "$input" != "n" ]]; then
+        input="no"  # If invalid input, default to "no"
+    fi
+
+    echo "$input"
+}
 # -----------------------------------------------------------------------------
 # Step 1: Check and Build the Library
 # -----------------------------------------------------------------------------
 if [[ -f "$LIB_FILE" ]]; then
-  echo "Library found: $LIB_FILE (Skipping build)"
+    LIB_REBUILD=$(get_yes_no_input "Rebuild 2decomp library?" "no")
+    if [[ "$LIB_REBUILD" =~ ^(yes|y)$ ]]; then
+        cd "$PATH_LIB" || { echo "Error: Cannot access $PATH_LIB"; exit 1; }
+        ./build_cmake.sh || { echo "Error: CMake build failed in $PATH_LIB"; exit 1; }
+    fi
 else
-  echo "Library not found. Running CMake in $PATH_LIB..."
-  cd "$PATH_LIB" || { echo "Error: Cannot access $PATH_LIB"; exit 1; }
-  ./build_cmake.sh || { echo "Error: CMake build failed in $PATH_LIB"; exit 1; }
+    echo "Library not found. Running CMake in $PATH_LIB..."
+    cd "$PATH_LIB" || { echo "Error: Cannot access $PATH_LIB"; exit 1; }
+    ./build_cmake.sh || { echo "Error: CMake build failed in $PATH_LIB"; exit 1; }
 fi
 
 # -----------------------------------------------------------------------------
 # Step 2: Prompt for Build Options
 # -----------------------------------------------------------------------------
-read -p "Run 'make clean' before compiling CHAPSim? (yes/no/only) [default: no]: " CLEAN_BUILD
-CLEAN_BUILD=${CLEAN_BUILD,,}  # Normalize input to lowercase
-if [[ "$CLEAN_BUILD" != "yes" && "$CLEAN_BUILD" != "y" && "$CLEAN_BUILD" != "no" && "$CLEAN_BUILD" != "n" && "$CLEAN_BUILD" != "only" ]]; then
-  CLEAN_BUILD="no" # Default to "no" on invalid input
-fi
-
-case "$CLEAN_BUILD" in
-  yes|y) CLEAN_BUILD="yes" ;;
-  no|n) CLEAN_BUILD="no" ;;
-  only) CLEAN_BUILD="only" ;;
-esac
+CLEAN_BUILD=$(get_yes_no_input "Run 'make clean' before compiling CHAPSim?" "no")
 
 if [[ "$CLEAN_BUILD" == "only" ]]; then
-  echo "Running 'make clean' in $PATH_BUILD..."
-  cd "$PATH_BUILD" || { echo "Error: Cannot access $PATH_BUILD"; exit 1; }
-  make clean || echo "Warning: 'make clean' failed in $PATH_BUILD."
-  exit 0
+    echo "Running 'make clean' in $PATH_BUILD..."
+    cd "$PATH_BUILD" || { echo "Error: Cannot access $PATH_BUILD"; exit 1; }
+    make clean || echo "Warning: 'make clean' failed."
+    exit 0
 fi
 
-read -p "Run in debug mode? (yes/no) [default: no]: " DEBUG_MODE
-DEBUG_MODE=${DEBUG_MODE,,}  # Normalize input to lowercase
-if [[ "$DEBUG_MODE" != "yes" && "$DEBUG_MODE" != "y" && "$DEBUG_MODE" != "no" && "$DEBUG_MODE" != "n" ]]; then
-  DEBUG_MODE="no" # Default to "no" on invalid input
-fi
+DEBUG_MODE=$(get_yes_no_input "Run in debug mode?" "no")
 
-case "$DEBUG_MODE" in
-  yes|y) DEBUG_MODE="yes"; MAKE_TARGET="make cfg=gnu" ;;
-  no|n) DEBUG_MODE="no"; MAKE_TARGET="make" ;;
-esac
+MAKE_TARGET="make"
+[[ "$DEBUG_MODE" =~ ^(yes|y)$ ]] && MAKE_TARGET="make cfg=gnu"
+[[ "$CLEAN_BUILD" =~ ^(yes|y)$ ]] && MAKE_TARGET="make clean && $MAKE_TARGET all"
 
 # -----------------------------------------------------------------------------
-# Step 3: Configure the Build Target
+# Step 3: Run the Build
 # -----------------------------------------------------------------------------
-if [[ "$CLEAN_BUILD" == "yes" ]]; then
-  MAKE_TARGET="make clean && $MAKE_TARGET all"
-fi
-
-# -----------------------------------------------------------------------------
-# Step 4: Run the Build
-# -----------------------------------------------------------------------------
-echo "Running '$MAKE_TARGET' in $PATH_BUILD..."
+echo "Executing: $MAKE_TARGET in $PATH_BUILD..."
 cd "$PATH_BUILD" || { echo "Error: Cannot access $PATH_BUILD"; exit 1; }
-eval $MAKE_TARGET || { echo "Error: Build failed in $PATH_BUILD. Exiting."; exit 1; }
+eval $MAKE_TARGET || { echo "Error: Build failed in $PATH_BUILD."; exit 1; }
 
 # -----------------------------------------------------------------------------
 # Completion Message

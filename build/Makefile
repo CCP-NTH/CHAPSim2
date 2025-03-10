@@ -41,7 +41,7 @@ else
   FC     = mpif90
   FOPTS  = -O3 -Wall -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
            -finit-local-zero -ffree-line-length-512 -Wno-unused -cpp
-  FOPTS += -fallow-argument-mismatch -fopenmp
+  FOPTS += -fallow-argument-mismatch -fopenmp -Wno-unused-dummy-argument -Wno-maybe-uninitialized
   FFLGS  = -DDOUBLE_PREC
   FDEBG  =
 endif
@@ -85,33 +85,46 @@ OBJS1 = $(addprefix $(DIR_OBJ)/, \
 OBJS2 = $(addprefix $(DIR_OBJ)/, fftpack.o)
 
 # Compilation flags for FFT library (Fortran 77 files)
-F77_OPTS = -O2 -fdefault-real-8 -fdefault-double-8 -fallow-argument-mismatch
+F77_OPTS = -O2 -w -fdefault-real-8 -fdefault-double-8 -fallow-argument-mismatch
+
+# Total number of object files
+TOTAL_OBJS := $(words $(OBJS1) $(OBJS2))
+COUNTER = 0
+
+# Function to display compilation progress
+define progress
+	$(eval COUNTER := $(shell expr $(COUNTER) + 1)) 
+	$(eval PERCENT := $(shell expr $(COUNTER) \* 100 / $(TOTAL_OBJS)))
+	@echo "Compiling ($(COUNTER)/$(TOTAL_OBJS)) [$(PERCENT)%] $< "
+endef
 
 # Default rule
 default: all
 
 # Linking rule
 $(DIR_BIN)/$(PROGRAM): $(OBJS1) $(OBJS2)
-	@echo "\n ====== Linking... ====== \n"
-	$(FC) $(FOPTS) $(FFLGS) $(FDEBG) -o $@ $^ $(LIBS)
+	@echo "Linking... \n"
+	@$(FC) $(FOPTS) $(FFLGS) $(FDEBG) -o $@ $^ $(LIBS)
 
 # Rule to compile Fortran 90 files
 $(DIR_OBJ)/%.o: $(DIR_SRC)/%.f90
 	@mkdir -p $(DIR_OBJ)
-	$(FC) $(INCLUDE) $(FOPTS) $(FFLGS) $(FDEBG) -c -o $@ $<
+	$(call progress)
+	@$(FC) $(INCLUDE) $(FOPTS) $(FFLGS) $(FDEBG) -c -o $@ $<
 
 # Rule to compile Fortran 77 files
 $(DIR_OBJ)/%.o: $(DIR_LIB)/%.f
 	@mkdir -p $(DIR_OBJ)
-	$(FC) $(F77_OPTS) -c -o $@ $<
+	$(call progress)
+	@$(FC) $(F77_OPTS) -c -o $@ $<
 
 # All target
 all: $(DIR_BIN)/$(PROGRAM)
-	@echo "\n ====== Successfully compiled ====== \n"
+	@echo "====== Successfully compiled ====== \n"
 
 # Clean target
 clean:
-	@echo "\n ====== Cleaning build files... ====== \n"
+	@echo "Cleaning built files... \n"
 	@rm -f $(DIR_OBJ)/*.o $(DIR_OBJ)/*.mod $(DIR_BLD)/*.mod $(DIR_BLD)/*.smod $(DIR_BIN)/$(PROGRAM)
 
 # Phony targets
