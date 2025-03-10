@@ -1185,7 +1185,7 @@ module find_max_min_ave_mod
   public  :: Find_maximum_absvar3d
   public  :: Find_max_min_3d
   public  :: Find_max_min_absvar3d
-  public  :: is_large_number_3D
+
 contains
 !==========================================================================================================
   subroutine is_valid_number_3D(var, varname)

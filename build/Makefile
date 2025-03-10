@@ -22,7 +22,7 @@ ifeq ($(cfg), gnu)
   FC     = mpif90
   FOPTS  = -g -O0 -Wall -Wextra -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
            -ffree-line-length-512 -Wuninitialized -Wmaybe-uninitialized -Wno-unused -cpp \
-          -pedantic -finit-real=snan -fstack-protector -finit-real=snan
+          -pedantic -finit-real=snan -fstack-protector -fimplicit-none
   FOPTS += -fallow-argument-mismatch -fopenmp
   FFLGS  = -DDOUBLE_PREC -fdefault-real-8 -fdefault-double-8
   FDEBG  = -DDEBUG_STEPS
@@ -40,8 +40,8 @@ else ifeq ($(cfg), cray)
 else
   FC     = mpif90
   FOPTS  = -O3 -Wall -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
-           -finit-local-zero -ffree-line-length-512 -Wno-unused -cpp
-  FOPTS += -fallow-argument-mismatch -fopenmp -Wno-unused-dummy-argument -Wno-maybe-uninitialized
+           -finit-local-zero -ffree-line-length-512 -cpp -fopenmp -fimplicit-none
+  FOPTS += -fallow-argument-mismatch -Wno-unused -Wno-unused-dummy-argument -Wno-maybe-uninitialized
   FFLGS  = -DDOUBLE_PREC
   FDEBG  =
 endif
@@ -106,7 +106,7 @@ default: all
 
 # Linking rule
 $(DIR_BIN)/$(PROGRAM): $(OBJS1) $(OBJS2)
-	@echo "Linking... \n"
+	@echo -e "Linking... \n"
 	@$(FC) $(FOPTS) $(FFLGS) $(FDEBG) -o $@ $^ $(LIBS)
 
 # Rule to compile Fortran 90 files
@@ -123,7 +123,7 @@ $(DIR_OBJ)/%.o: $(DIR_LIB)/%.f
 
 # All target
 all: $(DIR_BIN)/$(PROGRAM)
-	@echo "====== Successfully compiled ====== \n"
+	@echo -e "====== Successfully compiled ====== \n"
 
 # Clean target
 clean:
