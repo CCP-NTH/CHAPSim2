@@ -346,6 +346,8 @@ contains
         if (nxdomain /= 1 .and. nrank == 0) call Print_error_msg("Set up nxdomain = 1.")
         allocate( domain (nxdomain) )
         allocate(   flow (nxdomain) )
+        allocate( itmpx(nxdomain) ); itmpx = 0
+        allocate( rtmpx(nxdomain) ); rtmpx = ZERO
 
         do i = 1, nxdomain
           domain(i)%idom = i
@@ -696,8 +698,6 @@ contains
 
         if(ANY(domain(:)%is_thermo)) is_any_energyeq = .true.
         if(is_any_energyeq) allocate( thermo(nxdomain) )
-        allocate ( itmpx(nxdomain) ); itmpx = 0
-        allocate ( rtmpx(nxdomain) ); rtmpx = ZERO
         
         read(inputUnit, *, iostat = ioerr) varname, itmp
         if(is_any_energyeq) thermo(1 : nxdomain)%ifluid = itmp

@@ -428,8 +428,13 @@ def get_simcontrol_settings():
     
     nIterFlowFirst   = get_input("The first iteration for flow field", 1, int)
     nIterFlowLast    = get_input("The last  iteration for flow field", 1000, int)
-    nIterThermoFirst = get_input("The first iteration for thermal field", 1, int)
-    nIterThermoLast  = get_input("The last  iteration for thermal field", 1000, int)
+    if ithermo == 1:
+      nIterThermoFirst = get_input("The first iteration for thermal field", 1, int)
+      nIterThermoLast  = get_input("The last  iteration for thermal field", 1000, int)
+    else:
+      nIterThermoFirst = 0
+      nIterThermoLast = 0
+
     return {
         "nIterFlowFirst": nIterFlowFirst,
         "nIterFlowLast": nIterFlowLast,
