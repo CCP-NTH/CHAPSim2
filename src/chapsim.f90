@@ -37,6 +37,7 @@ end program
 !> This subroutine is called at beginning of the main program
 !==========================================================================================================
 subroutine initialise_chapsim
+  use apx_prerun_mod
   use boundary_conditions_mod
   use code_performance_mod
   use continuity_eq_mod
@@ -73,6 +74,12 @@ subroutine initialise_chapsim
   do i = 1, nxdomain
     call Buildup_geometry_mesh_info(domain(i))
   end do
+  if(nrank == 0 .and. is_prerun) then
+    call Print_debug_start_msg("Pre-run for input variables adjustment")
+    call estimate_spacial_resolution(flow(1), domain(1))
+    call estimate_temporal_resolution(flow(1), domain(1))
+    stop
+  end if
 !----------------------------------------------------------------------------------------------------------
 ! build up operation coefficients for all x-subdomains
 !----------------------------------------------------------------------------------------------------------

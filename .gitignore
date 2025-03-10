@@ -16,6 +16,7 @@ test_*/
 *.mod
 *.a
 lib/.DS_Store
+prepost/*.ini
 /lib/2decomp-fft/build/*
 !/lib/2decomp-fft/build/build_cmake.sh
 lib/2decomp-fft/build/CMakeCache.txt

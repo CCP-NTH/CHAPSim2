@@ -43,10 +43,10 @@ contains
   subroutine Print_debug_start_msg(msg)
     !use iso_fortran_env
     implicit none
-    character(len=*), intent(IN) :: msg
+    character(len=*), optional, intent(IN) :: msg
 
     write (*, *) "=========================================================================================================="
-    write (*, *) msg
+    if(present(msg)) write (*, *) msg
 
     return
   end subroutine Print_debug_start_msg

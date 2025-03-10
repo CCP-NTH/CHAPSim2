@@ -259,9 +259,11 @@ module parameters_constant_mod
 !---------------------------------------------------------------------------------------------------------- 
   integer, parameter :: IDRVF_NO         = 0, &
                         IDRVF_X_MASSFLUX = 1, &
-                        IDRVF_X_Cf       = 2, &
-                        IDRVF_Z_MASSFLUX = 3, &
-                        IDRVF_Z_Cf       = 4 
+                        IDRVF_X_TAUW     = 2, &
+                        IDRVF_X_DPDX     = 3, &
+                        IDRVF_Z_MASSFLUX = 4, &
+                        IDRVF_Z_TAUW     = 5, &
+                        IDRVF_Z_DPDZ     = 6
 !----------------------------------------------------------------------------------------------------------
 ! BC for thermal
 !---------------------------------------------------------------------------------------------------------- 
@@ -347,24 +349,29 @@ module wtformat_mod
   !use iso_fortran_env
   implicit none
 
-  character(len = 17) :: wrtfmt1i   = '(2X, A40, 1I8.1)'
-  character(len = 17) :: wrtfmt2i   = '(2X, A40, 2I8.1)'
-  character(len = 17) :: wrtfmt3i   = '(2X, A40, 3I8.1)'
-  character(len = 17) :: wrtfmt4i   = '(2X, A40, 4I8.1)'
-  character(len = 17) :: wrtfmt1r   = '(2X, A40, 1F13.4)'
-  character(len = 17) :: wrtfmt2r   = '(2X, A40, 2F13.4)'
-  character(len = 18) :: wrtfmt3r   = '(2X, A40, 3F13.4)'
-  character(len = 19) :: wrtfmt1e   = '(2X, A40, 1ES23.15)'
+  character(len = 19) :: wrtfmt1i   = '(2X, A40, 1I8.1 )'
+  character(len = 19) :: wrtfmt1il  = '(2X, A40, 1I15.1)'
+  character(len = 19) :: wrtfmt2i   = '(2X, A40, 2I8.1,)'
+  character(len = 19) :: wrtfmt2il  = '(2X, A40, 2I15.1)'
+  character(len = 19) :: wrtfmt3i   = '(2X, A40, 3I8.1 )'
+  character(len = 19) :: wrtfmt4i   = '(2X, A40, 4I8.1 )'
+  character(len = 19) :: wrtfmt1r   = '(2X, A40, 1F14.7)'
+  character(len = 19) :: wrtfmt2r   = '(2X, A40, 2F14.7)'
+  character(len = 19) :: wrtfmt3r   = '(2X, A40, 3F14.7)'
+  character(len = 22) :: wrtfmt1el  = '(2X, A40, 1ES23.15)'
+  character(len = 22) :: wrtfmt2el  = '(2X, A40, 2ES23.15)'
+  character(len = 22) :: wrtfmt1e   = '(2X, A40, 1ES16.8)'
+  character(len = 22) :: wrtfmt2e   = '(2X, A40, 2ES16.8)'
   character(len = 24) :: wrtfmt2ae  = '(2X, 2(A15, 1ES23.15))'
-  character(len = 24) :: wrtfmt2e   = '(2X, A40, 2ES23.15)'
-  character(len = 25) :: wrtfmt1i1r = '(2X, A40, 1I8.1, 1F13.4)'
-  character(len = 25) :: wrtfmt2i2r = '(2X, A40, 2I8.1, 2F13.4)'
-  character(len = 25) :: wrtfmt4i2r = '(2X, A20, 4I8.1, 2F13.4)'
-  character(len = 14) :: wrtfmt3l   = '(2X, A40, 3L4)'
-  character(len = 14) :: wrtfmt1l   = '(2X, A40, 1L4)'
-  character(len = 9 ) :: wrtfmt1s   = '(2X, A80)'
+  character(len = 26) :: wrtfmt1i1r = '(2X, A40, 1I8.1, 1F14.7)'
+  character(len = 26) :: wrtfmt2i2r = '(2X, A40, 2I8.1, 2F14.7)'
+  character(len = 26) :: wrtfmt4i2r = '(2X, A20, 4I8.1, 2F14.7)'
+  character(len = 15) :: wrtfmt3l   = '(2X, A40, 3L4)'
+  character(len = 15) :: wrtfmt1l   = '(2X, A40, 1L4)'
   character(len = 17) :: wrtfmt2s   = '(2X, A40, 1A72)'
   character(len = 17) :: wrtfmt3s   = '(2X, A40, 2A15)'
+  character(len = 9 ) :: wrtfmt1s   = '(2X, A80)'
+  
 
 end module wtformat_mod
 !==========================================================================================================
