@@ -475,7 +475,7 @@ contains
 
         do i = 1, nxdomain
           domain(i)%is_periodic(:) = .false.
-          do m = 1, NBC
+          do m = 1, 3
             if(domain(i)%ibcx_nominal(1, m) == IBC_PERIODIC .or. &
                domain(i)%ibcx_nominal(2, m) == IBC_PERIODIC) then
                domain(i)%ibcx_nominal(1:2, m) = IBC_PERIODIC
