@@ -1047,7 +1047,9 @@ contains
       rmax = dm%yp(dm%np(2))
     end if
     call estimate_skin_friction_factor(cf, fl%ren, dm%icase)
-    Re_tau = fl%ren * sqrt_wp(cf * HALF)
+    Re_tau = fl%ren * sqrt_wp(cf/TWO)
+    if(dm%icase == ICASE_PIPE) Re_tau = Re_tau / TWO
+    u_tau = Re_tau/fl%ren
     dy1 = dm%yp(2)-dm%yp(1)
     dy2 = dm%yp(dm%np(2)/2) - dm%yp(dm%np(2)/2-1)
     dy3 = dm%yp(dm%np(2)) - dm%yp(dm%np(2)-1)
@@ -1072,14 +1074,13 @@ contains
     call print_note_msg("The recom. values are based on empirical functions listed in [apx_prerun_mod]")
     call Print_debug_mid_msg("Checking domain length")
     write(*, wrtfmt2r) 'current => rec. min. domain length in x :', dm%lxx, TWOPI
+    if(dm%icoordinate == ICARTESIAN) &
     write(*, wrtfmt2r) 'current => rec. min. domain length in z :', dm%lzz, PI
     write(*, wrtfmt2r) 'current dy growth rate at 2 layers :', abs_wp(dy33-dy32)/MIN(dy33, dy32), abs_wp(dy32-dy3)/MIN(dy32, dy3)
     if(dy33/dy32 > 1.3_WP .or. dy32/dy3 > 1.3_WP) &
     call Print_warning_msg("Grid spacing growth rate is too big for DNS. Consider to reduce the stretching factor.")
 
     call Print_debug_mid_msg("Estimating more flow information based on Re.")
-    Re_tau = fl%ren / sqrt_wp(TWO/cf)
-    u_tau = Re_tau/fl%ren
     write(*, wrtfmt1r) 'Re_tau :', Re_tau
     write(*, wrtfmt1r) ' u_tau :', u_tau
 
@@ -1122,6 +1123,7 @@ contains
     dt_max_phy = Ctmmax *(fl%ren/Re_tau/Re_tau)! * dymin / dymax
     dt_min = MIN(dt_max_cfl1, dt_max_cfl2, dt_max_phy)
     call Print_debug_mid_msg("Estimating the temporal resolution (based on isothermal flow)")
+    write(*, wrtfmt1e) 'current dt :', dm%dt
     write(*, wrtfmt1e) 'dt_max (convection CFL  ) :', dt_max_cfl1
     write(*, wrtfmt1e) 'dt_max (diffusion  CFL  ) :', dt_max_cfl2
     write(*, wrtfmt1e) 'dt_max (Kolmogorov limit) :', dt_max_phy

@@ -277,12 +277,12 @@ def get_mesh_settings():
 
     if istret != Stretching.NONE.value:
         if icase == Case.CHANNEL.value:
-            rstret1, rstret2, ifftlib = 1, get_input("Stretching factor (recommended 0.2-0.3, higher means finer)", 0.25, float), 3
+            rstret1, rstret2, ifftlib = 1, get_input("Stretching factor (recommended 0.1-0.3, smaller means more clustered)", 0.12, float), 3
         elif icase in [Case.PIPE.value, Case.ANNULAR.value]:
-            rstret1, rstret2, ifftlib = 2, get_input("Stretching factor (recommended 0.2-0.3, higher means finer)", 0.25, float), 2
+            rstret1, rstret2, ifftlib = 2, get_input("Stretching factor (recommended 0.1-0.3, greater means more clustered)", 0.15, float), 2
         else:
             rstret1 = get_input("Stretching method (1:Laizet2009, 2:tanh function)", 1, int)
-            rstret2 = get_input("Stretching factor (recommended 0.1-0.3, smaller means more clustered)", 0.25, float)
+            rstret2 = get_input("Stretching factor (recommended 0.1-0.3)", 0.15, float)
             ifftlib = get_input("FFT solver (2:2D-FFT, 3:3D-FFT)", 3, int)
     else:
         rstret1, rstret2, ifftlib = 0, 0.0, 3
