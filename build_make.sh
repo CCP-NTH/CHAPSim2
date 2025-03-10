@@ -11,6 +11,29 @@ REL_PATH_LIB="./lib/2decomp-fft/build"
 REL_PATH_BUILD="./build"
 REL_PATH_BIN="./bin"
 LIB_FILE="$REL_PATH_LIB/opt/lib/libdecomp2d.a"
+LIB_FILE_64="$REL_PATH_LIB/opt/lib64/libdecomp2d.a"
+
+# Check if the directories exist, if not create them
+if [ ! -d "$REL_PATH_LIB" ]; then
+    echo "Directory $REL_PATH_LIB does not exist. Creating it..."
+    mkdir -p "$REL_PATH_LIB"
+fi
+if [ ! -d "$REL_PATH_BUILD" ]; then
+    echo "Directory $REL_PATH_BUILD does not exist. Creating it..."
+    mkdir -p "$REL_PATH_BUILD"
+fi
+if [ ! -d "$REL_PATH_BIN" ]; then
+    echo "Directory $REL_PATH_BIN does not exist. Creating it..."
+    mkdir -p "$REL_PATH_BIN"
+fi
+
+# Check if the lib64 file exists, if so use it
+if [ -f "$LIB_FILE_64" ]; then
+    LIB_FILE="$LIB_FILE_64"
+    echo "Using lib64 version: $LIB_FILE"
+else
+    echo "Using lib version: $LIB_FILE"
+fi
 
 # Resolve absolute paths
 PATH_LIB=$(realpath "$REL_PATH_LIB" 2>/dev/null || readlink -f "$REL_PATH_LIB")

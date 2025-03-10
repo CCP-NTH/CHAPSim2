@@ -928,7 +928,7 @@ module apx_prerun_mod
   real(WP), parameter :: dyplus_max = 1.0_WP
   real(WP), parameter :: Cflmax = 0.714_WP
   real(WP), parameter :: Ctmmax = 0.1_WP
-  real(WP), save :: dymax, dymin, rmin, rmax, Re_tau
+  real(WP), save :: dymax, dymin, rmin, rmax, Re_tau, u_tau
 
   private :: solve_Prandtl_vonKarman_eq_for_cf
   private :: estimate_skin_friction_factor
@@ -1067,8 +1067,9 @@ contains
 
     call Print_debug_mid_msg("Estimating more flow information based on Re.")
     Re_tau = fl%ren / sqrt_wp(TWO/cf)
+    u_tau = Re_tau/fl%ren
     write(*, wrtfmt1r) 'Re_tau :', Re_tau
-    write(*, wrtfmt1r) ' u_tau :', Re_tau/fl%ren
+    write(*, wrtfmt1r) ' u_tau :', u_tau
 
     ! write out
     call Print_debug_mid_msg("Estimating the current mesh resolution (based on isothermal flow)")
@@ -1112,6 +1113,7 @@ contains
     write(*, wrtfmt1e) 'dt_max (convection CFL  ) :', dt_max_cfl1
     write(*, wrtfmt1e) 'dt_max (diffusion  CFL  ) :', dt_max_cfl2
     write(*, wrtfmt1e) 'dt_max (Kolmogorov limit) :', dt_max_phy
+    write(*, wrtfmt1e) 'dt_max (dt+ = 1) :', ONE/u_tau
 
     ! iteration 
     t_flth = dm%lxx / 1.2_wp 
