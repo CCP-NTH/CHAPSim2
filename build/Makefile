@@ -48,7 +48,10 @@ endif
 
 # FFT library and include paths
 INCLUDE = -I../lib/2decomp-fft/build/opt/include
-LIBS    = -L../lib/2decomp-fft/build/opt/lib -ldecomp2d
+# Check if the lib64 directory exists, otherwise fall back to lib
+LIB_DIR = $(if $(wildcard ../lib/2decomp-fft/build/opt/lib64), ../lib/2decomp-fft/build/opt/lib64, ../lib/2decomp-fft/build/opt/lib)
+# Set the LIBS variable based on the determined library directory
+LIBS = -L$(LIB_DIR) -ldecomp2d
 
 # Object file lists
 OBJS1 = $(addprefix $(DIR_OBJ)/, \
