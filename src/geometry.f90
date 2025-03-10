@@ -549,7 +549,7 @@ contains
     ! validate the mesh mapping function using the chain rule: dy = d(h(s)) = h'(s) ds
     !----------------------------------------------------------------------------------------------------------
       open(newunit = wrt_unit, file = trim(dir_chkp)//'/check_mesh_mapping.dat', action = "write", status = "replace")
-      write(wrt_unit, *) 'index, dyn, dyp, diff'
+      write(wrt_unit, *) 'index, dyn(numerical dy), dyp (physical dy), diff'
       dyn = dm%h(2)
       dy = ZERO
       do j = 2, dm%nc(2)
@@ -572,9 +572,15 @@ contains
       close(wrt_unit)
       
       open(newunit = wrt_unit, file = trim(dir_chkp)//'/check_mesh_yc.dat', action = "write", status = "replace")
-      write(wrt_unit, *) 'index, yc, rc, rci'
+      write(wrt_unit, *) 'index, yc, growth, rc, rci'
+      ddy = ZERO
       do j = 1, dm%nc(2)
-        write (wrt_unit, *) j, dm%yc(j), dm%rc(j), dm%rci(j)
+        if (j<=(dm%nc(2)-1)) then
+          dyn = dm%yp(j+2)-dm%yp(j+1)
+          dyp = dm%yp(j+1)-dm%yp(j)
+          ddy = abs_wp( dyn - dyp) / min(dyn, dyp)
+        end if
+        write (wrt_unit, *) j, dm%yc(j), ddy, dm%rc(j), dm%rci(j)
       end do
       close(wrt_unit)
 

@@ -282,7 +282,7 @@ def get_mesh_settings():
             rstret1, rstret2, ifftlib = 2, get_input("Stretching factor (recommended 0.2-0.3, higher means finer)", 0.25, float), 2
         else:
             rstret1 = get_input("Stretching method (1:Laizet2009, 2:tanh function)", 1, int)
-            rstret2 = get_input("Stretching factor (recommended 0.2-0.3, higher means finer)", 0.25, float)
+            rstret2 = get_input("Stretching factor (recommended 0.1-0.3, smaller means more clustered)", 0.25, float)
             ifftlib = get_input("FFT solver (2:2D-FFT, 3:3D-FFT)", 3, int)
     else:
         rstret1, rstret2, ifftlib = 0, 0.0, 3
@@ -380,6 +380,13 @@ def get_bc_settings():
               ffbcy_T1 = get_input("Heat flux (W/m2) on BC-y bottom", 0.0, float)
             ifbcy_T2 = BC.NEUMANN.value
             ffbcy_T2 = get_input("Heat flux (W/m2) on BC-y top",    0.0, float)
+    else:
+      ifbcx_T1 = ifbcx_u1
+      ifbcy_T1 = ifbcy_u1
+      ifbcz_T1 = ifbcz_u1
+      ifbcx_T2 = ifbcx_u2
+      ifbcy_T2 = ifbcy_u2
+      ifbcz_T2 = ifbcz_u2
 
     idriven = 0
     drivenCf = 0.0

@@ -216,6 +216,7 @@ end function
                                  '||', get_name_bc(dm%ibcx_nominal(2, 3)), '=> ', get_name_bc(dm%ibcx_qz(2)), dm%fbcx_const(1:2, 3)
       write (*, fmt) '  p-bc :', '||', get_name_bc(dm%ibcx_nominal(1, 4)), '=> ', get_name_bc(dm%ibcx_pr(1)), &
                                  '||', get_name_bc(dm%ibcx_nominal(2, 4)), '=> ', get_name_bc(dm%ibcx_pr(2)), dm%fbcx_const(1:2, 4)
+      if(dm%is_thermo) &
       write (*, fmt) '  T-bc :', '||', get_name_bc(dm%ibcx_nominal(1, 5)), '=> ', get_name_bc(dm%ibcx_Tm(1)), &
                                  '||', get_name_bc(dm%ibcx_nominal(2, 5)), '=> ', get_name_bc(dm%ibcx_Tm(2)), dm%fbcx_const(1:2, 5)
       write (*, wrtfmt1s) '      BC in the Y direction: norminal BC, calc BC'
@@ -227,6 +228,7 @@ end function
                                  '||', get_name_bc(dm%ibcy_nominal(2, 3)), '=> ', get_name_bc(dm%ibcy_qz(2)), dm%fbcy_const(1:2, 3)
       write (*, fmt) '  p-bc :', '||', get_name_bc(dm%ibcy_nominal(1, 4)), '=> ', get_name_bc(dm%ibcy_pr(1)), &
                                  '||', get_name_bc(dm%ibcy_nominal(2, 4)), '=> ', get_name_bc(dm%ibcy_pr(2)), dm%fbcy_const(1:2, 4)
+      if(dm%is_thermo) &
       write (*, fmt) '  T-bc :', '||', get_name_bc(dm%ibcy_nominal(1, 5)), '=> ', get_name_bc(dm%ibcy_Tm(1)), &
                                  '||', get_name_bc(dm%ibcy_nominal(2, 5)), '=> ', get_name_bc(dm%ibcy_Tm(2)), dm%fbcy_const(1:2, 5)
       write (*, wrtfmt1s) '      BC in the Z direction: norminal BC, calc BC'
@@ -238,6 +240,7 @@ end function
                                  '||', get_name_bc(dm%ibcz_nominal(2, 3)), '=> ', get_name_bc(dm%ibcz_qz(2)), dm%fbcz_const(1:2, 3)
       write (*, fmt) '  p-bc :', '||', get_name_bc(dm%ibcz_nominal(1, 4)), '=> ', get_name_bc(dm%ibcz_pr(1)), &
                                  '||', get_name_bc(dm%ibcz_nominal(2, 4)), '=> ', get_name_bc(dm%ibcz_pr(2)), dm%fbcz_const(1:2, 4)
+      if(dm%is_thermo) &
       write (*, fmt) '  T-bc :', '||', get_name_bc(dm%ibcz_nominal(1, 5)), '=> ', get_name_bc(dm%ibcz_Tm(1)), &
                                  '||', get_name_bc(dm%ibcz_nominal(2, 5)), '=> ', get_name_bc(dm%ibcz_Tm(2)), dm%fbcz_const(1:2, 5)
     end if

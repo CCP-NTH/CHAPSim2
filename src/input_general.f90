@@ -618,7 +618,6 @@ contains
             if(domain(i)%istret /= ISTRET_NO) then
               write (*, wrtfmt1r) 'mesh y-stretching factor :', domain(i)%rstret
               write (*, wrtfmt2s) 'mesh y-stretching method :', get_name_mstret(domain(i)%mstret)
-              call Print_note_msg('the recom. rstret range [0.2 - 0.3]')
             end if
           end do
         end if
@@ -853,6 +852,11 @@ contains
     ! convert the input dimensional temperature/heat flux into undimensional
     !----------------------------------------------------------------------------------------------------------
     do i = 1, nxdomain
+      if(.not. is_any_energyeq) then
+        domain(i)%ibcx_nominal(1:2, 5) = domain(i)%ibcx_nominal(1:2, 1)
+        domain(i)%ibcy_nominal(1:2, 5) = domain(i)%ibcy_nominal(1:2, 2)
+        domain(i)%ibcz_nominal(1:2, 5) = domain(i)%ibcz_nominal(1:2, 3)
+      end if
       call config_calc_basic_ibc(domain(i))
       call config_calc_eqs_ibc(domain(i))
     end do 
@@ -1026,7 +1030,7 @@ contains
     type(t_domain), intent(in) :: dm
     type(t_flow),  intent(in)  :: fl
     real(WP) :: dx_max, dy_max, dz_max
-    real(WP) :: cf, dy1, dy2, dy3
+    real(WP) :: cf, dy1, dy2, dy3, dy32, dy33
     real(WP) :: yplus1, yplus2, yplus3, dxplus, dzplus
     integer :: nx_min, ny_min, nz_min
 
@@ -1047,6 +1051,8 @@ contains
     dy1 = dm%yp(2)-dm%yp(1)
     dy2 = dm%yp(dm%np(2)/2) - dm%yp(dm%np(2)/2-1)
     dy3 = dm%yp(dm%np(2)) - dm%yp(dm%np(2)-1)
+    dy32 = dm%yp(dm%np(2)-1) - dm%yp(dm%np(2)-2)
+    dy33 = dm%yp(dm%np(2)-2) - dm%yp(dm%np(2)-3)
     yplus1 = Re_tau * dy1
     yplus2 = Re_tau * dy2
     yplus3 = Re_tau * dy3
@@ -1065,8 +1071,11 @@ contains
     ! write out
     call print_note_msg("The recom. values are based on empirical functions listed in [apx_prerun_mod]")
     call Print_debug_mid_msg("Checking domain length")
-    write(*, wrtfmt2r) 'current and rec. min. domain length in x :', dm%lxx, TWOPI
-    write(*, wrtfmt2r) 'current and rec. min. domain length in z :', dm%lzz, PI
+    write(*, wrtfmt2r) 'current => rec. min. domain length in x :', dm%lxx, TWOPI
+    write(*, wrtfmt2r) 'current => rec. min. domain length in z :', dm%lzz, PI
+    write(*, wrtfmt2r) 'current dy growth rate at 2 layers :', abs_wp(dy33-dy32)/MIN(dy33, dy32), abs_wp(dy32-dy3)/MIN(dy32, dy3)
+    if(dy33/dy32 > 1.3_WP .or. dy32/dy3 > 1.3_WP) &
+    call Print_warning_msg("Grid spacing growth rate is too big for DNS. Consider to reduce the stretching factor.")
 
     call Print_debug_mid_msg("Estimating more flow information based on Re.")
     Re_tau = fl%ren / sqrt_wp(TWO/cf)
@@ -1110,13 +1119,13 @@ contains
     dxyz_max = ONE / (dm%h(1)**2) + ONE /(dymin**2) + ONE/((rmin * dm%h(3))**2)
     dt_max_cfl2 = fl%ren / TWO / dxyz_max
     !\Delta t \approx 0.1 \frac{h^2}{\nu Re_{\tau}^2}
-    dt_max_phy = Ctmmax *(fl%ren/Re_tau/Re_tau) * dymin / dymax
+    dt_max_phy = Ctmmax *(fl%ren/Re_tau/Re_tau)! * dymin / dymax
     dt_min = MIN(dt_max_cfl1, dt_max_cfl2, dt_max_phy)
     call Print_debug_mid_msg("Estimating the temporal resolution (based on isothermal flow)")
     write(*, wrtfmt1e) 'dt_max (convection CFL  ) :', dt_max_cfl1
     write(*, wrtfmt1e) 'dt_max (diffusion  CFL  ) :', dt_max_cfl2
     write(*, wrtfmt1e) 'dt_max (Kolmogorov limit) :', dt_max_phy
-    write(*, wrtfmt1e) 'dt_max (dt+ = 1) :', ONE/u_tau
+    !write(*, wrtfmt1e) 'dt_max (dt+ = 1) :', ONE/u_tau
 
     ! iteration 
     t_flth = dm%lxx / 1.2_wp 
