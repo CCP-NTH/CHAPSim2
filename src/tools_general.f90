@@ -173,7 +173,7 @@ module code_performance_mod
     integer, intent(in) :: iterfrom, niter
     integer, intent(in), optional :: iter
     integer :: hrs, mins
-    real(wp) :: secs
+    real(wp) :: secs, t(4), t_work(4)
     real(WP) :: t_total, t_elaspsed, t_remaining, t_aveiter, t_this_iter, t_preparation, t_postprocessing
     real(WP) :: t_total0, t_elaspsed0,t_remaining0, t_aveiter0, t_this_iter0, t_preparation0, t_postprocessing0
 !----------------------------------------------------------------------------------------------------------
@@ -183,7 +183,7 @@ module code_performance_mod
     else if (itype == CPU_TIME_STEP_START) then
       call cpu_time(t_step_start)
       t_preparation = t_step_start - t_code_start
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
+      !call mpi_barrier(MPI_COMM_WORLD, ierror)
       call mpi_allreduce(t_preparation, t_preparation0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
       if(nrank == 0) call Print_debug_mid_msg ("Code Performance Info")
       if(nrank == 0) call Print_debug_inline_msg ("    Time for code preparation : " // &
@@ -199,29 +199,31 @@ module code_performance_mod
       call cpu_time(t_iter_end)
 
       t_this_iter = t_iter_end - t_iter_start
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(t_this_iter, t_this_iter0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+      t_elaspsed  = t_iter_end - t_step_start
+      t_aveiter   = t_elaspsed / real(iter - iterfrom, WP)
+      t_remaining = t_aveiter * real(niter - iter, wp)
+
+      t(1) = t_this_iter
+      t(2) = t_elaspsed
+      t(3) = t_aveiter
+      t(4) = t_remaining
+      call mpi_allreduce(t, t_work, 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+      t_this_iter0 = t_work(1)
+      t_elaspsed0  = t_work(2)
+      t_aveiter0   = t_work(3)
+      t_remaining0 = t_work(4)
+
       if(nrank == 0) call Print_debug_mid_msg ("Code Performance Info")
       if(nrank == 0) call Print_debug_inline_msg ("    Time for this time step : " // &
           trim(real2str(t_this_iter0))//' s')
 
-      t_elaspsed  = t_iter_end - t_step_start
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(t_elaspsed, t_elaspsed0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
       call Convert_sec_to_hms (t_elaspsed0, hrs, mins, secs)
       if(nrank == 0) call Print_debug_inline_msg ("    Elaspsed Wallclock Time : "// &
            trim(int2str(hrs)) // ' h ' // &
            trim(int2str(mins)) // ' m ' // &
            trim(real2str(secs)) // ' s ')
 
-      t_aveiter   = t_elaspsed / real(iter - iterfrom, WP)
-      t_remaining = t_aveiter * real(niter - iter, wp)
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(t_aveiter,   t_aveiter0,   1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(t_remaining, t_remaining0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-      
       call Convert_sec_to_hms (t_remaining0, hrs, mins, secs)
-
       if(nrank == 0) then
         call Print_debug_inline_msg ("    Remaning Wallclock Time : "// &
            trim(int2str(hrs)) // ' h ' // &
@@ -237,10 +239,15 @@ module code_performance_mod
       call cpu_time(t_step_end)
       t_total = t_step_end - t_step_start
       t_aveiter= t_total / real(niter - iterfrom, WP)
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(t_total,   t_total0,   1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(t_aveiter, t_aveiter0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-      
+      !call mpi_barrier(MPI_COMM_WORLD, ierror)
+
+      t = ZERO
+      t(1) = t_total
+      t(2) = t_aveiter
+      call mpi_allreduce(t, t_work, 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+      t_total0   = t_work(1)
+      t_aveiter0 = t_work(2)
+
       call Convert_sec_to_hms (t_total0, hrs, mins, secs)
       if(nrank == 0) then
         call Print_debug_mid_msg ("Code Performance Info")
@@ -257,10 +264,14 @@ module code_performance_mod
       call cpu_time(t_code_end)
       t_total  = t_code_end - t_code_start
       t_postprocessing = t_code_end - t_step_end
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(t_total,          t_total0,          1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(t_postprocessing, t_postprocessing0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-      
+
+      t = ZERO
+      t(1) = t_total
+      t(2) = t_postprocessing
+      call mpi_allreduce(t, t_work, 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+      t_total0          = t_work(1)
+      t_postprocessing0 = t_work(2)
+
       call Convert_sec_to_hms (t_total0, hrs, mins, secs)
       if(nrank == 0) then
         call Print_debug_mid_msg ("Code Performance Info")
@@ -1264,7 +1275,7 @@ contains
       end do
     end do
     !varmax = MAXVAL( abs_wp( var ) ) 
-    call mpi_barrier(MPI_COMM_WORLD, ierror)
+    !call mpi_barrier(MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
 
     if(varmax_work == varmax) then
@@ -1319,7 +1330,7 @@ contains
       end do
     end do
 
-    call mpi_barrier(MPI_COMM_WORLD, ierror)
+    !call mpi_barrier(MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmin, varmin_work, 1, MPI_REAL_WP, MPI_MIN, MPI_COMM_WORLD, ierror)
 
@@ -1405,7 +1416,7 @@ contains
       end do
     end do
 
-    call mpi_barrier(MPI_COMM_WORLD, ierror)
+    !call mpi_barrier(MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmin, varmin_work, 1, MPI_REAL_WP, MPI_MIN, MPI_COMM_WORLD, ierror)
 
@@ -1435,7 +1446,7 @@ contains
     integer,           intent(in) :: itype
     character(*), optional, intent(in) :: str
  
-    real(WP) :: vol, fo, vol_work!
+    real(WP) :: vol, fo, vol_work, array(2), array_work(2)
 #ifdef DEBUG_STEPS 
     real(WP) :: vol_real
 #endif
@@ -1467,9 +1478,13 @@ contains
         end do
       end do
 
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce( fo,  fo_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(vol, vol_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      !call mpi_barrier(MPI_COMM_WORLD, ierror)
+      array(1) = fo
+      array(2) = vol
+      call mpi_allreduce( array, array_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      fo_work  = array_work(1)
+      vol_work = array_work(2)
+
       if(itype == SPACE_AVERAGE) then
         fo_work = fo_work / vol_work
       else if(itype == SPACE_INTEGRAL) then
@@ -1503,7 +1518,7 @@ contains
     integer,           intent(in) :: itype
     character(4),      intent(in) :: str
  
-    real(WP) :: area, fo(2), area_work!
+    real(WP) :: area, fo(2), area_work, array(3), array_work(3)
 #ifdef DEBUG_STEPS 
     real(WP) :: area_real
 #endif
@@ -1546,9 +1561,12 @@ contains
         end do
       end do
 
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(  fo,   fo_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(area, area_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      array(1:2) = fo(1:2)
+      array(3) = area
+      call mpi_allreduce(array,  array_work, 3, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      fo_work(1:2) = array_work(1:2)
+      area_work    = array_work(3)
+      
       if(itype == SPACE_AVERAGE) then
         fo_work(:) = fo_work(:) / area_work
       else if(itype == SPACE_INTEGRAL) then
@@ -1574,7 +1592,7 @@ contains
     integer,           intent(in) :: itype
     character(4),      intent(in) :: str
  
-    real(WP) :: area, fo(2), area_work!
+    real(WP) :: area, fo(2), area_work, array(3), array_work(3)
 #ifdef DEBUG_STEPS 
     real(WP) :: area_real
 #endif
@@ -1612,9 +1630,12 @@ contains
         end do
       end do
 
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(  fo,   fo_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(area, area_work, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      array(1:2) = fo(1:2)
+      array(3) = area
+      call mpi_allreduce( array,  array_work, 3, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      fo_work(1:2) = array_work(1:2)
+      area_work    = array_work(3)
+
       if(itype == SPACE_AVERAGE) then
         fo_work(:) = fo_work(:) / area_work
       else if(itype == SPACE_INTEGRAL) then
@@ -1639,7 +1660,7 @@ contains
     integer,           intent(in) :: itype
     character(4),      intent(in) :: str
  
-    real(WP) :: area(2), fo(2), area_work(2)
+    real(WP) :: area(2), fo(2), area_work(2), array(4), array_work(4)
 #ifdef DEBUG_STEPS 
     real(WP) :: area_real
 #endif
@@ -1683,9 +1704,12 @@ contains
         end do
       end do
 
-      call mpi_barrier(MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(  fo,   fo_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
-      call mpi_allreduce(area, area_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      array(1:2) = fo(1:2)
+      array(3:4) = area(1:2)
+      call mpi_allreduce( array,  array_work, 4, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      fo_work(1:2)   = array_work(1:2)
+      area_work(1:2) = array_work(3:4)
+
       if(itype == SPACE_AVERAGE) then
         if(dm%icase == ICASE_PIPE) then
           fo_work(2) = fo_work(2) / area_work(2)

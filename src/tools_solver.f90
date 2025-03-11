@@ -136,7 +136,7 @@ contains
     end do
     
 
-    call mpi_barrier(MPI_COMM_WORLD, ierror)
+    !call mpi_barrier(MPI_COMM_WORLD, ierror)
     !call mpi_allreduce(ni, ni_work, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, ierror)
     !call mpi_allreduce(nk, nk_work, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varxz, varxz_work, n, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
@@ -230,7 +230,7 @@ contains
 
     real(WP) :: cfl_diff, cfl_diff_work, rtmp, dyi, dtmax, dtmax_work
     integer :: i, j, k, jj
-    real(wp) :: rsp(3), rmax(3), rmax_work(3)
+    real(wp) :: rsp(3), rmax(3), rmax_work(3), var(5), var_work(5)
     
     rmax(:) = ZERO
     cfl_diff = ZERO
@@ -261,12 +261,14 @@ contains
     dtmax = ONE/(TWO*fl%rre * cfl_diff)
     cfl_diff = cfl_diff * TWO * dm%dt *  fl%rre
 
-    call mpi_barrier(MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(cfl_diff, cfl_diff_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(dtmax, dtmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(rmax(1), rmax_work(1), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(rmax(2), rmax_work(2), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(rmax(3), rmax_work(3), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    !call mpi_barrier(MPI_COMM_WORLD, ierror)
+    var(1:3) = rmax(1:3)
+    var(4) = dtmax
+    var(5) = cfl_diff
+    call mpi_allreduce(var, var_work, 5, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    rmax_work(1:3) = var(1:3)
+    dtmax_work = var(4)
+    cfl_diff_work = var(5)
 
     if(nrank == 0) then
       write (*, wrtfmt1e) "Diffusion number :", cfl_diff_work
