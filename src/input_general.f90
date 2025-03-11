@@ -348,6 +348,9 @@ contains
         allocate(   flow (nxdomain) )
         allocate( itmpx(nxdomain) ); itmpx = 0
         allocate( rtmpx(nxdomain) ); rtmpx = ZERO
+        domain(:)%is_thermo = .false.
+        domain(:)%icht = 0
+        domain(:)%is_mhd = .false.
 
         do i = 1, nxdomain
           domain(i)%idom = i
@@ -1061,7 +1064,7 @@ contains
     dxplus = Re_tau * ( dm%h(1) )
     dzplus = Re_tau * ( dm%h(3) ) * rmax
     if(dm%icoordinate == ICYLINDRICAL) then 
-      dzplus2 = Re_tau * ( dm%h(3) ) * rin
+      dzplus2 = Re_tau * ( dm%h(3) ) * rmin
     end if
 
     dymax = MAX(dy1, dy2, dy3)

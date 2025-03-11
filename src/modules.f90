@@ -418,7 +418,7 @@ module udf_type_mod
 !  domain info
 !---------------------------------------------------------------------------------------------------------- 
   type t_domain
-    logical :: is_periodic(NDIM)        ! is this direction periodic bc?
+    logical :: is_periodic(NDIM)       ! is this direction periodic bc?
     logical :: is_stretching(NDIM)      ! is this direction of stretching grids?
     logical :: is_compact_scheme     ! is compact scheme applied?
     logical :: is_thermo             ! is thermal field considered? 
