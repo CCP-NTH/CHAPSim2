@@ -1278,7 +1278,7 @@ contains
     !call mpi_barrier(MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
 
-    if(varmax_work == varmax) then
+    if(abs_wp(varmax_work - varmax) <= MINP) then
       call mpi_send(idg, 3, MPI_INTEGER, 0, 0, MPI_COMM_WORLD, ierror)
     end if
 

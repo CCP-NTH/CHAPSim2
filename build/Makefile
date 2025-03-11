@@ -98,7 +98,7 @@ COUNTER = 0
 define progress
 	$(eval COUNTER := $(shell expr $(COUNTER) + 1)) 
 	$(eval PERCENT := $(shell expr $(COUNTER) \* 100 / $(TOTAL_OBJS)))
-	@echo "Compiling ($(COUNTER)/$(TOTAL_OBJS)) [$(PERCENT)%] $< "
+	@printf "(%2d/%2d) [%3d%%] Compiling %s\n" $(COUNTER) $(TOTAL_OBJS) $(PERCENT) $<
 endef
 
 # Default rule
