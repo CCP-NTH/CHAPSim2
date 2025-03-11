@@ -1031,7 +1031,7 @@ contains
     type(t_flow),  intent(in)  :: fl
     real(WP) :: dx_max, dy_max, dz_max
     real(WP) :: cf, dy1, dy2, dy3, dy32, dy33
-    real(WP) :: yplus1, yplus2, yplus3, dxplus, dzplus
+    real(WP) :: yplus1, yplus2, yplus3, dxplus, dzplus, dzplus2
     integer :: nx_min, ny_min, nz_min
 
     if(nrank /= 0) return
@@ -1060,6 +1060,9 @@ contains
     yplus3 = Re_tau * dy3
     dxplus = Re_tau * ( dm%h(1) )
     dzplus = Re_tau * ( dm%h(3) ) * rmax
+    if(dm%icoordinate == ICYLINDRICAL) then 
+      dzplus2 = Re_tau * ( dm%h(3) ) * rin
+    end if
 
     dymax = MAX(dy1, dy2, dy3)
     dymin = MIN(dy1, dy2, dy3)
@@ -1091,6 +1094,9 @@ contains
     write(*, wrtfmt1r) 'dy_plus_np/2 :', yplus2
     write(*, wrtfmt1r) 'dx_plus      :', dxplus
     write(*, wrtfmt1r) 'dz_plus      :', dzplus
+    if(dm%icoordinate == ICYLINDRICAL) then
+    write(*, wrtfmt1r) 'dz_plus_min  :', dzplus2 
+    end if
     write(*, wrtfmt1il)'Current Ncell:', dm%nc(1) * dm%nc(2) * dm%nc(2)
     write(*, wrtfmt3i) "rec. min cell numbers in xyz :", nx_min, ny_min, nz_min 
     write(*, wrtfmt1il)'rec. Ncell:', nx_min * ny_min * nz_min 
