@@ -1278,6 +1278,12 @@ contains
     !call mpi_barrier(MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
 
+
+    if(nrank == 0) then
+      write (*, '(3X, A33, 1ES19.12)') 'maximum '//trim(str), varmax_work
+    end if
+
+#ifdef DEBUG_STEPS 
     if(abs_wp(varmax_work - varmax) <= MINP) then
       call mpi_send(idg, 3, MPI_INTEGER, 0, 0, MPI_COMM_WORLD, ierror)
     end if
@@ -1285,14 +1291,14 @@ contains
     if(nrank == 0) then
       call mpi_recv(idg_work, 3, MPI_INTEGER, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE, ierror)
       !write (*, '(1X, A33, 1ES19.12)') 'maximum '//trim(str), varmax_work
-!#ifdef DEBUG_STEPS   
+  
       write (*, '(3X, A33, 1ES19.12, A, 3(1I6.1, A6))') 'maximum '//trim(str), varmax_work, ' at index', &
       idg_work(1), '/'//int2str(idgmax(1)), &
       idg_work(2), '/'//int2str(idgmax(2)), &
       idg_work(3), '/'//int2str(idgmax(3))
-!#ifdef 
+
     end if
-#ifdef DEBUG_STEPS
+
     if(varmax_work > MAXVELO) stop ! test
 #endif
     return
