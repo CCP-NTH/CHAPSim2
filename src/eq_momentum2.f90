@@ -827,7 +827,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
       acpc_xpencil = fl%qy
       call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! qr/r
-      call estimate_radial_xpx_on_axis(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
+      call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
       call transpose_x_to_y(acpc_xpencil, qyr_ypencil, dm%dcpc) ! acpc_ypencil = qyr_ypencil
       call Get_y_midp_P2C_3D(qyr_ypencil, qyriy_ccc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy, dm%fbcy_qyr)
       call transpose_y_to_z(qyriy_ccc_ypencil, qyriy_ccc_zpencil, dm%dccc)
@@ -841,7 +841,7 @@ contains
 
       acpc_xpencil = fl%qy
       call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 2, IPENCIL(1)) ! qr/r^2
-      call estimate_radial_xpx_on_axis(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
+      call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
       call transpose_x_to_y(acpc_xpencil, qyr2_ypencil, dm%dcpc) ! acpc_ypencil = qr/r^2_ypencil
       call transpose_y_to_z(qyr2_ypencil, acpc_zpencil, dm%dcpc)
       call Get_z_1der_C2P_3D(acpc_zpencil, qyr2dz_cpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qy, dm%fbcz_qyr) ! to check, this bc is not used for peridoic z
@@ -860,7 +860,7 @@ contains
        call multiple_cylindrical_rn(accp_xpencil, dm%dccp, dm%rci, 1, IPENCIL(1)) ! qz/r
        call transpose_x_to_y(accp_xpencil, accp_ypencil, dm%dccp)
        call Get_y_midp_C2P_3D(accp_ypencil, qzriy_cpp_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_qzr)
-       !call estimate_radial_xpx_on_axis(qzriy_cpp_ypencil, dm%dcpp, IPENCIL(2), dm)
+       !call axis_estimating_radial_xpx(qzriy_cpp_ypencil, dm%dcpp, IPENCIL(2), dm)
       ! !if(dm%rp(1)<MINP) qzriy_cpp_ypencil(:, 1, :) = ZERO !check ! qz/r = 0 at r=0 due to continuity and smoothness of the velocity field.
       ! !write(*,*)'qzriy_cpp_ypencil', qzriy_cpp_ypencil(1, 1:4, 1)
        call transpose_y_to_z(qzriy_cpp_ypencil, qzriy_cpp_zpencil, dm%dcpp)
@@ -879,7 +879,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
         ! acpc_xpencil = fl%gy
         ! call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! gr/r
-        ! call estimate_radial_xpx_on_axis(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
+        ! call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
         ! call transpose_x_to_y(acpc_xpencil, acpc_ypencil, dm%dcpc)
         ! call transpose_y_to_z(acpc_ypencil, acpc_zpencil, dm%dcpc)
         ! call Get_z_midp_C2P_3D(acpc_zpencil, acpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qz, dm%fbcz_gyr)
@@ -1369,7 +1369,7 @@ contains
     if(dm%icoordinate == ICYLINDRICAL) then
       ! acpp_zpencil = qyrdz_cpp_zpencil ! acpp_zpencil = d(qr/r)/dz
       ! call multiple_cylindrical_rn(acpp_zpencil, dm%dcpp, dm%rpi, 1, IPENCIL(3)) ! acpp_zpencil = 1/r * d(qr/r)/dz
-      ! call estimate_radial_xpx_on_axis(acpp_zpencil1, dm%dcpp, IPENCIL(3), dm)    ! 
+      ! call axis_estimating_radial_xpx(acpp_zpencil1, dm%dcpp, IPENCIL(3), dm)    ! 
       ! acpp_zpencil1 = qziy_cpp_zpencil ! acpp_zpencil1 = (qz)^r
       ! call multiple_cylindrical_rn(acpp_zpencil1, dm%dcpp, dm%rpi, 1, IPENCIL(3)) ! acpp_zpencil1 = 1/r * (dz)^r
       ! call estimate_azimuthal_xpx_on_axis(acpp_zpencil1, dm%dcpp, IPENCIL(3), dm)  
@@ -1702,7 +1702,7 @@ contains
       !------bulk------
       ! acpp_ypencil = qydz_cpp_ypencil
       ! call multiple_cylindrical_rn(acpp_ypencil, dm%dcpp, dm%rpi, 2, IPENCIL(2))
-      ! call estimate_radial_xpx_on_axis(acpp_ypencil, dm%dcpp, IPENCIL(2), dm)
+      ! call axis_estimating_radial_xpx(acpp_ypencil, dm%dcpp, IPENCIL(2), dm)
       ! acpp_ypencil = qzdy_cpp_ypencil + qyr2dz_cpp_ypencil
       ! acpp_ypencil1 = qziy_cpp_ypencil
       ! call multiple_cylindrical_rn(acpp_ypencil1, dm%dcpp, dm%rpi, 1, IPENCIL(2))
