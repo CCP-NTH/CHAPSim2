@@ -838,7 +838,7 @@ module cylindrical_rn_mod
   private :: transpose_from_y_pencil
   private :: get_dimensions
 
-  public :: estimate_radial_xpx_on_axis
+  public :: axis_estimating_radial_xpx
   !public :: estimate_azimuthal_xpx_on_axis
   public :: multiple_cylindrical_rn
   public :: multiple_cylindrical_rn_xx4
@@ -875,7 +875,7 @@ contains
   !============================================================================
   ! Estimate radial component on the axis
   !============================================================================
-  subroutine estimate_radial_xpx_on_axis(var, dtmp, pencil, dm)
+  subroutine axis_estimating_radial_xpx(var, dtmp, pencil, dm)
     use math_mod
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
@@ -895,11 +895,11 @@ contains
     call transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
     ! Apply symmetry condition to find neighboring points
     do k = 1, dtmp%zsz(3)
-      var_zpencil1(:, :, k) = var_zpencil(:, :, dm%knc_sym(k))
+      var_zpencil1(:, :, k) = - var_zpencil(:, :, dm%knc_sym(k))
     end do
     ! Transpose back to y-pencil and get the multiple valued ur at axis
     call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
-    var_ypencil1(:, 1, :) = (var_ypencil1(:, 2, :) - var_ypencil(:, 2, :)) * HALF
+    var_ypencil1(:, 1, :) = (var_ypencil1(:, 2, :) + var_ypencil(:, 2, :)) * HALF
     ! Transpose to z-pencil for decomposition
     call transpose_y_to_z(var_ypencil1, var_zpencil1, dtmp)
 
@@ -927,7 +927,7 @@ contains
     ! Transpose back to the original pencil
     call transpose_from_z_pencil(var_zpencil1, var, dtmp, pencil)
 
-  end subroutine estimate_radial_xpx_on_axis
+  end subroutine axis_estimating_radial_xpx
 
   !============================================================================
   ! Multiply cylindrical variable by r^n
@@ -1018,7 +1018,7 @@ contains
     do k = 1, nz
       do i = 1, nx
         if (r(1) > (MAXP * HALF)) then
-          ! Axis handling using estimate_azimuthal_xpx_on_axis or estimate_radial_xpx_on_axis
+          ! Axis handling using estimate_azimuthal_xpx_on_axis or axis_estimating_radial_xpx
         else
           var(i, 1, k) = var(i, 1, k) * (r(1)**n)
         end if
