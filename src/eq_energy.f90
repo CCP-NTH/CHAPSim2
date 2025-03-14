@@ -303,7 +303,7 @@ contains
     acpc_ypencil = - gy_cpc_ypencil * hEnth_cpc_ypencil
     !------b.c.------
     if(is_fbcy_velo_required) then
-      call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm)
+      call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
     else
       fbcy_c4c = MAXP
     end if
@@ -374,7 +374,7 @@ contains
     call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rp, 1, IPENCIL(2))
     !------B.C.------
     if(is_fbcx_velo_required) then
-      call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm)
+      call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
     else
       fbcy_c4c = MAXP
     end if  

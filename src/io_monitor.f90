@@ -250,7 +250,7 @@ contains
     end if
     if(dm%icoordinate == ICYLINDRICAL) then
       call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
-      call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm)
+      call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, is_reversed = .true.)
     end if
     call Get_area_average_2d_for_fbcy(dm, dm%dcpc, acpc_ypencil, bulk_fbcy, SPACE_INTEGRAL, 'vary')
     !area averaged mass flux - z - boundary: rho*uz

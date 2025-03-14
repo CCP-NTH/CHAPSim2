@@ -217,7 +217,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
 !> \param[inout]         
 !==========================================================================================================
-  subroutine Check_cfl_diffusion(re, dm)
+  subroutine Check_cfl_diffusion(fl, dm)
     use parameters_constant_mod
     use udf_type_mod
     use mpi_mod
@@ -225,7 +225,7 @@ contains
     use print_msg_mod
     
     implicit none
-    real(WP), intent(in) :: re
+    type(t_flow), intent(in) :: fl
     type(t_domain), intent(in) :: dm
 
     real(WP) :: cfl_diff, cfl_diff_work, rtmp, dyi, dtmax, dtmax_work
@@ -258,8 +258,8 @@ contains
       end do
     end do 
 
-    dtmax = ONE/(TWO*re * cfl_diff)
-    cfl_diff = cfl_diff * TWO * dm%dt * re
+    dtmax = ONE/(TWO*fl%rre * cfl_diff)
+    cfl_diff = cfl_diff * TWO * dm%dt * fl%rre
 
     !call mpi_barrier(MPI_COMM_WORLD, ierror)
     var(1:3) = rmax(1:3)

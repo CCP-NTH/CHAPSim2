@@ -359,6 +359,8 @@ end function
     integer :: k
     real(WP) :: sign
 
+    !if (dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
+
     sign = ONE
 !----------------------------------------------------------------------------------------------------------
 !   transpose from x to z
@@ -415,8 +417,8 @@ end function
             is_on_axis = .true., is_reversed = .true.)
     acpc_xpencil = fl%qy
     call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! qr/r
-    call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
-    call extract_dirichlet_fbcy(dm%fbcy_qyr, acpc_xpencil, dm%dcpc, dm)
+    call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm, is_reversed = .true.)
+    call extract_dirichlet_fbcy(dm%fbcy_qyr, acpc_xpencil, dm%dcpc, dm, is_reversed = .true.)
 !----------------------------------------------------------------------------------------------------------
 !   Update qz boundary condition in y-direction (interior cell center)
 !----------------------------------------------------------------------------------------------------------
@@ -429,25 +431,10 @@ end function
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_pr(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_pr for the centre of the pipe.') ! 
     call axis_mirroring_interior_fbcy(fl%pres, dm%fbcy_pr, dm%knc_sym, dm%dccc)
-    return
-  end subroutine
-
-!==========================================================================================================
-!==========================================================================================================
-  subroutine update_fbcy_cc_thermo_halo(fl, tm, dm)  ! for cylindrical only
-    use thermo_info_mod
-    use find_max_min_ave_mod
-    use cylindrical_rn_mod
-    implicit none 
-    type(t_domain), intent(inout) :: dm
-    type(t_thermo), intent(in)    :: tm
-    type(t_flow),   intent(inout) :: fl
-    real(WP) :: fbcy(dm%dccc%ysz(1), 4, dm%dccc%ysz(3))
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
-
-    ! Check if thermo is enabled and the case and coordinate system are valid
-    if (.not. dm%is_thermo .or. dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
-    
+!----------------------------------------------------------------------------------------------------------
+!   Thermal variables
+!----------------------------------------------------------------------------------------------------------
+    if(dm%is_thermo) then
 !----------------------------------------------------------------------------------------------------------
 !   ! Update gx boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
@@ -469,6 +456,28 @@ end function
     call axis_mirroring_interior_fbcy(fl%gz, dm%fbcy_gz, dm%knc_sym, dm%dccp, is_reversed = .true.)
     !dm%fbcy_gzr(:, 1, :) = dm%fbcy_gz(:, 1, :) * dm%rci(1)
     !dm%fbcy_gzr(:, 3, :) = dm%fbcy_gz(:, 3, :) * dm%rci(2)
+    end if
+
+
+    return
+  end subroutine
+
+!==========================================================================================================
+!==========================================================================================================
+  subroutine update_fbcy_cc_thermo_halo(fl, tm, dm)  ! for cylindrical only
+    use thermo_info_mod
+    use find_max_min_ave_mod
+    use cylindrical_rn_mod
+    implicit none 
+    type(t_domain), intent(inout) :: dm
+    type(t_thermo), intent(in)    :: tm
+    type(t_flow),   intent(inout) :: fl
+    real(WP) :: fbcy(dm%dccc%ysz(1), 4, dm%dccc%ysz(3))
+    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
+
+    ! Check if thermo is enabled and the case and coordinate system are valid
+    if (.not. dm%is_thermo .or. dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
+    
 !----------------------------------------------------------------------------------------------------------
 !   ! Update thermo boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------

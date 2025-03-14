@@ -875,27 +875,34 @@ contains
   !============================================================================
   ! Estimate radial component on the axis
   !============================================================================
-  subroutine axis_estimating_radial_xpx(var, dtmp, pencil, dm)
+  subroutine axis_estimating_radial_xpx(var, dtmp, pencil, dm, is_reversed)
     use math_mod
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
     type(t_domain), intent(in)    :: dm
-    real(WP), intent(inout)      :: var(:, :, :)
-    integer, intent(in)          :: pencil
+    real(WP), intent(inout)       :: var(:, :, :)
+    integer, intent(in)           :: pencil
+    logical, optional, intent(in) :: is_reversed
 
     real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil, var_ypencil1
     real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil, var_zpencil1
     real(WP), dimension(dtmp%zsz(1)) :: uz, uy
     integer :: k, i
-    real(WP) :: theta
+    real(WP) :: theta, sign
 
+    if (dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
+
+    sign = ONE
+    if (present(is_reversed)) then
+      if(is_reversed) sign = - ONE
+    end if
     ! Transpose input data to z-pencil
     call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
     ! Transpose input data to y-pencil
     call transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
     ! Apply symmetry condition to find neighboring points
     do k = 1, dtmp%zsz(3)
-      var_zpencil1(:, :, k) = - var_zpencil(:, :, dm%knc_sym(k))
+      var_zpencil1(:, :, k) = sign * var_zpencil(:, :, dm%knc_sym(k))
     end do
     ! Transpose back to y-pencil and get the multiple valued ur at axis
     call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
@@ -927,6 +934,7 @@ contains
     ! Transpose back to the original pencil
     call transpose_from_z_pencil(var_zpencil1, var, dtmp, pencil)
 
+    return
   end subroutine axis_estimating_radial_xpx
 
   !============================================================================

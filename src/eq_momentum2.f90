@@ -304,7 +304,10 @@ contains
     real(WP), dimension( dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3) ) :: accp_test
     real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc_test
 #endif 
-    real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: apcc_xpencil
+    real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: apcc_xpencil, &
+                                                                             apcc_xpencil1, &
+                                                                             apcc_xpencil2, &
+                                                                             apcc_xpencil3
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: accc_xpencil
     real(WP), dimension( dm%dppc%xsz(1), dm%dppc%xsz(2), dm%dppc%xsz(3) ) :: appc_xpencil, appc_xpencil1
     real(WP), dimension( dm%dpcp%xsz(1), dm%dpcp%xsz(2), dm%dpcp%xsz(3) ) :: apcp_xpencil
@@ -320,7 +323,10 @@ contains
     real(WP), dimension( dm%dpcp%zsz(1), dm%dpcp%zsz(2), dm%dpcp%zsz(3) ) :: apcp_zpencil
     real(WP), dimension( dm%dcpp%zsz(1), dm%dcpp%zsz(2), dm%dcpp%zsz(3) ) :: acpp_zpencil, acpp_zpencil1
     real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: accc_zpencil, accc_zpencil1
-    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil
+    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil, &
+                                                                             accp_zpencil1, &
+                                                                             accp_zpencil2, &
+                                                                             accp_zpencil3
     real(WP), dimension( dm%dcpc%zsz(1), dm%dcpc%zsz(2), dm%dcpc%zsz(3) ) :: acpc_zpencil, acpc_zpencil1
     real(WP), dimension( dm%dpcc%zsz(1), dm%dpcc%zsz(2), dm%dpcc%zsz(3) ) :: apcc_zpencil
 
@@ -337,7 +343,7 @@ contains
 
     real(WP), dimension( dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3) ) :: fbcy_c4c
     real(WP), dimension( dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3) ) :: fbcy_c4c1
-    real(WP), dimension( dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3) ) :: fbcy_div_c4c
+    real(WP), dimension( dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3) ) :: fbcy_div_c4c, fbcy_div_c4c1
     real(WP), dimension( dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3) ) :: fbcy_mu_c4c
 
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), 4 ) :: fbcz_cc4
@@ -446,7 +452,7 @@ contains
       call transpose_y_to_z(accp_ypencil, qxdx_ccp_zpencil, dm%dccp) 
     end if
 #ifdef DEBUG_STEPS
-    write(*,*) '    qx preparation ...'
+    call Print_debug_mid_msg('qx preparation ... done.')
 #endif
 !----------------------------------------------------------------------------------------------------------
 !    qy
@@ -490,7 +496,7 @@ contains
       !qyix_ppc_xpencil --> qydy_pcc_xpencil  for div b.c.
       call transpose_x_to_y (qyix_ppc_xpencil, appc_ypencil, dm%dppc)
       if(is_fbcy_velo_required) then
-        call extract_dirichlet_fbcy(fbcy_p4c, appc_ypencil, dm%dppc, dm)
+        call extract_dirichlet_fbcy(fbcy_p4c, appc_ypencil, dm%dppc, dm, is_reversed = .true.)
       else
         fbcy_p4c = MAXP
       end if
@@ -510,7 +516,7 @@ contains
       !acpp_zpencil = qyiz_cpp_zpencil
       call transpose_z_to_y(acpp_zpencil, acpp_ypencil, dm%dcpp)
       if(is_fbcy_velo_required) then
-        call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm)
+        call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm, is_reversed = .true.)
       else
         fbcy_c4p = MAXP
       end if
@@ -518,7 +524,7 @@ contains
       call transpose_y_to_z(accp_ypencil, qydy_ccp_zpencil, dm%dpcc) 
     end if
 #ifdef DEBUG_STEPS
-    write(*,*) '    qy preparation ...'
+     call Print_debug_mid_msg('qy preparation ... done.')
 #endif
 !----------------------------------------------------------------------------------------------------------
 !    qz 
@@ -600,63 +606,7 @@ contains
       call Get_z_1der_C2P_3D(qziz_ccc_zpencil, qzdz_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_qz, dm%fbcz_qz)
     end if
 #ifdef DEBUG_STEPS
-    write(*,*) '    qz preparation ...'
-#endif
-!==========================================================================================================
-! preparation of div
-! div = qxdx + 1/r * qydy + 1/r^2 qzdz
-!==========================================================================================================
-    ! div_tmp = qxdx
-    div_ccc_xpencil  = ZERO 
-    div_ccc_xpencil = div_ccc_xpencil + qxdx_ccc_xpencil !
-
-    ! div_tmp = qxdx + 1/r * qydy
-    accc_ypencil = qydy_ccc_ypencil
-    if(dm%icoordinate == ICYLINDRICAL) &
-    call multiple_cylindrical_rn(accc_ypencil, dm%dccc, dm%rci, 1, IPENCIL(2))
-    call transpose_y_to_x (accc_ypencil, accc_xpencil, dm%dccc)   
-    div_ccc_xpencil = div_ccc_xpencil + accc_xpencil
-
-    ! div_tmp = qxdx + 1/r * qydy + 1/r^2 qzdz
-    accc_zpencil = qzdz_ccc_zpencil
-    if(dm%icoordinate == ICYLINDRICAL) &
-    call multiple_cylindrical_rn(accc_zpencil, dm%dccc, dm%rci, 2, IPENCIL(3))
-    call transpose_z_to_y (accc_zpencil, accc_ypencil, dm%dccc)   
-    call transpose_y_to_x (accc_ypencil, accc_xpencil, dm%dccc)   
-    div_ccc_xpencil = div_ccc_xpencil + accc_xpencil
-    call transpose_x_to_y (div_ccc_xpencil, div_ccc_ypencil, dm%dccc)
-    call transpose_y_to_z (div_ccc_ypencil, div_ccc_zpencil, dm%dccc)
-    ! bc for div
-    if(is_fbcx_velo_required) then
-      call Get_x_1der_P2P_3D(fl%qx, qxdx_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_qx, dm%fbcx_qx)
-      fbcx_div_4cc(1, :, :) = qxdx_pcc_xpencil(1, :, :) + &
-                              qydy_pcc_xpencil(1, :, :) + &
-                              qzdz_pcc_xpencil(1, :, :)
-      fbcx_div_4cc(2, :, :) = qxdx_pcc_xpencil(dm%dpcc%xsz(1), :, :) + &
-                              qydy_pcc_xpencil(dm%dpcc%xsz(1), :, :) + &
-                              qzdz_pcc_xpencil(dm%dpcc%xsz(1), :, :)
-      fbcx_div_4cc(3:4, :, :) = fbcx_div_4cc(1:2, :, :)
-    end if
-    if(is_fbcy_velo_required) then
-      fbcy_div_c4c(:, 1, :) = qxdx_cpc_ypencil(:, 1, :) + &
-                              qydy_cpc_ypencil(:, 1, :) + &
-                              qzdz_cpc_ypencil(:, 1, :)
-      fbcy_div_c4c(:, 2, :) = qxdx_cpc_ypencil(:, dm%dcpc%ysz(2), :) + &
-                              qydy_cpc_ypencil(:, dm%dcpc%ysz(2), :) + &
-                              qzdz_cpc_ypencil(:, dm%dcpc%ysz(2), :)
-      fbcy_div_c4c(:, 3:4, :) = fbcy_div_c4c(:, 1:2, :)
-    end if
-    if(is_fbcz_velo_required) then
-      fbcz_div_cc4(:, :, 1) = qxdx_ccp_zpencil(:, :, 1) + &
-                              qydy_ccp_zpencil(:, :, 1) + &
-                              qzdz_ccp_zpencil(:, :, 1)
-      fbcz_div_cc4(:, :, 2) = qxdx_ccp_zpencil(:, :, dm%dccp%zsz(3)) + &
-                              qydy_ccp_zpencil(:, :, dm%dccp%zsz(3)) + &
-                              qzdz_ccp_zpencil(:, :, dm%dccp%zsz(3))
-      fbcz_div_cc4(:, :, 3:4) = fbcz_div_cc4(:, :, 1:2)
-    end if
-#ifdef DEBUG_STEPS
-    write(*,*) '    div preparation ...'
+     call Print_debug_mid_msg('qz preparation ... done.')
 #endif
 !==========================================================================================================
 ! preparation of intermediate variables to be used - thermal only
@@ -695,7 +645,7 @@ contains
       call transpose_z_to_y (apcp_zpencil, apcp_ypencil, dm%dpcc)!qxiz_pcp_ypencil
       call transpose_y_to_x (apcp_ypencil, gxiz_pcp_xpencil, dm%dpcp)
 #ifdef DEBUG_STEPS
-    write(*,*) '    gx preparation ...'
+      call Print_debug_mid_msg('gx preparation ... done.')
 #endif
 !----------------------------------------------------------------------------------------------------------
 !    gy
@@ -715,7 +665,7 @@ contains
       call Get_z_midp_C2P_3D(acpc_zpencil, acpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qy, dm%fbcz_gy)
       call transpose_z_to_y(acpp_zpencil, gyiz_cpp_ypencil, dm%dcpp)
 #ifdef DEBUG_STEPS
-    write(*,*) '    gy preparation ...'
+      call Print_debug_mid_msg('gy preparation ... done.')
 #endif
 !----------------------------------------------------------------------------------------------------------
 !    gz 
@@ -740,8 +690,8 @@ contains
         call transpose_z_to_y(gziz_ccc_zpencil, gziz_ccc_ypencil, dm%dccc)
       end if
 #ifdef DEBUG_STEPS
-    write(*,*) '    qz preparation ...'
-#endif     
+      call Print_debug_mid_msg('gz preparation ... done.')
+#endif   
 !----------------------------------------------------------------------------------------------------------
 !    m = mu_ccc_xpencil <need BCx>
 !             BCx:|-->mu_4cc_xpencil
@@ -800,14 +750,14 @@ contains
       end if
 
       if(is_fbcy_velo_required) then
-        call extract_dirichlet_fbcy(fbcy_mu_c4c, acpc_ypencil, dm%dcpc, dm)
+        call extract_dirichlet_fbcy(fbcy_mu_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .false.)
       end if
 
       if(is_fbcz_velo_required) then
         call extract_dirichlet_fbcz(fbcz_mu_cc4, accp_zpencil, dm%dccp)
       end if
 #ifdef DEBUG_STEPS
-    write(*,*) '    mu preparation ...'
+      call Print_debug_mid_msg('mu preparation ... done.')
 #endif
     end if
 
@@ -827,7 +777,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
       acpc_xpencil = fl%qy
       call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! qr/r
-      call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
+      call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm, is_reversed = .true.)
       call transpose_x_to_y(acpc_xpencil, qyr_ypencil, dm%dcpc) ! acpc_ypencil = qyr_ypencil
       call Get_y_midp_P2C_3D(qyr_ypencil, qyriy_ccc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy, dm%fbcy_qyr)
       call transpose_y_to_z(qyriy_ccc_ypencil, qyriy_ccc_zpencil, dm%dccc)
@@ -841,13 +791,13 @@ contains
 
       acpc_xpencil = fl%qy
       call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 2, IPENCIL(1)) ! qr/r^2
-      call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
+      call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm, is_reversed = .true.)
       call transpose_x_to_y(acpc_xpencil, qyr2_ypencil, dm%dcpc) ! acpc_ypencil = qr/r^2_ypencil
       call transpose_y_to_z(qyr2_ypencil, acpc_zpencil, dm%dcpc)
       call Get_z_1der_C2P_3D(acpc_zpencil, qyr2dz_cpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qy, dm%fbcz_qyr) ! to check, this bc is not used for peridoic z
       call transpose_z_to_y(qyr2dz_cpp_zpencil, qyr2dz_cpp_ypencil, dm%dcpp)
 #ifdef DEBUG_STEPS
-    write(*,*) '    qyr preparation ...'
+      call Print_debug_mid_msg('qyr preparation ... done.')
 #endif
 !----------------------------------------------------------------------------------------------------------
 !    qz/r=qzr
@@ -870,7 +820,7 @@ contains
       ! call Get_z_midp_P2C_3D(accp_zpencil, accc_zpencil, dm, dm%iAccuracy, dm%ibcz_qz, dm%fbcz_qzr)
       ! call transpose_z_to_y(accc_zpencil, qzriz_ccc_ypencil, dm%dccc)
 #ifdef DEBUG_STEPS
-    write(*,*) '    qzr preparation ...'
+      call Print_debug_mid_msg('qzr preparation ... done.')
 #endif
       ! if(dm%is_thermo) then
 !----------------------------------------------------------------------------------------------------------
@@ -905,6 +855,81 @@ contains
     !   end if
 
     end if
+!==========================================================================================================
+! preparation of div
+! div = qxdx + 1/r * qydy + 1/r qzdz
+! r * div = r * qxdx + qydy + qzdz
+!==========================================================================================================
+    ! r * div_tmp = r * qxdx
+    div_ccc_xpencil  = ZERO 
+    accc_xpencil = qxdx_ccc_xpencil
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(accc_xpencil, dm%dccc, dm%rc, 1, IPENCIL(1))
+    div_ccc_xpencil = div_ccc_xpencil + accc_xpencil !
+
+    ! r * div_tmp = r * qxdx + qydy
+    call transpose_y_to_x (qydy_ccc_ypencil, accc_xpencil, dm%dccc)   
+    div_ccc_xpencil = div_ccc_xpencil + accc_xpencil
+
+    ! r * div_tmp = r * qxdx + qydy + qzdz
+    call transpose_z_to_y (qzdz_ccc_zpencil, accc_ypencil, dm%dccc)   
+    call transpose_y_to_x (accc_ypencil, accc_xpencil, dm%dccc)   
+    div_ccc_xpencil = div_ccc_xpencil + accc_xpencil
+
+    ! div_tmp = (r * div_tmp) / r
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(div_ccc_xpencil, dm%dccc, dm%rci, 1, IPENCIL(1))
+    call transpose_x_to_y (div_ccc_xpencil, div_ccc_ypencil, dm%dccc)
+    call transpose_y_to_z (div_ccc_ypencil, div_ccc_zpencil, dm%dccc)
+    
+    ! fbcx_div_4cc, qxdx + 1/r * qydy + 1/r qzdz
+    if(is_fbcx_velo_required) then
+      call Get_x_1der_P2P_3D(fl%qx, qxdx_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_qx, dm%fbcx_qx)
+      apcc_xpencil1 = qxdx_pcc_xpencil
+      if(dm%icoordinate == ICYLINDRICAL) &
+      call multiple_cylindrical_rn(apcc_xpencil1, dm%dpcc, dm%rc, 1, IPENCIL(1))
+      apcc_xpencil2 = qydy_pcc_xpencil
+      apcc_xpencil3 = qzdz_pcc_xpencil
+      apcc_xpencil = apcc_xpencil1 + apcc_xpencil2 + apcc_xpencil3
+      if(dm%icoordinate == ICYLINDRICAL) &
+      call multiple_cylindrical_rn(apcc_xpencil, dm%dpcc, dm%rci, 1, IPENCIL(1))
+      call extract_dirichlet_fbcx(fbcx_div_4cc, apcc_xpencil, dm%dpcc)
+    end if
+
+    ! fbcy_div_c4c, qxdx + 1/r * qydy + 1/r qzdz
+    if(is_fbcy_velo_required) then
+      call extract_dirichlet_fbcy(fbcy_div_c4c1, qxdx_cpc_ypencil, dm%dcpc, dm, is_reversed = .false.)
+      fbcy_div_c4c = fbcy_div_c4c1
+
+      acpc_ypencil = qydy_cpc_ypencil
+      if(dm%icoordinate == ICYLINDRICAL) &
+      call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
+      call extract_dirichlet_fbcy(fbcy_div_c4c1, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
+      fbcy_div_c4c = fbcy_div_c4c + fbcy_div_c4c1
+
+      acpc_ypencil = qzdz_cpc_ypencil
+      if(dm%icoordinate == ICYLINDRICAL) &
+      call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
+      call extract_dirichlet_fbcy(fbcy_div_c4c1, acpc_ypencil, dm%dcpc, dm, is_reversed = .false.)
+      fbcy_div_c4c = fbcy_div_c4c + fbcy_div_c4c1
+    end if
+
+    ! fbcz_div_cc4
+    if(is_fbcz_velo_required) then
+
+      accp_zpencil1 = qxdx_ccp_zpencil
+      if(dm%icoordinate == ICYLINDRICAL) &
+      call multiple_cylindrical_rn(accp_zpencil1, dm%dccp, dm%rc, 1, IPENCIL(3))
+      accp_zpencil2 = qydy_ccp_zpencil
+      accp_zpencil3 = qzdz_ccp_zpencil
+      accp_zpencil  = accp_zpencil1 + accp_zpencil2 + accp_zpencil3
+      if(dm%icoordinate == ICYLINDRICAL) &
+      call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
+      call extract_dirichlet_fbcz(fbcz_div_cc4, accp_zpencil, dm%dccp)
+    end if
+#ifdef DEBUG_STEPS
+     call Print_debug_mid_msg('div preparation ... done.')
+#endif
 !==========================================================================================================
 ! The governing equation x is 
 ! d(gx)/dt = -        d(gxix * qxix)/dx                               ! conv-x-m1         
@@ -963,7 +988,7 @@ contains
     appc_ypencil = -appc_ypencil * qxiy_ppc_ypencil  
     !------b.c.------
     if(is_fbcy_velo_required) then
-      call extract_dirichlet_fbcy(fbcy_p4c, appc_ypencil, dm%dppc, dm)
+      call extract_dirichlet_fbcy(fbcy_p4c, appc_ypencil, dm%dppc, dm, is_reversed = .true.)
     else
       fbcy_p4c = MAXP
     end if
@@ -1069,7 +1094,7 @@ contains
     appc_ypencil = ( appc_ypencil + qydx_ppc_ypencil) * muixy_ppc_ypencil
     !------b.c.------
     if(is_fbcy_velo_required) then
-      call extract_dirichlet_fbcy(fbcy_p4c, appc_ypencil, dm%dppc, dm)
+      call extract_dirichlet_fbcy(fbcy_p4c, appc_ypencil, dm%dppc, dm, is_reversed = .true.)
     else
       fbcy_p4c = MAXP
     end if
@@ -1229,12 +1254,12 @@ contains
       ! ------b.c.------
       if(is_fbcy_velo_required) then
         call Get_y_midp_C2P_3D(qziz_ccc_ypencil, acpc_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_qz)
-        call extract_dirichlet_fbcy(fbcy_c4c1, acpc_ypencil, dm%dcpc, dm)
+        call extract_dirichlet_fbcy(fbcy_c4c1, acpc_ypencil, dm%dcpc, dm, is_reversed = .false.)
         if ( .not. dm%is_thermo) then
           fbcy_c4c = fbcy_c4c1
         else
           call Get_y_midp_C2P_3D(gziz_ccc_ypencil, acpc_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_gz)
-          call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm)
+          call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .false.)
         end if
         fbcy_c4c = fbcy_c4c * fbcy_c4c1
       else 
@@ -1331,9 +1356,9 @@ contains
       if(dm%icoordinate == ICYLINDRICAL) then
         call Get_y_midp_P2C_3D(qyr_ypencil,  accc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy, dm%fbcy_qyr)
         call Get_y_1der_C2P_3D(accc_ypencil, acpc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy, dm%fbcy_qyr) ! acpc_ypencil = d(qyr)/dy
-        call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm) ! fbcy_c4c = fbcy_dqyrdy_c4c
+        call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.) ! fbcy_c4c = fbcy_dqyrdy_c4c
       else if(dm%icoordinate == ICARTESIAN) then
-        call extract_dirichlet_fbcy(fbcy_c4c, qydy_cpc_ypencil, dm%dcpc, dm)
+        call extract_dirichlet_fbcy(fbcy_c4c, qydy_cpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
       else
       end if
       fbcy_c4c = ( fbcy_c4c - ONE_THIRD * fbcy_div_c4c) * TWO * fbcy_mu_c4c
@@ -1402,8 +1427,8 @@ contains
         ! acpc_ypencil = qzdz_cpc_ypencil
         ! call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
         ! call estimate_azimuthal_xpx_on_axis(acpc_ypencil, dm%dcpc, IPENCIL(2), dm) 
-        call extract_dirichlet_fbcy(fbcy_c4c, qzrdz_cpc_ypencil, dm%dcpc, dm) ! fbcy_c4c = (1/r * qzdz)_c4c
-        call extract_dirichlet_fbcy(fbcy_c4c1, qyr2_ypencil, dm%dcpc, dm) ! fbcy_c4c1 = (1/r * qyriy)_c4c
+        call extract_dirichlet_fbcy(fbcy_c4c, qzrdz_cpc_ypencil, dm%dcpc, dm, is_reversed = .false.) ! fbcy_c4c = (1/r * qzdz)_c4c
+        call extract_dirichlet_fbcy(fbcy_c4c1, qyr2_ypencil, dm%dcpc, dm, is_reversed = .true.) ! fbcy_c4c1 = (1/r * qyriy)_c4c
         fbcy_c4c = (fbcy_c4c - ONE_THIRD * fbcy_div_c4c + fbcy_c4c1) * TWO * fbcy_mu_c4c
       else
         fbcy_c4c = MAXP
@@ -1482,7 +1507,7 @@ contains
     call multiple_cylindrical_rn(acpp_ypencil, dm%dcpp, dm%rp, 1, IPENCIL(2)) 
     !------b.c.-----
     if(is_fbcy_velo_required) then
-      call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm)
+      call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm, is_reversed = .true.)
     else
       fbcy_c4p = MAXP
     end if
@@ -1607,12 +1632,9 @@ contains
 ! diff-x-m3 = d[muixz * (qzdx + 1/r * qxdz)]/dx                            
 !----------------------------------------------------------------------------------------------------------
     !------bulk------
-    if(dm%icoordinate == ICYLINDRICAL) then
-      apcp_xpencil = qxdz_pcp_xpencil
-      call multiple_cylindrical_rn(apcp_xpencil, dm%dpcp, dm%rci, 1, IPENCIL(1))
-    else
-      apcp_xpencil = qxdz_pcp_xpencil
-    end if
+    apcp_xpencil = qxdz_pcp_xpencil
+    if(dm%icoordinate == ICYLINDRICAL) &
+    call multiple_cylindrical_rn(apcp_xpencil, dm%dpcp, dm%rci, 1, IPENCIL(1))
     apcp_xpencil = ( qzdx_pcp_xpencil + apcp_xpencil) * muixz_pcp_xpencil
     !------b.c.-----
     if(is_fbcx_velo_required) then
@@ -1642,7 +1664,7 @@ contains
     acpp_ypencil = acpp_ypencil * muiyz_cpp_ypencil
     !------b.c.-----
     if(is_fbcy_velo_required) then
-      call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm)
+      call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm, is_reversed = .true.)
     else
       fbcy_c4p = MAXP
     end if
@@ -1710,7 +1732,7 @@ contains
       acpp_ypencil = (qzdy_cpp_ypencil + qyr2dz_cpp_ypencil - qzriy_cpp_ypencil) * muiyz_cpp_ypencil
       !------b.c.-----
       if(is_fbcy_velo_required) then
-        call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm)
+        call extract_dirichlet_fbcy(fbcy_c4p, acpp_ypencil, dm%dcpp, dm, is_reversed = .true.)
       else
         fbcy_c4p = MAXP
       end if

@@ -235,7 +235,7 @@ subroutine Solve_eqs_iteration
        if (thermo(i)%iteration      < iteration) iteration = thermo(i)%iteration
        if (thermo(i)%nIterThermoEnd > niter)     niter     = thermo(i)%nIterThermoEnd
      end if
-     call Check_cfl_diffusion (flow(i)%rre, domain(i))
+     call Check_cfl_diffusion (flow(i), domain(i))
   end do
 
   allocate(is_flow  (nxdomain)) 
@@ -269,6 +269,7 @@ subroutine Solve_eqs_iteration
           if (nrank == 0) write(*, wrtfmt1e) "thermal field physical time (s) : ", thermo(i)%time
           thermo(i)%time = thermo(i)%time  + domain(i)%dt
           thermo(i)%iteration = thermo(i)%iteration + 1
+          call Check_cfl_diffusion (flow(i), domain(i))
         end if
       end if
       !----------------------------------------------------------------------------------------------------------

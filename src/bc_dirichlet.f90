@@ -34,12 +34,12 @@ contains
     if(dtmp%xsz(1) /= dtmp%xen(1)) call Print_error_msg("Error. This is not x-pencil.")
     fbc(1,   :, :) = var(1,           :, :)
     fbc(2,   :, :) = var(dtmp%xsz(1), :, :)
-    fbc(3:4, :, :) = fbc(1:2,         :, :)
+    fbc(3:4, :, :) = fbc(1:2,         :, :)! not used.
 
     return
   end subroutine 
   !==========================================================================================================
-  subroutine extract_dirichlet_fbcy(fbc, var, dtmp, dm)
+  subroutine extract_dirichlet_fbcy(fbc, var, dtmp, dm, is_reversed)
     use udf_type_mod
     use parameters_constant_mod
     implicit none
@@ -47,11 +47,13 @@ contains
     type(t_domain), intent(in) :: dm
     real(WP), intent(out) :: fbc(dtmp%ysz(1), 4,           dtmp%ysz(3))
     real(WP), intent(in)  :: var(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3))
+    logical, optional, intent(in) :: is_reversed
 
     real(WP), dimension( dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3) ) :: var_zpencil, var_zpencil1 
     real(WP), dimension( dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3) ) :: var_ypencil1
 
     integer :: k
+    real(WP) :: sign
     !------------------------------------------------------------------------------------------------------
     ! Check if the input data is in y-pencil format
     !------------------------------------------------------------------------------------------------------
@@ -64,13 +66,20 @@ contains
     fbc(:, 4, :) = fbc(:, 2, :)! Upper boundary
     !------------------------------------------------------------------------------------------------------
     ! Handle special treatment of the lower boundary for pipe geometry (ICASE_PIPE)
+    ! this part is the same as axis_mirroring
     !------------------------------------------------------------------------------------------------------
     if(dm%icase == ICASE_PIPE) then
+      sign = ONE
+      if(present(is_reversed)) then
+        if(is_reversed) sign = -ONE
+      end if
+
       call transpose_y_to_z(var, var_zpencil, dtmp)
       do k = 1, dtmp%zsz(3)
-        var_zpencil1(:, :, k) = var_zpencil(:, :, dm%knc_sym(k))
+        var_zpencil1(:, :, k) = sign * var_zpencil(:, :, dm%knc_sym(k))
       end do
       call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
+      fbc(:, 1, :) = var_ypencil1(:, 1, :)
       fbc(:, 3, :) = var_ypencil1(:, 2, :)
     else
       fbc(:, 3, :) = var(:, 1, :)
