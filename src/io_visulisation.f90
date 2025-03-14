@@ -422,7 +422,7 @@ contains
         do k = 1, nnd_visu(3, dm%idom)
           do j = 1, nnd_visu(2, dm%idom)
             do i = 1, nnd_visu(1, dm%idom)
-              write(ioxdmf, *) xp(i, j, k), yp(i, j, k), zp(i, j, k)
+              write(ioxdmf, '(3ES15.7)') xp(i, j, k), yp(i, j, k), zp(i, j, k)
             end do
           end do
         end do
@@ -481,7 +481,7 @@ contains
       keyword = trim(varname)
       call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'bin', iter)
       if(.not.file_exists(data_flname_path)) &
-      call decomp_2d_write_one(X_PENCIL, var, trim(data_flname_path), opt_decomp=dtmp)
+      call decomp_2d_write_one(IPENCIL(1), var, trim(data_flname_path), opt_decomp=dtmp)
 
     else if(dm%visu_idim == Ivisu_1D_Y) then
       !to add 1D profile
@@ -489,7 +489,7 @@ contains
       keyword = trim(varname)
       call generate_file_name(data_flname, dm%idom, keyword, 'bin', iter)
       call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'bin', iter)
-      !call decomp_2d_write_plane(X_PENCIL, var, dm%visu_idim, PLANE_AVERAGE, trim(dir_data), &
+      !call decomp_2d_write_plane(IPENCIL(1), var, dm%visu_idim, PLANE_AVERAGE, trim(dir_data), &
       !      trim(data_flname), io_name, opt_decomp=dtmp) ! to update, to check
     end if
 !----------------------------------------------------------------------------------------------------------

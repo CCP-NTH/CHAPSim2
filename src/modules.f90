@@ -182,10 +182,6 @@ module parameters_constant_mod
                         ICASE_TGV2D   = 5, &
                         ICASE_BURGERS = 6, &
                         ICASE_ALGTEST = 7
-  integer, parameter :: NDIM = 3
-  integer, parameter :: X_PENCIL = 1, & ! x-pencil
-                        Y_PENCIL = 2, & ! y-pencil
-                        Z_PENCIL = 3    ! z-pencil
 !----------------------------------------------------------------------------------------------------------
 ! flow initilisation
 !----------------------------------------------------------------------------------------------------------     
@@ -233,6 +229,7 @@ module parameters_constant_mod
                         IBC_DATABASE    = 10, &! nominal only, = IBC_PERIODIC, bulk, 2 ghost layers, dynamic fbc
                         IBC_OTHERS      = 11   ! interpolation
   integer, parameter :: NBC = 5! u, v, w, p, T
+  integer, parameter :: NDIM = 3
   integer, parameter :: IDIM(3) = (/1, 2, 3/)
   integer, parameter :: IPENCIL(3) = (/1, 2, 3/)
   integer, parameter :: JBC_SELF = 1, &

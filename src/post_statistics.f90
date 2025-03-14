@@ -301,7 +301,7 @@ contains
     call generate_pathfile_name(data_flname_path, idm, trim(keyword), dir_data, 'bin', iter)
 
     !if(.not.file_exists(data_flname_path)) &
-    call decomp_2d_write_one(X_PENCIL, var, trim(data_flname_path), opt_decomp=dtmp)
+    call decomp_2d_write_one(IPENCIL(1), var, trim(data_flname_path), opt_decomp=dtmp)
 
 
     return
@@ -329,7 +329,7 @@ contains
     call generate_file_name(data_flname, idom, trim(keyword), 'bin', iter)
     if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(dir_data)//"/"//trim(data_flname))
 
-    call decomp_2d_read_one(X_PENCIL, var, trim(data_flname), &
+    call decomp_2d_read_one(IPENCIL(1), var, trim(data_flname), &
           opt_dirname=trim(dir_data), &
           opt_decomp=dtmp, &
           opt_reduce_prec=.false.)

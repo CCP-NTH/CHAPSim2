@@ -43,7 +43,7 @@ contains
     call generate_file_name(data_flname, idom, trim(keyword), 'bin', iter)
     if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(dir_data)//"/"//trim(data_flname))
 
-    call decomp_2d_read_one(X_PENCIL, var, trim(data_flname), &
+    call decomp_2d_read_one(IPENCIL(1), var, trim(data_flname), &
           opt_dirname=trim(dir_data), &
           opt_decomp=dtmp, &
           opt_reduce_prec=.false.)
@@ -63,7 +63,7 @@ contains
     character(120):: data_flname_path
 
     call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
-    call decomp_2d_write_one(X_PENCIL, var, trim(data_flname_path), opt_decomp=dtmp)
+    call decomp_2d_write_one(IPENCIL(1), var, trim(data_flname_path), opt_decomp=dtmp)
 
     return
   end subroutine
@@ -187,13 +187,13 @@ contains
 
     keyword = 'rhoh'
     call generate_file_name(data_flname, dm%idom, keyword, 'bin', tm%iteration)
-    call decomp_2d_read_one(X_PENCIL, tm%rhoh, trim(data_flname), &
+    call decomp_2d_read_one(IPENCIL(1), tm%rhoh, trim(data_flname), &
           opt_dirname=trim(dir_data), &
           opt_decomp=dm%dccc, &
           opt_reduce_prec=.false.)
     keyword = 'temp'
     call generate_file_name(data_flname, dm%idom, keyword, 'bin', tm%iteration)
-    call decomp_2d_read_one(X_PENCIL, tm%tTemp, trim(data_flname), &
+    call decomp_2d_read_one(IPENCIL(1), tm%tTemp, trim(data_flname), &
           opt_dirname=trim(dir_data), &
           opt_decomp=dm%dccc, &
           opt_reduce_prec=.false.)
@@ -301,8 +301,8 @@ contains
     !call decomp_2d_start_io(io_in2outlet, trim(data_flname_path))!
 
     !call decomp_2d_write_outflow(trim(data_flname_path), trim(keyword), niter, var, io_in2outlet, dtmp)
-    !call decomp_2d_write_plane(X_PENCIL, var, 1, dtmp%xsz(1), trim(data_flname_path), dtmp)
-    call decomp_2d_write_plane(X_PENCIL, var, data_flname_path, &
+    !call decomp_2d_write_plane(IPENCIL(1), var, 1, dtmp%xsz(1), trim(data_flname_path), dtmp)
+    call decomp_2d_write_plane(IPENCIL(1), var, data_flname_path, &
                                 opt_nplanes=niter, &
                                 opt_decomp = dtmp)
     !call decomp_2d_end_io(io_in2outlet, trim(data_flname_path))
@@ -453,7 +453,7 @@ contains
     !call decomp_2d_open_io (io_in2outlet, trim(data_flname_path), decomp_2d_read_mode)
     if(nrank == 0) call Print_debug_inline_msg("Read data on a plane from file: "//trim(data_flname_path))
     !call decomp_2d_read_inflow(trim(data_flname_path), trim(keyword), nfre, var, io_in2outlet, dtmp)
-    call decomp_2d_read_plane(X_PENCIL, var, data_flname_path, nfre, &
+    call decomp_2d_read_plane(IPENCIL(1), var, data_flname_path, nfre, &
                                 opt_decomp = dtmp)
 
     !decomp_2d_read_plane(ipencil, var, varname, nplanes, &
