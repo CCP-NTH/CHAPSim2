@@ -235,6 +235,7 @@ subroutine Solve_eqs_iteration
        if (thermo(i)%iteration      < iteration) iteration = thermo(i)%iteration
        if (thermo(i)%nIterThermoEnd > niter)     niter     = thermo(i)%nIterThermoEnd
      end if
+     call Check_cfl_diffusion (flow(i)%rre, domain(i))
   end do
 
   allocate(is_flow  (nxdomain)) 
@@ -278,7 +279,6 @@ subroutine Solve_eqs_iteration
         if (nrank == 0) write(*, wrtfmt1e) "flow field physical time (s) : ", flow(i)%time
         flow(i)%time = flow(i)%time + domain(i)%dt
         flow(i)%iteration = flow(i)%iteration + 1
-        call Check_cfl_diffusion (flow(i), domain(i))
         call Check_cfl_convection(flow(i)%qx, flow(i)%qy, flow(i)%qz, domain(i))
       end if
 
@@ -330,12 +330,14 @@ subroutine Solve_eqs_iteration
       if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
       if(is_flow(i)) then
         if(is_thermo(i)) then
-          call Find_max_min_3d(thermo(i)%tTemp, "T:   ", wrtfmt2ae)
-          call Find_max_min_3d(thermo(i)%rhoh,  "rhoh:", wrtfmt2ae)
+          call Find_max_min_3d(thermo(i)%tTemp, "T :", wrtfmt2ae)
+          call Find_max_min_3d(thermo(i)%rhoh,  "rhoh :", wrtfmt2ae)
         end if
-        call Find_max_min_3d(flow(i)%qx, "qx:  ", wrtfmt2ae)
-        call Find_max_min_3d(flow(i)%qy, "qy:  ", wrtfmt2ae)
-        call Find_max_min_3d(flow(i)%qz, "qz:  ", wrtfmt2ae)
+        call Find_max_min_3d(flow(i)%qx, "qx :", wrtfmt2ae)
+        call Find_max_min_3d(flow(i)%qy, "qy :", wrtfmt2ae)
+        call Find_max_min_3d(flow(i)%qz, "qz :", wrtfmt2ae)
+        call Find_max_min_3d(flow(i)%pres, "pr :", wrtfmt2ae)
+        call Find_max_min_3d(flow(i)%pcor, "ph :", wrtfmt2ae)
         call Check_element_mass_conservation(flow(i), domain(i), iter) 
       end if
       !----------------------------------------------------------------------------------------------------------

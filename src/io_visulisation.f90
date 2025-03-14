@@ -564,13 +564,16 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write data 
 !----------------------------------------------------------------------------------------------------------
-    keyword = trim(varname)
-    call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'dat', iter)
-    open(newunit = iofl, file = data_flname_path, action = "write", status="replace")
-    if(idim /= 2) call Print_error_msg('Error in direction')
-    do j = 1, dtmp%ysz(2)
-      write(iofl, *) j, dm%yc(j), var(j) 
-    end do
+    if(nrank == 0) then
+      keyword = trim(varname)
+      call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'dat', iter)
+      open(newunit = iofl, file = data_flname_path, action = "write", status="replace")
+      if(idim /= 2) call Print_error_msg('Error in direction')
+      do j = 1, dtmp%ysz(2)
+        write(iofl, *) j, dm%yc(j), var(j) 
+      end do
+      close(iofl)
+    end if
 
     return
   end subroutine 
@@ -603,6 +606,8 @@ contains
 
     ! Write pressure field (cell-centered)
     call process_and_write_field(fl%pres, dm, "pressure", trim(visu_filename), iteration, &
+                                N_DIRECTION)
+    call process_and_write_field(fl%pcor, dm, "phi", trim(visu_filename), iteration, &
                                 N_DIRECTION)
 
     ! Process and write velocity components (qx, qy, qz)

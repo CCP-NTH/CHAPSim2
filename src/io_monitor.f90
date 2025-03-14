@@ -131,6 +131,7 @@ contains
             ', local id = ', dm%probexid(1:3, nplc)
       end if
     end do
+    call mpi_barrier(MPI_COMM_WORLD, ierror)
 !----------------------------------------------------------------------------------------------------------
 ! create probe history file for flow
 !----------------------------------------------------------------------------------------------------------
@@ -147,10 +148,15 @@ contains
         open(newunit = myunit, file = trim(flname), status="new", action="write")
         write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
         write(myunit, *) "# probe pts location ",  dm%probexyz(1:3, i)
-        write(myunit, *) "# t, u, v, w, T" ! to add more instantanous or statistics
+        if(dm%is_thermo) then
+          write(myunit, *) "# t, u, v, w, p, phi, T" ! to add more instantanous or statistics
+        else
+          write(myunit, *) "# t, u, v, w, p, phi" ! to add more instantanous or statistics
+        end if
         close(myunit)
       end if
     end do
+    call mpi_barrier(MPI_COMM_WORLD, ierror)
 
     if(nrank == 0) call Print_debug_end_msg()
     return
@@ -286,7 +292,7 @@ contains
       if(ioerr /= 0) then
         error stop 'Problem openning conservation file'
       end if 
-      write(myunit, *) fl%time, fl%mcon(1:3), fl%tt_mass_change, dMKEdt
+      write(myunit, '(6ES13.5)') fl%time, fl%mcon(1:3), fl%tt_mass_change, dMKEdt
       close(myunit)
       ! write out history of bulk variables
       call generate_pathfile_name(flname, dm%idom, trim(fl_bulk), dir_moni, 'log')
@@ -296,9 +302,9 @@ contains
         error stop 'Problem openning bulk file'
       end if 
       if(dm%is_thermo .and. present(tm)) then
-        write(myunit, *) fl%time, fl%tt_kinetic_energy, bulk_qx, bulk_gx, bulk_T, bulk_h
+        write(myunit, '(6ES13.5)') fl%time, fl%tt_kinetic_energy, bulk_qx, bulk_gx, bulk_T, bulk_h
       else
-        write(myunit, *) fl%time, fl%tt_kinetic_energy, bulk_qx
+        write(myunit, '(3ES13.5)') fl%time, fl%tt_kinetic_energy, bulk_qx
       end if
       close(myunit)
     end if     
@@ -353,14 +359,16 @@ contains
         ix = dm%probexid(1, nplc)
         iy = dm%probexid(2, nplc)
         iz = dm%probexid(3, nplc)
+        !write(*,*) 'probe pts:', nrank, nplc, ix, iy, iz
         if(dm%is_thermo .and. present(tm)) then
-          write(myunit, *) fl%time, fl%qx(ix, iy, iz), fl%qy(ix, iy, iz), fl%qz(ix, iy, iz), tm%tTemp(ix, iy, iz)
+          write(myunit, '(7ES13.5)') fl%time, fl%qx(ix, iy, iz), fl%qy(ix, iy, iz), fl%qz(ix, iy, iz), &
+            fl%pres(ix, iy, iz), fl%pcor(ix, iy, iz), tm%tTemp(ix, iy, iz)
         else
-          write(myunit, *) fl%time, fl%qx(ix, iy, iz), fl%qy(ix, iy, iz), fl%qz(ix, iy, iz)
+          write(myunit, '(6ES13.5)') fl%time, fl%qx(ix, iy, iz), fl%qy(ix, iy, iz), fl%qz(ix, iy, iz), &
+            fl%pres(ix, iy, iz), fl%pcor(ix, iy, iz)
         end if
         close(myunit)
       end if
-      nplc = 0
     end do
 
     return

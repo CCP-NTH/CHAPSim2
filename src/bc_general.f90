@@ -45,7 +45,7 @@ module boundary_conditions_mod
   public  :: allocate_fbc_flow   ! applied once only
   public  :: allocate_fbc_thermo ! applied once only
 
-  private :: mirroring_interior_axis_fbcy
+  private :: axis_mirroring_interior_fbcy
   public  :: update_fbcy_cc_flow_halo   ! for pipe only, applied every NS, cc for circle central point and var stored in xcx
   public  :: update_fbcy_cc_thermo_halo ! for pipe only, applied every NS, cc for circle central point and var stored in xcx
 
@@ -345,33 +345,39 @@ end function
 
 !==========================================================================================================
 !==========================================================================================================
-  subroutine mirroring_interior_axis_fbcy(var_xpencil, fbcy, ksym, dtmp, opt_str)
+  subroutine axis_mirroring_interior_fbcy(var_xpencil, fbcy, ksym, dtmp, is_on_axis, is_reversed)
     type(DECOMP_INFO), intent(in) :: dtmp
     real(WP), intent(in) :: var_xpencil(:, :, :)
     real(WP), intent(inout) :: fbcy(:, :, :)
     integer, intent(in) :: ksym(:)
-    character(len = *), intent(in), optional :: opt_str
+    logical, intent(in), optional :: is_on_axis, is_reversed
 
     real(WP), dimension( dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3) ) :: var_ypencil
     real(WP), dimension( dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3) ) :: var_zpencil
     real(WP), dimension( dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3) ) :: var_zpencil1
 
     integer :: k
+    real(WP) :: sign
+
+    sign = ONE
 !----------------------------------------------------------------------------------------------------------
-!   all in z-pencil
-!   no overlap of values
+!   transpose from x to z
 !----------------------------------------------------------------------------------------------------------
     call transpose_x_to_y(var_xpencil, var_ypencil, dtmp)
-    if(present(opt_str) .and. opt_str == 'xpx') then
-      var_ypencil(:, 1, :) = ZERO
+
+    if(present(is_reversed)) then
+      if(is_reversed) sign = - ONE
+    end if
+
+    if(present(is_on_axis)) then
+      if(is_on_axis) var_ypencil(:, 1, :) = ZERO
     end if
     call transpose_y_to_z(var_ypencil, var_zpencil, dtmp)
 
     do k = 1, dtmp%zsz(3)
-      var_zpencil1(:, :, k) = var_zpencil(:, :, ksym(k))
+      var_zpencil1(:, :, k) = sign * var_zpencil(:, :, ksym(k))
     end do
     call transpose_z_to_y(var_zpencil1, var_ypencil, dtmp)
-
     fbcy(:, 1, :) = var_ypencil(:, 1, :)
     fbcy(:, 3, :) = var_ypencil(:, 2, :)
 
@@ -400,29 +406,29 @@ end function
 !   ! Update qx boundary condition in y-direction (interior cell center)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qx(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qx for the centre of the pipe.')
-    call mirroring_interior_axis_fbcy(fl%qx, dm%fbcy_qx, dm%knc_sym, dm%dpcc)
+    call axis_mirroring_interior_fbcy(fl%qx, dm%fbcy_qx, dm%knc_sym, dm%dpcc)
 !----------------------------------------------------------------------------------------------------------
 !   ! Update qy and qy/r boundary conditions in y-direction (on nodes)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qy for the centre of the pipe.')
-    call mirroring_interior_axis_fbcy(fl%qy, dm%fbcy_qy, dm%knc_sym, dm%dcpc, 'xpx')
+    call axis_mirroring_interior_fbcy(fl%qy, dm%fbcy_qy, dm%knc_sym, dm%dcpc, &
+            is_on_axis = .true., is_reversed = .true.)
     acpc_xpencil = fl%qy
     call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! qr/r
-    call estimate_radial_xpx_on_axis(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
+    call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm)
     call extract_dirichlet_fbcy(dm%fbcy_qyr, acpc_xpencil, dm%dcpc, dm)
 !----------------------------------------------------------------------------------------------------------
 !   Update qz boundary condition in y-direction (interior cell center)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qz(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qz for the centre of the pipe.') ! 
-    call mirroring_interior_axis_fbcy(fl%qz, dm%fbcy_qz, dm%knc_sym, dm%dccp)
+    call axis_mirroring_interior_fbcy(fl%qz, dm%fbcy_qz, dm%knc_sym, dm%dccp, is_reversed = .true.)
     dm%fbcy_qzr(:, 1, :) = dm%fbcy_qz(:, 1, :) * dm%rci(1) ! interior, not at axis
     dm%fbcy_qzr(:, 3, :) = dm%fbcy_qz(:, 3, :) * dm%rci(2)
 !----------------------------------------------------------------------------------------------------------
 !   Update pressure boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_pr(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_pr for the centre of the pipe.') ! 
-    call mirroring_interior_axis_fbcy(fl%pres, dm%fbcy_pr, dm%knc_sym, dm%dccc)
-
+    call axis_mirroring_interior_fbcy(fl%pres, dm%fbcy_pr, dm%knc_sym, dm%dccc)
     return
   end subroutine
 
@@ -446,20 +452,21 @@ end function
 !   ! Update gx boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qx(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_gx for the centre of the pipe.')
-    call mirroring_interior_axis_fbcy(fl%gx, dm%fbcy_gx, dm%knc_sym, dm%dpcc)
+    call axis_mirroring_interior_fbcy(fl%gx, dm%fbcy_gx, dm%knc_sym, dm%dpcc)
 !----------------------------------------------------------------------------------------------------------
 !   ! Update gy ang gy/r boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_gy for the centre of the pipe.')
-    call mirroring_interior_axis_fbcy(fl%gy, dm%fbcy_gy, dm%knc_sym, dm%dcpc, 'xpx')
+    call axis_mirroring_interior_fbcy(fl%gy, dm%fbcy_gy, dm%knc_sym, dm%dcpc, &
+            is_on_axis = .true., is_reversed = .true.)
     ! call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2)) ! qr/r
-    ! call estimate_radial_xpx_on_axis(acpc_ypencil, dm%dcpc, IPENCIL(2), dm)
+    ! call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm)
     ! call extract_dirichlet_fbcy(dm%fbcy_gyr, acpc_ypencil, dm%dcpc, dm)
 !----------------------------------------------------------------------------------------------------------
 !   ! Update gz boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qz(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qz for the centre of the pipe.') ! 
-    call mirroring_interior_axis_fbcy(fl%gz, dm%fbcy_gz, dm%knc_sym, dm%dccp)
+    call axis_mirroring_interior_fbcy(fl%gz, dm%fbcy_gz, dm%knc_sym, dm%dccp, is_reversed = .true.)
     !dm%fbcy_gzr(:, 1, :) = dm%fbcy_gz(:, 1, :) * dm%rci(1)
     !dm%fbcy_gzr(:, 3, :) = dm%fbcy_gz(:, 3, :) * dm%rci(2)
 !----------------------------------------------------------------------------------------------------------
@@ -467,7 +474,7 @@ end function
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_Tm(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_Tm for the centre of the pipe.') !
     fbcy = dm%fbcy_ftp%t
-    call mirroring_interior_axis_fbcy(tm%tTemp, fbcy, dm%knc_sym, dm%dccc)
+    call axis_mirroring_interior_fbcy(tm%tTemp, fbcy, dm%knc_sym, dm%dccc)
     dm%fbcy_ftp%t = fbcy
     call ftp_refresh_thermal_properties_from_T_undim_3D(dm%fbcy_ftp)
 

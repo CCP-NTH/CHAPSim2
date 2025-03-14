@@ -217,7 +217,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
 !> \param[inout]         
 !==========================================================================================================
-  subroutine Check_cfl_diffusion(fl, dm)
+  subroutine Check_cfl_diffusion(re, dm)
     use parameters_constant_mod
     use udf_type_mod
     use mpi_mod
@@ -225,7 +225,7 @@ contains
     use print_msg_mod
     
     implicit none
-    type(t_flow), intent(in) :: fl
+    real(WP), intent(in) :: re
     type(t_domain), intent(in) :: dm
 
     real(WP) :: cfl_diff, cfl_diff_work, rtmp, dyi, dtmax, dtmax_work
@@ -258,8 +258,8 @@ contains
       end do
     end do 
 
-    dtmax = ONE/(TWO*fl%rre * cfl_diff)
-    cfl_diff = cfl_diff * TWO * dm%dt *  fl%rre
+    dtmax = ONE/(TWO*re * cfl_diff)
+    cfl_diff = cfl_diff * TWO * dm%dt * re
 
     !call mpi_barrier(MPI_COMM_WORLD, ierror)
     var(1:3) = rmax(1:3)
@@ -271,7 +271,7 @@ contains
     cfl_diff_work = var(5)
 
     if(nrank == 0) then
-      write (*, wrtfmt1e) "Diffusion number :", cfl_diff_work
+      write (*, wrtfmt1el) "Diffusion number :", cfl_diff_work
       if(cfl_diff_work > ONE) then 
         call Print_warning_msg("Warning: Diffusion number is larger than 1. Numerical instability could occur.")
         write(*,*) 'Please reduce the time step size lower than ', dtmax_work
@@ -306,7 +306,7 @@ contains
     use find_max_min_ave_mod
     implicit none
 
-    type(t_domain),               intent(in) :: dm
+    type(t_domain),               intent(inout) :: dm
     real(WP), dimension(dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3)), intent(in) :: u
     real(WP), dimension(dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3)), intent(in) :: v
     real(WP), dimension(dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3)), intent(in) :: w
@@ -339,7 +339,7 @@ contains
                              dm%dccp%zsz(2), &
                              dm%dccp%zsz(3))
     !real(WP)   :: cfl_convection, cfl_convection_work
-    real(wp) :: dummy, dy
+    real(wp) :: cfl, dy
     integer :: j
 !----------------------------------------------------------------------------------------------------------
 ! Initialisation
@@ -391,12 +391,15 @@ contains
 !----------------------------------------------------------------------------------------------------------
     call transpose_z_to_y(var_zpencil, var_ypencil, dm%dccc)
     call transpose_y_to_x(var_ypencil, var_xpencil, dm%dccc)
-    call Find_maximum_absvar3d(var_xpencil, dummy, dm%dccc, "CFL (convection) :")
+    call Find_maximum_absvar3d(var_xpencil, cfl, dm%dccc, "CFL (convection) :")
 
-    ! if(nrank == 0) then
-    !   if(cfl_convection_work > ONE) call Print_warning_msg("Warning: CFL is larger than 1.")
-    !   write (*, wrtfmt1r) "  CFL (convection) :", cfl_convection_work
-    ! end if
+    if(cfl > ONE) then 
+      dm%dt = dm%dt / REAL(ceiling(cfl / 5.0_WP) * 5, WP)
+      if(nrank == 0) then
+        call Print_warning_msg("Warning: CFL is larger than 1.")
+        write(*, wrtfmt1e) 'dt reduced to ', dm%dt
+      end if
+    end if
     
     return
   end subroutine

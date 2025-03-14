@@ -1232,6 +1232,7 @@ contains
     use mpi_mod
     use parameters_constant_mod
     use typeconvert_mod
+    use wtformat_mod
     implicit none
 
     real(WP), intent(in)  :: var(:, :, :)
@@ -1278,11 +1279,6 @@ contains
     !call mpi_barrier(MPI_COMM_WORLD, ierror)
     call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
 
-
-    if(nrank == 0) then
-      write (*, '(3X, A33, 1ES19.12)') 'maximum '//trim(str), varmax_work
-    end if
-
 #ifdef DEBUG_STEPS 
     if(abs_wp(varmax_work - varmax) <= MINP) then
       call mpi_send(idg, 3, MPI_INTEGER, 0, 0, MPI_COMM_WORLD, ierror)
@@ -1298,8 +1294,11 @@ contains
       idg_work(3), '/'//int2str(idgmax(3))
 
     end if
-
     if(varmax_work > MAXVELO) stop ! test
+#else
+    if(nrank == 0) then
+      write (*, wrtfmt1el) 'maximum '//trim(str), varmax_work
+    end if
 #endif
     return
   end subroutine

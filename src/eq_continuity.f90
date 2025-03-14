@@ -392,6 +392,10 @@ contains
     call Find_maximum_absvar3d(div(nlayer+1  : n-nlayer, :, :), fl%mcon(2), dm%dccc, "Mass Consv. (bulk    ) =", nlayer+1  )
     call Find_maximum_absvar3d(div(n-nlayer+1: n,        :, :), fl%mcon(3), dm%dccc, "Mass Consv. (outlet 4) =", n-nlayer+1)
     
+    if(nrank == 0) then
+      if(fl%mcon(2) > 5.0E-13_WP .and. fl%iteration > 100 ) &
+      call Print_error_msg("Mass conservation is not strictly satisfied at the machine precision level.")
+    end if
 
     ! if(nrank == 0) then
     !   write (*, wrtfmt1e) "  Check Mass Conservation:", divmax
