@@ -15,7 +15,7 @@ contains
     
     write (*, *) 'ERROR: ' // msg
 
-    stop  'Execution terminated unexpectedly due to an error.'
+    error stop  'Execution terminated unexpectedly due to an error.'
 
     return
   end subroutine Print_error_msg
@@ -650,11 +650,11 @@ end module random_number_generation_mod
 
 ! ! this is wrong as it prefers the order of X, Y, Z
 !     if(dtmp%xst(1) == 1 .and. dtmp%xsz(1) == dtmp%xen(1)) then
-!       a = X_PENCIL
+!       a = IPENCIL(1)
 !     else if(dtmp%yst(2) == 1 .and. dtmp%ysz(2) == dtmp%yen(2)) then 
-!       a = Y_PENCIL
+!       a = IPENCIL(2)
 !     else if(dtmp%zst(3) == 1 .and. dtmp%zsz(3) == dtmp%zen(3)) then 
-!       a = Z_PENCIL
+!       a = IPENCIL(3)
 !     else
 !       call Print_error_msg("Error in finding which pencil.")
 !     end if
@@ -671,15 +671,15 @@ end module random_number_generation_mod
   !   integer, intent(in)  :: a(3)
   !   integer :: b(3)
 
-  !   if(which_pencil(dtmp) == X_PENCIL) then
+  !   if(which_pencil(dtmp) == IPENCIL(1)) then
   !     b(1) = dtmp%xst(1) + a(1) - 1
   !     b(2) = dtmp%xst(2) + a(2) - 1
   !     b(3) = dtmp%xst(3) + a(3) - 1
-  !   else if (which_pencil(dtmp) == Y_PENCIL) then
+  !   else if (which_pencil(dtmp) == IPENCIL(2)) then
   !     b(1) = dtmp%yst(1) + a(1) - 1
   !     b(2) = dtmp%yst(2) + a(2) - 1
   !     b(3) = dtmp%yst(3) + a(3) - 1
-  !   else if (which_pencil(dtmp) == Z_PENCIL) then
+  !   else if (which_pencil(dtmp) == IPENCIL(3)) then
   !     b(1) = dtmp%zst(1) + a(1) - 1
   !     b(2) = dtmp%zst(2) + a(2) - 1
   !     b(3) = dtmp%zst(3) + a(3) - 1
@@ -698,11 +698,11 @@ end module random_number_generation_mod
   !   integer, intent(in)  :: a
   !   integer :: b
 
-  !   if(which_pencil(dtmp) == X_PENCIL) then
+  !   if(which_pencil(dtmp) == IPENCIL(1)) then
   !     b = dtmp%xst(2) + a - 1
-  !   else if (which_pencil(dtmp) == Y_PENCIL) then
+  !   else if (which_pencil(dtmp) == IPENCIL(2)) then
   !     b = dtmp%yst(2) + a - 1
-  !   else if (which_pencil(dtmp) == Z_PENCIL) then
+  !   else if (which_pencil(dtmp) == IPENCIL(3)) then
   !     b = dtmp%zst(2) + a - 1
   !   else 
   !     call Print_error_msg("Error in local to global index conversion.")
@@ -875,7 +875,7 @@ contains
   !============================================================================
   ! Estimate radial component on the axis
   !============================================================================
-  subroutine axis_estimating_radial_xpx(var, dtmp, pencil, dm, is_reversed)
+  subroutine axis_estimating_radial_xpx(var, dtmp, pencil, dm, idir, is_reversed)
     use math_mod
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
@@ -883,6 +883,7 @@ contains
     real(WP), intent(inout)       :: var(:, :, :)
     integer, intent(in)           :: pencil
     logical, optional, intent(in) :: is_reversed
+    integer, intent(in)           :: idir
 
     real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil, var_ypencil1
     real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil, var_zpencil1
@@ -890,50 +891,87 @@ contains
     integer :: k, i
     real(WP) :: theta, sign
 
+    ! only for axis value
     if (dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
-
-    sign = ONE
-    if (present(is_reversed)) then
-      if(is_reversed) sign = - ONE
-    end if
-    ! Transpose input data to z-pencil
-    call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
-    ! Transpose input data to y-pencil
-    call transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
-    ! Apply symmetry condition to find neighboring points
-    do k = 1, dtmp%zsz(3)
-      var_zpencil1(:, :, k) = sign * var_zpencil(:, :, dm%knc_sym(k))
-    end do
-    ! Transpose back to y-pencil and get the multiple valued ur at axis
-    call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
-    var_ypencil1(:, 1, :) = (var_ypencil1(:, 2, :) + var_ypencil(:, 2, :)) * HALF
-    ! Transpose to z-pencil for decomposition
-    call transpose_y_to_z(var_ypencil1, var_zpencil1, dtmp)
-
-    ! below is eq(83) & (76) of https://doi.org/10.1016/j.jcp.2003.12.015 (Morinishi2004JCP)
-    ! coorindates like: https://en.m.wikipedia.org/wiki/File:3D_coordinate_system.svg
-    if(dtmp%zst(2) == 1) then ! for axis jj == 1 only
-      do i = 1, dtmp%zsz(1)
-        uy(i) = ZERO
-        uz(i) = ZERO
-        do k = 1, dtmp%zsz(3)
-          theta = dm%h(3) * real((k-1), WP)
-          uz(i) = uy(i) + var_zpencil1(i, 1, k) * cos_wp(theta)
-          uy(i) = uz(i) + var_zpencil1(i, 1, k) * sin_wp(theta)
-        end do
-        uy(i) = uy(i) * TWO / dtmp%zsz(3)
-        uz(i) = uz(i) * TWO / dtmp%zsz(3)
-
-        do k = 1, dtmp%zsz(3)
-          theta = dm%h(3) * real((k-1), WP)
-          var_zpencil1(i, 1, k) = uz(i) * cos_wp(theta) + uy(i) * sin_wp(theta)
-        end do
+    !
+    if(idir == IDIM(3)) then ! for qz
+      call transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
+      var_ypencil(:, 1, :) = ZERO ! zero qz at axis
+      call transpose_from_y_pencil(var_ypencil, var, dtmp, pencil)
+    else if(idir == IDIM(1)) then ! for ux, or scalars
+      call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
+      if(dtmp%zst(2) == 1) then  ! for axis jj == 1 only
+        do i = 1, dtmp%zsz(1)
+          theta = ZERO
+          do k = 1, dtmp%zsz(3)
+            theta = theta + var_zpencil(i, 1, k)
+          end do
+          var_zpencil(i, 1, :) = theta / real(dtmp%zsz(3), WP)
+        end do 
+      end if
+      call transpose_from_z_pencil(var_zpencil, var, dtmp, pencil)
+    else if(idir == IDIM(2) .or. idir == IDIM(0)) then
+      call transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
+      call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
+      ! Assign a sign
+      sign = ONE
+      if (present(is_reversed)) then
+        if(is_reversed) sign = - ONE
+      end if
+      ! Apply symmetry condition to find neighboring points
+      do k = 1, dtmp%zsz(3)
+        var_zpencil1(:, :, k) = sign * var_zpencil(:, :, dm%knc_sym(k))
       end do
+      ! Transpose back to y-pencil and get the multiple valued ur at axis
+      call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
+      var_ypencil1(:, 1, :) = (var_ypencil1(:, 2, :) + var_ypencil(:, 2, :)) * HALF
+      ! Transpose to z-pencil for decomposition
+      call transpose_y_to_z(var_ypencil1, var_zpencil1, dtmp)
+      ! below is eq(83) & (76) of https://doi.org/10.1016/j.jcp.2003.12.015 (Morinishi2004JCP)
+      ! coorindates like: https://en.m.wikipedia.org/wiki/File:3D_coordinate_system.svg
+      if(dtmp%zst(2) == 1) then ! for axis jj == 1 only
+        if(idir == IDIM(2)) then ! for qy/r
+          do i = 1, dtmp%zsz(1)
+            uy(i) = ZERO
+            uz(i) = ZERO
+            do k = 1, dtmp%zsz(3)
+              theta = dm%h(3) * real((k-1), WP)
+              uz(i) = uz(i) + var_zpencil1(i, 1, k) * cos_wp(theta)
+              uy(i) = uy(i) + var_zpencil1(i, 1, k) * sin_wp(theta)
+            end do
+            uy(i) = uy(i) * TWO / dtmp%zsz(3)
+            uz(i) = uz(i) * TWO / dtmp%zsz(3)
+            do k = 1, dtmp%zsz(3)
+              theta = dm%h(3) * real((k-1), WP)
+              var_zpencil1(i, 1, k) = uz(i) * cos_wp(theta) + uy(i) * sin_wp(theta)
+            end do
+          end do
+        end if
+
+        if(idir == IDIM(0)) then ! for qz/r only
+          do i = 1, dtmp%zsz(1)
+            uy(i) = ZERO
+            uz(i) = ZERO
+            do k = 1, dtmp%zsz(3)
+              theta = dm%h(3) * real((k-1), WP)
+              uz(i) = uz(i) - var_zpencil1(i, 1, k) * sin_wp(theta)
+              uy(i) = uy(i) + var_zpencil1(i, 1, k) * cos_wp(theta)
+            end do
+            uy(i) = uy(i) * TWO / dtmp%zsz(3)
+            uz(i) = uz(i) * TWO / dtmp%zsz(3)
+
+            do k = 1, dtmp%zsz(3)
+              theta = dm%h(3) * real((k-1), WP)
+              var_zpencil1(i, 1, k) = - uz(i) * sin_wp(theta) + uy(i) * cos_wp(theta)
+            end do
+          end do
+        endif
+      end if
+      ! Transpose back to the original pencil
+      call transpose_from_z_pencil(var_zpencil1, var, dtmp, pencil)
+    else 
+      call Print_error_msg('Invalid input for IDIM in axis_estimating_radial_xpx')
     end if
-
-    ! Transpose back to the original pencil
-    call transpose_from_z_pencil(var_zpencil1, var, dtmp, pencil)
-
     return
   end subroutine axis_estimating_radial_xpx
 
@@ -1223,13 +1261,13 @@ contains
     ! Check for large numbers
     if (maxval(dabs(var)) > 1.0e+10) then
         write(*,*) 'Large number detected (nrank=', nrank, ') in ', trim(varname)
-        stop 'A large number is found. Stopping execution.'
+        call Print_error_msg('A large number is found. Stopping execution.')
     end if
 
     ! Check for NaN values
     if (any(ieee_is_nan(var))) then
         write(*,*) 'NaN detected (nrank=', nrank, ') in ', trim(varname)
-        stop 'NaN is found. Stopping execution.'
+        call Print_error_msg('NaN is found. Stopping execution.')
     end if
 
   end subroutine is_valid_number_3D
@@ -1302,7 +1340,6 @@ contains
       idg_work(3), '/'//int2str(idgmax(3))
 
     end if
-    if(varmax_work > MAXVELO) stop ! test
 #else
     if(nrank == 0) then
       write (*, wrtfmt1el) 'maximum '//trim(str), varmax_work
@@ -1350,10 +1387,10 @@ contains
     if(nrank == 0) then
       write (*, fmt) 'maximum '//str, varmax_work, ' minimum '//str, varmin_work
     end if
-#ifdef DEBUG_FFT
-    if(varmax_work >   MAXVELO) stop
-    if(varmin_work < - MAXVELO) stop
-#endif
+! #ifdef DEBUG_FFT
+!     if(varmax_work >   MAXVELO) call Print_error_msg('varmax_work >   MAXVELO')
+!     if(varmin_work < - MAXVELO) call Print_error_msg('varmax_work < - MAXVELO')
+! #endif
 
     return
   end subroutine
@@ -1436,10 +1473,10 @@ contains
     if(nrank == 0) then
       write (*, fmt) 'max. |'//str//'|', varmax_work, ' min. |'//str//'|', varmin_work
     end if
-#ifdef DEBUG_FFT
-    if(varmax_work >   MAXVELO) stop
-    if(varmin_work < - MAXVELO) stop
-#endif
+! #ifdef DEBUG_FFT
+!     if(varmax_work >   MAXVELO) call Print_error_msg('varmax_work >  MAXVELO')
+!     if(varmin_work < - MAXVELO) call Print_error_msg('varmax_work < -MAXVELO')
+! #endif
 
     return
   end subroutine
