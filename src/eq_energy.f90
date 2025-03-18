@@ -16,6 +16,7 @@ contains
     use udf_type_mod
     use operations
     use thermo_info_mod
+    use cylindrical_rn_mod
     implicit none
     type(t_domain), intent(inout) :: dm
     type(t_flow),   intent(inout) :: fl
@@ -85,6 +86,7 @@ contains
       dm%ibcy_Tm(2) == IBC_NEUMANN) then
     call transpose_x_to_y(tm%rhoh, dh_ypencil, dm%dccc)
     call Get_y_midp_C2P_3D(dh_ypencil, dh_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp) ! exterpolation, check
+    call axis_estimating_radial_xpx(dh_cpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1))
     
     if(dm%ibcy_Tm(1) == IBC_NEUMANN .and. &
        dm%dcpc%yst(2) == 1) then 
@@ -242,6 +244,7 @@ contains
     call Get_x_midp_C2P_3D(tm%hEnth, hEnth_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp(:), fbcx_4cc ) ! for d(g_x h_pcc))/dy
     call transpose_x_to_y (tm%hEnth, accc_ypencil, dm%dccc)                     !accc_ypencil = hEnth_ypencil
     call Get_y_midp_C2P_3D(accc_ypencil, hEnth_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp(:), fbcy_c4c)! for d(g_y h_cpc)/dy
+    call axis_estimating_radial_xpx(hEnth_cpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1))
     call transpose_y_to_z (accc_ypencil, accc_zpencil, dm%dccc) !ccc_zpencil = hEnth_zpencil
     call Get_z_midp_C2P_3D(accc_zpencil, hEnth_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp(:), fbcz_cc4) ! for d(g_z h_ccp)/dz
 !----------------------------------------------------------------------------------------------------------
@@ -258,6 +261,7 @@ contains
     call Get_x_midp_C2P_3D(tm%kCond, kCond_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp(:), fbcx_4cc) ! for d(k_pcc * (dT/dx) )/dx
     call transpose_x_to_y (tm%kCond, accc_ypencil, dm%dccc)  ! for k d2(T)/dy^2
     call Get_y_midp_C2P_3D(accc_ypencil,  kCond_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp(:), fbcy_c4c)
+    call axis_estimating_radial_xpx(kCond_cpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1))
     call transpose_y_to_z (accc_ypencil,  kCond_ccc_zpencil, dm%dccc) 
     call Get_z_midp_C2P_3D(kCond_ccc_zpencil, kCond_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp(:), fbcz_cc4)
 !----------------------------------------------------------------------------------------------------------
