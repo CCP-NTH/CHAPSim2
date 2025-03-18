@@ -7,6 +7,7 @@ module convert_primary_conservative_mod
     use operations
     use decomp_2d
     use parameters_constant_mod
+    use cylindrical_rn_mod
     implicit none
     type(t_domain), intent(inout)   :: dm
     type(t_flow  ), intent(inout) :: fl
@@ -51,6 +52,7 @@ module convert_primary_conservative_mod
     call transpose_x_to_y(fl%dDens, d_ccc_ypencil, dm%dccc)
     fbcy_c4c(:, :, :) = dm%fbcy_ftp(:, :, :)%d
     call Get_y_midp_C2P_3D (d_ccc_ypencil, d_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp, fbcy_c4c)
+    call axis_estimating_radial_xpx(d_cpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1)) 
     if(itag == IQ2G) then
       call transpose_x_to_y(fl%qy, qy_cpc_ypencil, dm%dcpc)
       gy_cpc_ypencil = qy_cpc_ypencil * d_cpc_ypencil
