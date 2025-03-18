@@ -230,7 +230,7 @@ module parameters_constant_mod
                         IBC_OTHERS      = 11   ! interpolation
   integer, parameter :: NBC = 5! u, v, w, p, T
   integer, parameter :: NDIM = 3
-  integer, parameter :: IDIM(3) = (/1, 2, 3/)
+  integer, parameter :: IDIM(0:3) = (/0, 1, 2, 3/)
   integer, parameter :: IPENCIL(3) = (/1, 2, 3/)
   integer, parameter :: JBC_SELF = 1, &
                         JBC_GRAD = 2, &
