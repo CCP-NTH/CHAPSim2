@@ -20,7 +20,6 @@ prepost/*.ini
 /lib/2decomp-fft/build/*
 !/lib/2decomp-fft/build/build_cmake.sh
 lib/2decomp-fft/build/CMakeCache.txt
-*.code-workspace
 .vscode/
 .*
 .DS_Store

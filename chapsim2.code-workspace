@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"path": "src"
+		}
+		{
+			"path": "lib/2decomp-fft/src"
+		}
+		{
+			"path": build/Makefile
+		}
+		{
+			"path": build_make.sh
+		}
+	],
+	"settings": {}
+}

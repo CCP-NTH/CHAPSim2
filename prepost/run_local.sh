@@ -3,6 +3,20 @@
 # Define the base directory for CHAPSim
 chap_sim_dir="/Users/wei.wang/Work_RSDevelopment/1_CHAPSim/CHAPSim2"
 
+# Check if input_chapsim.ini exists
+if [ ! -f "input_chapsim.ini" ]; then
+    echo "input_chapsim.ini not found."
+    
+    # Check if input_chapsim_by_python.ini exists
+    if [ -f "input_chapsim_by_python.ini" ]; then
+        cp "input_chapsim_by_python.ini" "input_chapsim.ini"
+        echo "input_chapsim_by_python.ini copied to input_chapsim.ini."
+    else
+        echo "Error: No input_chapsim.ini file found."
+        exit 1
+    fi
+fi
+
 # Define base filename with timestamp
 timestamp=$(date +'%Y-%m-%d_%H.%M')
 base_filename="output_chapsim2_${timestamp}.log"
