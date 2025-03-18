@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Define the base directory for CHAPSim
-chap_sim_dir="/Users/wei.wang/Work_RSDevelopment/1_CHAPSim/CHAPSim2"
+chap_sim_dir="$HOME_WORK/CHAPSim2"
 
 # Check if input_chapsim.ini exists
 if [ ! -f "input_chapsim.ini" ]; then
