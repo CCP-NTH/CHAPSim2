@@ -85,7 +85,7 @@ contains
            ( this%t > ftplist(nlist)%t ) ) then
         write(*, wrtfmt3r) 'this T, low T, high T:', this%t, ftplist(1)%t, ftplist(nlist)%t
         write(*, wrtfmt3r) 'this rhoh, low rhoh, high rhoh', this%rhoh, fluidparam%dhmin, fluidparam%dhmax
-        stop 'temperature exceeds specified range.'
+        call Print_error_msg('temperature exceeds specified range.')
       end if
     end if
 
@@ -94,7 +94,7 @@ contains
            ( this%t > ( fluidparam%TB0 / fluidparam%ftp0ref%t ) ) ) then 
         write(*, wrtfmt3r) 'this T, low T, high T:', this%t, fluidparam%TM0 / fluidparam%ftp0ref%t, fluidparam%TB0 / fluidparam%ftp0ref%t
         write(*, wrtfmt3r) 'this rhoh, low rhoh, high rhoh', this%rhoh, fluidparam%dhmin, fluidparam%dhmax
-        stop 'temperature exceeds specified range.'
+        call Print_error_msg('temperature exceeds specified range.')
       end if
     end if
 
@@ -441,7 +441,7 @@ contains
       this%t = w1 * ftplist(i1)%t + w2 * ftplist(i2)%t
       call ftp_refresh_thermal_properties_from_T_undim(this)
     else  
-      STOP 'Error. No such option of ipropertyState.'
+      call Print_error_msg('No such option of ipropertyState.')
     end if
     return
   end subroutine ftp_refresh_thermal_properties_from_DH
@@ -634,7 +634,7 @@ contains
     if(ioerr /= 0) then
       !write (*, *) 'Problem openning : ', fluidparam%inputProperty, ' for reading.'
       !write (*, *) 'Message: ', trim (iotxt)
-      error stop 'Problem openning fluidparam%inputProperty for reading.'
+      call Print_error_msg('Problem openning fluidparam%inputProperty for reading.')
     end if
 
     fluidparam%nlist = 0
@@ -1027,8 +1027,8 @@ contains
            iostat  = ioerr,         &
            iomsg   = iotxt)
       if(ioerr /= 0) then
-        write(*,*) 'Problem opening: ', trim(filename1)
-        error stop
+        str = 'Problem opening: '//trim(filename1)
+        call Print_error_msg(trim(str))
       end if
 
       n = 0

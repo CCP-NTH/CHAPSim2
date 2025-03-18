@@ -78,7 +78,7 @@ subroutine initialise_chapsim
     call Print_debug_start_msg("Pre-run for input variables adjustment")
     call estimate_spacial_resolution(flow(1), domain(1))
     call estimate_temporal_resolution(flow(1), domain(1))
-    stop
+    stop 'Pre-run is completed.'
   end if
 !----------------------------------------------------------------------------------------------------------
 ! build up operation coefficients for all x-subdomains

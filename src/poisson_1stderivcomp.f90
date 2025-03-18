@@ -814,7 +814,7 @@ contains
    write(*,*) 'poisson_11x is used.'
 #endif
     else
-       stop 'boundary condition not supported'
+       error stop 'boundary condition not supported'
     end if
 
     nx = nx_global

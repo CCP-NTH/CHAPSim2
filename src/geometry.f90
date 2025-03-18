@@ -61,7 +61,7 @@ contains
     real(WP), dimension(n) :: eta
 
     if(dm%mstret /= MSTRET_POWL) then 
-      error stop 'Grid stretching method is not MSTRET_POWL.'
+      call Print_error_msg('Grid stretching method is not MSTRET_POWL.')
     end if
     if(nrank == 0) call Print_debug_inline_msg("Buildup_grid_mapping_1D_powerlaw for "//trim(str))
     !----------------------------------------------------------------------------------------------------------
@@ -169,7 +169,7 @@ contains
     real(WP), dimension(n) :: eta
 
     if(dm%mstret /= MSTRET_TANH) then 
-      error stop 'Grid stretching method is not MSTRET_TANH.'
+      call Print_error_msg('Grid stretching method is not MSTRET_TANH.')
     end if
     if(nrank == 0) call Print_debug_inline_msg("Buildup_grid_mapping_1D_tanh for "//trim(str))
     !----------------------------------------------------------------------------------------------------------
@@ -304,7 +304,7 @@ contains
     real(WP) :: alpha, beta, gamma, delta
 
     if(dm%mstret /= MSTRET_3FMD) then 
-      error stop 'Grid stretching method is not MSTRET_3FMD.'
+      call Print_error_msg('Grid stretching method is not MSTRET_3FMD.')
     end if
     if(nrank == 0) call Print_debug_inline_msg("Buildup_grid_mapping_1D_3fmd for "//trim(str))
     !----------------------------------------------------------------------------------------------------------

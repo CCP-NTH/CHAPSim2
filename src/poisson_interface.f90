@@ -112,7 +112,7 @@ contains
     else if(dm%ifft_lib == FFT_FISHPACK_2DFFT) then 
       call fishpack_fft_init(dm)
     else 
-      error stop  'Error in selecting FFT libs'
+      call Print_error_msg('Error in selecting FFT libs')
     end if
 
     if(nrank == 0 ) call Print_debug_end_msg()
@@ -146,7 +146,7 @@ contains
     else if(dm%ifft_lib == FFT_FISHPACK_2DFFT) then 
       call fishpack_fft_simple(rhs_xpencil, dm)
     else 
-      error stop  'Error in selecting FFT libs'
+      call Print_error_msg('Error in selecting FFT libs')
     end if
 
     

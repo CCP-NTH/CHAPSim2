@@ -85,7 +85,6 @@ contains
 
       idgb(1) = ceiling ( dm%probexyz(1, i) / dm%h(1) )
       idgb(3) = ceiling ( dm%probexyz(3, i) / dm%h(3) )
-
       do j = 1, dm%np(2) - 1
         if (dm%probexyz(2, i) >= dm%yp(j) .and. &
             dm%probexyz(2, i) < dm%yp(j+1)) then
@@ -250,7 +249,7 @@ contains
     end if
     if(dm%icoordinate == ICYLINDRICAL) then
       call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
-      call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, is_reversed = .true.)
+      call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(2), is_reversed = .true.)
     end if
     call Get_area_average_2d_for_fbcy(dm, dm%dcpc, acpc_ypencil, bulk_fbcy, SPACE_INTEGRAL, 'vary')
     !area averaged mass flux - z - boundary: rho*uz
@@ -290,7 +289,7 @@ contains
       open(newunit = myunit, file = trim(flname), status = "old", action = "write", position = "append", &
           iostat = ioerr, iomsg = iotxt)
       if(ioerr /= 0) then
-        error stop 'Problem openning conservation file'
+        call Print_error_msg('Problem openning conservation file')
       end if 
       write(myunit, '(6ES13.5)') fl%time, fl%mcon(1:3), fl%tt_mass_change, dMKEdt
       close(myunit)
@@ -299,7 +298,7 @@ contains
       open(newunit = myunit, file = trim(flname), status = "old", action = "write", position = "append", &
           iostat = ioerr, iomsg = iotxt)
       if(ioerr /= 0) then
-        error stop 'Problem openning bulk file'
+        call Print_error_msg('Problem openning bulk file')
       end if 
       if(dm%is_thermo .and. present(tm)) then
         write(myunit, '(6ES13.5)') fl%time, fl%tt_kinetic_energy, bulk_qx, bulk_gx, bulk_T, bulk_h
@@ -351,7 +350,7 @@ contains
         if(ioerr /= 0) then
           !write (*, *) 'Problem openning probing file'
           !write (*, *) 'Message: ', trim (iotxt)
-          error stop 'Problem openning probing file'
+          call Print_error_msg('Problem openning probing file')
         end if
 !----------------------------------------------------------------------------------------------------------
 ! write out local data

@@ -304,7 +304,7 @@ contains
     if(ioerr /= 0) then
       ! write (*, *) 'Problem openning : ', flinput, ' for reading.'
       ! write (*, *) 'Message: ', trim (iotxt)
-      error stop 'Error in opening the input file: input_chapsim.ini'
+      call Print_error_msg('Error in opening the input file: input_chapsim.ini')
     end if
 
     if(nrank == 0) &
@@ -832,6 +832,18 @@ contains
             !if( nrank == 0) !write (*, wrtfmt1i) '------For the domain-x------ ', i
             do j = 1, domain(i)%proben
               read(inputUnit, *, iostat = ioerr) varname, domain(i)%probexyz(1:3, j) 
+              if(domain(i)%probexyz(1, j) > domain(i)%lxx) then
+                call Print_warning_msg('probed points x > lx_max, adjusted.')
+                domain(i)%probexyz(1, j) = domain(i)%lxx / real(domain(i)%proben + 1, WP) * real(j, WP)
+              end if
+              if(domain(i)%probexyz(2, j) > domain(i)%lyt .or. domain(i)%probexyz(2, j) < domain(i)%lyb) then
+                call Print_warning_msg('probed points y not in (lyb, lyt), adjusted.')
+                domain(i)%probexyz(2, j) = (domain(i)%lyt - domain(i)%lyb) / real(domain(i)%proben + 1, WP) * real(j, WP)
+              end if
+              if(domain(i)%probexyz(3, j) > domain(i)%lzz) then
+                call Print_warning_msg('probed points z > lz_max, adjusted.')
+                domain(i)%probexyz(3, j) = domain(i)%lzz / real(domain(i)%proben + 1, WP) * real(j, WP)
+              end if
               if( nrank == 0) write (*, wrtfmt3r) 'probed points x, y, z :', domain(i)%probexyz(1:3, j) 
             end do 
           end if
