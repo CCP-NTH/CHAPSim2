@@ -201,6 +201,8 @@ module bc_convective_outlet_mod
     real(WP) :: fbcm_x(2), fbcm_y(2), fbcm_z(2)
     real(WP) :: bulkm
     logical :: iconv(3)
+    real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc_xpencil
+    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
     
     ! only 1 direction could be convective outlet
     if (.not. dm%is_conv_outlet) return
@@ -216,7 +218,7 @@ module bc_convective_outlet_mod
     fbcm_y = ZERO
     fbcm_z = ZERO
 !----------------------------------------------------------------------------------------------------------
-! x - inlet/outlet, qx
+! x - inlet/outlet, ux = qx
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
       iconv(1) = .true.
@@ -228,17 +230,33 @@ module bc_convective_outlet_mod
       call Get_area_average_2d_for_fbcx(dm, dm%dpcc, fbcx, fbcm_x, SPACE_INTEGRAL, 'fbcx')
     else if(dm%ibcy_nominal(2, 2) == IBC_CONVECTIVE) then
 !----------------------------------------------------------------------------------------------------------
-! y - inlet/outlet - qy = ur * r
+! y - inlet/outlet - uy = qr / r
 !----------------------------------------------------------------------------------------------------------
       iconv(2) = .true.
-      if(dm%is_thermo) then
-        fbcy = dm%fbcy_gy
+      ! if(dm%icase == ICASE_PIPE) then
+      !   if(dm%is_thermo) then
+      !     acpc_xpencil = fl%gy
+      !   else
+      !     acpc_xpencil = fl%qy
+      !   end if
+      !   call transpose_x_to_y(acpc_xpencil, acpc_ypencil, dm%dcpc)
+      !   call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2)) ! qr/r
+      !   call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(2), is_reversed = .true.)
+      !   call extract_dirichlet_fbcy(fbcy, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
+      ! else 
+      !   if(dm%is_thermo) then
+      !     fbcy = dm%fbcy_gy
+      !   else
+      !     fbcy = dm%fbcy_qy
+      !   end if
+      !   if(dm%icoordinate == ICYLINDRICAL) then
+      !     call multiple_cylindrical_rn_x4x(fbcy, dm%dcpc, dm%rpi, 1, IPENCIL(2))
+      !   end if
+      ! end if
+      if(dm%icoordinate = ICYLINDRICAL) then
+        fbcy = dm%fbcy_qyr
       else
         fbcy = dm%fbcy_qy
-      end if
-      if(dm%icoordinate == ICYLINDRICAL) then
-        call multiple_cylindrical_rn_x4x(fbcy, dm%dcpc, dm%rpi, 1, IPENCIL(2))
-        !call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm) ! to do here
       end if
       call Get_area_average_2d_for_fbcy(dm, dm%dcpc, fbcy, fbcm_y, SPACE_INTEGRAL, 'fbcy')
     else if (dm%ibcz_nominal(2, 3) == IBC_CONVECTIVE) then
