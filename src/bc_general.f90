@@ -371,7 +371,7 @@ end function
       if(is_reversed) sign = - ONE
     end if
 
-    if(present(is_on_axis)) then
+    if(present(is_on_axis)) then ! for qy only
       if(is_on_axis) var_ypencil(:, 1, :) = ZERO
     end if
     call transpose_y_to_z(var_ypencil, var_zpencil, dtmp)
@@ -417,13 +417,13 @@ end function
             is_on_axis = .true., is_reversed = .true.)
     acpc_xpencil = fl%qy
     call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! qr/r
-    call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm, is_reversed = .true.)
+    call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm, IDIM(2), is_reversed = .true.)
     call extract_dirichlet_fbcy(dm%fbcy_qyr, acpc_xpencil, dm%dcpc, dm, is_reversed = .true.)
 !----------------------------------------------------------------------------------------------------------
 !   Update qz boundary condition in y-direction (interior cell center)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qz(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qz for the centre of the pipe.') ! 
-    call axis_mirroring_interior_fbcy(fl%qz, dm%fbcy_qz, dm%knc_sym, dm%dccp, is_reversed = .true.)
+    call axis_mirroring_interior_fbcy(fl%qz, dm%fbcy_qz, dm%knc_sym, dm%dccp, is_reversed = .true.) ! check
     dm%fbcy_qzr(:, 1, :) = dm%fbcy_qz(:, 1, :) * dm%rci(1) ! interior, not at axis
     dm%fbcy_qzr(:, 3, :) = dm%fbcy_qz(:, 3, :) * dm%rci(2)
 !----------------------------------------------------------------------------------------------------------
@@ -446,9 +446,6 @@ end function
     if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_gy for the centre of the pipe.')
     call axis_mirroring_interior_fbcy(fl%gy, dm%fbcy_gy, dm%knc_sym, dm%dcpc, &
             is_on_axis = .true., is_reversed = .true.)
-    ! call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2)) ! qr/r
-    ! call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm)
-    ! call extract_dirichlet_fbcy(dm%fbcy_gyr, acpc_ypencil, dm%dcpc, dm)
 !----------------------------------------------------------------------------------------------------------
 !   ! Update gz boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
@@ -458,7 +455,10 @@ end function
     !dm%fbcy_gzr(:, 3, :) = dm%fbcy_gz(:, 3, :) * dm%rci(2)
     end if
 
-
+#ifdef DEBUG_STEPS
+    if(nrank == 0) &
+    call Print_debug_end_msg()
+#endif
     return
   end subroutine
 

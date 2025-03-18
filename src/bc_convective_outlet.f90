@@ -253,7 +253,7 @@ module bc_convective_outlet_mod
       !     call multiple_cylindrical_rn_x4x(fbcy, dm%dcpc, dm%rpi, 1, IPENCIL(2))
       !   end if
       ! end if
-      if(dm%icoordinate = ICYLINDRICAL) then
+      if(dm%icoordinate == ICYLINDRICAL) then
         fbcy = dm%fbcy_qyr
       else
         fbcy = dm%fbcy_qy
@@ -353,7 +353,7 @@ module bc_convective_outlet_mod
         call calculate_fbcx_convective_outlet(dm%fbcx_qz(:, :, :), uxdx, fl%fbcx_qz_rhs0(:, :), fl%qz, dm%dccp, dm, isub)
       end if
     else
-      ! check , whether it is better to use qx = gx / density ?
+      ! todo-check , whether it is better to use qx = gx / density ?
       if(dm%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
         call calculate_fbcx_convective_outlet(dm%fbcx_qx(:, :, :), uxdx, fl%fbcx_qx_rhs0(:, :), fl%qx, dm%dpcc, dm, isub)
         call calculate_fbcx_convective_outlet(dm%fbcx_gx(:, :, :), uxdx, fl%fbcx_gx_rhs0(:, :), fl%gx, dm%dpcc, dm, isub)
@@ -374,7 +374,7 @@ module bc_convective_outlet_mod
     if ( .not. dm%is_thermo) then
       call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
     else
-      ! check , whether it is better to use qx = gx / density ?
+      ! todo-check , whether it is better to use qx = gx / density ?
       call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
       call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
     end if
@@ -415,7 +415,7 @@ module bc_convective_outlet_mod
       end do
     end if
 
-    !call enforce_domain_energy_balance_dyn_fbc(fl, dm) ! to check necessary? 
+    !call enforce_domain_energy_balance_dyn_fbc(fl, dm) ! todo-check necessary? 
 
     return
   end subroutine
