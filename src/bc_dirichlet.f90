@@ -73,13 +73,11 @@ contains
       if(present(is_reversed)) then
         if(is_reversed) sign = -ONE
       end if
-
       call transpose_y_to_z(var, var_zpencil, dtmp)
       do k = 1, dtmp%zsz(3)
         var_zpencil1(:, :, k) = sign * var_zpencil(:, :, dm%knc_sym(k))
       end do
       call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
-      fbc(:, 1, :) = var_ypencil1(:, 1, :)
       fbc(:, 3, :) = var_ypencil1(:, 2, :)
     else
       fbc(:, 3, :) = var(:, 1, :)
@@ -136,8 +134,8 @@ contains
           iostat  = ioerr,         &
           iomsg   = iotxt)
     if(ioerr /= 0) then
-      write(*,*) 'Problem opening: ', trim(filename)
-      error stop
+      str = 'Problem opening: '//trim(filename)
+      call Print_error_msg(trim(str))
     end if
 
     nn = 0
