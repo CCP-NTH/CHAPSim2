@@ -144,7 +144,7 @@ contains
   end subroutine
 
 !==========================================================================================================
-  subroutine cross_production_mhd(fl, mh, ab_cross_x, ab_cross_y, ab_cross_z, str, dm)
+  subroutine cross_production_mhd(fl, mh, ab_cross_x, ab_cross_y, ab_cross_z, str, dm) ! to add cylindrical
     use udf_type_mod
     use operations
     use print_msg_mod
@@ -297,6 +297,7 @@ contains
     apcc_xpencil = ax
     call transpose_x_to_y (apcc_xpencil, apcc_ypencil, dm%dpcc)
     call Get_y_midp_C2P_3D(apcc_ypencil, appc_ypencil, dm, iacc, ibcy_ax(:), fbcy_ax(:, :, :))
+    
     call transpose_y_to_x (appc_ypencil, appc_xpencil, dm%dppc)                            
     call Get_x_midp_P2C_3D(appc_xpencil, acpc_xpencil, dm, iacc, ibcx_ax(:))
     call transpose_x_to_y (acpc_xpencil, acpc_ypencil, dm%dcpc)
