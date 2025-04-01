@@ -177,7 +177,7 @@ module parameters_constant_mod
   integer, parameter :: ICASE_OTHERS = 0, &
                         ICASE_CHANNEL = 1, &
                         ICASE_PIPE    = 2, &
-                        ICASE_ANNULAR  = 3, &
+                        ICASE_ANNULAR = 3, &
                         ICASE_TGV3D   = 4, &
                         ICASE_TGV2D   = 5, &
                         ICASE_BURGERS = 6, &

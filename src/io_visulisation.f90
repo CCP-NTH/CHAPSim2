@@ -422,7 +422,7 @@ contains
         do k = 1, nnd_visu(3, dm%idom)
           do j = 1, nnd_visu(2, dm%idom)
             do i = 1, nnd_visu(1, dm%idom)
-              write(ioxdmf, '(3ES15.7)') xp(i, j, k), yp(i, j, k), zp(i, j, k)
+              write(ioxdmf, '(3F12.8)') xp(i, j, k), yp(i, j, k), zp(i, j, k)
             end do
           end do
         end do

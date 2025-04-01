@@ -479,9 +479,7 @@ contains
 !   update other properties from rho * h
 !----------------------------------------------------------------------------------------------------------
     call Update_thermal_properties(fl, tm, dm)
-!----------------------------------------------------------------------------------------------------------
-!   No Need to apply b.c.
-!----------------------------------------------------------------------------------------------------------
+    call update_fbcy_cc_thermo_halo(fl, tm, dm)
 #ifdef DEBUG_STEPS
     write(*,*) 'T-e', tm%tTemp(1, 1:4, 1)
     call wrt_3d_pt_debug(tm%tTemp,   dm%dccc, fl%iteration, isub, 'T@af stepping') ! debug_ww

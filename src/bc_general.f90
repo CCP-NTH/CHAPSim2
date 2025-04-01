@@ -345,16 +345,16 @@ end function
 
 !==========================================================================================================
 !==========================================================================================================
-  subroutine axis_mirroring_interior_fbcy(var_xpencil, fbcy, ksym, dtmp, is_on_axis, is_reversed)
+  subroutine axis_mirroring_interior_fbcy(var_xpencil, fbcy, ksym, dtmp, is_qr_qrdr, is_reversed)
     type(DECOMP_INFO), intent(in) :: dtmp
     real(WP), intent(in) :: var_xpencil(:, :, :)
     real(WP), intent(inout) :: fbcy(:, :, :)
     integer, intent(in) :: ksym(:)
-    logical, intent(in), optional :: is_on_axis, is_reversed
+    logical, intent(in), optional :: is_reversed
+    integer, intent(in), optional :: is_qr_qrdr
 
-    real(WP), dimension( dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3) ) :: var_ypencil
-    real(WP), dimension( dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3) ) :: var_zpencil
-    real(WP), dimension( dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3) ) :: var_zpencil1
+    real(WP), dimension( dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3) ) :: var_ypencil, var_ypencil1
+    real(WP), dimension( dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3) ) :: var_zpencil, var_zpencil1
 
     integer :: k
     real(WP) :: sign
@@ -365,23 +365,27 @@ end function
 !----------------------------------------------------------------------------------------------------------
 !   transpose from x to z
 !----------------------------------------------------------------------------------------------------------
-    call transpose_x_to_y(var_xpencil, var_ypencil, dtmp)
-
     if(present(is_reversed)) then
       if(is_reversed) sign = - ONE
     end if
-
-    if(present(is_on_axis)) then ! for qy only
-      if(is_on_axis) var_ypencil(:, 1, :) = ZERO
-    end if
+    call transpose_x_to_y(var_xpencil, var_ypencil, dtmp)
     call transpose_y_to_z(var_ypencil, var_zpencil, dtmp)
 
     do k = 1, dtmp%zsz(3)
       var_zpencil1(:, :, k) = sign * var_zpencil(:, :, ksym(k))
     end do
-    call transpose_z_to_y(var_zpencil1, var_ypencil, dtmp)
-    fbcy(:, 1, :) = var_ypencil(:, 1, :)
-    fbcy(:, 3, :) = var_ypencil(:, 2, :)
+    call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
+    fbcy(:, 1, :) = var_ypencil1(:, 1, :)
+    fbcy(:, 3, :) = var_ypencil1(:, 2, :)
+
+    if(present(is_qr_qrdr)) then ! for qy/r
+      if(is_qr_qrdr == 1) then
+        fbcy(:, 1, :) = ZERO
+      else if (is_qr_qrdr == 2) then
+        fbcy(:, 1, :) = (var_ypencil1(:, 2, :) + var_ypencil(:, 2, :)) * HALF
+      else
+      end if
+    end if
 
     return
   end subroutine 
@@ -414,11 +418,11 @@ end function
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qy for the centre of the pipe.')
     call axis_mirroring_interior_fbcy(fl%qy, dm%fbcy_qy, dm%knc_sym, dm%dcpc, &
-            is_on_axis = .true., is_reversed = .true.)
+            is_qr_qrdr = 1, is_reversed = .true.)
     acpc_xpencil = fl%qy
     call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! qr/r
-    call axis_estimating_radial_xpx(acpc_xpencil, dm%dcpc, IPENCIL(1), dm, IDIM(2), is_reversed = .true.)
-    call extract_dirichlet_fbcy(dm%fbcy_qyr, acpc_xpencil, dm%dcpc, dm, is_reversed = .true.)
+    call axis_mirroring_interior_fbcy(acpc_xpencil, dm%fbcy_qyr, dm%knc_sym, dm%dcpc, &
+            is_qr_qrdr = 2, is_reversed = .true.)
 !----------------------------------------------------------------------------------------------------------
 !   Update qz boundary condition in y-direction (interior cell center)
 !----------------------------------------------------------------------------------------------------------
@@ -445,7 +449,7 @@ end function
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_gy for the centre of the pipe.')
     call axis_mirroring_interior_fbcy(fl%gy, dm%fbcy_gy, dm%knc_sym, dm%dcpc, &
-            is_on_axis = .true., is_reversed = .true.)
+            is_qr_qrdr = 1, is_reversed = .true.)
 !----------------------------------------------------------------------------------------------------------
 !   ! Update gz boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
