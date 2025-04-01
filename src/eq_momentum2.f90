@@ -599,7 +599,7 @@ contains
 #endif
     !
     call Get_y_1der_C2P_3D(accp_ypencil, qzdy_cpp_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_qz) ! check !
-    if(dm%icase == ICASE_PIPE) qzdy_cpp_ypencil(:, 1, :) = ZERO ! check , test
+    !if(dm%icase == ICASE_PIPE) qzdy_cpp_ypencil(:, 1, :) = ZERO ! check , test
 #ifdef DEBUG_STEPS  
     if(dm%icase == ICASE_PIPE) then
       write(*,*) 'qzdy_cpp_ypencil', qzdy_cpp_ypencil(4, 1, 4),  qzdy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
