@@ -63,7 +63,7 @@ contains
     !------------------------------------------------------------------------------------------------------
     fbc(:, 1, :) = var(:, 1,           :) ! Lower boundary
     fbc(:, 2, :) = var(:, dtmp%ysz(2), :) ! Upper boundary
-    fbc(:, 4, :) = fbc(:, 2, :)! Upper boundary
+    fbc(:, 4, :) = TWO * var(:, dtmp%ysz(2), :) - var(:, dtmp%ysz(2)-1, :)! Upper boundary
     !------------------------------------------------------------------------------------------------------
     ! Handle special treatment of the lower boundary for pipe geometry (ICASE_PIPE)
     ! this part is the same as axis_mirroring
@@ -80,7 +80,7 @@ contains
       call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
       fbc(:, 3, :) = var_ypencil1(:, 2, :)
     else
-      fbc(:, 3, :) = var(:, 1, :)
+      fbc(:, 3, :) = TWO * var(:, 1, :) - var(:, 2, :)
     end if
 
     return
@@ -219,14 +219,15 @@ contains
   !==========================================================================================================
   subroutine initialise_fbcx_given_const(fbcx, fbcx_const)
     real(WP), intent(inout) :: fbcx(:, :, :)
-    real(WP), intent(in)    :: fbcx_const(4)
+    real(WP), intent(in)    :: fbcx_const(2)
 
     integer :: k, j, n
     
     do k = 1, size(fbcx, 3)
       do j = 1, size(fbcx, 2)
-        do n = 1, 4
-          fbcx(n, j, k) =  fbcx_const(n)
+        do n = 1, 2
+          fbcx(n,   j, k) = fbcx_const(n)
+          fbcx(n+2, j, k) = fbcx(n, j, k)
         end do
       end do
     end do

@@ -1785,9 +1785,11 @@ contains
       fbcy_c4p = MAXP
     end if
 #ifdef DEBUG_STEPS
+    if(dm%icoordinate == ICYLINDRICAL) then
       write(*,*) 'visz-32-interior', qzdy_cpp_ypencil(1, 1:2, 1), &
         qyrdz_cpp_ypencil(1, 1:2, 1), qziy_cpp_ypencil(1, 1:2, 1)
       write(*,*) 'visz-32-fbc', fbcy_c4p(1, 1, 1)
+    end if
 #endif
     !------PDE------
     call Get_y_1der_P2C_3D(acpp_ypencil, accp_ypencil, dm, dm%iAccuracy, mbcy_tau3, fbcy_c4p)
