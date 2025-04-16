@@ -636,6 +636,18 @@ contains
         domain(:)%iAccuracy = domain(1)%iAccuracy
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%iviscous
         domain(:)%iviscous = domain(1)%iviscous
+        ! some schemes are still testing, check >>>
+        if(domain(1)%icase == ICASE_PIPE) then
+          domain(1)%iAccuracy = IACCU_CD2
+        end if ! 
+
+        if(domain(1)%icase == ICASE_CHANNEL) then
+          if (domain(1)%iAccuracy == IACCU_CP4 .or. 
+              domain(1)%iAccuracy == IACCU_CP6) then
+            domain(1)%iAccuracy = IACCU_CD4
+          end if
+        end if
+        ! some schemes are still testing, check <<<
 
         if(domain(1)%iAccuracy == IACCU_CD2 .or. &
            domain(1)%iAccuracy == IACCU_CD4) then
