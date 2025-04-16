@@ -46,12 +46,16 @@ else
   FDEBG  =
 endif
 
+# HDF5 paths (added)
+HDF5_INC = # -I/opt/homebrew/include
+HDF5_LIB = # -L/opt/homebrew/lib -lhdf5_fortran -lhdf5
+
 # FFT library and include paths
-INCLUDE = -I../lib/2decomp-fft/build/opt/include
+INCLUDE = -I../lib/2decomp-fft/build/opt/include $(HDF5_INC)
 # Check if the lib64 directory exists, otherwise fall back to lib
 LIB_DIR = $(if $(wildcard ../lib/2decomp-fft/build/opt/lib64), ../lib/2decomp-fft/build/opt/lib64, ../lib/2decomp-fft/build/opt/lib)
 # Set the LIBS variable based on the determined library directory
-LIBS = -L$(LIB_DIR) -ldecomp2d
+LIBS = -L$(LIB_DIR) -ldecomp2d $(HDF5_LIB)
 
 # Object file lists
 OBJS1 = $(addprefix $(DIR_OBJ)/, \

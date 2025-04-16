@@ -34,6 +34,7 @@ module io_visualisation_mod
   private :: visu_average_periodic_data
   private :: write_visu_profile
   private :: process_and_write_field
+  private :: write_mesh_binary_cylindrical
 
   public  :: write_visu_ini
   public  :: write_visu_flow
@@ -103,6 +104,130 @@ contains
         if (nrank == 0) call Print_debug_inline_msg("Error: Invalid direction in process_and_write_field.")
     end select
   end subroutine process_and_write_field
+
+
+  ! subroutine write_mesh_hdf5(xp, yp, zp, filename)
+  !   use precision_mod  
+  !   use hdf5
+  !   implicit none 
+  !   real(WP), intent(in) :: xp(:,:,:), yp(:,:,:), zp(:,:,:)
+  !   character(len=*), intent(in) :: filename
+
+  !   ! --- HDF5 handles and variables ---
+  !   integer(HID_T) :: file_id, dset_id, dspace_id, plist_id
+  !   integer(HSIZE_T), dimension(4) :: dims
+  !   integer :: error, rank
+  !   real(WP), allocatable :: coords(:,:,:,:)
+  !   logical :: parallel_io_available = .false.
+
+  !   ! --- Initialize HDF5 ---
+  !   call h5open_f(error)
+  !   if (error /= 0) error stop "HDF5 initialization failed"
+
+  !   ! --- Create file access property list ---
+  !   call h5pcreate_f(H5P_FILE_ACCESS_F, plist_id, error)
+  !   if (error /= 0) error stop "Failed to create property list"
+    
+  !   ! --- Try to set MPI-IO (only if compiled with parallel HDF5) ---
+  !   parallel_io_available = .true.
+  !   call h5pset_fapl_mpio_f(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL, error)
+  !   if (error /= 0) then
+  !       parallel_io_available = .false.
+  !       call h5pclose_f(plist_id, error)
+  !       call h5pcreate_f(H5P_FILE_ACCESS_F, plist_id, error)
+  !   end if
+
+  !   ! --- Create HDF5 file ---
+  !   call h5fcreate_f(trim(filename), H5F_ACC_TRUNC_F, file_id, error, access_prp=plist_id)
+  !   if (error /= 0) error stop "Failed to create HDF5 file: "//trim(filename)
+  !   call h5pclose_f(plist_id, error)
+
+  !   ! --- Dataset dimensions ---
+  !   rank = 4
+  !   dims = [size(xp,1), size(xp,2), size(xp,3), 3]
+
+  !   ! --- Create dataspace ---
+  !   call h5screate_simple_f(rank, dims, dspace_id, error)
+  !   if (error /= 0) error stop "Failed to create dataspace"
+
+  !   ! --- Create dataset ---
+  !   ! Note: Changed dataset name from filename to "coordinates" to avoid confusion
+  !   if (WP == kind(1.0)) then
+  !       call h5dcreate_f(file_id, "coordinates", H5T_NATIVE_REAL, dspace_id, dset_id, error)
+  !   else if (WP == kind(1.0d0)) then
+  !       call h5dcreate_f(file_id, "coordinates", H5T_NATIVE_DOUBLE, dspace_id, dset_id, error)
+  !   else
+  !       error stop "Unsupported precision in write_mesh_hdf5"
+  !   end if
+  !   if (error /= 0) error stop "Failed to create dataset"
+
+  !   ! --- Write data ---
+  !   allocate(coords(dims(1), dims(2), dims(3), dims(4)), stat=error)
+  !   if (error /= 0) error stop "Allocation failed"
+    
+  !   coords(:,:,:,1) = xp
+  !   coords(:,:,:,2) = yp
+  !   coords(:,:,:,3) = zp
+
+  !   ! Use the correct precision for writing
+  !   if (WP == kind(1.0)) then
+  !       call h5dwrite_f(dset_id, H5T_NATIVE_REAL, coords, dims, error)
+  !   else
+  !       call h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, coords, dims, error)
+  !   end if
+  !   if (error /= 0) error stop "Failed to write dataset"
+
+  !   ! --- Cleanup ---
+  !   deallocate(coords, stat=error)
+  !   call h5dclose_f(dset_id, error)
+  !   call h5sclose_f(dspace_id, error)
+  !   call h5fclose_f(file_id, error)
+  !   call h5close_f(error)
+
+  ! end subroutine write_mesh_hdf5
+
+  subroutine write_mesh_binary_cylindrical(xp, yp, zp, filename)
+    use precision_mod  
+    use iso_fortran_env, only: int32
+    implicit none 
+    real(WP), intent(in) :: xp(:,:,:), yp(:,:,:), zp(:,:,:)
+    character(len=*), intent(in) :: filename
+
+    ! --- HDF5 handles and variables ---
+    integer(int32) :: dims(3)
+    integer :: error, i, j, k, unit
+    real(WP) :: coord_buffer(3)
+    logical :: parallel_io_available = .false.
+
+    ! --- Dataset dimensions ---
+    dims = [size(xp,1), size(xp,2), size(xp,3)]
+    
+    ! --- Write data ---
+    if (error /= 0) error stop "Allocation failed"
+
+    ! Write to binary file
+    open(newunit=unit, file=trim(filename), access='stream', form='unformatted', &
+          status='replace', action='write', iostat=error, convert='BIG_ENDIAN')
+    if (error /= 0) error stop "Failed to open binary file for writing"
+
+    ! Write dimensions first
+    write(unit) dims(1), dims(2), dims(3)
+
+    ! Write coordinates in order (x,y,z) for each point
+    do k = 1, dims(3)
+      do j = 1, dims(2)
+        do i = 1, dims(1)
+          coord_buffer(1) = xp(i,j,k)
+          coord_buffer(2) = yp(i,j,k)
+          coord_buffer(3) = zp(i,j,k)
+          write(unit) coord_buffer
+        end do
+      end do
+    end do
+
+    close(unit)
+
+  end subroutine write_mesh_binary_cylindrical
 !==========================================================================================================
 ! xszV means:
 ! x - xpencil, could also be y, z
@@ -117,6 +242,7 @@ contains
     use io_files_mod
     use math_mod
     use typeconvert_mod 
+    use iso_fortran_env, only: int32
     implicit none 
     type(t_domain), intent(in) :: dm
 
@@ -125,6 +251,7 @@ contains
     integer :: iogrid
     character(12) :: istr(3)
 
+    if(nrank /= 0) return
     if(nrank == 0) call Print_debug_start_msg("Writing visu initial files ...")
 ! note:: skip_nodes is not considered here, the visualisation is based on the nodes.
 !----------------------------------------------------------------------------------------------------------
@@ -316,24 +443,11 @@ contains
 !---------------------------------------------------------------------------------------------------------- 
       if(dm%icoordinate == ICYLINDRICAL) then
         keyword = "grids"
-        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_data, 'bin')
-        open(newunit = iogrid, file = trim(grid_flname), access="stream", form="unformatted", status="replace")
-        ! Write topology
-        !write(iogrid, *) "Topology: 3D Grid"
-        !write(iogrid, *) "Dimensions: ", trim(istr(3)), trim(istr(2)), trim(istr(1))
-        do k = 1, nnd_visu(3, dm%idom)
-          do j = 1, nnd_visu(2, dm%idom)
-            do i = 1, nnd_visu(1, dm%idom)
-              write(iogrid) xp(i, j, k), yp(i, j, k), zp(i, j, k)
-            end do
-          end do
-        end do
-        close(iogrid)
+        !call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'h5')
+        !call write_mesh_hdf5(xp, yp, zp, trim(grid_flname))
+        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'bin')
+        call write_mesh_binary_cylindrical(xp, yp, zp, trim(grid_flname))
       end if
-    ! ! Write XDMF header 
-    ! call write_visu_headerfooter(dm, 'grid', XDMF_HEADER, 0)
-    ! ! Write XDMF footer
-    ! call write_visu_headerfooter(dm, 'grid', XDMF_FOOTER, 0)
 
     end if
 
@@ -354,6 +468,7 @@ contains
     use decomp_2d_mpi
     use io_files_mod
     use typeconvert_mod
+    use iso_fortran_env, only: int32
     implicit none 
     integer, intent(in)        :: iheadfoot
     integer, intent(in)        :: iter
@@ -363,9 +478,8 @@ contains
     character(120):: keyword
     character(120):: visu_flname
     character(12):: istr(3)
-
+    character(len=20) :: byte_str
     integer :: ioxdmf
-    
     integer :: nsz, i, j, k
     if(nrank /= 0) return
 !----------------------------------------------------------------------------------------------------------
@@ -375,6 +489,9 @@ contains
     call generate_pathfile_name(visu_flname, dm%idom, keyword, dir_visu, 'xdmf', iter)
     open(newunit = ioxdmf, file = trim(visu_flname), action = "write", position="append")
     nsz = nnd_visu(3, dm%idom) * nnd_visu(2, dm%idom) * nnd_visu(1, dm%idom)
+
+    ! Calculate header size (3 integers)
+    write(byte_str, '(I0)') storage_size(0_int32)/8 * 3
 !----------------------------------------------------------------------------------------------------------
 ! xdmf head
 !----------------------------------------------------------------------------------------------------------
@@ -415,17 +532,15 @@ contains
                                //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
         write(ioxdmf, *)'     </Topology>'
         ! Write geometry
-        write(ioxdmf, *)'     <Geometry GeometryType="XYZ">'
-        write(ioxdmf, *)'        <DataItem Dimensions="' // trim(int2str(nsz)) // &
-                              ' 3" NumberType="Float" Precision="8" Format="XML">'
-        !write(ioxdmf, *)'          ', trim(grid_flname)
-        do k = 1, nnd_visu(3, dm%idom)
-          do j = 1, nnd_visu(2, dm%idom)
-            do i = 1, nnd_visu(1, dm%idom)
-              write(ioxdmf, '(3F12.8)') xp(i, j, k), yp(i, j, k), zp(i, j, k)
-            end do
-          end do
-        end do
+        write(ioxdmf, '(a)') '     <Geometry GeometryType="XYZ">'
+        write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
+        write(ioxdmf, '(a)') '                 Dimensions="'//trim(int2str(nsz))//' 3"'
+        write(ioxdmf, '(a)') '                 NumberType="Float"'
+        write(ioxdmf, '(a)') '                 Precision="'//merge('4','8',WP==kind(1.0))//'"'
+        write(ioxdmf, '(a)') '                 Format="Binary"'
+        write(ioxdmf, '(a)') '                 Endian="Big"'
+        write(ioxdmf, '(a)') '                 Seek="'//trim(byte_str)//'">'
+        write(ioxdmf, '(a)') '           '//"../"//trim(grid_flname)
       end if  
       write(ioxdmf, *)'        </DataItem>'
       write(ioxdmf, *)'      </Geometry>'
