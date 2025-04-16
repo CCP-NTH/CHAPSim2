@@ -11,7 +11,6 @@ Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  021
 
 ## Contact: Main contributors
 * Wei Wang, DL-STFC-UKRI. (wei.wang@stfc.ac.uk, wei.wang@sheffield.ac.uk)
-* Mehdi Seddighi, Liverpool John Moors University. (m.seddighi@ljmu.ac.uk)
 * Shuisheng He, The University of Sheffield. (s.he@sheffield.ac.uk)
 
 # Code Building
@@ -22,8 +21,7 @@ git clone git@github.com:CHAPSim/CHAPSim2.git
 ```
 Compile the codes:
 ```
-mkdir bin obj mod
-make all
+./build_make.sh
 ```
 Run the code:
 ```
@@ -32,7 +30,7 @@ mpirun -n 4 ./bin/CHAPSim2
 ## Updating an existing source tree
 If you have previously downloaded *CHAPSim* using git clone, you can update the existing source tree using git pull rather than starting a new:
 ```
-cd CHAPSim
-git pull && make
+cd CHAPSim2
+git pull
 ```
 
