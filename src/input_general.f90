@@ -1124,6 +1124,7 @@ contains
     if(dm%icoordinate == ICYLINDRICAL) then
     write(*, wrtfmt1r) 'dz_plus_min  :', dzplus2 
     end if
+    if(yplus3 > ONE) write(*, *) 'Warning: Adjust Ny and stretching factor to keep yplus at wall < 1'
     write(*, wrtfmt1il)'Current Ncell:', dm%nc(1) * dm%nc(2) * dm%nc(2)
     write(*, wrtfmt3i) "rec. min cell numbers in xyz :", nx_min, ny_min, nz_min 
     write(*, wrtfmt1il)'rec. Ncell:', nx_min * ny_min * nz_min 
@@ -1168,13 +1169,20 @@ contains
     nt_est = ceiling(t_flth / dt_min)
     
     call Print_debug_mid_msg("Estimating the required time steps")
-    write(*, wrtfmt1r)  'flow throught time :', t_flth
-    write(*, wrtfmt1i)  '1-flthr steps at the estimated dtmax   :', nt_est
-    write(*, wrtfmt1i)  '1-flthr steps at the      current dt   :', nt_cur
-    write(*, wrtfmt1il) 'rec. min. time steps before statistics :', nt_cur * 6
-    write(*, wrtfmt1il) 'rec. min. time steps for statistics    :', nt_cur * 25
+    write(*, wrtfmt1r)     'flow throught time :', t_flth
+    write(*, wrtfmt1il1r)  '1-flthr iter. at the estimated dtmax   :', nt_est, dt_min
+    write(*, wrtfmt1il1r)  '1-flthr iter. at the      current dt   :', nt_cur, dm%dt
+    write(*, wrtfmt1il1r)  'rec.[25]-flthr iter. for statistics    :', nt_cur * 25, dm%dt
     if(dm%is_record_xoutlet .or. dm%is_read_xinlet) &
-    write(*, wrtfmt1il) 'rec. min. time steps for db recording  :', nt_cur * 5
+    write(*, wrtfmt1il1r)  'rec. [5]-flthr iter. for db recording  :', nt_cur * 5, dm%dt
+    write(*, *)  "Note: Statistics can start from any iteration when using running average postprocessing. Otherwise:"
+    write(*, wrtfmt1il1r)  'rec.[6]-flthr iter. before statistics  :', nt_cur * 6,  dm%dt
+
+    call Print_debug_mid_msg("folder structure")
+    write(*, *)  '1_data: all raw data(.bin), time averaged data(.bin) and time-space averaged data (.dat)'
+    write(*, *)  '2_visu: visulisation script (.xdmf)'
+    write(*, *)  '3_monitor: monitored bulk properties, probed points, and mass conservation'
+    write(*, *)  '4_check: check mesh grid distribution, initial velocity profiles'
 
     call Print_debug_start_msg()
     return

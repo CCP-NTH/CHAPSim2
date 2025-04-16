@@ -179,11 +179,11 @@ def get_flow_settings():
             velo2 = get_input("Initial velocity in y", 0.0, float)
             velo3 = get_input("Initial velocity in z", 0.0, float)
       
-      noiselevel = get_input("Random fluctuation intensity (0.0-1.0)", 0.2, float)
+      noiselevel = get_input("Random fluctuation intensity (0.0-1.0)", 0.25, float)
 
     ren = get_input("Reynolds number (bulk, half channel height/radius based)", 2800, int)
     reni = get_input("Initial Reynolds number", 20000, int)
-    nreni = get_input("Iterations for the initial Re.", 5000, int)
+    nreni = get_input("Iterations for the initial Re.", 10000, int)
     
     return {
         "initfl": initfl,
@@ -434,10 +434,10 @@ def get_scheme_settings():
 def get_simcontrol_settings():
     
     nIterFlowFirst   = get_input("The first iteration for flow field", 1, int)
-    nIterFlowLast    = get_input("The last  iteration for flow field", 1000, int)
+    nIterFlowLast    = get_input("The last  iteration for flow field", 1000000, int)
     if ithermo == 1:
       nIterThermoFirst = get_input("The first iteration for thermal field", 1, int)
-      nIterThermoLast  = get_input("The last  iteration for thermal field", 1000, int)
+      nIterThermoLast  = get_input("The last  iteration for thermal field", 1000000, int)
     else:
       nIterThermoFirst = 0
       nIterThermoLast = 0
@@ -487,9 +487,9 @@ def get_io_settings():
 
 # probe Settings
 def get_probe_settings(lxx, lzz, lyt, lyb):
-    is_auto = get_input("Automatic generated 3 probe points? (0:No, 1:Yes)", 1, int)
+    is_auto = get_input("Automatic generated 5 probe points? (0:No, 1:Yes)", 1, int)
     if is_auto == 1:
-        npp = 3
+        npp = 5
         lxp = [lxx / 2.0] * npp  # Make sure it's a list
         lzp = [lzz / 2.0] * npp  # Make sure it's a list
         lyp = [(lyb + (lyt - lyb) * (i+1) / (npp + 1)) for i in range(npp)] 
