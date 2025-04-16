@@ -642,7 +642,7 @@ contains
         end if ! 
 
         if(domain(1)%icase == ICASE_CHANNEL) then
-          if (domain(1)%iAccuracy == IACCU_CP4 .or. 
+          if (domain(1)%iAccuracy == IACCU_CP4 .or.  &
               domain(1)%iAccuracy == IACCU_CP6) then
             domain(1)%iAccuracy = IACCU_CD4
           end if
