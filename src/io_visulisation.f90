@@ -26,7 +26,7 @@ module io_visualisation_mod
   real(WP), allocatable :: rp(:, :, :), ta(:, :, :)
   real(WP), allocatable :: xp(:, :, :), yp(:, :, :), zp(:, :, :)
   real(WP), allocatable :: xp1(:), yp1(:), zp1(:)
-  character(120):: grid_flname
+  character(120):: grid_flname, grid_flname_x, grid_flname_y, grid_flname_z
   !character(6)  :: svisudim
 
   private :: write_visu_headerfooter
@@ -420,23 +420,30 @@ contains
       istr(3) = trim(int2str(nnd_visu(3, dm%idom)))
 
       if(dm%icoordinate == ICARTESIAN) then
-        keyword = "grid_x"
-        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
-        open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
-        write(iogrid, *) xp1
-        close(iogrid)
+      ! Write binary files for each coordinate direction in double precision
+          keyword = "grid_x"
+          call generate_pathfile_name(grid_flname_x, dm%idom, keyword, dir_visu, 'bin')
+          open(newunit=iogrid, file=trim(grid_flname_x), access='stream', form='unformatted', &
+              status='replace', action='write')
+          write(iogrid) int(size(xp1), kind=int32)  ! Write dimension as 4-byte integer
+          write(iogrid) xp1      ! Write coordinates as 8-byte floats (double precision)
+          close(iogrid)
 
-        keyword = "grid_y"
-        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
-        open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
-        write(iogrid, *) yp1
-        close(iogrid)
+          keyword = "grid_y"
+          call generate_pathfile_name(grid_flname_y, dm%idom, keyword, dir_visu, 'bin')
+          open(newunit=iogrid, file=trim(grid_flname_y), access='stream', form='unformatted', &
+              status='replace', action='write')
+          write(iogrid) int(size(yp1), kind=int32)
+          write(iogrid) yp1
+          close(iogrid)
 
-        keyword = "grid_z"
-        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'dat')
-        open(newunit = iogrid, file = trim(grid_flname), action = "write", status="replace")
-        write(iogrid, *) zp1
-        close(iogrid)
+          keyword = "grid_z"
+          call generate_pathfile_name(grid_flname_z, dm%idom, keyword, dir_visu, 'bin')
+          open(newunit=iogrid, file=trim(grid_flname_z), access='stream', form='unformatted', &
+              status='replace', action='write')
+          write(iogrid) int(size(zp1), kind=int32)
+          write(iogrid) zp1
+          close(iogrid)
       end if
 !----------------------------------------------------------------------------------------------------------
 ! write grids - Cylindrical Coordinates, well-structured non-rectangular grid
@@ -505,32 +512,47 @@ contains
 ! to do: write mesh into mesh.bin 
 !----------------------------------------------------------------------------------------------------------
       ! Write XDMF header
-      write(ioxdmf, '(A)')'<?xml version="1.0" ?>'
-      write(ioxdmf, '(A)')'<Xdmf Version="3.0">'
-      write(ioxdmf, *)' <Domain>'
-      write(ioxdmf, *)'   <Grid Name="'//trim(keyword)//'" GridType="Uniform">'
+      write(ioxdmf, '(a)')'<?xml version="1.0" ?>'
+      write(ioxdmf, '(a)')'<Xdmf Version="3.0">'
+      write(ioxdmf, '(a)')' <Domain>'
+      write(ioxdmf, '(a)')'   <Grid Name="'//trim(keyword)//'" GridType="Uniform">'
       
       if(dm%icoordinate == ICARTESIAN) then
         ! Write topology
-        write(ioxdmf, *)'     <Topology TopologyType="3DRectMesh" Dimensions=" '&
-                                //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
-        write(ioxdmf, *)'     </Topology>'
+        write(ioxdmf, '(a)')'     <Topology TopologyType="3DRectMesh" Dimensions=" '&
+                                //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'"/>'
         ! Write geometry
-        write(ioxdmf, *)'     <Geometry GeometryType="VXVYVZ">'
-        write(ioxdmf, *)'        <DataItem Format="XML" NumberType="Float" Precision="8" Dimensions="'//trim(istr(1))//'">'
-        write(ioxdmf, *)'         ', xp1(1:nnd_visu(1, dm%idom))
-        write(ioxdmf, *)'        </DataItem>'
-        write(ioxdmf, *)'        <DataItem Format="XML" NumberType="Float" Precision="8" Dimensions="'//trim(istr(2))//'">'
-        write(ioxdmf, *)'         ', yp1(1:nnd_visu(2, dm%idom))
-        write(ioxdmf, *)'        </DataItem>'
-        write(ioxdmf, *)'        <DataItem Format="XML" NumberType="Float" Precision="8" Dimensions="'//trim(istr(3))//'">'
-        write(ioxdmf, *)'         ', zp1(1:nnd_visu(3, dm%idom))
+        write(ioxdmf, '(a)') '     <Geometry GeometryType="VXVYVZ">'
+        write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
+        write(ioxdmf, '(a)') '                 Dimensions="'//trim(istr(1))//'"'
+        write(ioxdmf, '(a)') '                 NumberType="Float"'
+        write(ioxdmf, '(a)') '                 Precision="8"'      ! 8-byte precision
+        write(ioxdmf, '(a)') '                 Format="Binary"'
+        write(ioxdmf, '(a)') '                 Seek="4">'         ! Skip 4-byte integer header
+        write(ioxdmf, '(a)') '          ../'//trim(grid_flname_x)
+        write(ioxdmf, '(a)') '        </DataItem>'
+        write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
+        write(ioxdmf, '(a)') '                 Dimensions="'//trim(istr(2))//'"'
+        write(ioxdmf, '(a)') '                 NumberType="Float"'
+        write(ioxdmf, '(a)') '                 Precision="8"'      ! 8-byte precision
+        write(ioxdmf, '(a)') '                 Format="Binary"'
+        write(ioxdmf, '(a)') '                 Seek="4">'         ! Skip 4-byte integer header
+        write(ioxdmf, '(a)') '          ../'//trim(grid_flname_y)
+        write(ioxdmf, '(a)') '        </DataItem>'
+        write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
+        write(ioxdmf, '(a)') '                 Dimensions="'//trim(istr(3))//'"'
+        write(ioxdmf, '(a)') '                 NumberType="Float"'
+        write(ioxdmf, '(a)') '                 Precision="8"'      ! 8-byte precision
+        write(ioxdmf, '(a)') '                 Format="Binary"'
+        write(ioxdmf, '(a)') '                 Seek="4">'         ! Skip 4-byte integer header
+        write(ioxdmf, '(a)') '          ../'//trim(grid_flname_z)
+        write(ioxdmf, '(a)')'        </DataItem>'
+        write(ioxdmf, '(a)')'      </Geometry>'
       end if
       if(dm%icoordinate == ICYLINDRICAL) then
         ! Write topology
-        write(ioxdmf, *)'     <Topology TopologyType="3DSMesh" Dimensions=" '&
-                               //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'">'
-        write(ioxdmf, *)'     </Topology>'
+        write(ioxdmf, '(a)')'     <Topology TopologyType="3DSMesh" Dimensions=" '&
+                               //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'"/>'
         ! Write geometry
         write(ioxdmf, '(a)') '     <Geometry GeometryType="XYZ">'
         write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
@@ -541,13 +563,14 @@ contains
         write(ioxdmf, '(a)') '                 Endian="Big"'
         write(ioxdmf, '(a)') '                 Seek="'//trim(byte_str)//'">'
         write(ioxdmf, '(a)') '           '//"../"//trim(grid_flname)
+        write(ioxdmf, '(a)')'        </DataItem>'
+        write(ioxdmf, '(a)')'      </Geometry>'
       end if  
-      write(ioxdmf, *)'        </DataItem>'
-      write(ioxdmf, *)'      </Geometry>'
+      
     else if (iheadfoot == XDMF_FOOTER) then 
-      write(ioxdmf, *)'   </Grid>'
-      write(ioxdmf, *)' </Domain>'
-      write(ioxdmf, '(A)')'</Xdmf>'
+      write(ioxdmf, '(a)')'   </Grid>'
+      write(ioxdmf, '(a)')' </Domain>'
+      write(ioxdmf, '(a)')'</Xdmf>'
     else 
     end if
     close(ioxdmf)
@@ -629,14 +652,17 @@ contains
         keyword = trim(int2str(nsz(3)))//' '//trim(int2str(nsz(2)))//' '//trim(int2str(nsz(1)))
       end if  
 
-      write(ioxdmf, *)'      <Attribute Name="'//trim(varname)// &
-                            '" AttributeType="'//trim(attributetype)// &
-                            '" Center="'//trim(centring)//'">'
-      write(ioxdmf, *)'        <DataItem NumberType="Float" Precision="8" Format="Binary" Dimensions="' &
-                                //trim(keyword)//'">'
-      write(ioxdmf, *)'              '//"../"//trim(data_flname_path)
-      write(ioxdmf, *)'        </DataItem>'
-      write(ioxdmf, *)'       </Attribute>'
+      write(ioxdmf, '(a)') '      <Attribute Name="'//trim(varname)// &
+                          '" AttributeType="'//trim(attributetype)// &
+                          '" Center="'//trim(centring)//'">'
+      write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
+      write(ioxdmf, '(a)') '                 NumberType="Float"'
+      write(ioxdmf, '(a)') '                 Precision="8"'
+      write(ioxdmf, '(a)') '                 Format="Binary"'
+      write(ioxdmf, '(a)') '                 Dimensions="'//trim(keyword)//'">'
+      write(ioxdmf, '(a)') '          ../'//trim(data_flname_path)
+      write(ioxdmf, '(a)') '        </DataItem>'
+      write(ioxdmf, '(a)') '      </Attribute>'
       close(ioxdmf)
     end if
 
