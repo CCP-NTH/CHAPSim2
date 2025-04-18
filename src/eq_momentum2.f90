@@ -2103,7 +2103,7 @@ contains
 ! $d\rho / dt$ at cell centre
 !----------------------------------------------------------------------------------------------------------
     if (dm%is_thermo) then
-      call Calculate_drhodt(fl, dm, isub)
+      call Calculate_drhodt(fl, dm)
     end if
 !----------------------------------------------------------------------------------------------------------
 ! $d(\rho u_i)) / dx_i $ at cell centre
@@ -2339,6 +2339,10 @@ contains
 !----------------------------------------------------------------------------------------------------------
   if(dm%is_thermo) then
     call convert_primary_conservative(fl, dm, IG2Q)
+    !if(isub == dm%nsubitr) then
+      fl%dDensm2 = fl%dDensm1
+      fl%dDensm1 = fl%dDens
+    !end if
   end if
 
 #ifdef DEBUG_STEPS

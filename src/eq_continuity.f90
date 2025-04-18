@@ -22,13 +22,12 @@ contains
 !> \param[out] drhodt           d(rho)/dt
 !> \param[in]  itime            the sub-step in RK3
 !_______________________________________________________________________________
-  subroutine Calculate_drhodt(fl, dm, isub)
+  subroutine Calculate_drhodt(fl, dm)
     use parameters_constant_mod
     use udf_type_mod
     implicit none
     type(t_domain), intent(in) :: dm
     type(t_flow), intent(inout) :: fl
-    integer, intent(in) :: isub
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div0
 
@@ -36,31 +35,37 @@ contains
     if( .not. dm%is_thermo) return
 
     ! method 1:
-    ! if(dm%iTimeScheme == ITIME_AB2) then
-    !   fl%pcor(:, :, :) = HALF * fl%dDens  (:, :, :) - &
-    !                      TWO  * fl%dDensm1(:, :, :) + &
-    !                      HALF * fl%dDensm2(:, :, :)
-    !   fl%pcor(:, :, :) = fl%pcor(:, :, :) / dm%dt
+    if(dm%iTimeScheme == ITIME_AB2) then
+      fl%pcor(:, :, :) = HALF * fl%dDens  (:, :, :) - &
+                         TWO  * fl%dDensm1(:, :, :) + &
+                         HALF * fl%dDensm2(:, :, :)
+      fl%pcor(:, :, :) = fl%pcor(:, :, :) / dm%dt
 
-    ! else if (dm%iTimeScheme == ITIME_RK3 .or. dm%iTimeScheme == ITIME_RK3_CN) then
-    !   ! ! to check this part, is iteration necessary?
-    !   ! drhodt(:, :, :) = fl%dDens  (:, :, :)
-    !   ! do i = 1, dm%nsubitr
-    !   !   drhodt(:, :, :) = drhodt(:, :, :) + dm%tAlpha(i) * &
-    !   !                     (fl%dDensm1(:, :, :) - fl%dDensm2(:, :, :))  / dm%dt
-    !   ! end do
+    else if (dm%iTimeScheme == ITIME_RK3 .or. dm%iTimeScheme == ITIME_RK3_CN) then
+      ! ! to check this part, is iteration necessary?
+      ! drhodt(:, :, :) = fl%dDens  (:, :, :)
+      ! do i = 1, dm%nsubitr
+      !   drhodt(:, :, :) = drhodt(:, :, :) + dm%tAlpha(i) * &
+      !                     (fl%dDensm1(:, :, :) - fl%dDensm2(:, :, :))  / dm%dt
+      ! end do
 
-    !   fl%pcor(:, :, :) = HALF * fl%dDens  (:, :, :) - &
-    !                      TWO  * fl%dDensm1(:, :, :) + &
-    !                      HALF * fl%dDensm2(:, :, :)
-    !   fl%pcor(:, :, :) = fl%pcor(:, :, :) / dm%dt
+      !fl%pcor(:, :, :) = HALF * fl%dDens  (:, :, :) - &
+       !                  TWO  * fl%dDensm1(:, :, :) + &
+      !                   HALF * fl%dDensm2(:, :, :)
+      fl%pcor(:, :, :) = fl%dDens(:, :, :) - fl%dDensm1(:, :, :)
 
-    ! else  
-    !   ! default, Euler 1st order 
+      fl%pcor(:, :, :) = fl%pcor(:, :, :) / dm%dt
+    else  
+      ! default, Euler 1st order 
       fl%pcor(:, :, :) = fl%dDens(:, :, :) - fl%dDensm1(:, :, :)
       fl%pcor(:, :, :) = fl%pcor(:, :, :) / dm%dt
-      fl%drhodt = fl%pcor
-    ! end if
+    end if
+
+    !fl%pcor = ZERO 
+
+    fl%drhodt = fl%pcor
+
+    
 
 !  method 2
     
@@ -337,7 +342,7 @@ contains
 !> \param[out]    div          div(u) or div(g)
 !> \param[in]     d            domain
 !_______________________________________________________________________________
-  subroutine Check_element_mass_conservation(fl, dm, iter, str0)
+  subroutine Check_element_mass_conservation(fl, dm, iter, opt_isub, opt_str)
     use precision_mod
     use udf_type_mod
     use input_general_mod    
@@ -354,18 +359,25 @@ contains
     type(t_domain), intent( in    ) :: dm
     type(t_flow),   intent( inout ) :: fl  
     integer, intent(in) :: iter
-    character(*), intent(in), optional :: str0                
+    integer, intent(in), optional :: opt_isub
+    character(*), intent(in), optional :: opt_str                
 
     character(32) :: str
-    integer :: n, nlayer
+    integer :: n, nlayer, isub
 
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div
     !real(WP)   :: divmax 
 
-    if(present(str0)) then
-      str = trim(str0)//'_iter_'//int2str(iter)
+    if(present(opt_str)) then
+      str = trim(opt_str)//'_iter_'//int2str(iter)
     else
       str = 'at iter = '//int2str(iter)
+    end if
+
+    if(present(opt_isub)) then
+      isub = opt_isub
+    else
+      isub = 0
     end if
 
     fl%pcor = ZERO
@@ -374,7 +386,7 @@ contains
 ! $d\rho / dt$ at cell centre
 !----------------------------------------------------------------------------------------------------------
     if (dm%is_thermo) then
-      call Calculate_drhodt(fl, dm, 0)
+      call Calculate_drhodt(fl, dm)
     end if
 !----------------------------------------------------------------------------------------------------------
 ! $d(\rho u_i)) / dx_i $ at cell centre

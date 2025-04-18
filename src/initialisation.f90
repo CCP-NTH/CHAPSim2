@@ -622,7 +622,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     fl%pcor(:, :, :) = ZERO 
 
-    call Check_element_mass_conservation(fl, dm, 0, 'initial') 
+    call Check_element_mass_conservation(fl, dm, 0, opt_str='initial') 
     call write_visu_flow(fl, dm, 'init')
 
     if(nrank == 0) call Print_debug_end_msg()
