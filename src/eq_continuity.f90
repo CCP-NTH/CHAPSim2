@@ -356,8 +356,8 @@ contains
     use typeconvert_mod
     implicit none
 
-    type(t_domain), intent( in    ) :: dm
-    type(t_flow),   intent( inout ) :: fl  
+    type(t_domain), intent( in) :: dm
+    type(t_flow),   intent( inout) :: fl  
     integer, intent(in) :: iter
     integer, intent(in), optional :: opt_isub
     character(*), intent(in), optional :: opt_str                
@@ -365,8 +365,7 @@ contains
     character(32) :: str
     integer :: n, nlayer, isub
 
-    real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div
-    !real(WP)   :: divmax 
+    real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div, drhodt
 
     if(present(opt_str)) then
       str = trim(opt_str)//'_iter_'//int2str(iter)
@@ -380,24 +379,30 @@ contains
       isub = 0
     end if
 
-    fl%pcor = ZERO
+    !fl%pcor = ZERO
     div(:, :, :)  = ZERO
 !----------------------------------------------------------------------------------------------------------
 ! $d\rho / dt$ at cell centre
 !----------------------------------------------------------------------------------------------------------
     if (dm%is_thermo) then
-      call Calculate_drhodt(fl, dm)
+      drhodt = fl%drhodt
+    else
+      drhodt = ZERO
     end if
 !----------------------------------------------------------------------------------------------------------
 ! $d(\rho u_i)) / dx_i $ at cell centre
 !----------------------------------------------------------------------------------------------------------
     call Get_divergence_flow(fl, div, dm)
-    div = div + fl%pcor
+
+write(*,*) 'test, dddt, div, plus', drhodt(4, 4, 4), div(4, 4, 4),  drhodt(4, 4, 4)+div(4, 4, 4)
+    div = div + drhodt
+
 
 #ifdef DEBUG_STEPS
     if(MOD(iter, dm%visu_nfre) == 0) &
     call write_visu_any3darray(div, 'divU', 'debug'//trim(str), dm%dccc, dm, fl%iteration)
 #endif
+
     n = dm%dccc%xsz(1)
     nlayer = 4
     call Find_maximum_absvar3d(div(1         : nlayer,   :, :), fl%mcon(1), dm%dccc, "Mass Consv. (inlet  4) =", 1  )

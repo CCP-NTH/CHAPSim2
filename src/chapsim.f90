@@ -309,7 +309,6 @@ subroutine Solve_eqs_iteration
         if(is_thermo(i)) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
         if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
         if(is_flow(i))   call Solve_momentum_eq(flow(i), domain(i), isub)
-        !call Check_element_mass_conservation(flow(i), domain(i), iter) 
       end do
 #ifdef DEBUG_STEPS
       !call Print_warning_msg(" === The solver will stop as per the user's request. === ")

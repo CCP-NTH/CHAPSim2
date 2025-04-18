@@ -2334,15 +2334,17 @@ contains
     call wrt_3d_pt_debug(fl%gz, dm%dccp,   fl%iteration, isub, 'gz_updated') ! debug_ww
     end if
 #endif
+
+  !call Check_element_mass_conservation(fl, dm, isub) 
 !----------------------------------------------------------------------------------------------------------
 ! to update velocity from gx gy gz 
 !----------------------------------------------------------------------------------------------------------
   if(dm%is_thermo) then
     call convert_primary_conservative(fl, dm, IG2Q)
-    !if(isub == dm%nsubitr) then
+    if(isub == dm%nsubitr) then
       fl%dDensm2 = fl%dDensm1
       fl%dDensm1 = fl%dDens
-    !end if
+    end if
   end if
 
 #ifdef DEBUG_STEPS
