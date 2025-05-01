@@ -848,6 +848,8 @@ contains
       write (*, wrtfmt1r) 'Cp(J/Kg/K):',                  fluidparam%ftpini%cp
       write (*, wrtfmt1e) 'Enthalphy(J):',                fluidparam%ftpini%h
       write (*, wrtfmt1e) 'mass enthaphy(Kg J/m3):',      fluidparam%ftpini%rhoh
+
+      write (*, wrtfmt1e) 'Prandtl Number :',  fluidparam%ftp0ref%m * fluidparam%ftp0ref%cp / fluidparam%ftp0ref%k
     end if
 
     return

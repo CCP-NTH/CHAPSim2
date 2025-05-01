@@ -28,54 +28,45 @@ contains
     implicit none
     type(t_domain), intent(in) :: dm
     type(t_flow), intent(inout) :: fl
-    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div
-    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div0
+    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(in)  :: dens, densm1
+    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(out) :: drhodt
+    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div
+    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div0
 
 
     if( .not. dm%is_thermo) return
 
-    ! method 1:
-    if(dm%iTimeScheme == ITIME_AB2) then
-      fl%pcor(:, :, :) = HALF * fl%dDens  (:, :, :) - &
-                         TWO  * fl%dDensm1(:, :, :) + &
-                         HALF * fl%dDensm2(:, :, :)
-      fl%pcor(:, :, :) = fl%pcor(:, :, :) / dm%dt
 
-    else if (dm%iTimeScheme == ITIME_RK3 .or. dm%iTimeScheme == ITIME_RK3_CN) then
-      ! ! to check this part, is iteration necessary?
-      ! drhodt(:, :, :) = fl%dDens  (:, :, :)
-      ! do i = 1, dm%nsubitr
-      !   drhodt(:, :, :) = drhodt(:, :, :) + dm%tAlpha(i) * &
-      !                     (fl%dDensm1(:, :, :) - fl%dDensm2(:, :, :))  / dm%dt
-      ! end do
+    ! thermal field is half time step ahead of the velocity field
+    ! -----*-----$-----*-----$-----*-----$-----*-----$-----*-----$-----*
+    !           d_(i-1)     d_i   u_i    d_(i+1)
 
-      !fl%pcor(:, :, :) = HALF * fl%dDens  (:, :, :) - &
-       !                  TWO  * fl%dDensm1(:, :, :) + &
-      !                   HALF * fl%dDensm2(:, :, :)
-      fl%pcor(:, :, :) = fl%dDens(:, :, :) - fl%dDensm1(:, :, :)
+    ! select case (dm%iTimeScheme)
+    !   case (ITIME_EULER) ! 1st order
+    !     fl%drhodt = fl%dDens - fl%dDensm1
+    !     fl%drhodt = fl%drhodt / dm%dt
+    !   case (ITIME_AB2) ! 2nd order
+    !     fl%drhodt = fl%dDens - fl%dDensm2
+    !     fl%drhodt = fl%drhodt / (TWO * dm%dt)
+    !   case (ITIME_RK3, ITIME_RK3_CN) ! 3rd order
+    !     fl%drhodt = -fl%dDensm2 + SIX * fl%dDensm1 - THREE * fl%dDens
+    !     fl%drhodt = fl%drhodt / (dm%dt * SIX)
+    !   case default
+    !     fl%drhodt = fl%dDens - fl%dDensm1
+    !     fl%drhodt = fl%drhodt / dm%dt
+    ! end select
 
-      fl%pcor(:, :, :) = fl%pcor(:, :, :) / dm%dt
-    else  
-      ! default, Euler 1st order 
-      fl%pcor(:, :, :) = fl%dDens(:, :, :) - fl%dDensm1(:, :, :)
-      fl%pcor(:, :, :) = fl%pcor(:, :, :) / dm%dt
-    end if
+    fl%drhodt = fl%dDens - fl%dDensm1
+    fl%drhodt = fl%drhodt / dm%dt
 
-    !fl%pcor = ZERO 
-
-    fl%drhodt = fl%pcor
-
+    !fl%drhodt = zero
     
-
-!  method 2
-    
-
-    !call Get_divergence_vector(fl%gx, fl%gy, fl%gz, div, dm)
-    !call Get_divergence_vector(fl%gx0, fl%gy0, fl%gz0, div0, dm)
-
-    ! fl%pcor=  ( dm%tAlpha(isub) * div + dm%tZeta(isub) * div0 ) &
-    !           / (dm%tGamma(isub) - TWO)
-    !fl%pcor =  -dm%tGamma(isub) * div - dm%tZeta(isub) * div0
+#ifdef DEBUG_STEPS
+    write(*,*) 'rho   ', fl%ddens  (1, 1:4, 1)
+    write(*,*) 'rhom1 ', fl%ddensm1(1, 1:4, 1)
+    write(*,*) 'rhom2 ', fl%ddensm2(1, 1:4, 1)
+    write(*,*) 'drhodt', fl%drhodt(1, 1:4, 1)
+#endif
 
 
     return
@@ -395,6 +386,7 @@ contains
     call Get_divergence_flow(fl, div, dm)
 
 write(*,*) 'test, dddt, div, plus', drhodt(4, 4, 4), div(4, 4, 4),  drhodt(4, 4, 4)+div(4, 4, 4)
+write(*,*) 'test, d0, d1, d2     ', fl%dDens(4, 4, 4), fl%dDensm1(4, 4, 4),  fl%dDensm2(4, 4, 4)
     div = div + drhodt
 
 

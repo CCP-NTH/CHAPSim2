@@ -1135,7 +1135,7 @@ contains
 ! X-mom pressure gradient: 
 ! p-m1 = - dpdx
 !----------------------------------------------------------------------------------------------------------
-    call Get_x_1der_C2P_3D( -fl%pres, apcc_xpencil, dm, dm%iAccuracy, dm%ibcx_pr, -dm%fbcx_pr)
+    call Get_x_1der_C2P_3D( -fl%pres * dm%sigma1p, apcc_xpencil, dm, dm%iAccuracy, dm%ibcx_pr, -dm%fbcx_pr)
     mx_rhs_pfc_xpencil=  mx_rhs_pfc_xpencil + apcc_xpencil
 #ifdef DEBUG_STEPS
     write(*,*) 'px-11', apcc_xpencil(1, 1:4, 1)
@@ -1407,7 +1407,7 @@ contains
 ! Y-mom pressure gradient in y direction, Y-pencil, d(sigma_1 p)
 ! p-m2 = - r * dpdy
 !----------------------------------------------------------------------------------------------------------
-    call Get_y_1der_C2P_3D( -pres_ypencil, acpc_ypencil, dm, dm%iAccuracy, dm%ibcy_pr, -dm%fbcy_pr)
+    call Get_y_1der_C2P_3D( -pres_ypencil * dm%sigma1p, acpc_ypencil, dm, dm%iAccuracy, dm%ibcy_pr, -dm%fbcy_pr)
     if(dm%icoordinate == ICYLINDRICAL) &
     call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rp, 1, IPENCIL(2))
     my_rhs_pfc_ypencil =  my_rhs_pfc_ypencil + acpc_ypencil
@@ -1707,7 +1707,7 @@ contains
 ! Z-mom pressure gradient in z direction, Z-pencil, d(sigma_1 p)
 ! p-m3 = -1/r * dpdz
 !----------------------------------------------------------------------------------------------------------
-    call Get_z_1der_C2P_3D( -pres_zpencil, accp_zpencil, dm, dm%iAccuracy, dm%ibcz_pr, -dm%fbcz_pr)
+    call Get_z_1der_C2P_3D( -pres_zpencil * dm%sigma1p, accp_zpencil, dm, dm%iAccuracy, dm%ibcz_pr, -dm%fbcz_pr)
     if(dm%icoordinate == ICYLINDRICAL) &
     call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
     mz_rhs_pfc_zpencil =  mz_rhs_pfc_zpencil + accp_zpencil
@@ -2098,19 +2098,28 @@ contains
 ! RHS of Poisson Eq.
 ! RHS = r^2 * d(\rho)/dt + r^2 * du/dx + r * dv/dy + dw/dz
 !==========================================================================================================
-    fl%pcor = ZERO
 !----------------------------------------------------------------------------------------------------------
 ! $d\rho / dt$ at cell centre
 !----------------------------------------------------------------------------------------------------------
     if (dm%is_thermo) then
-      call Calculate_drhodt(fl, dm)
+      !if(isub==0) then 
+        !call Calculate_drhodt(fl%dDens, fl%dDensm2, fl%drhodt, dm)
+      !else
+        call Calculate_drhodt(fl, dm)
+      !end if
+    else
+      fl%drhodt = ZERO
     end if
 !----------------------------------------------------------------------------------------------------------
 ! $d(\rho u_i)) / dx_i $ at cell centre
 !----------------------------------------------------------------------------------------------------------
     div  = ZERO
     call Get_divergence_flow(fl, div, dm)
-    fl%pcor = fl%pcor + div
+    fl%pcor = fl%drhodt + div
+
+#ifdef DEBUG_STEPS
+    write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
+#endif
 !----------------------------------------------------------------------------------------------------------
 ! For cylindrical coordinate:
 ! Poisson eq is r^2 * d2/dx2 + r * d(r * d/dy)/dy + d2/dz2  = r^2 * div
@@ -2123,6 +2132,8 @@ contains
 #ifdef DEBUG_STEPS
     call wrt_3d_pt_debug (fl%pcor, dm%dccc, fl%iteration, isub, 'PhiRHS@RHS phi') ! debug_ww
     !call wrt_3d_all_debug(fl%pcor, dm%dccc,   fl%iteration, 'PhiRHS@RHS phi') ! debug_ww
+
+    write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
 #endif
 !----------------------------------------------------------------------------------------------------------
 !   solve Poisson
@@ -2132,7 +2143,7 @@ contains
 #ifdef DEBUG_STEPS
     call wrt_3d_pt_debug (fl%pcor, dm%dccc,   fl%iteration, isub, 'phi@sol phi') ! debug_ww
     !call wrt_3d_all_debug(fl%pcor, dm%dccc,   fl%iteration, 'phi@sol phi') ! debug_ww
-    !write(*,*) 'fft2', fl%pcor(:, 1, 1)
+    write(*,*) 'solved_phi', fl%pcor(1, 1:4, 1)
 #endif
     return
   end subroutine
@@ -2240,6 +2251,8 @@ contains
     logical :: flg_bc_conv
     integer :: i
     real(WP) :: pres_bulk
+
+    if(dm%is_thermo) call convert_primary_conservative(fl, dm, IG2Q)
 !----------------------------------------------------------------------------------------------------------
 ! to set up halo b.c. for cylindrical pipe
 !----------------------------------------------------------------------------------------------------------
@@ -2335,17 +2348,29 @@ contains
     end if
 #endif
 
-  !call Check_element_mass_conservation(fl, dm, isub) 
+  call Check_element_mass_conservation(fl, dm, isub) 
 !----------------------------------------------------------------------------------------------------------
 ! to update velocity from gx gy gz 
 !----------------------------------------------------------------------------------------------------------
   if(dm%is_thermo) then
     call convert_primary_conservative(fl, dm, IG2Q)
-    if(isub == dm%nsubitr) then
-      fl%dDensm2 = fl%dDensm1
-      fl%dDensm1 = fl%dDens
-    end if
+    !if(isub == dm%nsubitr) then
+      !fl%dDensm2 = fl%dDensm1
+      !fl%dDensm1 = fl%dDens
+    !end if
   end if
+
+  ! if(dm%is_thermo .and.isub == dm%nsubitr) then
+  !   do i = 1, 100
+  !     call solve_poisson(fl, dm, 0)
+  !     fl%pres = fl%pres + fl%pcor
+  !     call Correct_massflux(fl, fl%pcor, dm, isub)
+  !     call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
+  !     if(dm%icoordinate == ICYLINDRICAL) call update_fbcy_cc_flow_halo(fl, dm)
+  !     call convert_primary_conservative(fl, dm, IG2Q)
+  !     call Check_element_mass_conservation(fl, dm, isub) 
+  !   end do
+  ! end if
 
 #ifdef DEBUG_STEPS
   call wrt_3d_pt_debug(fl%qx, dm%dpcc,   fl%iteration, isub, 'qx_updated') ! debug_ww
