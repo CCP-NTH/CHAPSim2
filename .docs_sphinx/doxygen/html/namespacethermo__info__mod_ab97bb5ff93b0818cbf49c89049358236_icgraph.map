@@ -1,6 +1,0 @@
-<map id="thermo_info_mod::write_thermo_property" name="thermo_info_mod::write_thermo_property">
-<area shape="rect" id="node1" title="Write out the rebuilt thermal property relations." alt="" coords="527,5,685,45"/>
-<area shape="rect" id="node2" href="$namespacethermo__info__mod.html#a82626d241159c7cbbb6225b0ee746507" title="The main code for thermal property initialisation. Scope: mpi called&#45;freq xdomain all once all." alt="" coords="297,5,479,45"/>
-<area shape="rect" id="node3" href="$chapsim_8f90.html#a4d3be256458fe2bd1e077dd34aa9dbca" title="Initialisation and preprocessing of geometry, mesh and tools This subroutine is called at beginning o..." alt="" coords="124,13,249,38"/>
-<area shape="rect" id="node4" href="$chapsim_8f90.html#a7b9e8e3c3b9f9b7cfefe9c7805b3a796" title=" " alt="" coords="5,13,76,38"/>
-</map>

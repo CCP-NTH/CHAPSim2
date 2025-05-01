@@ -1,8 +1,0 @@
-<map id="operations::get_y_1st_derivative_c2p_1d" name="operations::get_y_1st_derivative_c2p_1d">
-<area shape="rect" id="node1" title=" " alt="" coords="5,63,152,103"/>
-<area shape="rect" id="node2" href="$namespaceoperations.html#a5756459da73fd07b3684a5fce1f13cff" title="Preparing the RHS array for the TDMA algorithm for 1st derivative. This subroutine is called repeatly..." alt="" coords="200,5,383,45"/>
-<area shape="rect" id="node3" href="$tools__general_8f90.html#a99e79ea9891259e1ad1e4040b19d13b9" title=" " alt="" coords="453,29,565,54"/>
-<area shape="rect" id="node4" href="$namespacetridiagonal__matrix__algorithm.html#a958fe2ad02ca627f96f0739fd3bb57bf" title=" " alt="" coords="213,120,370,160"/>
-<area shape="rect" id="node5" href="$namespacetridiagonal__matrix__algorithm.html#a3b8abd2ff200341d7a575b6e653410bf" title=" " alt="" coords="636,137,831,177"/>
-<area shape="rect" id="node6" href="$namespacetridiagonal__matrix__algorithm.html#a3fe9370c82c1905c0263d587ca264b66" title=" " alt="" coords="431,162,588,217"/>
-</map>

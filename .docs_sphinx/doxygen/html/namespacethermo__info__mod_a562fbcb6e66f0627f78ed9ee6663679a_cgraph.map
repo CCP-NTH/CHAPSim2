@@ -1,6 +1,0 @@
-<map id="thermo_info_mod::initialize_thermal_properties" name="thermo_info_mod::initialize_thermal_properties">
-<area shape="rect" id="node1" title="Initialise thermal variables if ithermo = 1." alt="" coords="5,77,183,117"/>
-<area shape="rect" id="node2" href="$namespacethermo__info__mod.html#ac59a1166e5f6b644291b8006d39922c1" title=" " alt="" coords="231,5,413,60"/>
-<area shape="rect" id="node3" href="$tools__general_8f90.html#af581e821bfba315c15c862f8206cb68d" title=" " alt="" coords="247,84,397,109"/>
-<area shape="rect" id="node4" href="$tools__general_8f90.html#ab9f7bb5819347a9b073342ec6c984c3b" title=" " alt="" coords="247,133,397,159"/>
-</map>

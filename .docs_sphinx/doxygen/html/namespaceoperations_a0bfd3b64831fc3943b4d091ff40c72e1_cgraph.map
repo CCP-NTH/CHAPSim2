@@ -1,9 +1,0 @@
-<map id="operations::get_z_1st_derivative_c2c_3d" name="operations::get_z_1st_derivative_c2c_3d">
-<area shape="rect" id="node1" title=" " alt="" coords="5,37,152,77"/>
-<area shape="rect" id="node2" href="$namespaceoperations.html#ac8866f84189e85fbcfe0d02918d017bb" title=" " alt="" coords="200,37,347,77"/>
-<area shape="rect" id="node3" href="$namespaceoperations.html#a0d85cf60359057a208d894c112382a12" title="Preparing the RHS array for the TDMA algorithm for 1st derivative. This subroutine is called repeatly..." alt="" coords="395,5,577,45"/>
-<area shape="rect" id="node5" href="$namespacetridiagonal__matrix__algorithm.html#a958fe2ad02ca627f96f0739fd3bb57bf" title=" " alt="" coords="407,69,565,109"/>
-<area shape="rect" id="node4" href="$tools__general_8f90.html#a99e79ea9891259e1ad1e4040b19d13b9" title=" " alt="" coords="648,13,760,38"/>
-<area shape="rect" id="node6" href="$namespacetridiagonal__matrix__algorithm.html#a3b8abd2ff200341d7a575b6e653410bf" title=" " alt="" coords="831,96,1025,136"/>
-<area shape="rect" id="node7" href="$namespacetridiagonal__matrix__algorithm.html#a3fe9370c82c1905c0263d587ca264b66" title=" " alt="" coords="625,121,783,175"/>
-</map>

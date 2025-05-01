@@ -1,8 +1,0 @@
-<map id="geometry_mod::buildup_geometry_mesh_info" name="geometry_mod::buildup_geometry_mesh_info">
-<area shape="rect" id="node1" title=" " alt="" coords="5,79,163,119"/>
-<area shape="rect" id="node2" href="$namespacegeometry__mod.html#a1abc19a457a88001ccef094ba11055b9" title="Building up the mesh mapping relation between physical domain and mesh to a computational domain and ..." alt="" coords="211,22,368,62"/>
-<area shape="rect" id="node5" href="$tools__general_8f90.html#af581e821bfba315c15c862f8206cb68d" title=" " alt="" coords="215,87,364,112"/>
-<area shape="rect" id="node6" href="$tools__general_8f90.html#a9f30e215c65cc9fd014ca9b95d12054e" title=" " alt="" coords="212,136,367,161"/>
-<area shape="rect" id="node3" href="$namespacemath__mod.html#a86c960ba3803f2291dbbe7ec3700c7ee" title=" " alt="" coords="416,5,595,31"/>
-<area shape="rect" id="node4" href="$tools__general_8f90.html#a99e79ea9891259e1ad1e4040b19d13b9" title=" " alt="" coords="449,55,561,80"/>
-</map>

@@ -1,9 +1,0 @@
-<map id="solver_tools_mod::update_re" name="solver_tools_mod::update_re">
-<area shape="rect" id="node1" title="The main code for initializing flow variables This subroutine is called once in Initialize_chapsim." alt="" coords="735,70,924,95"/>
-<area shape="rect" id="node2" href="$namespaceflow__thermo__initialiasation.html#a395fb421dbaf27d583aa51eb93e569db" title=" " alt="" coords="307,5,481,45"/>
-<area shape="rect" id="node5" href="$namespaceburgers__eq__mod.html#ad30c26da0a51d3c26d913dd50d7b382b" title=" " alt="" coords="529,63,687,103"/>
-<area shape="rect" id="node7" href="$chapsim_8f90.html#ab30f00d1c9ff9c81f83b5218c966acd9" title="solve the governing equations in iteration" alt="" coords="124,123,259,149"/>
-<area shape="rect" id="node3" href="$chapsim_8f90.html#a4d3be256458fe2bd1e077dd34aa9dbca" title="Initialisation and preprocessing of geometry, mesh and tools This subroutine is called at beginning o..." alt="" coords="129,70,254,95"/>
-<area shape="rect" id="node4" href="$chapsim_8f90.html#a7b9e8e3c3b9f9b7cfefe9c7805b3a796" title=" " alt="" coords="5,99,76,125"/>
-<area shape="rect" id="node6" href="$test__algrithms_8f90.html#af4d0dac680876cfbc04f4621e2deca57" title="In&#45;code independent test code for algorithms and schemes." alt="" coords="339,70,449,95"/>
-</map>

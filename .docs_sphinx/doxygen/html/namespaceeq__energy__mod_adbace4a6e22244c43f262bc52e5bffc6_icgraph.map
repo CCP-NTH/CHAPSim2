@@ -1,7 +1,0 @@
-<map id="eq_energy_mod::calculate_massflux_from_velocity" name="eq_energy_mod::calculate_massflux_from_velocity">
-<area shape="rect" id="node1" title="Calculate the conservative variables from primary variable. &#160;&#160;This subroutine is called to update $\r..." alt="" coords="729,5,904,45"/>
-<area shape="rect" id="node2" href="$namespaceflow__thermo__initialiasation.html#acc32ef453f381fb8e3fb89a7d4161aa1" title=" " alt="" coords="297,5,472,45"/>
-<area shape="rect" id="node5" href="$namespaceio__restart__mod.html#a32ede30d8e0c11aab6bcd40686194518" title=" " alt="" coords="520,30,681,85"/>
-<area shape="rect" id="node3" href="$chapsim_8f90.html#a4d3be256458fe2bd1e077dd34aa9dbca" title="Initialisation and preprocessing of geometry, mesh and tools This subroutine is called at beginning o..." alt="" coords="124,13,249,38"/>
-<area shape="rect" id="node4" href="$chapsim_8f90.html#a7b9e8e3c3b9f9b7cfefe9c7805b3a796" title=" " alt="" coords="5,13,76,38"/>
-</map>

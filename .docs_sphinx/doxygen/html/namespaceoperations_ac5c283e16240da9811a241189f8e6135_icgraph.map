@@ -1,8 +1,0 @@
-<map id="operations::get_y_2nd_derivative_c2c_1d" name="operations::get_y_2nd_derivative_c2c_1d">
-<area shape="rect" id="node1" title=" " alt="" coords="655,37,805,77"/>
-<area shape="rect" id="node2" href="$namespaceoperations.html#ade63379846d8e7709c2c12803154ce59" title=" " alt="" coords="456,5,607,45"/>
-<area shape="rect" id="node3" href="$namespacetest__operations__mod.html#a7a1c0edb9a11197a66dfbc99f8010403" title="To test this subroutine for mid&#45;point interpolation." alt="" coords="460,69,603,109"/>
-<area shape="rect" id="node4" href="$test__algrithms_8f90.html#af4d0dac680876cfbc04f4621e2deca57" title="In&#45;code independent test code for algorithms and schemes." alt="" coords="297,77,408,102"/>
-<area shape="rect" id="node5" href="$chapsim_8f90.html#a4d3be256458fe2bd1e077dd34aa9dbca" title="Initialisation and preprocessing of geometry, mesh and tools This subroutine is called at beginning o..." alt="" coords="124,77,249,102"/>
-<area shape="rect" id="node6" href="$chapsim_8f90.html#a7b9e8e3c3b9f9b7cfefe9c7805b3a796" title=" " alt="" coords="5,77,76,102"/>
-</map>

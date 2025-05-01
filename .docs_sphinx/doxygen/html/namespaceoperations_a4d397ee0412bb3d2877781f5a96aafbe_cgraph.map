@@ -1,7 +1,0 @@
-<map id="operations::get_x_midp_p2c_1d" name="operations::get_x_midp_p2c_1d">
-<area shape="rect" id="node1" title=" " alt="" coords="5,37,163,77"/>
-<area shape="rect" id="node2" href="$namespaceoperations.html#ae9a934fcc3257d875ee6f447e854879b" title="Preparing the RHS array for the TDMA algorithm for interpolation. This subroutine is called repeatly ..." alt="" coords="211,5,397,45"/>
-<area shape="rect" id="node3" href="$namespacetridiagonal__matrix__algorithm.html#a958fe2ad02ca627f96f0739fd3bb57bf" title=" " alt="" coords="225,69,383,109"/>
-<area shape="rect" id="node4" href="$namespacetridiagonal__matrix__algorithm.html#a3b8abd2ff200341d7a575b6e653410bf" title=" " alt="" coords="651,69,845,109"/>
-<area shape="rect" id="node5" href="$namespacetridiagonal__matrix__algorithm.html#a3fe9370c82c1905c0263d587ca264b66" title=" " alt="" coords="445,94,603,149"/>
-</map>

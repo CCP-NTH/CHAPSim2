@@ -1,7 +1,0 @@
-<map id="math_mod::heaviside_step" name="math_mod::heaviside_step">
-<area shape="rect" id="node1" title=" " alt="" coords="708,13,887,38"/>
-<area shape="rect" id="node2" href="$namespacegeometry__mod.html#a1abc19a457a88001ccef094ba11055b9" title="Building up the mesh mapping relation between physical domain and mesh to a computational domain and ..." alt="" coords="503,5,660,45"/>
-<area shape="rect" id="node3" href="$namespacegeometry__mod.html#a7f8b6944cb80440500dba9b23eff33d9" title=" " alt="" coords="297,5,455,45"/>
-<area shape="rect" id="node4" href="$chapsim_8f90.html#a4d3be256458fe2bd1e077dd34aa9dbca" title="Initialisation and preprocessing of geometry, mesh and tools This subroutine is called at beginning o..." alt="" coords="124,13,249,38"/>
-<area shape="rect" id="node5" href="$chapsim_8f90.html#a7b9e8e3c3b9f9b7cfefe9c7805b3a796" title=" " alt="" coords="5,13,76,38"/>
-</map>

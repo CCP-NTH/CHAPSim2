@@ -1,7 +1,0 @@
-<map id="operations::get_x_2nd_derivative_p2p_1d" name="operations::get_x_2nd_derivative_p2p_1d">
-<area shape="rect" id="node1" title=" " alt="" coords="5,37,156,77"/>
-<area shape="rect" id="node2" href="$namespaceoperations.html#a5550644dbe9548bbf84839978542b9c3" title="Preparing the RHS array for the TDMA algorithm for 1st derivative. This subroutine is called repeatly..." alt="" coords="204,5,387,45"/>
-<area shape="rect" id="node3" href="$namespacetridiagonal__matrix__algorithm.html#a958fe2ad02ca627f96f0739fd3bb57bf" title=" " alt="" coords="217,69,374,109"/>
-<area shape="rect" id="node4" href="$namespacetridiagonal__matrix__algorithm.html#a3b8abd2ff200341d7a575b6e653410bf" title=" " alt="" coords="640,69,835,109"/>
-<area shape="rect" id="node5" href="$namespacetridiagonal__matrix__algorithm.html#a3fe9370c82c1905c0263d587ca264b66" title=" " alt="" coords="435,94,592,149"/>
-</map>

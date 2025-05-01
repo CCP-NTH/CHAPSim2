@@ -1,5 +1,0 @@
-<map id="flow_thermo_initialiasation::initialize_vortexgreen_2dflow" name="flow_thermo_initialiasation::initialize_vortexgreen_2dflow">
-<area shape="rect" id="node1" title="Initialize Vortex Green flow." alt="" coords="5,23,203,63"/>
-<area shape="rect" id="node2" href="$tools__general_8f90.html#af581e821bfba315c15c862f8206cb68d" title=" " alt="" coords="251,5,400,31"/>
-<area shape="rect" id="node3" href="$tools__general_8f90.html#ab9f7bb5819347a9b073342ec6c984c3b" title=" " alt="" coords="251,55,400,80"/>
-</map>

@@ -1,8 +1,0 @@
-<map id="flow_thermo_initialiasation::generate_random_field" name="flow_thermo_initialiasation::generate_random_field">
-<area shape="rect" id="node1" title="Generate a flow profile for Poiseuille flow in channel or pipe." alt="" coords="5,133,180,173"/>
-<area shape="rect" id="node2" href="$namespaceboundary__conditions__mod.html#ad291e6d494ac82555b41ee6a94128695" title="Apply b.c. conditions." alt="" coords="249,5,416,45"/>
-<area shape="rect" id="node3" href="$namespacerandom__number__generation__mod.html#aeb28b9e73477d6aed189950943a913bd" title=" " alt="" coords="241,69,424,109"/>
-<area shape="rect" id="node4" href="$namespacerandom__number__generation__mod.html#af591ebabcb156ae1c277c2be46a67755" title=" " alt="" coords="228,133,437,173"/>
-<area shape="rect" id="node5" href="$tools__general_8f90.html#af581e821bfba315c15c862f8206cb68d" title=" " alt="" coords="258,198,407,223"/>
-<area shape="rect" id="node6" href="$tools__general_8f90.html#a9f30e215c65cc9fd014ca9b95d12054e" title=" " alt="" coords="255,247,410,273"/>
-</map>

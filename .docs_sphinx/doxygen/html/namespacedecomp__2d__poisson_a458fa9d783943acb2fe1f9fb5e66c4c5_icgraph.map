@@ -1,9 +1,0 @@
-<map id="decomp_2d_poisson::avg3d" name="decomp_2d_poisson::avg3d">
-<area shape="rect" id="node1" title=" " alt="" coords="759,88,908,128"/>
-<area shape="rect" id="node2" href="$namespacedecomp__2d__poisson.html#a63eb0d29d32459aac99c8ddcaf8ad31b" title=" " alt="" coords="561,24,711,64"/>
-<area shape="rect" id="node6" href="$interfacedecomp__2d__poisson_1_1poisson__xxx.html#af47d1d358636a43c25e5b5ea3eafebdd" title=" " alt="" coords="124,95,300,135"/>
-<area shape="rect" id="node7" href="$namespacedecomp__2d__poisson.html#a1dd7ffcba0d1cbfd6efa662813f321f3" title=" " alt="" coords="561,88,711,128"/>
-<area shape="rect" id="node3" href="$namespacedecomp__2d__poisson.html#a1502c904f8136f9694eb52b81c352c23" title=" " alt="" coords="348,37,513,77"/>
-<area shape="rect" id="node4" href="$chapsim_8f90.html#a4d3be256458fe2bd1e077dd34aa9dbca" title="Initialisation and preprocessing of geometry, mesh and tools This subroutine is called at beginning o..." alt="" coords="149,45,275,70"/>
-<area shape="rect" id="node5" href="$chapsim_8f90.html#a7b9e8e3c3b9f9b7cfefe9c7805b3a796" title=" " alt="" coords="5,45,76,70"/>
-</map>

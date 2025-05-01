@@ -1,7 +1,0 @@
-<map id="decomp_2d_poisson::waves" name="decomp_2d_poisson::waves">
-<area shape="rect" id="node1" title=" " alt="" coords="561,35,711,75"/>
-<area shape="rect" id="node2" href="$namespacedecomp__2d__poisson.html#a1502c904f8136f9694eb52b81c352c23" title=" " alt="" coords="348,5,513,45"/>
-<area shape="rect" id="node5" href="$interfacedecomp__2d__poisson_1_1poisson__xxx.html#af47d1d358636a43c25e5b5ea3eafebdd" title=" " alt="" coords="124,63,300,103"/>
-<area shape="rect" id="node3" href="$chapsim_8f90.html#a4d3be256458fe2bd1e077dd34aa9dbca" title="Initialisation and preprocessing of geometry, mesh and tools This subroutine is called at beginning o..." alt="" coords="149,13,275,38"/>
-<area shape="rect" id="node4" href="$chapsim_8f90.html#a7b9e8e3c3b9f9b7cfefe9c7805b3a796" title=" " alt="" coords="5,13,76,38"/>
-</map>

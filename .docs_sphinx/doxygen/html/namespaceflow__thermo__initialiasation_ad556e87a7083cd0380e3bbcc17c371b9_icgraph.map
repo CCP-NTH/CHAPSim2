@@ -1,6 +1,0 @@
-<map id="flow_thermo_initialiasation::initialize_vortexgreen_3dflow" name="flow_thermo_initialiasation::initialize_vortexgreen_3dflow">
-<area shape="rect" id="node1" title="Initialize Vortex Green flow." alt="" coords="520,5,717,45"/>
-<area shape="rect" id="node2" href="$namespaceflow__thermo__initialiasation.html#a395fb421dbaf27d583aa51eb93e569db" title=" " alt="" coords="297,5,472,45"/>
-<area shape="rect" id="node3" href="$chapsim_8f90.html#a4d3be256458fe2bd1e077dd34aa9dbca" title="Initialisation and preprocessing of geometry, mesh and tools This subroutine is called at beginning o..." alt="" coords="124,13,249,38"/>
-<area shape="rect" id="node4" href="$chapsim_8f90.html#a7b9e8e3c3b9f9b7cfefe9c7805b3a796" title=" " alt="" coords="5,13,76,38"/>
-</map>
