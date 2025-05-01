@@ -1,0 +1,153 @@
+name: Bug Report
+description: Report a bug in CHAPSi
+title: "[BUG]: "
+labels: ["bug", "triage"]
+assignees:
+  - octocat
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for taking the time to fill out this bug report for CHAPSim!
+        
+  - type: input
+    id: version
+    attributes:
+      label: Code Version
+      description: What version of CHAPSim are you running?
+      placeholder: v1.2.3
+    validations:
+      required: true
+      
+  - type: input
+    id: compiler
+    attributes:
+      label: Fortran Compiler
+      description: Which Fortran compiler and version are you using?
+      placeholder: gfortran 11.3.0
+    validations:
+      required: true
+      
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating System
+      description: What operating system are you running?
+      options:
+        - Linux
+        - macOS
+        - Windows
+        - Other (specify in "Additional Environment Details")
+    validations:
+      required: true
+      
+  - type: input
+    id: build_system
+    attributes:
+      label: Build System
+      description: Which build system are you using?
+      placeholder: CMake 3.22.1
+    validations:
+      required: true
+      
+  - type: textarea
+    id: environment
+    attributes:
+      label: Additional Environment Details
+      description: Any other relevant details about your environment
+      placeholder: Hardware specs, MPI version, library dependencies, etc.
+    validations:
+      required: false
+      
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is
+      placeholder: The solver fails to converge when...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Configure with these settings...
+        2. Compile with these flags...
+        3. Run with this input file...
+        4. See error
+    validations:
+      required: true
+      
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: The simulation should converge to...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: The solver crashed with these errors...
+    validations:
+      required: true
+      
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs/Output
+      description: Copy and paste any relevant log output or error messages
+      render: shell
+    validations:
+      required: false
+      
+  - type: textarea
+    id: diagnostic
+    attributes:
+      label: Diagnostic Information
+      description: Include any diagnostics that might help troubleshoot the issue
+      placeholder: Residual history, variables, visualizations, etc.
+    validations:
+      required: false
+      
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Bug Severity
+      description: How severe is this bug?
+      options:
+        - Critical (code crashes or incorrect results)
+        - Major (significant functionality affected)
+        - Minor (minor functionality affected)
+        - Cosmetic (UI/output formatting issues)
+    validations:
+      required: true
+      
+  - type: textarea
+    id: possible_solution
+    attributes:
+      label: Possible Solution
+      description: If you have any ideas about what might be causing the issue or how to fix it
+    validations:
+      required: false
+      
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct
+      description: By submitting this issue, you agree to follow our project's Code of Conduct
+      options:
+        - label: I agree to follow this project's Code of Conduct
+          required: true
+          
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for completing this bug report! We'll investigate and get back to you as soon as possible.
