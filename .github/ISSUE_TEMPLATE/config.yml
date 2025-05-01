@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: CHAPSim Documentation
+    url: https://github.com/weiwangstfc/CHAPSim2.git/docs
+    about: Check our documentation for answers to common questions
+  - name: CHAPSim Community Forum
+    url: https://your-project-forum.com
+    about: Please ask and answer questions about the CFD code here
+  - name: CFD Code Discussions
+    url: https://github.com/weiwangstfc/CHAPSim2.git/discussions
+    about: Please use discussions for feature ideas and broader topics
