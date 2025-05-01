@@ -1,0 +1,48 @@
+name: Documentation Generation and Deployment
+
+on:
+  push:
+    branches: [main] # Trigger on pushes to your main branch (adjust as needed)
+  pull_request:
+    branches: [main] # Trigger on pull requests targeting your main branch
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Install FORD
+        run: pip install ford
+
+      - name: Generate Documentation with FORD
+        run: ford
+
+      - name: Set up MkDocs
+        run: |
+          cd docs/MkDocs/user_guide
+          pip install mkdocs mkdocs-material
+
+      - name: Create Symbolic Link for FORD Output
+        run: |
+          cd docs/MkDocs/user_guide/docs
+          ln -s ../../../ford/ reference
+
+      - name: Build MkDocs Site
+        run: |
+          cd docs/MKDocs/user_guide
+          mkdocs build --clean
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/MkDocs/user_guide/site
+          publish_branch: gh-pages
+          force_orphan: true # If gh-pages doesn't exist

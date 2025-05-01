@@ -1,0 +1,12 @@
+site_name: CHAPSim2 User Guide
+nav:
+    - Home: index.md
+    - Installation: installation.md
+    - Reference: reference/index.md  # Or the main index file FORD generated
+    # You might want to list individual modules/subroutines here for better navigation
+    # Example (assuming FORD generates files like reference/numerical_utils.md):
+    #   - Numerical Utilities: reference/numerical_utils.md
+    #   - Solver Core: reference/solver_core.md
+    - Examples: examples.md
+    - Contributing: contributing.md # Add other sections as needed
+theme: material

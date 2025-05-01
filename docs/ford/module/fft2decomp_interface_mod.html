@@ -1,0 +1,1315 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="A finite difference based incompressible DNS solver with heat transfer">
+    <meta name="author" content="Wei Wang" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>fft2decomp_interface_mod &ndash; CHAPSim2</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/chapsim.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>fft2decomp_interface_mod
+      <small>Module</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.7% of total for modules and submodules.">167 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/poisson_1stderivcomp.f90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/poisson_1stderivcomp.f90.html'>poisson_1stderivcomp.f90</a></li>
+            <li class="breadcrumb-item active" aria-current="page">fft2decomp_interface_mod</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+
+  <div class="row">
+    <div class="col-md-3">
+        <div id="sidebar">
+      <h3>Contents</h3>
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-istret~2">istret</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-iforward">IFORWARD</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ibackward">IBACKWARD</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-xlx">xlx</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-yly">yly</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-zlz">zlz</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nclx">nclx</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ncly">ncly</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nclz">nclz</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nclx1">nclx1</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ncly1">ncly1</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nclz1">nclz1</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nx~16">nx</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ny~17">ny</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nz~15">nz</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nxm">nxm</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nym">nym</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-nzm">nzm</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-dx~4">dx</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-dy~6">dy</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-dz~3">dz</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-alpha~6">alpha</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-beta~5">beta</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-alcaix6">alcaix6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-acix6">acix6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-bcix6">bcix6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-alcaiy6">alcaiy6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-aciy6">aciy6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-bciy6">bciy6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-alcaiz6">alcaiz6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-aciz6">aciz6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-bciz6">bciz6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ailcaix6">ailcaix6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-aicix6">aicix6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-bicix6">bicix6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-cicix6">cicix6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-dicix6">dicix6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ailcaiy6">ailcaiy6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-aiciy6">aiciy6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-biciy6">biciy6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ciciy6">ciciy6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-diciy6">diciy6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ailcaiz6">ailcaiz6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-aiciz6">aiciz6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-biciz6">biciz6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ciciz6">ciciz6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-diciz6">diciz6</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-zkz">zkz</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-zk2">zk2</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-ezs">ezs</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-yky">yky</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-yk2">yk2</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-eys">eys</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-xkx">xkx</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-xk2">xk2</a>
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#variable-exs">exs</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#subs-0"
+         aria-expanded="false" aria-controls="subs-0">
+         <h4 class="card-header bg-primary text-white">Subroutines</h4>
+      </a>
+      <div id="subs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/fft2decomp_interface_mod.html#proc-build_up_fft2decomp_interface">build_up_fft2decomp_interface</a>
+        </div>
+      </div>
+    </div>
+
+  
+  
+  
+  
+  
+  
+  
+
+
+  </div>
+
+    </div>
+
+    <div class="col-md-9" id='text'>
+      
+<br>          <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='mpi_mod.html'>mpi_mod</a></li>
+                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
+                  <li class="list-inline-item">decomp_2d</li>
+                  <li class="list-inline-item"><a href='math_mod.html'>math_mod</a></li>
+              </ul>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+      
+      <br>
+
+
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-istret~2"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>istret</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iforward"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>IFORWARD</strong></td>
+<td> =</td>
+                <td>1</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibackward"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>IBACKWARD</strong></td>
+<td> =</td>
+                <td>-1</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xlx"></span>
+              real(kind=mytype),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xlx</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-yly"></span>
+              real(kind=mytype),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>yly</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-zlz"></span>
+              real(kind=mytype),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>zlz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nclx"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nclx</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ncly"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ncly</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nclz"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nclz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nclx1"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nclx1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ncly1"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ncly1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nclz1"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nclz1</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nx~16"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>nx</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ny~17"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>ny</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nz~15"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>nz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nxm"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>nxm</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nym"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>nym</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nzm"></span>
+              integer,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>nzm</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dx~4"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>dx</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dy~6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>dy</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dz~3"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>dz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-alpha~6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>alpha</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-beta~5"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>beta</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-alcaix6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>alcaix6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-acix6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>acix6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bcix6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>bcix6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-alcaiy6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>alcaiy6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aciy6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>aciy6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bciy6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>bciy6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-alcaiz6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>alcaiz6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aciz6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>aciz6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bciz6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>bciz6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ailcaix6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>ailcaix6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aicix6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>aicix6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bicix6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>bicix6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cicix6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>cicix6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dicix6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>dicix6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ailcaiy6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>ailcaiy6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aiciy6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>aiciy6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-biciy6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>biciy6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ciciy6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>ciciy6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-diciy6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>diciy6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ailcaiz6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>ailcaiz6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-aiciz6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>aiciz6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-biciz6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>biciz6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ciciz6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>ciciz6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-diciz6"></span>
+              real(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>diciz6</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-zkz"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>zkz</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-zk2"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>zk2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ezs"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>ezs</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-yky"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>yky</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-yk2"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>yk2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-eys"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>eys</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xkx"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>xkx</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xk2"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>xk2</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-exs"></span>
+              complex(kind=mytype),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable, dimension(:), save
+            </td>
+            <td>::</td>
+            <td><strong>exs</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
+
+
+
+
+
+
+        <section>
+          <h2>Subroutines</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-build_up_fft2decomp_interface"></span> <h3>public  subroutine <a href='../proc/build_up_fft2decomp_interface.html'>build_up_fft2decomp_interface</a>(dm)  
+</h3></div>
+    <div class="card-body">
+          
+  <p><code>ipinter=1</code>: conventional sixth-order interpolation coefficients as described in <code>Lele 1992 &lt;https://www.sciencedirect.com/science/article/pii/002199919290324R&gt;</code>_\
+<code>ipinter=2</code>: optimal sixth-order interpolation coefficients designed to be as close as possible to spectral interpolators.
+<code>ipinter=3</code>: aggressive sixth-order interpolation coefficients designed to add some numerical dissipation at small scales but they could result in spurious oscillations close to a wall.
+ if(dm%iAccuracy == IACCU_CD2) then
+   ailcaix6 = ZERO
+   aicix6 = HALF 
+   bicix6 = ZERO
+   cicix6 = ZERO
+   dicix6 = ZERO
+ else
+   ailcaix6 = THREE * ZPONE
+   aicix6 = ONEPFIVE * HALF
+   bicix6 = ONE * ZPONE * HALF
+   cicix6 = ZERO
+   dicix6 = ZERO
+ end if</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~126"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+        </section>
+        <br>
+
+
+
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>
