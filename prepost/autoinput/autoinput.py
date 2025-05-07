@@ -3,7 +3,7 @@ from enum import Enum, auto
 import math
 
 # Constants
-DEFAULT_FILENAME = "input_chapsim_by_python.ini"
+DEFAULT_FILENAME = "input_chapsim_auto.ini"
 
 # Enums for categorical values
 class Case(Enum):
