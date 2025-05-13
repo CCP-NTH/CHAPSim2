@@ -1,0 +1,16 @@
+project: CHAPSim2
+src_dir: ../src
+summary: A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.
+author: Wei Wang
+search: true
+creation_date: true
+coloured_edges: true
+graph: false
+graph_maxdepth: 10000
+show_proc_parent: true
+
+predocmark: ">"
+docmark: "!"
+predocmark_alt: "*"
+docmark_alt: "*"
+

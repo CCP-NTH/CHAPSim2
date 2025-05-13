@@ -1,0 +1,74 @@
+# -------------------------------------------------------------------
+# Project Metadata
+# -------------------------------------------------------------------
+project: CHAPSim2
+summary: A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.
+description: >
+  CHAPSim2 is a finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.
+  It is designed to be easy to use and extend, making it suitable for a wide range of applications in computational fluid dynamics.
+author: Wei Wang
+author_description: Senior Computational Scientist, Scientific Computing Department, UKRI-STFC
+email: wei.wang@stfc.ac.uk
+website: ""
+github: https://github.com/CHAPSim/CHAPSim2
+
+# -------------------------------------------------------------------
+# Source Configuration
+# -------------------------------------------------------------------
+src_dir: ./src
+
+exclude_dir:
+  - ./build
+  - ./tests
+  - ./bin
+  - ./obj
+  - ./prepost
+  - ./src/.obsolete
+
+exclude: []  # No specific files excluded
+
+# -------------------------------------------------------------------
+# Output Configuration
+# -------------------------------------------------------------------
+output_dir: ./docs/ford
+
+output:
+  html: true          # Generate HTML documentation
+  latex: false        # Do not generate LaTeX files
+  pdf: false          # Do not generate PDF
+
+page_dir: ./docs/ford/pages  # Optional additional markdown content
+
+# -------------------------------------------------------------------
+# Documentation Markers
+# -------------------------------------------------------------------
+predocmark: ">"
+docmark: "!"
+predocmark_alt: "*"
+docmark_alt: "*"
+
+# -------------------------------------------------------------------
+# Display Options
+# -------------------------------------------------------------------
+display:
+  - public
+  - protected
+  - private
+
+# -------------------------------------------------------------------
+# Features
+# -------------------------------------------------------------------
+source: true     # Include source code in documentation
+graph: true      # Generate call/dependency graphs
+search: true     # Enable full-text search
+
+# -------------------------------------------------------------------
+# Other Settings
+# -------------------------------------------------------------------
+warn: true
+page: true
+debug: true
+
+macro: VERSION=2.0.0
+
+license: BSD-3-Clause

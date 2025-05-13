@@ -1,0 +1,1436 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>All Procedures &ndash; CHAPSim2
+</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/chapsim.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-12" id='text'>
+			 <h1>Procedures</h1>
+			 <table class="table table-striped">
+			 <thead><tr><th>Procedure</th><th>Location</th><th>Procedure Type</th><th>Description</th></tr></thead>
+			 <tbody>
+			   <tr>
+                 <td><a href='../proc/abs_cdp.html'>abs_cdp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/abs_csp.html'>abs_csp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/abs_dp.html'>abs_dp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/abs_prec.html'>abs_prec</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/abs_sp.html'>abs_sp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/abs_wp.html'>abs_wp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/adjust_to_xzmean_zero.html'>Adjust_to_xzmean_zero</a></td>
+                 <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief : 
+MPI : x-pencil
+ (y) ^<strong><em>_</em> </strong><strong><em> </em></strong><strong><em>
+     |</em></strong><strong>|_____|______|
+     |_____|_____|______|</strong>&gt; (z)
+\param[inout]            </p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/allocate_fbc_flow.html'>allocate_fbc_flow</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/allocate_fbc_thermo.html'>allocate_fbc_thermo</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/allocate_flow_variables.html'>Allocate_flow_variables</a></td>
+                 <td><a href='../module/flow_thermo_initialiasation.html'>flow_thermo_initialiasation</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Allocate flow and thermal variables.   <br>
+Scope:  mpi    called-freq    xdomain     module
+        all    once           specified   private
+\param[in]     none          NA
+\param[out]    none          NA</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/allocate_thermo_variables.html'>Allocate_thermo_variables</a></td>
+                 <td><a href='../module/flow_thermo_initialiasation.html'>flow_thermo_initialiasation</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/atan_dp.html'>atan_dp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/atan_sp.html'>atan_sp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/atan_wp.html'>atan_wp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/axis_estimating_radial_xpx.html'>axis_estimating_radial_xpx</a></td>
+                 <td><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/build_bc_symm_operation.html'>build_bc_symm_operation</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/build_up_fft2decomp_interface.html'>build_up_fft2decomp_interface</a></td>
+                 <td><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p><code>ipinter=1</code>: conventional sixth-order interpolation coefficients as described in <code>Lele 1992 &lt;https://www.sciencedirect.com/science/article/pii/002199919290324R&gt;</code>_\
+<code>ipinter=2</code>: optimal sixth-order interpolation coefficients designed to be as close as possible to spectral interpolators.
+<code>ipinter=3</code>: aggressive sixth-order interpolation coefficients designed to add some numerical dissipation at small scales but they could result in spurious oscillations close to a wall.
+ if(dm%iAccuracy == IACCU_CD2) then
+   ailcaix6 = ZERO
+   aicix6 = HALF 
+   bicix6 = ZERO
+   cicix6 = ZERO
+   dicix6 = ZERO
+ else
+   ailcaix6 = THREE * ZPONE
+   aicix6 = ONEPFIVE * HALF
+   bicix6 = ONE * ZPONE * HALF
+   cicix6 = ZERO
+   dicix6 = ZERO
+ end if</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/buildup_geometry_mesh_info.html'>Buildup_geometry_mesh_info</a></td>
+                 <td><a href='../module/geometry_mod.html'>geometry_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/buildup_mpi_domain_decomposition.html'>Buildup_mpi_domain_decomposition</a></td>
+                 <td><a href='../module/domain_decomposition_mod.html'>domain_decomposition_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief domain decompistion.<br>
+Scope:  mpi    called-freq    xdomain   module
+        all    once           all       public
+\param[in]     none          NA</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/buildup_thermo_mapping_relations.html'>Buildup_thermo_mapping_relations</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Initialise thermal variables if ithermo = 1.   <br>
+Scope:  mpi    called-freq    xdomain     module
+        all    once           specified   private
+\param[inout]  fl   flow type
+\param[inout]  tm   thermo type
+\brief The main code for thermal property initialisation.
+Scope:  mpi    called-freq    xdomain
+        all    once           all
+\param[inout]  none          NA</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/calculate_drhodt.html'>Calculate_drhodt</a></td>
+                 <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief To calculate d(\rho)/dt in the continuity eq.
+\param[in]  dDens            density at the current time step
+\param[in]  dDensm1          density at the t-1 time step
+\param[in]  dDensm2          density at the t-2 time step
+\param[out] drhodt           d(rho)/dt
+\param[in]  itime            the sub-step in RK3</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/calculate_xz_mean_yprofile.html'>Calculate_xz_mean_yprofile</a></td>
+                 <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief The main code for initialising flow variables</p><a href="../proc/calculate_xz_mean_yprofile.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/call_cpu_time.html'>call_cpu_time</a></td>
+                 <td><a href='../module/code_performance_mod.html'>code_performance_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_cfl_convection.html'>Check_cfl_convection</a></td>
+                 <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief : to check CFL for convection terms
+CFL = u^x/dx + v^y/dy + w^z/dz &lt; limit
+MPI : x-pencil
+ (y) ^<strong><em>_</em> </strong><strong><em> </em></strong><strong><em>
+     |</em></strong><strong>|_____|______|
+     |_____|_____|______|</strong>&gt; (z)</p><a href="../proc/check_cfl_convection.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_cfl_diffusion.html'>Check_cfl_diffusion</a></td>
+                 <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief : 
+MPI : x-pencil
+ (y) ^<strong><em>_</em> </strong><strong><em> </em></strong><strong><em>
+     |</em></strong><strong>|_____|______|
+     |_____|_____|______|</strong>&gt; (z)
+\param[inout]         </p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_element_mass_conservation.html'>Check_element_mass_conservation</a></td>
+                 <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief To calculate divergence of (rho * u) or divergence of (u)
+\param[in]     ux           ux or gx
+\param[in]     uy           uy or gy
+\param[in]     uz           uz or gz
+\param[out]    div          div(u) or div(g)
+\param[in]     d            domain</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/compute_lorentz_force.html'>compute_Lorentz_force</a></td>
+                 <td><a href='../module/mhd_mod.html'>mhd_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/config_calc_basic_ibc.html'>config_calc_basic_ibc</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/config_calc_eqs_ibc.html'>config_calc_eqs_ibc</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/convert_primary_conservative.html'>convert_primary_conservative</a></td>
+                 <td><a href='../module/convert_primary_conservative_mod.html'>convert_primary_conservative_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/convert_thermal_input_2undim.html'>Convert_thermal_input_2undim</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/cos_dp.html'>cos_dp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cos_prec.html'>cos_prec</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/cos_sp.html'>cos_sp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/cos_wp.html'>cos_wp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/create_directory.html'>create_directory</a></td>
+                 <td><a href='../module/io_files_mod.html'>io_files_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/cubic_spline.html'>cubic_spline</a></td>
+                 <td><a href='../module/cubic_spline_interpolation.html'>cubic_spline_interpolation</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/cx.html'>cx</a></td>
+                 <td><a href='../sourcefile/poisson_1stderivcomp.f90.html'>poisson_1stderivcomp.f90</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/decomp_2d_poisson_finalize.html'>decomp_2d_poisson_finalize</a></td>
+                 <td><a href='../module/decomp_2d_poisson.html'>decomp_2d_poisson</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/decomp_2d_poisson_init.html'>decomp_2d_poisson_init</a></td>
+                 <td><a href='../module/decomp_2d_poisson.html'>decomp_2d_poisson</a></td>
+                 <td>Subroutine</td>
+                 <td><p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p><a href="../proc/decomp_2d_poisson_init.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/enforce_velo_from_fbc.html'>enforce_velo_from_fbc</a></td>
+                 <td><a href='../module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/estimate_spacial_resolution.html'>estimate_spacial_resolution</a></td>
+                 <td><a href='../module/apx_prerun_mod.html'>apx_prerun_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/estimate_temporal_resolution.html'>estimate_temporal_resolution</a></td>
+                 <td><a href='../module/apx_prerun_mod.html'>apx_prerun_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/extract_dirichlet_fbcx.html'>extract_dirichlet_fbcx</a></td>
+                 <td><a href='../module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/extract_dirichlet_fbcy.html'>extract_dirichlet_fbcy</a></td>
+                 <td><a href='../module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/extract_dirichlet_fbcz.html'>extract_dirichlet_fbcz</a></td>
+                 <td><a href='../module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/file_exists.html'>file_exists</a></td>
+                 <td><a href='../module/io_files_mod.html'>io_files_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/finalise_chapsim.html'>Finalise_chapsim</a></td>
+                 <td><a href='../sourcefile/chapsim.f90.html'>chapsim.f90</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/finalise_mpi.html'>Finalise_mpi</a></td>
+                 <td><a href='../module/mpi_mod.html'>mpi_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/find_max_min_3d.html'>Find_max_min_3d</a></td>
+                 <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/find_max_min_absvar3d.html'>Find_max_min_absvar3d</a></td>
+                 <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/find_maximum_absvar3d.html'>Find_maximum_absvar3d</a></td>
+                 <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/fishpack_fft_init.html'>fishpack_fft_init</a></td>
+                 <td><a href='../module/fishpack_fft.html'>fishpack_fft</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/fishpack_fft_simple.html'>fishpack_fft_simple</a></td>
+                 <td><a href='../module/fishpack_fft.html'>fishpack_fft</a></td>
+                 <td>Subroutine</td>
+                 <td><p>write(<em>,</em>) 'fft-xzfft ', rhs_ypencil  </p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/flatten_2d_to_1d.html'>flatten_2d_to_1d</a></td>
+                 <td><a href='../module/flatten_index_mod.html'>flatten_index_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/flatten_3d_to_1d.html'>flatten_3d_to_1d</a></td>
+                 <td><a href='../module/flatten_index_mod.html'>flatten_index_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/flatten_index.html'>flatten_index</a></td>
+                 <td><a href='../module/flatten_index_mod.html'>flatten_index_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/ftp_refresh_thermal_properties_from_dh.html'>ftp_refresh_thermal_properties_from_DH</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Defination of a procedure in the type t_fluidThermoProperty.
+ to update the thermal properties based on the known enthalpy per unit mass.     </p><a href="../proc/ftp_refresh_thermal_properties_from_dh.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/ftp_refresh_thermal_properties_from_t_undim_3d.html'>ftp_refresh_thermal_properties_from_T_undim_3D</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/generate_file_name.html'>generate_file_name</a></td>
+                 <td><a href='../module/io_tools_mod.html'>io_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/generate_pathfile_name.html'>generate_pathfile_name</a></td>
+                 <td><a href='../module/io_tools_mod.html'>io_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/generate_r_random.html'>Generate_r_random</a></td>
+                 <td><a href='../module/random_number_generation_mod.html'>random_number_generation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>R_random RETURNs a random REAL(WP) in a given range.</p><a href="../proc/generate_r_random.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/generate_rvec_random.html'>Generate_rvec_random</a></td>
+                 <td><a href='../module/random_number_generation_mod.html'>random_number_generation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>RVEC_random RETURNs a random REAL(WP) vector in a given range.</p><a href="../proc/generate_rvec_random.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_area_average_2d_for_fbcx.html'>Get_area_average_2d_for_fbcx</a></td>
+                 <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_area_average_2d_for_fbcy.html'>Get_area_average_2d_for_fbcy</a></td>
+                 <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_area_average_2d_for_fbcz.html'>Get_area_average_2d_for_fbcz</a></td>
+                 <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_divergence_flow.html'>Get_divergence_flow</a></td>
+                 <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief To calculate divergence of (rho * u) or divergence of (u)
+\param[out]    div          div(q) or div(g)
+\param[in]     d            domain</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_divergence_vector.html'>Get_divergence_vector</a></td>
+                 <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief To calculate divergence of (rho * u) or divergence of (u)
+\param[in]     ux           ux or gx
+\param[in]     uy           uy or gy
+\param[in]     uz           uz or gz
+\param[out]    div          div(u) or div(g)
+\param[in]     d            domain</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_divergence_vel_x2z.html'>Get_divergence_vel_x2z</a></td>
+                 <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief To calculate divergence of (rho * u) or divergence of (u)
+\param[in]     ux           ux or gx
+\param[in]     uy           uy or gy
+\param[in]     uz           uz or gz
+\param[out]    div          div(u) or div(g)
+\param[in]     d            domain</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_fbcx_ftp_4pc.html'>get_fbcx_ftp_4pc</a></td>
+                 <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief : to calculate:
+         fo = \int_1^nx \int_
+ This is based only y-direction stretching.
+ \todo Here is 2nd order Trapezoid Method. Need to improve! Check!
+ Scope:  mpi    called-freq    xdomain     module
+         all    needed         specified   pubic
+ MPI : 
+     default x-pencil
+     working in : y-pencil
+  (y) ^<strong><em>_</em> </strong><strong><em> </em></strong><strong><em>
+      |</em></strong><strong>|_____|______|
+      |_____|_____|______|</strong>&gt; (z)
+ Y: index arrangment
+      j'-1   j'-1  j'    j'+1  j'+2
+      _|<strong>.</strong>|<strong>.</strong>|<strong>.</strong>|<strong>.</strong>|<strong>.</strong>
+         j-2   j-1   j     j+1    j+2
+ \param[inout]         </p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_fbcx_ith.html'>get_fbcx_iTh</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_fbcy_ith.html'>get_fbcy_iTh</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_fbcz_ith.html'>get_fbcz_iTh</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_name_drivenforce.html'>get_name_drivenforce</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_volumetric_average_3d_for_var_xcx.html'>Get_volumetric_average_3d_for_var_xcx</a></td>
+                 <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_x_1der_c2c_3d.html'>Get_x_1der_C2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief To caculate the 1st-deriviate in 3D.
+Scope:  mpi            called-freq    xdomain     module
+      in-given pencil    needed       specified   pubic
+\param[in]     ixsub         x-subdomain index
+\param[in]     ibc           bc type
+\param[in]     fbc           bc value
+\param[in]     inbr          the neibouring index of 4 bc nodes
+\param[in]     fi            the input array of original variable
+\param[out]    fo            the output array of interpolated variable</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_x_1der_c2p_3d.html'>Get_x_1der_C2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_x_1der_p2c_3d.html'>Get_x_1der_P2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_x_1der_p2p_3d.html'>Get_x_1der_P2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_x_midp_c2p_3d.html'>Get_x_midp_C2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief To caculate the mid-point interpolation in 3D.
+Scope:  mpi            called-freq    xdomain     module
+      in-given pencil    needed       specified   pubic
+\param[in]     ixsub         x-subdomain index
+\param[in]     ibc           bc type
+\param[in]     fbc           bc value
+\param[in]     inbr          the neibouring index of 4 bc nodes
+\param[in]     fi            the input array of original variable
+\param[out]    fo            the output array of interpolated variable</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_x_midp_p2c_3d.html'>Get_x_midp_P2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_y_1der_c2c_3d.html'>Get_y_1der_C2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_y_1der_c2p_3d.html'>Get_y_1der_C2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_y_1der_p2c_3d.html'>Get_y_1der_P2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_y_1der_p2p_3d.html'>Get_y_1der_P2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_y_midp_c2p_3d.html'>Get_y_midp_C2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_y_midp_p2c_3d.html'>Get_y_midp_P2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_z_1der_c2c_3d.html'>Get_z_1der_C2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_z_1der_c2p_3d.html'>Get_z_1der_C2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_z_1der_p2c_3d.html'>Get_z_1der_P2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_z_1der_p2p_3d.html'>Get_z_1der_P2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_z_midp_c2p_3d.html'>Get_z_midp_C2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_z_midp_p2c_3d.html'>Get_z_midp_P2C_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/heaviside_step.html'>heaviside_step</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/init_statistics_flow.html'>init_statistics_flow</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/init_statistics_thermo.html'>init_statistics_thermo</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_burgers_flow.html'>initialise_burgers_flow</a></td>
+                 <td><a href='../module/burgers_eq_mod.html'>burgers_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_chapsim.html'>initialise_chapsim</a></td>
+                 <td><a href='../sourcefile/chapsim.f90.html'>chapsim.f90</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief CHAPSim initialisation
+\details Initialisation and preprocessing of geometry, mesh and tools
+This subroutine is called at beginning of the main program
+initialisation of mpi, nrank, nproc
+reading input parameters</p><a href="../proc/initialise_chapsim.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_decomp_io.html'>initialise_decomp_io</a></td>
+                 <td><a href='../module/io_tools_mod.html'>io_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_fbc_flow_given.html'>initialise_fbc_flow_given</a></td>
+                 <td><a href='../module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_fbc_thermo_given.html'>initialise_fbc_thermo_given</a></td>
+                 <td><a href='../module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_fbcx_given_profile.html'>initialise_fbcx_given_profile</a></td>
+                 <td><a href='../module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_fft.html'>initialise_fft</a></td>
+                 <td><a href='../module/poisson_interface_mod.html'>poisson_interface_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_flow_fields.html'>initialise_flow_fields</a></td>
+                 <td><a href='../module/flow_thermo_initialiasation.html'>flow_thermo_initialiasation</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_flow_from_given_inlet.html'>initialise_flow_from_given_inlet</a></td>
+                 <td><a href='../module/flow_thermo_initialiasation.html'>flow_thermo_initialiasation</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_mhd.html'>initialise_mhd</a></td>
+                 <td><a href='../module/mhd_mod.html'>mhd_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_mpi.html'>initialise_mpi</a></td>
+                 <td><a href='../module/mpi_mod.html'>mpi_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief mpi initialisation.   </p><a href="../proc/initialise_mpi.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_random_number.html'>initialise_random_number</a></td>
+                 <td><a href='../module/random_number_generation_mod.html'>random_number_generation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>random_initialise initialises the FORTRAN 90 random number seed.</p><a href="../proc/initialise_random_number.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_thermal_properties.html'>initialise_thermal_properties</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Initialise thermal variables if ithermo = 1.   <br>
+Scope:  mpi    called-freq    xdomain     module
+        all    once           specified   private
+\param[inout]  fl   flow type
+\param[inout]  tm   thermo type</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/initialise_thermo_fields.html'>initialise_thermo_fields</a></td>
+                 <td><a href='../module/flow_thermo_initialiasation.html'>flow_thermo_initialiasation</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/int2str.html'>int2str</a></td>
+                 <td><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/inversion5_v1.html'>inversion5_v1</a></td>
+                 <td><a href='../sourcefile/poisson_1stderivcomp.f90.html'>poisson_1stderivcomp.f90</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/inversion5_v2.html'>inversion5_v2</a></td>
+                 <td><a href='../sourcefile/poisson_1stderivcomp.f90.html'>poisson_1stderivcomp.f90</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/is_even.html'>is_even</a></td>
+                 <td><a href='../module/evenodd_mod.html'>EvenOdd_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/is_same_decomp.html'>is_same_decomp</a></td>
+                 <td><a href='../module/decomp_operation_mod.html'>decomp_operation_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/is_valid_number_3d.html'>is_valid_number_3D</a></td>
+                 <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/iy.html'>iy</a></td>
+                 <td><a href='../sourcefile/poisson_1stderivcomp.f90.html'>poisson_1stderivcomp.f90</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/multiple_cylindrical_rn.html'>multiple_cylindrical_rn</a></td>
+                 <td><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/multiple_cylindrical_rn_x4x.html'>multiple_cylindrical_rn_x4x</a></td>
+                 <td><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/multiple_cylindrical_rn_xx4.html'>multiple_cylindrical_rn_xx4</a></td>
+                 <td><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/operator( .f. ).html'>operator( .f. )</a></td>
+                 <td><a href='../module/io_files_mod.html'>io_files_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/plot_burgers_profile.html'>Plot_burgers_profile</a></td>
+                 <td><a href='../module/burgers_eq_mod.html'>burgers_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/prepare_lhs_coeffs_for_operations.html'>Prepare_LHS_coeffs_for_operations</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Preparing coefficients for TDMA calculation.
+Scope:  mpi    called-freq    xdomain
+        all    once           all</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/preprocess_tdma_coeffs.html'>Preprocess_TDMA_coeffs</a></td>
+                 <td><a href='../module/tridiagonal_matrix_algorithm.html'>tridiagonal_matrix_algorithm</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/print_3d_array.html'>Print_3d_array</a></td>
+                 <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/print_debug_end_msg.html'>Print_debug_end_msg</a></td>
+                 <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/print_debug_inline_msg.html'>Print_debug_inline_msg</a></td>
+                 <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/print_debug_mid_msg.html'>Print_debug_mid_msg</a></td>
+                 <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/print_debug_start_msg.html'>Print_debug_start_msg</a></td>
+                 <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/print_error_msg.html'>Print_error_msg</a></td>
+                 <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/print_note_msg.html'>Print_note_msg</a></td>
+                 <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/print_warning_msg.html'>Print_warning_msg</a></td>
+                 <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/profile_interpolation.html'>profile_interpolation</a></td>
+                 <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_input_parameters.html'>Read_input_parameters</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Reading the input parameters from the given file.   <br>
+Scope:  mpi    called-freq    xdomain
+        all    once           all
+\param[in]     none          NA
+\param[out]    none          NA</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_instantaneous_flow.html'>read_instantaneous_flow</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_instantaneous_thermo.html'>read_instantaneous_thermo</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_instantaneous_xinlet.html'>read_instantaneous_xinlet</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_statistics_flow.html'>read_statistics_flow</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_statistics_thermo.html'>read_statistics_thermo</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/real2str.html'>real2str</a></td>
+                 <td><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/restore_flow_variables_from_restart.html'>restore_flow_variables_from_restart</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/restore_thermo_variables_from_restart.html'>restore_thermo_variables_from_restart</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/rl.html'>rl</a></td>
+                 <td><a href='../sourcefile/poisson_1stderivcomp.f90.html'>poisson_1stderivcomp.f90</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/sin_dp.html'>sin_dp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/sin_prec.html'>sin_prec</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/sin_sp.html'>sin_sp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/sin_wp.html'>sin_wp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/solve_burgers_eq_iteration.html'>Solve_burgers_eq_iteration</a></td>
+                 <td><a href='../module/burgers_eq_mod.html'>burgers_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/solve_energy_eq.html'>Solve_energy_eq</a></td>
+                 <td><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/solve_eqs_iteration.html'>Solve_eqs_iteration</a></td>
+                 <td><a href='../sourcefile/chapsim.f90.html'>chapsim.f90</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief solve the governing equations in iteration</p><a href="../proc/solve_eqs_iteration.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/solve_fft_poisson.html'>solve_fft_poisson</a></td>
+                 <td><a href='../module/poisson_interface_mod.html'>poisson_interface_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/solve_momentum_eq.html'>Solve_momentum_eq</a></td>
+                 <td><a href='../module/eq_momentum_mod.html'>eq_momentum_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief To update the provisional u or rho u.</p><a href="../proc/solve_momentum_eq.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/solve_tdma.html'>Solve_TDMA</a></td>
+                 <td><a href='../module/tridiagonal_matrix_algorithm.html'>tridiagonal_matrix_algorithm</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/spline_interpolation.html'>spline_interpolation</a></td>
+                 <td><a href='../module/cubic_spline_interpolation.html'>cubic_spline_interpolation</a></td>
+                 <td>Function</td>
+                 <td><p>evaluate spline interpolation</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/sqrt_dp.html'>sqrt_dp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/sqrt_sp.html'>sqrt_sp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/sqrt_wp.html'>sqrt_wp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/tan_dp.html'>tan_dp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/tan_sp.html'>tan_sp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/tan_wp.html'>tan_wp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/tanh_dp.html'>tanh_dp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/tanh_sp.html'>tanh_sp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../interface/tanh_wp.html'>tanh_wp</a></td>
+                 <td><a href='../module/math_mod.html'>math_mod</a></td>
+                 <td>Interface</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/test_1st_derivative.html'>Test_1st_derivative</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/test_algorithms.html'>Test_algorithms</a></td>
+                 <td><a href='../sourcefile/test_algrithms.f90.html'>test_algrithms.f90</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief In-code independent test code for algorithms and schemes</p><a href="../proc/test_algorithms.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/test_interpolation.html'>Test_interpolation</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/test_poisson.html'>test_poisson</a></td>
+                 <td><a href='../sourcefile/test_algrithms.f90.html'>test_algrithms.f90</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/test_tdma_cyclic.html'>Test_TDMA_cyclic</a></td>
+                 <td><a href='../module/tridiagonal_matrix_algorithm.html'>tridiagonal_matrix_algorithm</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/test_tdma_noncyclic.html'>Test_TDMA_noncyclic</a></td>
+                 <td><a href='../module/tridiagonal_matrix_algorithm.html'>tridiagonal_matrix_algorithm</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_fbc_2dm_flow_halo.html'>update_fbc_2dm_flow_halo</a></td>
+                 <td><a href='../module/bc_ndomain_interior_mod.html'>bc_ndomain_interior_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_fbc_2dm_thermo_halo.html'>update_fbc_2dm_thermo_halo</a></td>
+                 <td><a href='../module/bc_ndomain_interior_mod.html'>bc_ndomain_interior_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_fbcx_convective_outlet_flow.html'>update_fbcx_convective_outlet_flow</a></td>
+                 <td><a href='../module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_fbcx_convective_outlet_thermo.html'>update_fbcx_convective_outlet_thermo</a></td>
+                 <td><a href='../module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_fbcy_cc_flow_halo.html'>update_fbcy_cc_flow_halo</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_fbcy_cc_thermo_halo.html'>update_fbcy_cc_thermo_halo</a></td>
+                 <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_prgr.html'>Update_PrGr</a></td>
+                 <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_re.html'>Update_Re</a></td>
+                 <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief The main code for initialising flow variables
+This subroutine is called once in \ref initialise_chapsim.</p><a href="../proc/update_re.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_statistics_flow.html'>update_statistics_flow</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_statistics_thermo.html'>update_statistics_thermo</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/update_thermal_properties.html'>Update_thermal_properties</a></td>
+                 <td><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/validate_tgv2d_error.html'>Validate_TGV2D_error</a></td>
+                 <td><a href='../module/flow_thermo_initialiasation.html'>flow_thermo_initialiasation</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_instantaneous_flow.html'>write_instantaneous_flow</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_instantaneous_thermo.html'>write_instantaneous_thermo</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_instantaneous_xoutlet.html'>write_instantaneous_xoutlet</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_monitor_bulk.html'>write_monitor_bulk</a></td>
+                 <td><a href='../module/io_monitor_mod.html'>io_monitor_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_monitor_ini.html'>write_monitor_ini</a></td>
+                 <td><a href='../module/io_monitor_mod.html'>io_monitor_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_monitor_probe.html'>write_monitor_probe</a></td>
+                 <td><a href='../module/io_monitor_mod.html'>io_monitor_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_statistics_flow.html'>write_statistics_flow</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_statistics_thermo.html'>write_statistics_thermo</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_visu_any3darray.html'>write_visu_any3darray</a></td>
+                 <td><a href='../module/io_visualisation_mod.html'>io_visualisation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_visu_flow.html'>write_visu_flow</a></td>
+                 <td><a href='../module/io_visualisation_mod.html'>io_visualisation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_visu_ini.html'>write_visu_ini</a></td>
+                 <td><a href='../module/io_visualisation_mod.html'>io_visualisation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_visu_mhd.html'>write_visu_mhd</a></td>
+                 <td><a href='../module/io_visualisation_mod.html'>io_visualisation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_visu_stats_flow.html'>write_visu_stats_flow</a></td>
+                 <td><a href='../module/io_visualisation_mod.html'>io_visualisation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_visu_stats_thermo.html'>write_visu_stats_thermo</a></td>
+                 <td><a href='../module/io_visualisation_mod.html'>io_visualisation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_visu_thermo.html'>write_visu_thermo</a></td>
+                 <td><a href='../module/io_visualisation_mod.html'>io_visualisation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/wrt_3d_all_debug.html'>wrt_3d_all_debug</a></td>
+                 <td><a href='../module/wrt_debug_field_mod.html'>wrt_debug_field_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/wrt_3d_pt_debug.html'>wrt_3d_pt_debug</a></td>
+                 <td><a href='../module/wrt_debug_field_mod.html'>wrt_debug_field_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/ypencil_index_lgl2ggl.html'>ypencil_index_lgl2ggl</a></td>
+                 <td><a href='../module/decomp_extended_mod.html'>decomp_extended_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/zpencil_index_ggg2llg.html'>zpencil_index_ggg2llg</a></td>
+                 <td><a href='../module/decomp_extended_mod.html'>decomp_extended_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/zpencil_index_llg2ggg.html'>zpencil_index_llg2ggg</a></td>
+                 <td><a href='../module/decomp_extended_mod.html'>decomp_extended_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			 </tbody></table>
+             
+        </div>
+      </div>
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2025 
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>
