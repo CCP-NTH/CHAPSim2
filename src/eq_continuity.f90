@@ -384,9 +384,8 @@ contains
 ! $d(\rho u_i)) / dx_i $ at cell centre
 !----------------------------------------------------------------------------------------------------------
     call Get_divergence_flow(fl, div, dm)
-
-write(*,*) 'test, dddt, div, plus', drhodt(4, 4, 4), div(4, 4, 4),  drhodt(4, 4, 4)+div(4, 4, 4)
-write(*,*) 'test, d0, d1, d2     ', fl%dDens(4, 4, 4), fl%dDensm1(4, 4, 4),  fl%dDensm2(4, 4, 4)
+! write(*,*) 'test, dddt, div, plus', drhodt(4, 4, 4), div(4, 4, 4),  drhodt(4, 4, 4)+div(4, 4, 4)
+! write(*,*) 'test, d0, d1, d2     ', fl%dDens(4, 4, 4), fl%dDensm1(4, 4, 4),  fl%dDensm2(4, 4, 4)
     div = div + drhodt
 
 
