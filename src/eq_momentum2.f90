@@ -2347,9 +2347,8 @@ contains
     call wrt_3d_pt_debug(fl%gy, dm%dcpc,   fl%iteration, isub, 'gy_updated') ! debug_ww
     call wrt_3d_pt_debug(fl%gz, dm%dccp,   fl%iteration, isub, 'gz_updated') ! debug_ww
     end if
+    call Check_element_mass_conservation(fl, dm, isub) 
 #endif
-
-  call Check_element_mass_conservation(fl, dm, isub) 
 !----------------------------------------------------------------------------------------------------------
 ! to update velocity from gx gy gz 
 !----------------------------------------------------------------------------------------------------------
