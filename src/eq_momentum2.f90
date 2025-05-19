@@ -2086,7 +2086,7 @@ contains
     type(t_flow),   intent( inout ) :: fl                  
     integer,        intent( in    ) :: isub
 
-    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div
+    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div, drhodt
     real(WP) :: coeff
 
 #ifdef DEBUG_STEPS  
@@ -2106,16 +2106,17 @@ contains
         !call Calculate_drhodt(fl%dDens, fl%dDensm2, fl%drhodt, dm)
       !else
         call Calculate_drhodt(fl, dm)
+        drhodt = fl%drhodt
       !end if
     else
-      fl%drhodt = ZERO
+      drhodt = ZERO
     end if
 !----------------------------------------------------------------------------------------------------------
 ! $d(\rho u_i)) / dx_i $ at cell centre
 !----------------------------------------------------------------------------------------------------------
     div  = ZERO
     call Get_divergence_flow(fl, div, dm)
-    fl%pcor = fl%drhodt + div
+    fl%pcor = drhodt + div
 
 #ifdef DEBUG_STEPS
     write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
