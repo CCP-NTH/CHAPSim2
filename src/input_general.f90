@@ -98,11 +98,11 @@ contains
     case ( ISTRET_CENTRE)
       str = 'Mesh clusted towards centre of y-domain'
     case ( ISTRET_2SIDES)
-      str = 'Mesh clusted twowards two sides of y-domain'
+      str = 'Mesh clusted towards two sides of y-domain'
     case ( ISTRET_BOTTOM)
-      str = 'Mesh clusted twowards the bottom of y-domain'
+      str = 'Mesh clusted towards the bottom of y-domain'
     case ( ISTRET_TOP)
-      str = 'Mesh clusted twowards the top of y-domain'
+      str = 'Mesh clusted towards the top of y-domain'
     case default
       call Print_error_msg('The required mesh stretching is not supported.')
     end select
