@@ -108,8 +108,13 @@ contains
     if (nrank == 0) call Print_debug_start_msg("Building up the interface for the poisson solver ...")
 !----------------------------------------------------------------------------------------------------------
     istret = dm%istret
-    beta = dm%rstret
-    alpha =  ( -ONE + sqrt_wp( ONE + FOUR * PI * PI * beta * beta ) ) / beta * HALF
+    if (istret /= 0) then
+      beta = dm%rstret
+      alpha =  ( -ONE + sqrt_wp( ONE + FOUR * PI * PI * beta * beta ) ) / beta * HALF
+    else
+      alpha = ZERO
+      beta = ZERO
+    end if
 !----------------------------------------------------------------------------------------------------------
     xlx = dm%lxx
     yly = dm%lyt - dm%lyb ! check computational or physical length?
