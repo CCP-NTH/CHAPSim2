@@ -86,8 +86,8 @@ def bool_to_string(value):
 
 # global 
 message = "======================"
-pii = round(math.pi, 6)
-pi2 = 2.0 * pii
+onepi = round(math.pi, 6)
+twopi = 2.0 * onepi
 icase = 0
 ithermo = 0
 iinlet = 0
@@ -126,15 +126,19 @@ def get_domain_settings():
     
     global icase
     icase = get_input("Simulation case (1:Channel, 2:Pipe, 3:Annular, 4:TGV3D, etc.)", 1, int)
-    lxx = get_input("Streamwise length (Lx/h)", pi2, float)
-    lzz = get_input("Spanwise length (Lz/h)", pii, float) if icase not in [Case.PIPE.value, Case.ANNULAR.value] else pi2
+    if icase == Case.TGV3D.value:
+       lxx = twopi
+       lzz = twopi
+    else:
+     lxx = get_input("Streamwise length (Lx/h)", twopi, float)
+     lzz = get_input("Spanwise length (Lz/h)", onepi, float) if icase not in [Case.PIPE.value, Case.ANNULAR.value] else twopi
 
     if icase == Case.CHANNEL.value:
         lyt, lyb = 1.0, -1.0
     elif icase == Case.PIPE.value:
         lyt, lyb = 1.0, 0.0
     elif icase == Case.TGV3D.value:
-        lyt, lyb = pii, -pii
+        lyt, lyb = onepi, -onepi
     else:
         lyb = get_input("Vertical/radial bottom boundary", -1.0, float)
         if icase == Case.ANNULAR.value:
@@ -171,7 +175,7 @@ def get_flow_settings():
       if icase in [Case.CHANNEL.value, Case.PIPE.value, Case.ANNULAR.value]:
         initfl = Init.POISEUILLE.value
       elif icase == Case.TGV3D.value:
-        initfl = Init.TGV3D.value
+        initfl = Init.FUNCTION.value
       else:
         initfl = get_input("Flow initialization (0:Restart, 1:Interpolation, 2:Random, 3:Inlet. 4:Given, 5: Poiseuille, 6: function)", 5, int)
         if initfl == Init.GIVEN.value:
@@ -179,11 +183,20 @@ def get_flow_settings():
             velo2 = get_input("Initial velocity in y", 0.0, float)
             velo3 = get_input("Initial velocity in z", 0.0, float)
       
-      noiselevel = get_input("Random fluctuation intensity (0.0-1.0)", 0.25, float)
+      if icase == Case.TGV3D.value:
+        noiselevel = 0.0
+      else:
+       noiselevel = get_input("Random fluctuation intensity (0.0-1.0)", 0.25, float)
 
     ren = get_input("Reynolds number (bulk, half channel height/radius based)", 2800, int)
-    reni = get_input("Initial Reynolds number", 20000, int)
-    nreni = get_input("Iterations for the initial Re.", 10000, int)
+
+    if icase == Case.TGV3D.value:
+      reni = ren
+      nreni = 0
+    else:
+      reni = get_input("Initial Reynolds number", 20000, int)
+      nreni = get_input("Iterations for the initial Re.", 10000, int)
+    
     
     return {
         "initfl": initfl,
@@ -356,7 +369,12 @@ def get_bc_settings():
         ifbcy_u2 = BC.DIRICHLET.value
         ifbcy_p2 = BC.NEUMANN.value
 
-    iinlet = get_input("Use database for the streamwise inlet? (1:Yes, 0:No) ", 0, int)
+    if icase == Case.TGV3D.value:
+      iinlet = 0
+    else:
+      iinlet = get_input("Use database for the streamwise inlet? (1:Yes, 0:No) ", 0, int)
+
+
     if(iinlet == 1):
         ifbcx_u1 = BC.DATABS.value
         ifbcx_p1 = BC.NEUMANN.value
@@ -391,9 +409,10 @@ def get_bc_settings():
     idriven = 0
     drivenCf = 0.0
     if ifbcx_u1 == BC.PERIODIC.value:
-      idriven = get_input("Flow driven method (periodic flow only, none (0), constant mass flux (1), skin friction (2 for x, 5 for z), 3:pressure gradient (3 for x, 6 for z)", 1, int)
-      if idriven in [Drvfc.XTAUW.value, Drvfc.XDPDX.value, Drvfc.ZTAUW.value, Drvfc.ZDPDZ.value]:
-        drivenCf = get_input("Magnitude of driven force", 0.0, float)
+      if icase != Case.TGV3D.value:
+        idriven = get_input("Flow driven method (periodic flow only, none (0), constant mass flux (1), skin friction (2 for x, 5 for z), 3:pressure gradient (3 for x, 6 for z)", 1, int)
+        if idriven in [Drvfc.XTAUW.value, Drvfc.XDPDX.value, Drvfc.ZTAUW.value, Drvfc.ZDPDZ.value]:
+          drivenCf = get_input("Magnitude of driven force", 0.0, float)
 
     return{
         "ifbcx_u": f"{ifbcx_u1},{ifbcx_u2},{ffbcx_u1},{ffbcx_u2}",
