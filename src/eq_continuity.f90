@@ -56,10 +56,11 @@ contains
     !     fl%drhodt = fl%drhodt / dm%dt
     ! end select
 
-    fl%drhodt = fl%dDens - fl%dDensm1
-    fl%drhodt = fl%drhodt / dm%dt
+    ! check, below calculation leads to a higher mass conservation error
+    ! fl%drhodt = fl%dDens - fl%dDensm1
+    ! fl%drhodt = fl%drhodt / dm%dt
 
-    !fl%drhodt = zero
+    fl%drhodt = zero
     
 #ifdef DEBUG_STEPS
     write(*,*) 'rho   ', fl%ddens  (1, 1:4, 1)
