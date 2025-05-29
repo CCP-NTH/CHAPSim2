@@ -199,6 +199,7 @@ contains
     real(WP) :: coord_buffer(3)
     logical :: parallel_io_available = .false.
 
+    if(nrank /= 0) return
     ! --- Dataset dimensions ---
     dims = [size(xp,1), size(xp,2), size(xp,3)]
     
@@ -207,7 +208,7 @@ contains
 
     ! Write to binary file
     open(newunit=unit, file=trim(filename), access='stream', form='unformatted', &
-          status='replace', action='write', iostat=error)!, convert='BIG_ENDIAN')
+          status='replace', action='write', iostat=error, convert='BIG_ENDIAN')
     if (error /= 0) error stop "Failed to open binary file for writing"
 
     ! Write dimensions first
