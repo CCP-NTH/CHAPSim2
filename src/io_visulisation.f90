@@ -214,9 +214,9 @@ contains
     write(unit) dims(1), dims(2), dims(3)
 
     ! Write coordinates in order (x,y,z) for each point
-    do k = 1, dims(3)
+    do i = 1, dims(1)
       do j = 1, dims(2)
-        do i = 1, dims(1)
+        do k = 1, dims(3)
           coord_buffer(1) = xp(i,j,k)
           coord_buffer(2) = yp(i,j,k)
           coord_buffer(3) = zp(i,j,k)
@@ -421,29 +421,29 @@ contains
 
       if(dm%icoordinate == ICARTESIAN) then
       ! Write binary files for each coordinate direction in double precision
-          keyword = "grid_x"
-          call generate_pathfile_name(grid_flname_x, dm%idom, keyword, dir_visu, 'bin')
-          open(newunit=iogrid, file=trim(grid_flname_x), access='stream', form='unformatted', &
-              status='replace', action='write')
-          write(iogrid) int(size(xp1), kind=int32)  ! Write dimension as 4-byte integer
-          write(iogrid) xp1      ! Write coordinates as 8-byte floats (double precision)
-          close(iogrid)
+        keyword = "grid_x"
+        call generate_pathfile_name(grid_flname_x, dm%idom, keyword, dir_data, 'bin')
+        open(newunit=iogrid, file=trim(grid_flname_x), access='stream', form='unformatted', &
+            status='replace', action='write')
+        write(iogrid) int(size(xp1), kind=int32)  ! Write dimension as 4-byte integer
+        write(iogrid) xp1      ! Write coordinates as 8-byte floats (double precision)
+        close(iogrid)
 
-          keyword = "grid_y"
-          call generate_pathfile_name(grid_flname_y, dm%idom, keyword, dir_visu, 'bin')
-          open(newunit=iogrid, file=trim(grid_flname_y), access='stream', form='unformatted', &
-              status='replace', action='write')
-          write(iogrid) int(size(yp1), kind=int32)
-          write(iogrid) yp1
-          close(iogrid)
+        keyword = "grid_y"
+        call generate_pathfile_name(grid_flname_y, dm%idom, keyword, dir_data, 'bin')
+        open(newunit=iogrid, file=trim(grid_flname_y), access='stream', form='unformatted', &
+            status='replace', action='write')
+        write(iogrid) int(size(yp1), kind=int32)
+        write(iogrid) yp1
+        close(iogrid)
 
-          keyword = "grid_z"
-          call generate_pathfile_name(grid_flname_z, dm%idom, keyword, dir_visu, 'bin')
-          open(newunit=iogrid, file=trim(grid_flname_z), access='stream', form='unformatted', &
-              status='replace', action='write')
-          write(iogrid) int(size(zp1), kind=int32)
-          write(iogrid) zp1
-          close(iogrid)
+        keyword = "grid_z"
+        call generate_pathfile_name(grid_flname_z, dm%idom, keyword, dir_data, 'bin')
+        open(newunit=iogrid, file=trim(grid_flname_z), access='stream', form='unformatted', &
+            status='replace', action='write')
+        write(iogrid) int(size(zp1), kind=int32)
+        write(iogrid) zp1
+        close(iogrid)
       end if
 !----------------------------------------------------------------------------------------------------------
 ! write grids - Cylindrical Coordinates, well-structured non-rectangular grid
@@ -452,9 +452,12 @@ contains
         keyword = "grids"
         !call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'h5')
         !call write_mesh_hdf5(xp, yp, zp, trim(grid_flname))
-        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'bin')
+        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_data, 'bin')
         call write_mesh_binary_cylindrical(xp, yp, zp, trim(grid_flname))
       end if
+
+      call write_visu_headerfooter(dm, 'grid', XDMF_HEADER, 0)
+      call write_visu_headerfooter(dm, 'grid', XDMF_FOOTER, 0)
 
     end if
 
@@ -519,6 +522,8 @@ contains
       
       if(dm%icoordinate == ICARTESIAN) then
         ! Write topology
+        !-- For Fortran loop order i,j,k
+        !-- XDMF Dimensions are in REVERSE order: k,j,i
         write(ioxdmf, '(a)')'     <Topology TopologyType="3DRectMesh" Dimensions=" '&
                                 //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'"/>'
         ! Write geometry
