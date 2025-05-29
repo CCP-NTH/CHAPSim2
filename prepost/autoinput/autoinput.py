@@ -1,11 +1,91 @@
+#!/usr/bin/env python3
+"""
+[![Python Version](https://img.shields.io/badge/Python-%3E=3.6-blue.svg)](https://www.python.org/)
+[![License](https://img.shields.io/badge/License-BSD--3--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
+[![Project Repository](https://img.shields.io/badge/Repository-GitHub-lightgrey?logo=github)](https://github.com/CHAPSim/CHAPSim2)
+
+## Overview
+
+The `autoinput.py` script streamlines the creation of structured input files required by the CFD solver [CHAPSim2](https://github.com/weiwangstfc/CHAPSim2). Generating these configuration files manually can be error-prone and time-consuming. This utility provides an efficient and user-friendly way to define all necessary simulation parameters, ensuring accuracy and enhancing the reproducibility of your simulations.
+
+## Key Features
+
+* **Interactive Input:** Guides users through a series of prompts to define simulation parameters step-by-step.
+* **Comprehensive DNS Configuration:** Supports a wide range of cases' settings, including:
+    * Grid resolution and stretching
+    * Physical properties of the fluid
+    * Time-stepping schemes and parameters
+    * Boundary conditions for various fields (velocity, pressure, temperature, MHD ...)
+    * Solver options and numerical schemes
+    * Input/Output and probe configurations
+    * ...
+* **Extensibility:** The modular design allows for easy expansion to accommodate new features and functionalities within CHAPSim2.
+* **Standard Output:** Generates input files in a format directly compatible with CHAPSim2.
+
+## System Requirements
+
+* **Python:** Version 3.6 or higher is required to run the script.
+* **Dependencies:** This script relies solely on standard Python libraries, eliminating the need for external package installations.
+
+## Installation (No installation required)
+
+This script is self-contained. Simply download or clone the repository containing `autoinput.py`.
+
+## Usage
+
+### Interactive Input File Generation
+
+1.  Open your terminal or command prompt.
+2.  Navigate to the directory where `autoinput.py` is located.
+3.  Execute the script using the Python interpreter:
+
+    ```bash
+    python autoinput.py
+    ```
+
+4.  The script will then guide you through a series of questions to configure your CHAPSim2 input file. Provide the requested parameters as prompted.
+
+### Output File
+
+Upon completion, the script will generate a configuration file named `input_chamsim_auto.ini` in the same directory where you ran the script.
+
+### Integrating with CHAPSim2
+
+1.  Locate the generated `input_chamsim_auto.ini` file.
+2.  Move this file to the directory where you intend to run your CHAPSim2 simulation case.
+3.  Rename the file to `input_chamsim.ini`.
+4.  CHAPSim2 will now read the simulation parameters from this file when you execute your case.
+
+## License
+
+This script is released under the **BSD 3-Clause License**. For the full license text, please refer to the [LICENSE](link_to_license_file_if_available) file in the repository or visit [https://opensource.org/licenses/BSD-3-Clause](https://opensource.org/licenses/BSD-3-Clause).
+
+## Author Information
+
+**Wei Wang**
+Senior Computational Scientist
+Scientific Computing Department
+UKRI-STFC
+[![Email](https://img.shields.io/badge/Email-wei.wang%40stfc.ac.uk-lightgrey?logo=mail)](mailto:wei.wang@stfc.ac.uk)
+[![GitHub](https://img.shields.io/badge/GitHub-weiwangstfc-lightgrey?logo=github)](https://github.com/weiwangstfc)
+[![Website](https://img.shields.io/badge/Website-STFC-lightgrey?logo=internet-explorer)](your_stfc_website_link_if_available)
+"""
+
+#
 import configparser
-from enum import Enum, auto
+from enum import Enum
 import math
 
 # Constants
+message = "======================"
 DEFAULT_FILENAME = "input_chapsim_auto.ini"
+onepi = round(math.pi, 6)
+twopi = 2.0 * onepi
 
-# Enums for categorical values
+# Simulation state flags
+icase = ithermo = iinlet = imhd = 0
+
+# Utility Functions
 class Case(Enum):
     CHANNEL = 1
     PIPE = 2
@@ -15,11 +95,11 @@ class Case(Enum):
 class Drvfc(Enum):
     NONE = 0
     XMFLUX = 1
-    XTAUW  = 2
-    XDPDX  = 3
+    XTAUW = 2
+    XDPDX = 3
     ZMFLUX = 4
-    ZTAUW  = 5
-    ZDPDZ  = 6
+    ZTAUW = 5
+    ZDPDZ = 6
 
 class Init(Enum):
     RESTART = 0
@@ -36,7 +116,7 @@ class Stretching(Enum):
     SIDE2 = 2
     BOTTOM = 3
     TOP = 4
-    
+
 class BC(Enum):
     INTERIOR = 0
     PERIODIC = 1
@@ -84,14 +164,7 @@ def bool_to_string(value):
     else:
         raise ValueError("Input must be 0 or 1")
 
-# global 
-message = "======================"
-onepi = round(math.pi, 6)
-twopi = 2.0 * onepi
-icase = 0
-ithermo = 0
-iinlet = 0
-imhd = 0
+
 
 # Process Settings
 def get_process_settings():
@@ -476,9 +549,9 @@ def get_io_settings():
     iskip3 = 1
     visu_idim = 0
     cpu_nfre = get_input("Frequency to print out CPU info", 1, int)
-    ckpt_nfre = get_input("Frequency to save Checkpoint data", 100, int)
-    visu_nfre = get_input("Frequency for data visualization", 10, int)
-    stat_istart =  get_input("From which iteration to start statistics", 50, int)
+    ckpt_nfre = get_input("Frequency to save Checkpoint data", 1000, int)
+    visu_nfre = get_input("Frequency for data visualization", 500, int)
+    stat_istart =  get_input("From which iteration to start statistics", 1000, int)
     is_write = get_input("Writing out outlet plane data? (0:No, 1:Yes)", 0, int)
     if iinlet == 1:
       is_read = 1
@@ -488,9 +561,11 @@ def get_io_settings():
     if is_write ==0 and is_read == 0:
       wrt_read_nfre1 = 0
       wrt_read_nfre2 = 0
+      wrt_read_nfre3 = 0
     else:
-      wrt_read_nfre1 = get_input("Plane data saved freqency", 1000, int)
-      wrt_read_nfre2 = get_input("Plane data saved iterations", 2000, int)
+      wrt_read_nfre1 = get_input("Plane data saving frequency (iterations)", 1000, int)
+      wrt_read_nfre2 = get_input("Start saving data from iteration", 2000, int)
+      wrt_read_nfre3 = get_input("Stop saving data at iteration", 10000, int)
 
     return {
         "cpu_nfre": cpu_nfre,
@@ -501,7 +576,7 @@ def get_io_settings():
         "stat_istart": stat_istart,
         "stat_nskip": f"{iskip1},{iskip2},{iskip3}",
         "is_wrt_read_bc": f"{bool_to_string(is_write)},{bool_to_string(is_read)}",
-        "wrt_read_nfre": f"{wrt_read_nfre1},{wrt_read_nfre2}"
+        "wrt_read_nfre": f"{wrt_read_nfre1},{wrt_read_nfre2},{wrt_read_nfre3}"
     }
 
 # probe Settings
@@ -533,10 +608,6 @@ def get_probe_settings(lxx, lzz, lyt, lyb):
 import configparser
 from enum import Enum, auto
 import math
-
-
-# Constants
-DEFAULT_FILENAME = "input_chapsim_by_python.ini"
 
 
 # A general input function to handle user input
