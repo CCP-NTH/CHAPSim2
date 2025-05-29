@@ -808,7 +808,7 @@ contains
         read(inputUnit, *, iostat = ioerr) varname, domain(1 : nxdomain)%stat_istart
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%stat_nskip(1:3)
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%is_record_xoutlet, domain(1)%is_read_xinlet
-        read(inputUnit, *, iostat = ioerr) varname, domain(1)%ndbfre, domain(1)%ndbend
+        read(inputUnit, *, iostat = ioerr) varname, domain(1)%ndbfre, domain(1)%ndbstart, domain(1)%ndbend
         
         do i = 1, nxdomain
             domain(i)%visu_nskip(1:3) = domain(1)%visu_nskip(1:3)

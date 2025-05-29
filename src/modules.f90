@@ -443,6 +443,7 @@ module udf_type_mod
     integer :: istret, mstret
     integer :: ndbfre
     integer :: ndbend
+    integer :: ndbstart
     integer :: nc(NDIM) ! geometric cell number
     integer :: np_geo(NDIM) ! geometric points
     integer :: np(NDIM) ! calculated points

@@ -226,22 +226,36 @@ contains
 
 
 !==========================================================================================================
-  subroutine append_instantaneous_xoutlet(fl, dm)
+  subroutine append_instantaneous_xoutlet(fl, dm, niter)
     implicit none 
     type(t_flow), intent(in) :: fl
     type(t_domain), intent(inout) :: dm
+    integer, intent(out) :: niter
 
-    integer :: niter, j, k
+    integer :: j, k
     type(DECOMP_INFO) :: dtmp
 
     ! based on x pencil
     if(.not. dm%is_record_xoutlet) return
+    if(fl%iteration < dm%ndbstart) return
 
-    ! if dm%ndbfre = 10
-    ! store : file_10, store  1,  2, ..., 10
-    !         file_20, store 11, 12, ..., 20
-    niter = mod(fl%iteration, dm%ndbfre) !
-    if(niter == 0) niter =  dm%ndbfre
+    ! if dm%ndbfre = 10, and start from 16
+    ! store : 
+    !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
+    !        niter:  1,  2,  3,..., 0
+    niter = mod(fl%iteration - dm%ndbstart + 1, dm%ndbfre) !
+    if(niter == 1) then ! re-initialize at begin of each cycle
+      dm%fbcx_qx_outl1 = MAXP
+      dm%fbcx_qx_outl2 = MAXP
+      dm%fbcx_qy_outl1 = MAXP
+      dm%fbcx_qy_outl2 = MAXP
+      dm%fbcx_qz_outl1 = MAXP
+      dm%fbcx_qz_outl2 = MAXP
+      dm%fbcx_pr_outl1 = MAXP
+      dm%fbcx_pr_outl2 = MAXP
+    else if(niter == 0) then
+      niter =  dm%ndbfre
+    end if
 
     dtmp = dm%dpcc
     do j = 1, dtmp%xsz(2)
@@ -321,19 +335,28 @@ contains
 
 
     if(.not. dm%is_record_xoutlet) return
+    if(fl%iteration < dm%ndbstart) return
 
-    call append_instantaneous_xoutlet(fl, dm)
+    call append_instantaneous_xoutlet(fl, dm, niter)
 
-    if(mod(fl%iteration, dm%ndbfre) /= 0) return
-    niter = fl%iteration
-    call write_instantaneous_plane(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
-    call write_instantaneous_plane(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
-    call write_instantaneous_plane(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
-    call write_instantaneous_plane(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
-    call write_instantaneous_plane(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
-    call write_instantaneous_plane(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
-    call write_instantaneous_plane(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
-    call write_instantaneous_plane(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
+    ! if dm%ndbfre = 10, and start from 16
+    ! store : 
+    !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
+    !        niter:  1,  2,  3,..., 0->10
+    !    file name: 25, 35, 45 ... 
+
+    if(niter == dm%ndbfre) then
+      if( mod(fl%iteration - dm%ndbstart + 1, dm%ndbfre) /= 0 .and. nrank == 0) &
+      call Print_warning_msg("niter /= dm%ndbfre, something wrong in writing outlet data")
+      call write_instantaneous_plane(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
+      call write_instantaneous_plane(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
+      call write_instantaneous_plane(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, fl%iteration, dm%ndbfre, dm%dxpc)
+      call write_instantaneous_plane(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, fl%iteration, dm%ndbfre, dm%dxpc)
+      call write_instantaneous_plane(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, fl%iteration, dm%ndbfre, dm%dxcp)
+      call write_instantaneous_plane(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, fl%iteration, dm%ndbfre, dm%dxcp)
+      call write_instantaneous_plane(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
+      call write_instantaneous_plane(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
+    end if
 ! #ifdef DEBUG_STEPS
 !     write(*,*) 'outlet bc'
 !     do j = 1, dm%dpcc%xsz(2)
@@ -482,19 +505,30 @@ contains
 
     if(.not. dm%is_read_xinlet) return
 
-    if(fl%iteration > dm%ndbend) then
-      iter = mod(fl%iteration, dm%ndbend) ! database recycle
+
+    ! if dm%ndbfre = 10, and start from 16
+    ! store : 
+    !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
+    !        niter:  1,  2,  3,..., 0
+    !    file name: 25, 35, 45 ...
+
+
+    if(iter > dm%ndbend) then
+      iter = mod(iter, dm%ndbend) ! database recycle
     else
       iter = fl%iteration
     end if
 
-    niter = (iter + dm%ndbfre - 1) / dm%ndbfre ! integer operation
-    niter = niter * dm%ndbfre
+    if(mod(iter, dm%ndbfre) == 1 .or. &
+       iter == 0) then
 
-    if(fl%iteration == 0) niter = dm%ndbfre
+      if (iter == 0) then
+        niter = dm%ndbstart + dm%ndbfre - 1
+      else
+        niter = iter + dm%ndbstart - 1
+        niter = niter + dm%ndbfre - 1
+      end if
 
-    if(mod(iter - 1, dm%ndbfre) == 0 .or. &
-       fl%iteration == 0) then
       if(nrank == 0) call Print_debug_mid_msg("Read inlet database at iteration "&
         //trim(int2str(iter))//'/'//trim(int2str(niter)))
 
