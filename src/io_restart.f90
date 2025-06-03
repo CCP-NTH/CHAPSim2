@@ -19,11 +19,11 @@ module io_restart_mod
   public  :: restore_thermo_variables_from_restart
 
   private :: append_instantaneous_xoutlet
-  private :: write_instantaneous_plane
+  private :: write_instantaneous_plane !not used
   public  :: write_instantaneous_xoutlet
 
   private :: assign_instantaneous_xinlet
-  private :: read_instantaneous_plane
+  private :: read_instantaneous_plane !not used
   public  :: read_instantaneous_xinlet
 
 contains 
@@ -255,6 +255,8 @@ contains
       dm%fbcx_pr_outl2 = MAXP
     else if(niter == 0) then
       niter =  dm%ndbfre
+    else
+      ! do nothing
     end if
 
     dtmp = dm%dpcc
@@ -333,7 +335,6 @@ contains
     character(120):: data_flname_path
     integer :: idom, niter, iter, j
 
-
     if(.not. dm%is_record_xoutlet) return
     if(fl%iteration < dm%ndbstart) return
 
@@ -344,18 +345,18 @@ contains
     !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
     !        niter:  1,  2,  3,..., 0->10
     !    file name: 25, 35, 45 ... 
-
+    !write(*,*) 'iter, niter', fl%iteration, niter
     if(niter == dm%ndbfre) then
       if( mod(fl%iteration - dm%ndbstart + 1, dm%ndbfre) /= 0 .and. nrank == 0) &
       call Print_warning_msg("niter /= dm%ndbfre, something wrong in writing outlet data")
-      call write_instantaneous_plane(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
-      call write_instantaneous_plane(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
-      call write_instantaneous_plane(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, fl%iteration, dm%ndbfre, dm%dxpc)
-      call write_instantaneous_plane(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, fl%iteration, dm%ndbfre, dm%dxpc)
-      call write_instantaneous_plane(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, fl%iteration, dm%ndbfre, dm%dxcp)
-      call write_instantaneous_plane(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, fl%iteration, dm%ndbfre, dm%dxcp)
-      call write_instantaneous_plane(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
-      call write_instantaneous_plane(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, fl%iteration, dm%ndbfre, dm%dxcc)
+      call write_instantaneous_array(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, fl%iteration, dm%dxcc)
+      call write_instantaneous_array(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, fl%iteration, dm%dxcc)
+      call write_instantaneous_array(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, fl%iteration, dm%dxpc)
+      call write_instantaneous_array(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, fl%iteration, dm%dxpc)
+      call write_instantaneous_array(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, fl%iteration, dm%dxcp)
+      call write_instantaneous_array(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, fl%iteration, dm%dxcp)
+      call write_instantaneous_array(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, fl%iteration, dm%dxcc)
+      call write_instantaneous_array(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, fl%iteration, dm%dxcc)
     end if
 ! #ifdef DEBUG_STEPS
 !     write(*,*) 'outlet bc'
@@ -363,16 +364,6 @@ contains
 !       write(*,*) dm%dpcc%xst(2) + j - 1, &
 !       dm%fbcx_qx_outl1(niter, j, 1), dm%fbcx_qx_outl2(niter, j, 1)
 !     end do
-
-!     call read_instantaneous_plane(dm%fbcx_qx_out1, 'outlet1_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
-!     call read_instantaneous_plane(dm%fbcx_qx_out2, 'outlet2_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
-!     call read_instantaneous_plane(dm%fbcx_qy_out1, 'outlet1_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
-!     call read_instantaneous_plane(dm%fbcx_qy_out2, 'outlet2_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
-!     call read_instantaneous_plane(dm%fbcx_qz_out1, 'outlet1_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
-!     call read_instantaneous_plane(dm%fbcx_qz_out2, 'outlet2_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
-!     call read_instantaneous_plane(dm%fbcx_pr_out1, 'outlet1_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
-!     call read_instantaneous_plane(dm%fbcx_pr_out2, 'outlet2_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
-
 !     write(*,*) 'inlet bc'
 !     do j = 1, dm%dpcc%xsz(2)
 !       write(*,*) dm%dpcc%xst(2) + j - 1, &
@@ -414,7 +405,10 @@ contains
           !fl%qx(1, j, k) = dm%fbcx_qx(1, j, k)
         end do
       end do
-      !if(nrank == 0) write(*,*) 'fbcx_qx = ', iter, dm%fbcx_qx(1, :, :)
+      !if(nrank == 0) write(*,*) 'fbcx_in1 = ', iter, dm%fbcx_qx_inl1(iter, :, 1)
+      !if(nrank == 0) write(*,*) 'fbcx_in2 = ', iter, dm%fbcx_qx_inl1(iter, :, 32)
+      !if(nrank == 0) write(*,*) 'fbcx_qx1 = ', iter, dm%fbcx_qx(1, :, 1)
+      !if(nrank == 0) write(*,*) 'fbcx_qx2 = ', iter, dm%fbcx_qx(1, :, 32)
     end if
 
         ! test
@@ -529,24 +523,27 @@ contains
         niter = niter + dm%ndbfre - 1
       end if
 
+      if(niter > dm%ndbend) niter = dm%ndbstart + dm%ndbfre - 1
+
       if(nrank == 0) call Print_debug_mid_msg("Read inlet database at iteration "&
         //trim(int2str(iter))//'/'//trim(int2str(niter)))
-
-      call read_instantaneous_plane(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
-      call read_instantaneous_plane(dm%fbcx_qx_inl2, 'outlet2_qx', dm%idom, niter, dm%ndbfre, dm%dxcc)
-      call read_instantaneous_plane(dm%fbcx_qy_inl1, 'outlet1_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
-      call read_instantaneous_plane(dm%fbcx_qy_inl2, 'outlet2_qy', dm%idom, niter, dm%ndbfre, dm%dxpc)
-      call read_instantaneous_plane(dm%fbcx_qz_inl1, 'outlet1_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
-      call read_instantaneous_plane(dm%fbcx_qz_inl2, 'outlet2_qz', dm%idom, niter, dm%ndbfre, dm%dxcp)
-      call read_instantaneous_plane(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
-      call read_instantaneous_plane(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%ndbfre, dm%dxcc)
+      call read_instantaneous_array(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, niter, dm%dxcc)
+      call read_instantaneous_array(dm%fbcx_qx_inl2, 'outlet2_qx', dm%idom, niter, dm%dxcc)
+      call read_instantaneous_array(dm%fbcx_qy_inl1, 'outlet1_qy', dm%idom, niter, dm%dxpc)
+      call read_instantaneous_array(dm%fbcx_qy_inl2, 'outlet2_qy', dm%idom, niter, dm%dxpc)
+      call read_instantaneous_array(dm%fbcx_qz_inl1, 'outlet1_qz', dm%idom, niter, dm%dxcp)
+      call read_instantaneous_array(dm%fbcx_qz_inl2, 'outlet2_qz', dm%idom, niter, dm%dxcp)
+      call read_instantaneous_array(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%dxcc)
+      call read_instantaneous_array(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%dxcc)
 ! #ifdef DEBUG_STEPS
-!       write(*,*) 'inlet bc', niter
-!       do j = 1, dm%dpcc%xsz(2)
-!         write(*,*) dm%dpcc%xst(2) + j - 1, &
-!         dm%fbcx_qx_inl1(niter, j, 1),  &
-!         dm%fbcx_qx_inl2(niter, j, 1)
-!       end do
+      !write(*,*) 'inlet bc1', niter, dm%fbcx_qx_inl1(:, 32, 1)
+      !write(*,*) 'inlet bc2', niter, dm%fbcx_qx_inl1(:, 32, 32)
+      ! write(*,*) 'inlet bc1-end', niter, dm%fbcx_qx_inl1(niter, :, 1)
+      ! write(*,*) 'inlet bc2-end', niter, dm%fbcx_qx_inl1(niter, :, 32)
+      ! do j = 1, dm%dpcc%xsz(2)
+      !   write(*,*) dm%dpcc%xst(2) + j - 1, &
+      !   dm%fbcx_qx_inl1(niter, j, 1:64)
+      ! end do
 ! #endif
     end if
 

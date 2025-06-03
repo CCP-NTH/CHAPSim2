@@ -186,12 +186,13 @@ contains
 
   ! end subroutine write_mesh_hdf5
 
-  subroutine write_mesh_binary_cylindrical(xp, yp, zp, filename)
+  subroutine write_mesh_binary_cylindrical(xp, yp, zp, filename, opt_nx)
     use precision_mod  
     use iso_fortran_env, only: int32
     implicit none 
     real(WP), intent(in) :: xp(:,:,:), yp(:,:,:), zp(:,:,:)
     character(len=*), intent(in) :: filename
+    integer, intent(in), optional:: opt_nx
 
     ! --- HDF5 handles and variables ---
     integer(int32) :: dims(3)
@@ -202,7 +203,7 @@ contains
     if(nrank /= 0) return
     ! --- Dataset dimensions ---
     dims = [size(xp,1), size(xp,2), size(xp,3)]
-    
+    if(present(opt_nx)) dims(1) = opt_nx + 1
     ! --- Write data ---
     if (error /= 0) error stop "Allocation failed"
 
@@ -213,14 +214,13 @@ contains
 
     ! Write dimensions first
     write(unit) dims(1), dims(2), dims(3)
-
     ! Write coordinates in order (x,y,z) for each point
     do i = 1, dims(1)
       do j = 1, dims(2)
         do k = 1, dims(3)
-          coord_buffer(1) = xp(i,j,k)
-          coord_buffer(2) = yp(i,j,k)
-          coord_buffer(3) = zp(i,j,k)
+          coord_buffer(1) = real(i, WP)/real(dims(1), WP)
+          coord_buffer(2) = yp(1,j,k)
+          coord_buffer(3) = zp(1,j,k)
           write(unit) coord_buffer
         end do
       end do
@@ -450,11 +450,15 @@ contains
 ! write grids - Cylindrical Coordinates, well-structured non-rectangular grid
 !---------------------------------------------------------------------------------------------------------- 
       if(dm%icoordinate == ICYLINDRICAL) then
-        keyword = "grids"
+        keyword = "grids_3d"
         !call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'h5')
         !call write_mesh_hdf5(xp, yp, zp, trim(grid_flname))
         call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_data, 'bin')
         call write_mesh_binary_cylindrical(xp, yp, zp, trim(grid_flname))
+
+        ! keyword = "grids_2d"
+        ! call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_data, 'bin')
+        ! call write_mesh_binary_cylindrical(xp, yp, zp, trim(grid_flname), opt_nx = dm%ndbfre)
       end if
 
       call write_visu_headerfooter(dm, 'grid', XDMF_HEADER, 0)

@@ -272,7 +272,7 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       !  append and write out outlet data every real-iteration (not RK sub)
       !----------------------------------------------------------------------------------------------------------
-      if(is_flow(i) .and. domain(i)%is_record_xoutlet .and. iter >= domain(i)%stat_istart) then
+      if(is_flow(i) .and. domain(i)%is_record_xoutlet .and. iter >= domain(i)%ndbstart) then
         call write_instantaneous_xoutlet(flow(i), domain(i))
       end if
       !----------------------------------------------------------------------------------------------------------

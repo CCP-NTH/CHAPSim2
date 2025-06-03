@@ -564,8 +564,14 @@ def get_io_settings():
       wrt_read_nfre3 = 0
     else:
       wrt_read_nfre1 = get_input("Plane data saving frequency (iterations)", 1000, int)
-      wrt_read_nfre2 = get_input("Start saving data from iteration", 2000, int)
+      wrt_read_nfre2 = get_input("Start saving data from iteration", 2001, int)
       wrt_read_nfre3 = get_input("Stop saving data at iteration", 10000, int)
+      
+      total_steps = wrt_read_nfre3 - wrt_read_nfre2 + 1
+      if total_steps % wrt_read_nfre1 != 0:
+        suggested_nfre3 = math.ceil(total_steps / wrt_read_nfre1) * wrt_read_nfre1 + wrt_read_nfre2 - 1
+        print(f"Warning: (Stop - Start + 1) is not divisible by the frequency.")
+        print(f"Suggested Stop iteration: {suggested_nfre3} to align with frequency (check: Stop < nIterFlowLast).")
 
     return {
         "cpu_nfre": cpu_nfre,

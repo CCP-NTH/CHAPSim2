@@ -29,7 +29,8 @@ ifeq ($(cfg), gnu)
 else ifeq ($(cfg), intel)
   FC     = mpiifort
   FOPTS  = -g -assume ieee_fpe_flags -check all -check bounds -check uninit -debug all \
-           -fp-stack-check fpe0 -fpe3 -fpe-all=3 -ftrapuv -ftz -warn all,nounused -fpp
+           -fp-stack-check fpe0 -fpe3 -fpe-all=3 -ftrapuv -ftz -warn all,nounused -fpp \
+           -convert big_endian
   FFLGS  = -DDOUBLE_PREC
   FDEBG  = -DDEBUG_STEPS -DDEBUG_FFT
 else ifeq ($(cfg), cray)

@@ -829,7 +829,9 @@ contains
             write (*, wrtfmt1l) 'recording outlet plane? :', domain(1)%is_record_xoutlet
             write (*, wrtfmt1l) 'reading inlet plane? :', domain(1)%is_read_xinlet
             write (*, wrtfmt1i) 'reading/recording plane freqency :', domain(1)%ndbfre
-            write (*, wrtfmt1i) 'reading/recording plane period :', domain(1)%ndbend
+            write (*, wrtfmt2i) 'reading/recording plane period (start-end):', domain(1)%ndbstart, domain(1)%ndbend
+            if(domain(1)%ndbstart < domain(1)%stat_istart) &
+            call Print_warning_msg('recording outlet plane data before starting statistics!')
           end do
         end if
       !----------------------------------------------------------------------------------------------------------
