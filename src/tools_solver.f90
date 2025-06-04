@@ -265,7 +265,7 @@ contains
     var(1:3) = rmax(1:3)
     var(4) = dtmax
     var(5) = cfl_diff
-    call mpi_allreduce(var, var_work, 5, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    call mpi_allreduce(var(:), var_work(:), 5, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
     rmax_work(1:3) = var(1:3)
     dtmax_work = var(4)
     cfl_diff_work = var(5)
