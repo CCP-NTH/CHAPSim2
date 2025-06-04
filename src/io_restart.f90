@@ -101,7 +101,7 @@ contains
 
     if(nrank == 0) call Print_debug_inline_msg("writing out instantaneous 3d thermo data ...")
 
-    call write_instantaneous_array(tm%rhoh,    'rhoh', dm%idom, tm%iteration, dm%dccc)
+    call write_instantaneous_array(tm%rhoh,  'rhoh', dm%idom, tm%iteration, dm%dccc)
     call write_instantaneous_array(tm%tTemp, 'temp', dm%idom, tm%iteration, dm%dccc)
 
     if(nrank == 0) call Print_debug_end_msg()

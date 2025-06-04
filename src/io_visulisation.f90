@@ -756,26 +756,26 @@ contains
     call write_visu_headerfooter(dm, trim(visu_filename), XDMF_HEADER, iteration)
 
     ! Write pressure field (cell-centered)
-    call process_and_write_field(fl%pres, dm, "pressure", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%pres, dm, "visu_pressure", trim(visu_filename), iteration, &
                                 N_DIRECTION)
-    call process_and_write_field(fl%pcor, dm, "phi", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%pcor, dm, "visu_phi", trim(visu_filename), iteration, &
                                 N_DIRECTION)
 
     ! Process and write velocity components (qx, qy, qz)
-    call process_and_write_field(fl%qx, dm, "qx_velocity", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qx, dm, "visu_qx_velocity", trim(visu_filename), iteration, &
                                 X_DIRECTION, opt_bc=dm%ibcx_qx)
-    call process_and_write_field(fl%qy, dm, "qy_velocity", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qy, dm, "visu_qy_velocity", trim(visu_filename), iteration, &
                                 Y_DIRECTION, opt_bc=dm%ibcy_qy)
-    call process_and_write_field(fl%qz, dm, "qz_velocity", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qz, dm, "visu_qz_velocity", trim(visu_filename), iteration, &
                                 Z_DIRECTION, opt_bc=dm%ibcz_qz)
 
     ! Process and write thermal fields if enabled
     if (dm%is_thermo) then
-      call process_and_write_field(fl%gx, dm, "gx_thermal", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gx, dm, "visu_gx_thermal", trim(visu_filename), iteration, &
                                   X_DIRECTION, opt_bc=dm%ibcx_qx)
-      call process_and_write_field(fl%gy, dm, "gy_thermal", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gy, dm, "visu_gy_thermal", trim(visu_filename), iteration, &
                                   Y_DIRECTION, opt_bc=dm%ibcy_qy)
-      call process_and_write_field(fl%gz, dm, "gz_thermal", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gz, dm, "visu_gz_thermal", trim(visu_filename), iteration, &
                                   Z_DIRECTION, opt_bc=dm%ibcz_qz)
     end if
 
@@ -812,11 +812,11 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write data, temperature, to cell centre
 !----------------------------------------------------------------------------------------------------------
-    call write_visu_field(dm, tm%tTemp, dm%dccc, "Temp_visu", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%dDens, dm%dccc, "Dens_visu", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%mVisc, dm%dccc, "Visc_visu", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, tm%kCond, dm%dccc, "Cond_visu", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, tm%hEnth, dm%dccc, "Enth_visu", trim(visuname), SCALAR, CELL, iter)
+    call write_visu_field(dm, tm%tTemp, dm%dccc, "visu_Temp", trim(visuname), SCALAR, CELL, iter)
+    call write_visu_field(dm, fl%dDens, dm%dccc, "visu_Dens", trim(visuname), SCALAR, CELL, iter)
+    call write_visu_field(dm, fl%mVisc, dm%dccc, "visu_Visc", trim(visuname), SCALAR, CELL, iter)
+    call write_visu_field(dm, tm%kCond, dm%dccc, "visu_Cond", trim(visuname), SCALAR, CELL, iter)
+    call write_visu_field(dm, tm%hEnth, dm%dccc, "visu_Enth", trim(visuname), SCALAR, CELL, iter)
 !----------------------------------------------------------------------------------------------------------
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
@@ -853,22 +853,22 @@ contains
     call write_visu_headerfooter(dm, trim(visu_filename), XDMF_HEADER, iteration)
 
     ! Write electric potential field (cell-centered)
-    call process_and_write_field(mh%ep, dm, "potential", trim(visu_filename), iteration, &
+    call process_and_write_field(mh%ep, dm, "visu_potential", trim(visu_filename), iteration, &
                                 N_DIRECTION)
 
     ! Process and write current density components (jx, jy, jz)
-    call process_and_write_field(mh%jx, dm, "jx_current", trim(visu_filename), iteration, &
+    call process_and_write_field(mh%jx, dm, "visu_jx_current", trim(visu_filename), iteration, &
                                 X_DIRECTION, opt_bc=mh%ibcx_jx)
-    call process_and_write_field(mh%jy, dm, "jy_current", trim(visu_filename), iteration, &
+    call process_and_write_field(mh%jy, dm, "visu_jy_current", trim(visu_filename), iteration, &
                                 Y_DIRECTION, opt_bc=mh%ibcy_jy)
-    call process_and_write_field(mh%jz, dm, "jz_current", trim(visu_filename), iteration, &
+    call process_and_write_field(mh%jz, dm, "visu_jz_current", trim(visu_filename), iteration, &
                                 Z_DIRECTION, opt_bc=mh%ibcz_jz)
     ! Process and write Lorentz components
-    call process_and_write_field(fl%lrfx, dm, "fx_Lorentz", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%lrfx, dm, "visu_fx_Lorentz", trim(visu_filename), iteration, &
                                 X_DIRECTION, opt_bc=dm%ibcx_qx)
-    call process_and_write_field(fl%lrfy, dm, "fy_Lorentz", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%lrfy, dm, "visu_fy_Lorentz", trim(visu_filename), iteration, &
                                 Y_DIRECTION, opt_bc=dm%ibcy_qy)
-    call process_and_write_field(fl%lrfz, dm, "fz_Lorentz", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%lrfz, dm, "visu_fz_Lorentz", trim(visu_filename), iteration, &
                                 Z_DIRECTION, opt_bc=dm%ibcz_qz)
     ! Write XDMF footer
     call write_visu_headerfooter(dm, trim(visu_filename), XDMF_FOOTER, iteration)
