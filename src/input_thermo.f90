@@ -760,6 +760,8 @@ contains
 !> \param[inout]  none          NA
 !_______________________________________________________________________________
   subroutine Write_thermo_property
+    use io_files_mod
+    implicit none
     type(t_fluidThermoProperty) :: ftp
     type(t_fluidThermoProperty) :: ftp_dim
     integer :: n, i
@@ -795,9 +797,9 @@ contains
     !   dhmax = MINP
     ! end if
     
-    open (newunit = ftp_unit1, file = 'check_ftplist_undim.dat')
+    open (newunit = ftp_unit1, file = trim(dir_chkp)//'/check_ftplist_undim.dat')
     write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
-    open (newunit = ftp_unit2, file = 'check_ftplist_dim.dat')
+    open (newunit = ftp_unit2, file = trim(dir_chkp)//'/check_ftplist_dim.dat')
     write(ftp_unit2, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
 
     do i = 1, fluidparam%nlist
@@ -812,9 +814,9 @@ contains
     n = 128
     dhmin = fluidparam%dhmin + TRUNCERR
     dhmax = fluidparam%dhmax - TRUNCERR
-    open (newunit = ftp_unit1, file = 'check_ftp_from_dh_undim.dat')
+    open (newunit = ftp_unit1, file = trim(dir_chkp)//'/check_ftp_from_dh_undim.dat')
     write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
-    open (newunit = ftp_unit2, file = 'check_ftp_from_dh_dim.dat')
+    open (newunit = ftp_unit2, file = trim(dir_chkp)//'/check_ftp_from_dh_dim.dat')
     write(ftp_unit2, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
     do i = 1, n
       ftp%rhoh = dhmin + (dhmax - dhmin) * real(i - 1, WP) / real(n - 1, WP)

@@ -105,7 +105,7 @@ contains
     use mpi_mod
     use udf_type_mod
     use parameters_constant_mod
-    
+    use io_files_mod
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
     real(WP), dimension(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)), intent(in)  :: var ! x-pencil default
@@ -145,7 +145,7 @@ contains
 
 #ifdef DEBUG_STEPS
     if (nrank == 0) then
-      open(121, file = 'check_calculate_xz_mean_yprofile.dat', position="append")
+      open(121, file = trim(dir_chkp)//'/check_calculate_xz_mean_yprofile.dat', position="append")
       do j = 1, dtmp%xsz(2)
         jj = dtmp%xst(2) + j - 1 !local2global_yid(j, dtmp)
         write(121, *) jj, varxz_work(jj)
@@ -191,7 +191,7 @@ contains
     end do
 
 #ifdef DEBUG_STEPS
-    open(121, file = 'check_adjust_to_xzmean_zero.dat', position="append")
+    open(121, file = trim(dir_chkp)//'/check_adjust_to_xzmean_zero.dat', position="append")
     do k = 1, dtmp%xsz(3)
       do j = 1, dtmp%xsz(2)
         do i = 1, dtmp%xsz(1)
