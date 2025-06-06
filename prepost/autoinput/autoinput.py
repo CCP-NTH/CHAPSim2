@@ -458,7 +458,11 @@ def get_bc_settings():
 
     if ithermo == 1:
       if icase in [Case.CHANNEL.value, Case.PIPE.value, Case.ANNULAR.value]:
-          is_T = get_input("Thermal boundary in y (1:constant temperature, 2:constant heat flux)", 1, int)
+          if icase == Case.PIPE.value:
+            is_T = get_input("Thermal boundary in y (1:constant temperature, 2:constant heat flux)", 2, int)
+          else:
+            is_T = get_input("Thermal boundary in y (1:constant temperature, 2:constant heat flux)", 1, int)
+            
           if is_T == 1:
             if icase != Case.PIPE.value:
               ifbcy_T1 = BC.DIRICHLET.value
