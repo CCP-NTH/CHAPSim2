@@ -869,6 +869,7 @@ contains
 !==========================================================================================================
   subroutine Buildup_fluidparam(tm)
     type(t_thermo), intent(in) :: tm
+    logical :: exist
 
     if(nrank == 0) call Print_debug_inline_msg("Initialising thermal parameters ...")
 
@@ -883,10 +884,14 @@ contains
     select case (fluidparam%ifluid)
     case (ISCP_WATER)
       fluidparam%ipropertyState = IPROPERTY_TABLE
+      inquire(file = trim(INPUT_SCP_WATER), exist = exist)
+      if(.not. exist) call Print_error_msg("NPUT_SCP_WATER does not exist!")
       fluidparam%inputProperty = TRIM(INPUT_SCP_WATER)
 
     case (ISCP_CO2)
       fluidparam%ipropertyState = IPROPERTY_TABLE
+      inquire(file = trim(INPUT_SCP_CO2), exist = exist)
+      if(.not. exist) call Print_error_msg("INPUT_SCP_CO2 does not exist!")
       fluidparam%inputProperty = TRIM(INPUT_SCP_CO2)
 
     case (ILIQUID_SODIUM)
