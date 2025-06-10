@@ -231,7 +231,7 @@ module code_performance_mod
            trim(real2str(secs)) // ' s ')
         call Print_debug_inline_msg ("    Moving averaged time per iteration  : "// &
            trim(real2str(t_aveiter0))//' s')
-        
+      !if(nrank == 0) call Print_debug_mid_msg ("Code Performance Info")  
       end if
 !----------------------------------------------------------------------------------------------------------
     else if (itype == CPU_TIME_STEP_END) then
@@ -1330,7 +1330,7 @@ contains
       call mpi_send(idg, 3, MPI_INTEGER, 0, 0, MPI_COMM_WORLD, ierror)
     end if
 
-    if(nrank == 0) then
+    if(nrank == 0 .and. .not. is_IO_off) then
       call mpi_recv(idg_work, 3, MPI_INTEGER, MPI_ANY_SOURCE, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE, ierror)
       !write (*, '(1X, A33, 1ES19.12)') 'maximum '//trim(str), varmax_work
   
@@ -1341,7 +1341,7 @@ contains
 
     end if
 #else
-    if(nrank == 0) then
+    if(nrank == 0 .and. .not. is_IO_off) then
       write (*, wrtfmt1el) 'maximum '//trim(str), varmax_work
     end if
 #endif

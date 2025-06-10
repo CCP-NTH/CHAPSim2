@@ -403,13 +403,13 @@ contains
 
     if(this%rhoh < fluidparam%dhmin) then
       if(nrank == 0) then 
-        write(*, wrtfmt2r) 'this%rhoh < fluidparam%dhmin', this%rhoh, fluidparam%dhmin
+        write(*, wrtfmt2e) 'this%rhoh < fluidparam%dhmin', this%rhoh, fluidparam%dhmin
         call Print_error_msg("rho*h is out of range.")
       end if
       this%rhoh = fluidparam%dhmin
     else if(this%rhoh > fluidparam%dhmax) then
       if(nrank == 0) then 
-        write(*, wrtfmt2r) 'this%rhoh > fluidparam%dhmax', this%rhoh, fluidparam%dhmax
+        write(*, wrtfmt2e) 'this%rhoh > fluidparam%dhmax', this%rhoh, fluidparam%dhmax
         call Print_error_msg("rho*h is out of range.")
       end if
       this%rhoh = fluidparam%dhmax

@@ -235,7 +235,12 @@ subroutine Solve_eqs_iteration
   if(nrank == 0) call Print_debug_start_msg("Solving the governing equations ...")
 
   do iter = iteration + 1, niter
-    if( mod(iter, cpu_nfre) == 0) call call_cpu_time(CPU_TIME_ITER_START, iteration, niter, iter)
+    if( mod(iter, cpu_nfre) == 0) then
+      call call_cpu_time(CPU_TIME_ITER_START, iteration, niter, iter)
+    else
+      if(nrank == 0 .and. .not. is_IO_off) call Print_debug_start_msg ("Time Step = "//trim(int2str(iter))// &
+          '/'//trim(int2str(niter)))
+    end if
     
     !==========================================================================================================
     ! Solver preparation for each domain
@@ -252,10 +257,10 @@ subroutine Solve_eqs_iteration
         call Update_PrGr(flow(i), thermo(i))
         if ( (iter >= thermo(i)%nIterThermoStart) .and. (iter <= thermo(i)%nIterThermoEnd)) then
           is_thermo(i) = .true.
-          if (nrank == 0) write(*, wrtfmt1e) "thermal field physical time (s) : ", thermo(i)%time
+          if (nrank == 0 .and. .not. is_IO_off) &
+          write(*, wrtfmt1e) "thermal field physical time (s) : ", thermo(i)%time
           thermo(i)%time = thermo(i)%time  + domain(i)%dt
           thermo(i)%iteration = thermo(i)%iteration + 1
-          call Check_cfl_diffusion (flow(i), domain(i))
         end if
       end if
       !----------------------------------------------------------------------------------------------------------
@@ -263,10 +268,14 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       if ( (iter >= flow(i)%nIterFlowStart) .and. (iter <=flow(i)%nIterFlowEnd)) then
         is_flow(i) = .true.
-        if (nrank == 0) write(*, wrtfmt1e) "flow field physical time (s) : ", flow(i)%time
+        if (nrank == 0 .and. .not. is_IO_off) &
+        write(*, wrtfmt1e) "flow field physical time (s) : ", flow(i)%time
         flow(i)%time = flow(i)%time + domain(i)%dt
         flow(i)%iteration = flow(i)%iteration + 1
-        call Check_cfl_convection(flow(i)%qx, flow(i)%qy, flow(i)%qz, domain(i))
+        if (.not. is_IO_off) then
+          call Check_cfl_convection(flow(i)%qx, flow(i)%qy, flow(i)%qz, domain(i))
+          call Check_cfl_diffusion (flow(i), domain(i))
+        end if
       end if
 
       !----------------------------------------------------------------------------------------------------------
@@ -310,11 +319,12 @@ subroutine Solve_eqs_iteration
     !==========================================================================================================
     ! result post-processing for each domain
     !==========================================================================================================
+    if( .not. is_IO_off ) then
     do i = 1, nxdomain
       !----------------------------------------------------------------------------------------------------------
       !  validation for each time step
       !----------------------------------------------------------------------------------------------------------
-      if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
+      !if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
       if(is_flow(i)) then
         if(is_thermo(i)) then
           call Find_max_min_3d(thermo(i)%tTemp, "T :", wrtfmt2ae)
@@ -381,6 +391,7 @@ subroutine Solve_eqs_iteration
       end if
 
     end do ! domain
+    end if
 
     if( mod(iter, cpu_nfre) == 0) call call_cpu_time(CPU_TIME_ITER_END, iteration, niter, iter)
 
