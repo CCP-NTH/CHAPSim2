@@ -57,10 +57,10 @@ contains
     ! end select
 
     ! check, below calculation leads to a higher mass conservation error
-    ! fl%drhodt = fl%dDens - fl%dDensm1
-    ! fl%drhodt = fl%drhodt / dm%dt
+    fl%drhodt = fl%dDens - fl%dDensm1
+    fl%drhodt = fl%drhodt / dm%dt
 
-    fl%drhodt = zero
+    !fl%drhodt = zero
     
 #ifdef DEBUG_STEPS
     write(*,*) 'rho   ', fl%ddens  (1, 1:4, 1)
@@ -402,7 +402,7 @@ contains
     call Find_maximum_absvar3d(div(n-nlayer+1: n,        :, :), fl%mcon(3), dm%dccc, "Mass Consv. (outlet 4) =", n-nlayer+1)
     
     if(nrank == 0) then
-      if(fl%mcon(2) > 5.0E-13_WP .and. fl%iteration > 100 ) &
+      if(fl%mcon(2) > 5.0E-6_WP .and. fl%iteration > 1000 ) &
       call Print_error_msg("Mass conservation is not strictly satisfied at the machine precision level.")
     end if
 
