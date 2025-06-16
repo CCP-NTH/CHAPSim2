@@ -78,7 +78,7 @@ module parameters_constant_mod
 !----------------------------------------------------------------------------------------------------------
 ! constants
 !----------------------------------------------------------------------------------------------------------
-  logical, parameter :: is_IO_off = .true. ! for code performance evaluation without IO
+  logical, parameter :: is_IO_off = .false. ! true for code performance evaluation without IO
   real(WP), parameter :: ZPONE       = 0.1_WP
   real(WP), parameter :: EIGHTH      = 0.125_WP
   real(WP), parameter :: ZPTWO       = 0.2_WP
