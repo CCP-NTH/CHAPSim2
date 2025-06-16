@@ -987,6 +987,7 @@ contains
     integer, intent(in)          :: pencil
 
     integer :: i, j, k, jj, nx, ny, nz, nyst
+    real(WP) :: rjn
     !logical :: is_axis
 
     ! Initialize dimensions based on pencil
@@ -994,13 +995,14 @@ contains
     !is_axis = .false.
     do j = 1, ny
       jj = nyst + j - 1
+      rjn = r(jj)**n
       if (r(jj) > (MAXP * HALF)) then
         !is_axis = .true.
         if (jj /= 1) call Print_error_msg("Error: r(j) = 0 at j /= 1.")
       else
         do k = 1, nz
           do i = 1, nx
-            var(i, j, k) = var(i, j, k) * (r(jj)**n)
+            var(i, j, k) = var(i, j, k) * rjn
           end do
         end do
       end if
@@ -1018,6 +1020,7 @@ contains
     integer, intent(in)          :: pencil
 
     integer :: i, j, jj, nx, ny, nz, nyst
+    real(WP) :: rjn
 
     ! Initialize dimensions based on pencil
     call get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
@@ -1028,12 +1031,13 @@ contains
 
     do j = 1, ny
       jj = nyst + j - 1
+      rjn = r(jj)**n
       if (r(jj) > (MAXP * HALF)) then
         if (jj /= 1) call Print_error_msg("Error: r(j) = 0 at j /= 1.")
       else
         do i = 1, nx
-          var(i, j, 1) = var(i, j, 1) * (r(jj)**n)
-          var(i, j, 2) = var(i, j, 2) * (r(jj)**n)
+          var(i, j, 1) = var(i, j, 1) * rjn
+          var(i, j, 2) = var(i, j, 2) * rjn
           var(i, j, 3) = var(i, j, 1)
           var(i, j, 4) = var(i, j, 2)
         end do
@@ -1053,6 +1057,7 @@ contains
     integer, intent(in)          :: pencil
 
     integer :: i, k, jmax, nx, ny, nz, nyst
+    real(WP) :: r1n, rjn
 
     ! Initialize dimensions based on pencil
     call get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
@@ -1061,15 +1066,18 @@ contains
       call Print_warning_msg("Warning: This is for y-pencil only.")
     end if
 
+    r1n = r(1)**n
+    jmax = nyst + ny - 1
+    rjn = (r(jmax)**n)
+
     do k = 1, nz
       do i = 1, nx
         if (r(1) > (MAXP * HALF)) then
           ! Axis handling using estimate_azimuthal_xpx_on_axis or axis_estimating_radial_xpx
         else
-          var(i, 1, k) = var(i, 1, k) * (r(1)**n)
+          var(i, 1, k) = var(i, 1, k) * r1n
         end if
-        jmax = nyst + ny - 1
-        var(i, 2, k) = var(i, 2, k) * (r(jmax)**n)
+        var(i, 2, k) = var(i, 2, k) * rjn
         var(i, 3, k) = var(i, 1, k)
         var(i, 4, k) = var(i, 2, k)
       end do
