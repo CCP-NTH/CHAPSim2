@@ -506,11 +506,9 @@ contains
     !        niter:  1,  2,  3,..., 0
     !    file name: 25, 35, 45 ...
 
-
+    iter = fl%iteration
     if(iter > dm%ndbend) then
       iter = mod(iter, dm%ndbend) ! database recycle
-    else
-      iter = fl%iteration
     end if
 
     if(mod(iter, dm%ndbfre) == 1 .or. &
