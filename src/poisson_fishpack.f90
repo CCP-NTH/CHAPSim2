@@ -218,7 +218,7 @@ contains
     implicit none
     type(t_domain), intent(in) :: dm
 
-    !integer :: wsz
+    integer :: wsz
     integer :: ibcx(2), ibcz(2)
     integer :: nx, ny, nz, np
     integer :: j, i, k, ii, kk
@@ -261,16 +261,16 @@ contains
     LPy = LPy + 1
     LPz = LPz + 1
 
-    !wsz = 30 + nx + ny * 2 + nz + MAX(nx, ny, nz) + 7 * (INT((nx+1)/2) + INT((nz+1)/2)) + 128
+    wsz = 30 + nx + ny * 2 + nz + MAX(nx, ny, nz) + 7 * (INT((nx+1)/2) + INT((nz+1)/2)) + 128
     !-----------------------------------------------------------
     ! Build up fft root for x
     !-----------------------------------------------------------
-    allocate(XRT(nx), WX(2*nx + 64))
+    allocate(XRT(nx), WX(wsz))
     call fishpack_root_1D(nx, LPx, dm%h2r(1), SCALx, Wx, xRT)
     !-----------------------------------------------------------
     ! Build up fft root for z
     !-----------------------------------------------------------
-    allocate(ZRT(nz), WZ(2*nz + 64))
+    allocate(ZRT(nz), WZ(wsz))
     call fishpack_root_1D(nz, LPz, dm%h2r(3), SCALz, Wz, zRT)
 
 ! if(nrank==0) WRITE(*,*)'fft-scl ', SCALX, SCALz
