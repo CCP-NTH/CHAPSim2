@@ -1,0 +1,21 @@
+# The fortran modules provided by this target.
+provides
+ decomp_2d.mod
+ decomp_2d@d2d_log_submodule.smod
+ decomp_2d@d2d_transpose_x_to_y.smod
+ decomp_2d@d2d_transpose_y_to_x.smod
+ decomp_2d@d2d_transpose_y_to_z.smod
+ decomp_2d@d2d_transpose_z_to_y.smod
+ decomp_2d_constants.mod
+ decomp_2d_fft.mod
+ decomp_2d_fft@d2d_fft_log.smod
+ decomp_2d_interp.mod
+ decomp_2d_io.mod
+ decomp_2d_io_adios.mod
+ decomp_2d_io_object_adios.mod
+ decomp_2d_io_object_mpi.mod
+ decomp_2d_io_utilities.mod
+ decomp_2d_mpi.mod
+ decomp_2d_profiler.mod
+ factor.mod
+ glassman.mod

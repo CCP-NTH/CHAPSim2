@@ -55,6 +55,11 @@ if (NOT FLAGS_SET)
   set(FLAGS_SET 1 CACHE INTERNAL "Flags are set")
 endif()
 
+# Add OpenMP: to be used only for pure CPU
+if (ENABLE_OMP)
+  find_package(OpenMP)
+endif()
+
 if (CMAKE_BUILD_TYPE MATCHES "DEBUG")
   add_definitions("-DDEBUG")
 endif (CMAKE_BUILD_TYPE MATCHES "DEBUG")
@@ -65,9 +70,6 @@ endif ()
 
 # Padded MPI alltoall transpose operations (invalid for GPU)
 if (EVEN)
-  if (BUILD_TARGET MATCHES "gpu")
-    message(FATAL_ERROR "The GPU build is not compatible with padded alltoall")
-  endif ()
   add_definitions("-DEVEN")
 endif ()
 

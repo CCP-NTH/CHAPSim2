@@ -8,7 +8,7 @@ from monitor points, with optional temperature data for thermal cases.
 Features:
 - Plots multiple monitor points with different markers and colors
 - Handles both isothermal and thermal flow cases
-- Skips every 100 points for clearer visualization
+- Skips every M points for clearer visualization
 - Saves high-resolution PNG output
 
 Data format:
@@ -46,7 +46,7 @@ def read_monitor_data(filename):
         print(f"Error reading {filename}: {str(e)}")
         return None
 
-def plot_monitor_points(N):
+def plot_monitor_points(N, M):
     """Plot monitor points data for N points."""
     print("\nStarting to plot monitor points...")
     
@@ -75,11 +75,11 @@ def plot_monitor_points(N):
         print(f"Successfully reading data from: {filename}")
         
         # Skip every 100 points
-        time = data[::100, 0]
+        time = data[::M, 0]
         
         # Plot each variable
         for j, var in enumerate(variables):
-            axes[j].plot(time, data[::100, j+1], 
+            axes[j].plot(time, data[::M, j+1], 
                         marker=markers[i % len(markers)],  # Cycle through markers
                         linestyle='none',  # No lines between points
                         label=f'Point {i}', 
@@ -107,4 +107,5 @@ def plot_monitor_points(N):
 
 if __name__ == "__main__":
     N = int(input("Enter the number of monitor points to plot: "))
-    plot_monitor_points(N)
+    M = int(input("Enter sampling interval (skip every M points for clearer visualization): "))
+    plot_monitor_points(N, M)

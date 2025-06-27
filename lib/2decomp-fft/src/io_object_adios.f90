@@ -52,6 +52,7 @@ module decomp_2d_io_object_adios
    use decomp_2d_mpi
    use decomp_2d_io_utilities, only: io_get_size
    use decomp_2d_profiler
+   use m_info
    use MPI
    use, intrinsic :: iso_fortran_env, only: real32, real64
 
@@ -73,6 +74,7 @@ module decomp_2d_io_object_adios
       procedure :: register_var => d2d_io_family_register_var     ! Register a 3D variable
       procedure :: register_plane => d2d_io_family_register_plane ! Register a 2D variable or stacked 2D variables
       procedure :: log => d2d_io_family_log                       ! Print some information about the object
+      procedure :: get_folder => d2d_io_family_get_folder         ! Returns the name of the associated folder
    end type d2d_io_family
 
    ! Default family for ADIOS2 IO
@@ -217,7 +219,7 @@ contains
       integer, intent(in) :: ipencil ! (x-pencil=1; y-pencil=2; z-pencil=3)
       integer, intent(in) :: type
       logical, intent(in), optional :: opt_reduce_prec
-      type(decomp_info), intent(in), optional :: opt_decomp
+      class(info), intent(in), optional :: opt_decomp
 
       logical :: reduce_prec
 
@@ -263,7 +265,7 @@ contains
       integer, intent(in) :: ipencil ! (x-pencil=1; y-pencil=2; z-pencil=3)
       integer, intent(in) :: type
       logical, intent(in), optional :: opt_reduce_prec
-      type(decomp_info), intent(in), optional :: opt_decomp
+      class(info), intent(in), optional :: opt_decomp
       integer, intent(in), optional :: opt_nplanes
 
       logical :: reduce_prec
@@ -305,7 +307,7 @@ contains
       integer, intent(in) :: ipencil
       integer, intent(in) :: typex
       logical, intent(in) :: reduce_prec
-      type(decomp_info), intent(in) :: decomp
+      class(info), intent(in) :: decomp
       integer, intent(in) :: nplanes
 
       type(adios2_variable) :: var_handle
@@ -435,6 +437,35 @@ contains
    end subroutine d2d_io_family_log
 
    !
+   ! Return the name of the associated folder
+   !
+   function d2d_io_family_get_folder(family)
+
+      implicit none
+
+      class(d2d_io_family), intent(in) :: family
+
+      character(:), allocatable :: d2d_io_family_get_folder
+
+      if (family%io%engine_type == "BP4") then
+         d2d_io_family_get_folder = trim(family%label)//".bp4"
+      else if (family%io%engine_type == "BP5") then
+         d2d_io_family_get_folder = trim(family%label)//".bp5"
+      else if (family%io%engine_type == "HDF5") then
+         d2d_io_family_get_folder = trim(family%label)//".hdf5"
+      else if (family%io%engine_type == "SST") then
+         d2d_io_family_get_folder = trim(family%label)
+      else
+         d2d_io_family_get_folder = ""
+         call decomp_2d_abort(__FILE__, __LINE__, -1, &
+                              "Engine type "//family%io%engine_type// &
+                              " label "//trim(family%label)//".")
+      end if
+
+
+   end function d2d_io_family_get_folder
+
+   !
    ! Set the default adios2_adios object using a XML file
    !
    subroutine set_default_adios(adios_xml)
@@ -457,7 +488,7 @@ contains
       call adios2_init(default_adios, trim(adios_xml), decomp_2d_comm, ierror)
       if (ierror /= 0) then
          call decomp_2d_abort(__FILE__, __LINE__, ierror, &
-                              "Error initialising ADIOS2 - :"//trim(adios_xml)//" present and valid?")
+                              "Error initialising ADIOS2 - is "//trim(adios_xml)//" present and valid?")
       end if
 
    end subroutine set_default_adios
@@ -501,17 +532,12 @@ contains
 
       ! Open IO
       if (family%io%valid) then
-         if (writer%family%io%engine_type == "BP4") then
+         if (writer%family%io%engine_type == "BP4" .or. &
+             writer%family%io%engine_type == "BP5" .or. &
+             writer%family%io%engine_type == "HDF5" .or. &
+             writer%family%io%engine_type == "SST") then
             call adios2_open(writer%engine, family%io, &
-                             trim(writer%family%label)//".bp4", &
-                             access_mode, ierror)
-         else if (writer%family%io%engine_type == "HDF5") then
-            call adios2_open(writer%engine, family%io, &
-                             trim(writer%family%label)//".hdf5", &
-                             access_mode, ierror)
-         else if (writer%family%io%engine_type == "SST") then
-            call adios2_open(writer%engine, family%io, &
-                             trim(writer%family%label), &
+                             writer%family%get_folder(), &
                              access_mode, ierror)
          else
             call decomp_2d_abort(__FILE__, __LINE__, -1, &
@@ -750,12 +776,16 @@ contains
    !
    ! Read the provided array
    !
-   subroutine d2d_io_adios_read(writer, varname, freal, dreal, fcplx, dcplx)
+   subroutine d2d_io_adios_read(writer, varname, sel_start, sel_count, &
+                                opt_step_start, &
+                                freal, dreal, fcplx, dcplx)
 
       implicit none
 
       class(d2d_io_adios), intent(inout) :: writer
       character(len=*), intent(in) :: varname
+      integer, intent(in), dimension(3) :: sel_start, sel_count
+      integer, intent(in), optional :: opt_step_start
       real(real32), contiguous, dimension(:, :, :), intent(out), optional :: freal
       real(real64), contiguous, dimension(:, :, :), intent(out), optional :: dreal
       complex(real32), contiguous, dimension(:, :, :), intent(out), optional :: fcplx
@@ -777,12 +807,24 @@ contains
 
       ! Get the variable handle
       call adios2_inquire_variable(var_handle, writer%family%io, varname, ierror)
-      if (ierror /= 0) call decomp_2d_abort(__FILE__, __LINE__, ierror, "adios2_inquire_variable "//trim(varname))
-      if (.not. var_handle%valid) then
-         call decomp_2d_abort(__FILE__, __LINE__, -1, &
-                              "ERROR: trying to read variable without registering first! "//trim(varname))
+      if (ierror /= 0) call decomp_2d_abort(__FILE__, __LINE__, ierror, &
+                                            "adios2_inquire_variable "//trim(varname))
+      if (.not. var_handle%valid) call decomp_2d_abort(__FILE__, __LINE__, -1, &
+                                                       "IO reader : impossible to read variable. "//trim(varname))
+
+      ! Set the step if needed
+      if (present(opt_step_start)) then
+         call adios2_set_step_selection(var_handle, int(opt_step_start, kind=8), int(1, kind=8), ierror)
+         if (ierror /= 0) call decomp_2d_abort(__FILE__, __LINE__, ierror, &
+                                               "adios2_set_step_selection"//trim(varname))
       end if
 
+      ! Select a subset of the file
+      call adios2_set_selection(var_handle, 3, int(sel_start, kind=8), int(sel_count, kind=8), ierror)
+      if (ierror /= 0) call decomp_2d_abort(__FILE__, __LINE__, ierror, &
+                                            "adios2_set_selection "//trim(varname))
+
+      ! Read (deferred)
       if (present(freal)) then
          call adios2_get(writer%engine, var_handle, freal, read_mode, ierror)
       else if (present(dreal)) then
@@ -792,7 +834,8 @@ contains
       else if (present(dcplx)) then
          call adios2_get(writer%engine, var_handle, dcplx, read_mode, ierror)
       end if
-      if (ierror /= 0) call decomp_2d_abort(__FILE__, __LINE__, ierror, "adios2_get")
+      if (ierror /= 0) call decomp_2d_abort(__FILE__, __LINE__, ierror, &
+                                            "adios2_get "//trim(varname))
 
    end subroutine d2d_io_adios_read
 

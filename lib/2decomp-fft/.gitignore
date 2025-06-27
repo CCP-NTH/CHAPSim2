@@ -1,0 +1,54 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Cmake
+build*
+
+# Log files
+*.log
+
+# Intel MKL FFT
+src/mkl_dfti.f90
+obj
+
+Makefile.settings
+
+# emacs
+.dir-locals.el
+TAGS
+
+# vim
+*.swp
+
+# XCode
+*.xcworkspace
