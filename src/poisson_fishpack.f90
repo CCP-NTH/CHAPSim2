@@ -8,9 +8,16 @@ module fishpack_fft
   real(WP), allocatable, save :: ZRT(:), WZ(:)
   real(WP), allocatable, save :: a(:), b(:), c(:), bb(:)
 
+  integer, parameter :: IRFFT   = 1, &
+                        IDST_I  = 2, &
+                        IDST_II = 3, &
+                        IDCT_I  = 4, &
+                        IDCT_II = 5
+
   private :: TRID0
   private :: fishpack_root_1D
   private :: fishpack_fft_1D
+  private :: get_fft_type
 
   public :: fishpack_fft_init
   public :: fishpack_fft_simple
@@ -95,7 +102,7 @@ contains
     DX = PI / (2.0_WP * SCALX)
 
     SELECT CASE (LP)
-    CASE (1)
+    CASE (IRFFT)
       ! RFFTI     INITIALIZE  RFFTF AND RFFTB
       ! RFFTF     FORWARD TRANSFORM OF A REAL PERIODIC SEQUENCE
       ! RFFTB     BACKWARD TRANSFORM OF A REAL COEFFICIENT ARRAY
@@ -106,9 +113,10 @@ contains
         XRT(I) = XRT(I - 1)
       END DO
       CALL RFFTI(LR, WX)
-    CASE (2)
+    CASE (IDST_I)
       ! SINTI     INITIALIZE SINT
       ! SINT      SINE TRANSFORM OF A REAL ODD SEQUENCE
+      ! FFTW_RODFT00 DST-I
       DI = 0.00_WP
       DO I = 1, LR
         XRT(I) = -4.0_WP * C1 * (DSIN((DBLE(I) - DI) * DX))**2
@@ -116,10 +124,11 @@ contains
       SCALX = 2.0_WP * SCALX
       CALL SINTI (LR, WX)
 
-    CASE (3)
+    CASE (IDST_II)
     ! SINQI     INITIALIZE SINQF AND SINQB
     ! SINQF     FORWARD SINE TRANSFORM WITH ODD WAVE NUMBERS
     ! SINQB     UNNORMALIZED INVERSE OF SINQF
+      ! FFTW_RODFT10 DST-II
       DI = 0.50_WP
       SCALX = 2.0_WP * SCALX
       DO I = 1, LR
@@ -128,9 +137,10 @@ contains
       SCALX = 2.0_WP * SCALX
       CALL SINQI (LR, WX)
 
-    CASE (4)
+    CASE (IDCT_I)
     ! COSTI     INITIALIZE COST
     ! COST      COSINE TRANSFORM OF A REAL EVEN SEQUENCE
+    ! FFTW_REDFT00 DCT-I
       DI = 1.00_WP
       DO I = 1, LR
           XRT(I) = -4.0_WP * C1 * (DSIN((DBLE(I) - DI) * DX))**2
@@ -138,10 +148,11 @@ contains
       SCALX = 2.0_WP * SCALX
       CALL COSTI (LR, WX)
 
-    CASE (5)
+    CASE (IDCT_II)
     ! COSQI     INITIALIZE COSQF AND COSQB
     ! COSQF     FORWARD COSINE TRANSFORM WITH ODD WAVE NUMBERS
     ! COSQB     UNNORMALIZED INVERSE OF COSQF
+    ! FFTW_REDFT10 DCT-II
       DI = 0.50_WP
       SCALX = 2.0_WP * SCALX
       DO I = 1, LR
@@ -210,6 +221,36 @@ contains
   end subroutine
 !==========================================================================================================
 !==========================================================================================================
+  subroutine get_fft_type(ibc, itype)
+    use print_msg_mod
+    use parameters_constant_mod
+    implicit none
+    ! arguments
+    integer, intent(in) :: ibc(2)
+    integer, intent(out) :: itype
+
+    if(ibc(1) == IBC_PERIODIC  .and. ibc(2) == IBC_PERIODIC ) then
+      itype = IRFFT
+    else if(ibc(1) == IBC_NEUMANN .and. ibc(2) == IBC_NEUMANN) then
+      itype = IDCT_II ! DCT-II, even around j=half1, half2
+    else if(ibc(1) == IBC_NEUMANN .and. ibc(2) == IBC_DIRICHLET) then 
+      itype = IDCT_II ! DCT-IV, even around j=half1, and odd around j=half2; not support
+      call Print_warning_msg("This B.C. is not inherently support in fishpack_fft")
+    else if(ibc(1) == IBC_DIRICHLET   .and. ibc(2) == IBC_NEUMANN) then 
+      itype = IDST_II ! DST-IV, odd around j=half1, and even around j=half2; not support
+      call Print_warning_msg("This B.C. is not inherently support in fishpack_fft")
+    else if(ibc(1) == IBC_DIRICHLET   .and. ibc(2) == IBC_DIRICHLET) then 
+      itype = IDST_II ! DST-II, odd around j=half1, and odd around j=half2
+    else
+      call Print_error_msg("This B.C. is not support in fishpack_fft")
+    end if
+
+    return
+  end subroutine
+
+
+!==========================================================================================================
+!==========================================================================================================
   subroutine fishpack_fft_init(dm)
     use udf_type_mod
     use parameters_constant_mod
@@ -232,8 +273,8 @@ contains
     ny = dm%nc(2)
     nz = dm%nc(3)
     np = dm%np_geo(2)
-    ibcx(1:2) = dm%ibcx_qx(1:2)
-    ibcz(1:2) = dm%ibcz_qx(1:2)
+    ibcx(1:2) = dm%ibcx_pr(1:2)
+    ibcz(1:2) = dm%ibcz_pr(1:2)
     !-----------------------------------------------------------
     ! check input grid size
     !-----------------------------------------------------------
@@ -243,23 +284,9 @@ contains
     !-----------------------------------------------------------
     ! assign FFT transform type, LP->x, MP->z, NP->y
     !-----------------------------------------------------------
-    if(ibcx(1) == IBC_PERIODIC  .and. ibcx(2) == IBC_PERIODIC ) LPx = 0
-    if(ibcx(1) == IBC_DIRICHLET .and. ibcx(2) == IBC_DIRICHLET) LPx = 1
-    if(ibcx(1) == IBC_DIRICHLET .and. ibcx(2) == IBC_NEUMANN  ) LPx = 2
-    if(ibcx(1) == IBC_NEUMANN   .and. ibcx(2) == IBC_NEUMANN  ) LPx = 3
-    if(ibcx(1) == IBC_NEUMANN   .and. ibcx(2) == IBC_DIRICHLET) LPx = 4
-
-    if(ibcz(1) == IBC_PERIODIC  .and. ibcz(2) == IBC_PERIODIC ) LPz = 0
-    if(ibcz(1) == IBC_DIRICHLET .and. ibcz(2) == IBC_DIRICHLET) LPz = 1
-    if(ibcz(1) == IBC_DIRICHLET .and. ibcz(2) == IBC_NEUMANN  ) LPz = 2
-    if(ibcz(1) == IBC_NEUMANN   .and. ibcz(2) == IBC_NEUMANN  ) LPz = 3
-    if(ibcz(1) == IBC_NEUMANN   .and. ibcz(2) == IBC_DIRICHLET) LPz = 4
-
-    LPy = 1
-
-    LPx = LPx + 1
-    LPy = LPy + 1
-    LPz = LPz + 1
+    call get_fft_type(ibcx, LPx)
+    call get_fft_type(ibcz, LPz)
+    LPy = IDCT_II ! originall it is IDST_I. Not used.
 
     wsz = 30 + nx + ny * 2 + nz + MAX(nx, ny, nz) + 7 * (INT((nx+1)/2) + INT((nz+1)/2)) + 128
     !-----------------------------------------------------------

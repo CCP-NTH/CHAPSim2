@@ -531,8 +531,8 @@ contains
       call read_instantaneous_array(dm%fbcx_qy_inl2, 'outlet2_qy', dm%idom, niter, dm%dxpc)
       call read_instantaneous_array(dm%fbcx_qz_inl1, 'outlet1_qz', dm%idom, niter, dm%dxcp)
       call read_instantaneous_array(dm%fbcx_qz_inl2, 'outlet2_qz', dm%idom, niter, dm%dxcp)
-      call read_instantaneous_array(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%dxcc)
-      call read_instantaneous_array(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%dxcc)
+      !call read_instantaneous_array(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%dxcc)
+      !call read_instantaneous_array(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%dxcc)
 ! #ifdef DEBUG_STEPS
       !write(*,*) 'inlet bc1', niter, dm%fbcx_qx_inl1(:, 32, 1)
       !write(*,*) 'inlet bc2', niter, dm%fbcx_qx_inl1(:, 32, 32)

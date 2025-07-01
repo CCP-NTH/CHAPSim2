@@ -119,14 +119,23 @@ end function
           else if(m == 4) then
             ibc(n, m) = IBC_NEUMANN    ! for p
           else 
-            ibc(n, m) = IBC_DIRICHLET  ! for u, v, w, p, check!!
+            ibc(n, m) = IBC_DIRICHLET  ! for u, v, w, check!!
           end if
         else if (bc_nominal(n, m) == IBC_CONVECTIVE)   then ! check for convetive outlet
-          ibc(n, m) = IBC_DIRICHLET
+          if(m == 4) then
+            ibc(n, m) = IBC_NEUMANN    ! for p
+          else 
+            ibc(n, m) = IBC_DIRICHLET  ! for u, v, w, T, check!!
+          end if
         else
           ibc(n, m) = bc_nominal(n, m)   
         end if
       end do
+      if(ibc(n, 1) == IBC_DIRICHLET .and. &
+         ibc(n, 2) == IBC_DIRICHLET .and. &
+         ibc(n, 3) == IBC_DIRICHLET) then
+         ibc(n, 4) = IBC_NEUMANN
+      end if
     end do
 
     return
@@ -336,8 +345,8 @@ end function
     allocate( dm%fbcy_qw (dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) )! default x pencil
     allocate( dm%fbcy_ftp(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) )! default y pencil
     
-    allocate( dm%fbcz_qw (dm%dccp%zsz(1), dm%dccp%zsz(2), 4)  )! default x pencil
-    allocate( dm%fbcz_ftp(dm%dccp%zsz(1), dm%dccp%zsz(2), 4)  )! default z pencil
+    allocate( dm%fbcz_qw (dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )! default x pencil
+    allocate( dm%fbcz_ftp(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )! default z pencil
 
     return
   end subroutine 

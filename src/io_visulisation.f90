@@ -204,8 +204,6 @@ contains
     ! --- Dataset dimensions ---
     dims = [size(xp,1), size(xp,2), size(xp,3)]
     if(present(opt_nx)) dims(1) = opt_nx + 1
-    ! --- Write data ---
-    if (error /= 0) error stop "Allocation failed"
 
     ! Write to binary file
     open(newunit=unit, file=trim(filename), access='stream', form='unformatted', &
