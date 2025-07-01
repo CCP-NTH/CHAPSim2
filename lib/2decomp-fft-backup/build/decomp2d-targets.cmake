@@ -50,7 +50,7 @@ unset(_cmake_expected_targets)
 add_library(decomp2d STATIC IMPORTED)
 
 set_target_properties(decomp2d PROPERTIES
-  INTERFACE_INCLUDE_DIRECTORIES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/include"
+  INTERFACE_INCLUDE_DIRECTORIES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/include"
   INTERFACE_LINK_LIBRARIES "\$<LINK_ONLY:MPI::MPI_Fortran>;\$<LINK_ONLY:OpenMP::OpenMP_Fortran>"
 )
 
@@ -58,7 +58,7 @@ set_target_properties(decomp2d PROPERTIES
 set_property(TARGET decomp2d APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_target_properties(decomp2d PROPERTIES
   IMPORTED_LINK_INTERFACE_LANGUAGES_RELEASE "Fortran"
-  IMPORTED_LOCATION_RELEASE "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/lib/libdecomp2d.a"
+  IMPORTED_LOCATION_RELEASE "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/lib/libdecomp2d.a"
   )
 
 # This file does not depend on other imported targets which have

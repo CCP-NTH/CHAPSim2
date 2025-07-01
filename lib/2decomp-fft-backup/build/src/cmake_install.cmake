@@ -1,8 +1,8 @@
-# Install script for directory: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src
+# Install script for directory: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/opt")
+  set(CMAKE_INSTALL_PREFIX "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/opt")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -43,22 +43,22 @@ if(NOT DEFINED CMAKE_OBJDUMP)
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/lib/libdecomp2d.a")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE STATIC_LIBRARY FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/lib/libdecomp2d.a")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/include/" FILES_MATCHING REGEX "/[^/]*\\.mod$")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/include/" FILES_MATCHING REGEX "/[^/]*\\.mod$")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/include/" FILES_MATCHING REGEX "/[^/]*\\.smod$")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/include" TYPE DIRECTORY FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/include/" FILES_MATCHING REGEX "/[^/]*\\.smod$")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/decomp2d-targets.cmake")
     file(DIFFERENT _cmake_export_file_changed FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/decomp2d-targets.cmake"
-         "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src/CMakeFiles/Export/e8acc63b1e238f3255c900eed37254b8/decomp2d-targets.cmake")
+         "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src/CMakeFiles/Export/e8acc63b1e238f3255c900eed37254b8/decomp2d-targets.cmake")
     if(_cmake_export_file_changed)
       file(GLOB _cmake_old_config_files "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/decomp2d-targets-*.cmake")
       if(_cmake_old_config_files)
@@ -71,16 +71,16 @@ if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT
     endif()
     unset(_cmake_export_file_changed)
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE FILE FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src/CMakeFiles/Export/e8acc63b1e238f3255c900eed37254b8/decomp2d-targets.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE FILE FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src/CMakeFiles/Export/e8acc63b1e238f3255c900eed37254b8/decomp2d-targets.cmake")
   if(CMAKE_INSTALL_CONFIG_NAME MATCHES "^([Rr][Ee][Ll][Ee][Aa][Ss][Ee])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE FILE FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src/CMakeFiles/Export/e8acc63b1e238f3255c900eed37254b8/decomp2d-targets-release.cmake")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib" TYPE FILE FILES "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src/CMakeFiles/Export/e8acc63b1e238f3255c900eed37254b8/decomp2d-targets-release.cmake")
   endif()
 endif()
 
 if(CMAKE_INSTALL_COMPONENT STREQUAL "Unspecified" OR NOT CMAKE_INSTALL_COMPONENT)
   file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/decomp2d" TYPE FILE FILES
-    "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/cmake/decomp2d-config.cmake"
-    "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/cmake/decomp2d-config-version.cmake"
+    "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/cmake/decomp2d-config.cmake"
+    "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/cmake/decomp2d-config-version.cmake"
     )
 endif()
 

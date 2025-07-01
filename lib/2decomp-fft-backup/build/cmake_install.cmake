@@ -1,8 +1,8 @@
-# Install script for directory: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft
+# Install script for directory: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/opt")
+  set(CMAKE_INSTALL_PREFIX "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/opt")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -44,7 +44,7 @@ endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for the subdirectory.
-  include("/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src/cmake_install.cmake")
+  include("/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src/cmake_install.cmake")
 endif()
 
 if(CMAKE_INSTALL_COMPONENT)
@@ -55,5 +55,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

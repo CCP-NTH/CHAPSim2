@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft
+CMAKE_SOURCE_DIR = /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build
+CMAKE_BINARY_DIR = /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build
 
 # Include any dependencies generated for this target.
 include src/CMakeFiles/decomp2d.dir/depend.make
@@ -70,238 +70,238 @@ include src/CMakeFiles/decomp2d.dir/progress.make
 include src/CMakeFiles/decomp2d.dir/flags.make
 
 src/CMakeFiles/decomp2d.dir/decomp_2d.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/decomp_2d.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building Fortran object src/CMakeFiles/decomp2d.dir/decomp_2d.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d.f90 -o CMakeFiles/decomp2d.dir/decomp_2d.f90.o
+src/CMakeFiles/decomp2d.dir/decomp_2d.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Building Fortran object src/CMakeFiles/decomp2d.dir/decomp_2d.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d.f90 -o CMakeFiles/decomp2d.dir/decomp_2d.f90.o
 
 src/CMakeFiles/decomp2d.dir/decomp_2d.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/decomp_2d.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d.f90 > CMakeFiles/decomp2d.dir/decomp_2d.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d.f90 > CMakeFiles/decomp2d.dir/decomp_2d.f90.i
 
 src/CMakeFiles/decomp2d.dir/decomp_2d.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/decomp_2d.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d.f90 -o CMakeFiles/decomp2d.dir/decomp_2d.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d.f90 -o CMakeFiles/decomp2d.dir/decomp_2d.f90.s
 
 src/CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d_constants.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building Fortran object src/CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d_constants.f90 -o CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.o
+src/CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d_constants.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building Fortran object src/CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d_constants.f90 -o CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.o
 
 src/CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d_constants.f90 > CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d_constants.f90 > CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.i
 
 src/CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d_constants.f90 -o CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d_constants.f90 -o CMakeFiles/decomp2d.dir/decomp_2d_constants.f90.s
 
 src/CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d_mpi.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building Fortran object src/CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d_mpi.f90 -o CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.o
+src/CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d_mpi.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Building Fortran object src/CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d_mpi.f90 -o CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.o
 
 src/CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d_mpi.f90 > CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d_mpi.f90 > CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.i
 
 src/CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/decomp_2d_mpi.f90 -o CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/decomp_2d_mpi.f90 -o CMakeFiles/decomp2d.dir/decomp_2d_mpi.f90.s
 
 src/CMakeFiles/decomp2d.dir/factor.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/factor.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/factor.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building Fortran object src/CMakeFiles/decomp2d.dir/factor.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/factor.f90 -o CMakeFiles/decomp2d.dir/factor.f90.o
+src/CMakeFiles/decomp2d.dir/factor.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/factor.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_4) "Building Fortran object src/CMakeFiles/decomp2d.dir/factor.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/factor.f90 -o CMakeFiles/decomp2d.dir/factor.f90.o
 
 src/CMakeFiles/decomp2d.dir/factor.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/factor.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/factor.f90 > CMakeFiles/decomp2d.dir/factor.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/factor.f90 > CMakeFiles/decomp2d.dir/factor.f90.i
 
 src/CMakeFiles/decomp2d.dir/factor.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/factor.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/factor.f90 -o CMakeFiles/decomp2d.dir/factor.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/factor.f90 -o CMakeFiles/decomp2d.dir/factor.f90.s
 
 src/CMakeFiles/decomp2d.dir/interp.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/interp.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/interp.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building Fortran object src/CMakeFiles/decomp2d.dir/interp.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/interp.f90 -o CMakeFiles/decomp2d.dir/interp.f90.o
+src/CMakeFiles/decomp2d.dir/interp.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/interp.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_5) "Building Fortran object src/CMakeFiles/decomp2d.dir/interp.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/interp.f90 -o CMakeFiles/decomp2d.dir/interp.f90.o
 
 src/CMakeFiles/decomp2d.dir/interp.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/interp.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/interp.f90 > CMakeFiles/decomp2d.dir/interp.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/interp.f90 > CMakeFiles/decomp2d.dir/interp.f90.i
 
 src/CMakeFiles/decomp2d.dir/interp.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/interp.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/interp.f90 -o CMakeFiles/decomp2d.dir/interp.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/interp.f90 -o CMakeFiles/decomp2d.dir/interp.f90.s
 
 src/CMakeFiles/decomp2d.dir/io_mpi.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/io_mpi.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_mpi.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building Fortran object src/CMakeFiles/decomp2d.dir/io_mpi.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_mpi.f90 -o CMakeFiles/decomp2d.dir/io_mpi.f90.o
+src/CMakeFiles/decomp2d.dir/io_mpi.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_mpi.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_6) "Building Fortran object src/CMakeFiles/decomp2d.dir/io_mpi.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_mpi.f90 -o CMakeFiles/decomp2d.dir/io_mpi.f90.o
 
 src/CMakeFiles/decomp2d.dir/io_mpi.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/io_mpi.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_mpi.f90 > CMakeFiles/decomp2d.dir/io_mpi.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_mpi.f90 > CMakeFiles/decomp2d.dir/io_mpi.f90.i
 
 src/CMakeFiles/decomp2d.dir/io_mpi.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/io_mpi.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_mpi.f90 -o CMakeFiles/decomp2d.dir/io_mpi.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_mpi.f90 -o CMakeFiles/decomp2d.dir/io_mpi.f90.s
 
 src/CMakeFiles/decomp2d.dir/io_object_mpi.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/io_object_mpi.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_object_mpi.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building Fortran object src/CMakeFiles/decomp2d.dir/io_object_mpi.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_object_mpi.f90 -o CMakeFiles/decomp2d.dir/io_object_mpi.f90.o
+src/CMakeFiles/decomp2d.dir/io_object_mpi.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_object_mpi.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_7) "Building Fortran object src/CMakeFiles/decomp2d.dir/io_object_mpi.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_object_mpi.f90 -o CMakeFiles/decomp2d.dir/io_object_mpi.f90.o
 
 src/CMakeFiles/decomp2d.dir/io_object_mpi.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/io_object_mpi.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_object_mpi.f90 > CMakeFiles/decomp2d.dir/io_object_mpi.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_object_mpi.f90 > CMakeFiles/decomp2d.dir/io_object_mpi.f90.i
 
 src/CMakeFiles/decomp2d.dir/io_object_mpi.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/io_object_mpi.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_object_mpi.f90 -o CMakeFiles/decomp2d.dir/io_object_mpi.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_object_mpi.f90 -o CMakeFiles/decomp2d.dir/io_object_mpi.f90.s
 
 src/CMakeFiles/decomp2d.dir/io_utilities.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/io_utilities.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_utilities.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building Fortran object src/CMakeFiles/decomp2d.dir/io_utilities.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_utilities.f90 -o CMakeFiles/decomp2d.dir/io_utilities.f90.o
+src/CMakeFiles/decomp2d.dir/io_utilities.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_utilities.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_8) "Building Fortran object src/CMakeFiles/decomp2d.dir/io_utilities.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_utilities.f90 -o CMakeFiles/decomp2d.dir/io_utilities.f90.o
 
 src/CMakeFiles/decomp2d.dir/io_utilities.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/io_utilities.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_utilities.f90 > CMakeFiles/decomp2d.dir/io_utilities.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_utilities.f90 > CMakeFiles/decomp2d.dir/io_utilities.f90.i
 
 src/CMakeFiles/decomp2d.dir/io_utilities.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/io_utilities.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_utilities.f90 -o CMakeFiles/decomp2d.dir/io_utilities.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_utilities.f90 -o CMakeFiles/decomp2d.dir/io_utilities.f90.s
 
 src/CMakeFiles/decomp2d.dir/log.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/log.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/log.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building Fortran object src/CMakeFiles/decomp2d.dir/log.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/log.f90 -o CMakeFiles/decomp2d.dir/log.f90.o
+src/CMakeFiles/decomp2d.dir/log.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/log.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_9) "Building Fortran object src/CMakeFiles/decomp2d.dir/log.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/log.f90 -o CMakeFiles/decomp2d.dir/log.f90.o
 
 src/CMakeFiles/decomp2d.dir/log.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/log.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/log.f90 > CMakeFiles/decomp2d.dir/log.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/log.f90 > CMakeFiles/decomp2d.dir/log.f90.i
 
 src/CMakeFiles/decomp2d.dir/log.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/log.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/log.f90 -o CMakeFiles/decomp2d.dir/log.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/log.f90 -o CMakeFiles/decomp2d.dir/log.f90.s
 
 src/CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_x_to_y.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building Fortran object src/CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_x_to_y.f90 -o CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.o
+src/CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_x_to_y.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_10) "Building Fortran object src/CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_x_to_y.f90 -o CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.o
 
 src/CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_x_to_y.f90 > CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_x_to_y.f90 > CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.i
 
 src/CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_x_to_y.f90 -o CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_x_to_y.f90 -o CMakeFiles/decomp2d.dir/transpose_x_to_y.f90.s
 
 src/CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_y_to_x.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building Fortran object src/CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_y_to_x.f90 -o CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.o
+src/CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_y_to_x.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_11) "Building Fortran object src/CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_y_to_x.f90 -o CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.o
 
 src/CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_y_to_x.f90 > CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_y_to_x.f90 > CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.i
 
 src/CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_y_to_x.f90 -o CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_y_to_x.f90 -o CMakeFiles/decomp2d.dir/transpose_y_to_x.f90.s
 
 src/CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_y_to_z.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building Fortran object src/CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_y_to_z.f90 -o CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.o
+src/CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_y_to_z.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_12) "Building Fortran object src/CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_y_to_z.f90 -o CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.o
 
 src/CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_y_to_z.f90 > CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_y_to_z.f90 > CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.i
 
 src/CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_y_to_z.f90 -o CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_y_to_z.f90 -o CMakeFiles/decomp2d.dir/transpose_y_to_z.f90.s
 
 src/CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_z_to_y.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building Fortran object src/CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_z_to_y.f90 -o CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.o
+src/CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_z_to_y.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_13) "Building Fortran object src/CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_z_to_y.f90 -o CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.o
 
 src/CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_z_to_y.f90 > CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_z_to_y.f90 > CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.i
 
 src/CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/transpose_z_to_y.f90 -o CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/transpose_z_to_y.f90 -o CMakeFiles/decomp2d.dir/transpose_z_to_y.f90.s
 
 src/CMakeFiles/decomp2d.dir/fft_generic.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/fft_generic.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/fft_generic.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building Fortran object src/CMakeFiles/decomp2d.dir/fft_generic.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/fft_generic.f90 -o CMakeFiles/decomp2d.dir/fft_generic.f90.o
+src/CMakeFiles/decomp2d.dir/fft_generic.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/fft_generic.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_14) "Building Fortran object src/CMakeFiles/decomp2d.dir/fft_generic.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/fft_generic.f90 -o CMakeFiles/decomp2d.dir/fft_generic.f90.o
 
 src/CMakeFiles/decomp2d.dir/fft_generic.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/fft_generic.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/fft_generic.f90 > CMakeFiles/decomp2d.dir/fft_generic.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/fft_generic.f90 > CMakeFiles/decomp2d.dir/fft_generic.f90.i
 
 src/CMakeFiles/decomp2d.dir/fft_generic.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/fft_generic.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/fft_generic.f90 -o CMakeFiles/decomp2d.dir/fft_generic.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/fft_generic.f90 -o CMakeFiles/decomp2d.dir/fft_generic.f90.s
 
 src/CMakeFiles/decomp2d.dir/glassman.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/glassman.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/glassman.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building Fortran object src/CMakeFiles/decomp2d.dir/glassman.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/glassman.f90 -o CMakeFiles/decomp2d.dir/glassman.f90.o
+src/CMakeFiles/decomp2d.dir/glassman.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/glassman.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_15) "Building Fortran object src/CMakeFiles/decomp2d.dir/glassman.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/glassman.f90 -o CMakeFiles/decomp2d.dir/glassman.f90.o
 
 src/CMakeFiles/decomp2d.dir/glassman.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/glassman.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/glassman.f90 > CMakeFiles/decomp2d.dir/glassman.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/glassman.f90 > CMakeFiles/decomp2d.dir/glassman.f90.i
 
 src/CMakeFiles/decomp2d.dir/glassman.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/glassman.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/glassman.f90 -o CMakeFiles/decomp2d.dir/glassman.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/glassman.f90 -o CMakeFiles/decomp2d.dir/glassman.f90.s
 
 src/CMakeFiles/decomp2d.dir/fft_log.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/fft_log.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/fft_log.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building Fortran object src/CMakeFiles/decomp2d.dir/fft_log.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/fft_log.f90 -o CMakeFiles/decomp2d.dir/fft_log.f90.o
+src/CMakeFiles/decomp2d.dir/fft_log.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/fft_log.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_16) "Building Fortran object src/CMakeFiles/decomp2d.dir/fft_log.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/fft_log.f90 -o CMakeFiles/decomp2d.dir/fft_log.f90.o
 
 src/CMakeFiles/decomp2d.dir/fft_log.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/fft_log.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/fft_log.f90 > CMakeFiles/decomp2d.dir/fft_log.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/fft_log.f90 > CMakeFiles/decomp2d.dir/fft_log.f90.i
 
 src/CMakeFiles/decomp2d.dir/fft_log.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/fft_log.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/fft_log.f90 -o CMakeFiles/decomp2d.dir/fft_log.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/fft_log.f90 -o CMakeFiles/decomp2d.dir/fft_log.f90.s
 
 src/CMakeFiles/decomp2d.dir/profiler_none.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/profiler_none.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/profiler_none.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building Fortran object src/CMakeFiles/decomp2d.dir/profiler_none.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/profiler_none.f90 -o CMakeFiles/decomp2d.dir/profiler_none.f90.o
+src/CMakeFiles/decomp2d.dir/profiler_none.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/profiler_none.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_17) "Building Fortran object src/CMakeFiles/decomp2d.dir/profiler_none.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/profiler_none.f90 -o CMakeFiles/decomp2d.dir/profiler_none.f90.o
 
 src/CMakeFiles/decomp2d.dir/profiler_none.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/profiler_none.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/profiler_none.f90 > CMakeFiles/decomp2d.dir/profiler_none.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/profiler_none.f90 > CMakeFiles/decomp2d.dir/profiler_none.f90.i
 
 src/CMakeFiles/decomp2d.dir/profiler_none.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/profiler_none.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/profiler_none.f90 -o CMakeFiles/decomp2d.dir/profiler_none.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/profiler_none.f90 -o CMakeFiles/decomp2d.dir/profiler_none.f90.s
 
 src/CMakeFiles/decomp2d.dir/io_adios_none.f90.o: src/CMakeFiles/decomp2d.dir/flags.make
-src/CMakeFiles/decomp2d.dir/io_adios_none.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_adios_none.f90
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building Fortran object src/CMakeFiles/decomp2d.dir/io_adios_none.f90.o"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_adios_none.f90 -o CMakeFiles/decomp2d.dir/io_adios_none.f90.o
+src/CMakeFiles/decomp2d.dir/io_adios_none.f90.o: /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_adios_none.f90
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_18) "Building Fortran object src/CMakeFiles/decomp2d.dir/io_adios_none.f90.o"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -c /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_adios_none.f90 -o CMakeFiles/decomp2d.dir/io_adios_none.f90.o
 
 src/CMakeFiles/decomp2d.dir/io_adios_none.f90.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing Fortran source to CMakeFiles/decomp2d.dir/io_adios_none.f90.i"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_adios_none.f90 > CMakeFiles/decomp2d.dir/io_adios_none.f90.i
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -E /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_adios_none.f90 > CMakeFiles/decomp2d.dir/io_adios_none.f90.i
 
 src/CMakeFiles/decomp2d.dir/io_adios_none.f90.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling Fortran source to assembly CMakeFiles/decomp2d.dir/io_adios_none.f90.s"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src/io_adios_none.f90 -o CMakeFiles/decomp2d.dir/io_adios_none.f90.s
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && /usr/bin/f95 $(Fortran_DEFINES) $(Fortran_INCLUDES) $(Fortran_FLAGS) -S /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src/io_adios_none.f90 -o CMakeFiles/decomp2d.dir/io_adios_none.f90.s
 
 # Object files for target decomp2d
 decomp2d_OBJECTS = \
@@ -347,19 +347,19 @@ lib/libdecomp2d.a: src/CMakeFiles/decomp2d.dir/profiler_none.f90.o
 lib/libdecomp2d.a: src/CMakeFiles/decomp2d.dir/io_adios_none.f90.o
 lib/libdecomp2d.a: src/CMakeFiles/decomp2d.dir/build.make
 lib/libdecomp2d.a: src/CMakeFiles/decomp2d.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking Fortran static library ../lib/libdecomp2d.a"
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && $(CMAKE_COMMAND) -P CMakeFiles/decomp2d.dir/cmake_clean_target.cmake
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/decomp2d.dir/link.txt --verbose=$(VERBOSE)
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir=/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_19) "Linking Fortran static library ../lib/libdecomp2d.a"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && $(CMAKE_COMMAND) -P CMakeFiles/decomp2d.dir/cmake_clean_target.cmake
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/decomp2d.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
 src/CMakeFiles/decomp2d.dir/build: lib/libdecomp2d.a
 .PHONY : src/CMakeFiles/decomp2d.dir/build
 
 src/CMakeFiles/decomp2d.dir/clean:
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src && $(CMAKE_COMMAND) -P CMakeFiles/decomp2d.dir/cmake_clean.cmake
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src && $(CMAKE_COMMAND) -P CMakeFiles/decomp2d.dir/cmake_clean.cmake
 .PHONY : src/CMakeFiles/decomp2d.dir/clean
 
 src/CMakeFiles/decomp2d.dir/depend:
-	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/src /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft/build/src/CMakeFiles/decomp2d.dir/DependInfo.cmake "--color=$(COLOR)"
+	cd /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/src /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src /home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2/lib/2decomp-fft-backup/build/src/CMakeFiles/decomp2d.dir/DependInfo.cmake "--color=$(COLOR)"
 .PHONY : src/CMakeFiles/decomp2d.dir/depend
 
