@@ -1075,9 +1075,16 @@ contains
 !> \param[inout]  fl   flow type
 !> \param[inout]  tm   thermo type
 !==========================================================================================================
-  subroutine initialise_thermal_properties (fl, tm)
+  subroutine initialise_thermal_properties (fl, tm, dm)
+    use udf_type_mod
+    implicit none
     type(t_flow),   intent(inout) :: fl
     type(t_thermo), intent(inout) :: tm
+    type(t_domain), intent(in) :: dm
+
+    integer :: i, j, k, jj
+    real(WP) :: Ts
+    type(t_fluidThermoProperty) :: ftp
     
     if(nrank == 0) call Print_debug_start_msg("Initialise thermal variables ...")
     !----------------------------------------------------------------------------------------------------------
@@ -1103,6 +1110,37 @@ contains
 
     fl%dDensm2(:, :, :) = fl%dDensm1(:, :, :)
     fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
+
+
+    if(dm%ibcy_Tm(2) == IBC_DIRICHLET .and. tm%inittype == INIT_GVBCLN) then
+
+      if(dm%ibcy_Tm(1) == IBC_DIRICHLET) then
+        Ts = dm%fbcy_const(1, 5)
+      else 
+        Ts = tm%ftp_ini%t
+      end if
+
+      do j = 1, dm%dccc%xsz(2) 
+         jj = dm%dccc%xst(2) + j - 1 
+         tm%tTemp(:, j, :) = (dm%yc(jj) - dm%lyb) / (dm%lyt - dm%lyb) &
+                           * (dm%fbcy_const(2, 5) - Ts) + Ts
+        write(*,*) 'test', j, jj, tm%tTemp(1, j, 1)
+      end do
+
+      do k = 1, dm%dccc%xsz(3)
+        do j = 1, dm%dccc%xsz(2)
+          do i = 1, dm%dccc%xsz(1)
+            ftp%t = tm%tTemp(i, j, k)
+            call ftp_refresh_thermal_properties_from_T_undim(ftp)
+            tm%rhoh (i, j, k) = ftp%rhoh
+            tm%hEnth(i, j, k) = ftp%h
+            tm%kCond(i, j, k) = ftp%k
+            fl%dDens(i, j, k) = ftp%d
+            fl%mVisc(i, j, k) = ftp%m
+          end do
+        end do
+      end do
+    end if 
 
     if(nrank == 0) call Print_debug_end_msg()
     return
