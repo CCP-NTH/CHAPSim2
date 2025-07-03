@@ -192,7 +192,7 @@ end function
       dm%ibcx_ftp(n) = dm%ibcx_Tm(n)
       dm%ibcy_ftp(n) = dm%ibcy_Tm(n)
       dm%ibcz_ftp(n) = dm%ibcz_Tm(n)
-      
+
       if(dm%ibcx_Tm(n) == IBC_NEUMANN) dm%ibcx_ftp(n) = IBC_DIRICHLET
       if(dm%ibcy_Tm(n) == IBC_NEUMANN) dm%ibcy_ftp(n) = IBC_DIRICHLET
       if(dm%ibcz_Tm(n) == IBC_NEUMANN) dm%ibcz_ftp(n) = IBC_DIRICHLET
@@ -500,7 +500,7 @@ end function
     fbcy = dm%fbcy_ftp%t
     call axis_mirroring_interior_fbcy(tm%tTemp, fbcy, dm%knc_sym, dm%dccc)
     dm%fbcy_ftp%t = fbcy
-    call ftp_refresh_thermal_properties_from_T_undim_3D(dm%fbcy_ftp)
+    call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp)
 
     return
   end subroutine

@@ -65,11 +65,11 @@ contains
     !fl%drhodt = zero
     
 !#ifdef DEBUG_STEPS
-    write(*,*) 'rho   ', fl%ddens  (1, :, 1)
-    write(*,*) 'rhom1 ', fl%ddensm1(1, :, 1)
+    !write(*,*) 'rho   ', fl%ddens  (1, :, 1)
+    !write(*,*) 'rhom1 ', fl%ddensm1(1, :, 1)
     !write(*,*) 'rhom2 ', fl%ddensm2(:, :, :)
     !write(*,*) 'drhodt', fl%drhodt (:, :, :)
-    write(*,*) 'drhodt', fl%drhodt(1, :, 1)
+    !write(*,*) 'drhodt', fl%drhodt(1, :, 1)
     call Find_maximum_absvar3d(fl%drhodt, maxdrhodt, dm%dccc, "Max. drhodt")
 !#endif
 

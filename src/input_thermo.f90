@@ -46,7 +46,8 @@ module thermo_info_mod
   private :: ftp_is_T_in_scope
   private :: ftp_get_thermal_properties_dimensional_from_T
   private :: ftp_refresh_thermal_properties_from_T_undim
-  public  :: ftp_refresh_thermal_properties_from_T_undim_3D
+  public  :: ftp_refresh_thermal_properties_from_T_undim_3Dftp
+  public  :: ftp_refresh_thermal_properties_from_T_undim_3Dtm
   private :: ftp_refresh_thermal_properties_from_H
   private :: ftp_convert_undim_to_dim
   private :: ftp_print
@@ -312,9 +313,8 @@ contains
     end if
     return
   end subroutine ftp_refresh_thermal_properties_from_T_undim
-  !==========================================================================================================
 !==========================================================================================================
-  subroutine ftp_refresh_thermal_properties_from_T_undim_3D ( ftp3d )
+  subroutine ftp_refresh_thermal_properties_from_T_undim_3Dftp( ftp3d )
     type(t_fluidThermoProperty), intent(inout) :: ftp3d(:, :, :)
     integer :: i, j, k
 
@@ -327,7 +327,33 @@ contains
     end do 
 
     return
-  end subroutine ftp_refresh_thermal_properties_from_T_undim_3D
+  end subroutine 
+  !==========================================================================================================
+  subroutine ftp_refresh_thermal_properties_from_T_undim_3Dtm(fl, tm, dm)
+    ! arguments
+    type(t_domain), intent(in) :: dm
+    type(t_flow), intent(inout) :: fl
+    type(t_thermo), intent(inout) :: tm
+    ! local
+    integer :: i, j, k
+    type(t_fluidThermoProperty) :: ftp
+
+    do k = 1, dm%dccc%xsz(3)
+      do j = 1, dm%dccc%xsz(2)
+        do i = 1, dm%dccc%xsz(1)
+          ftp%t = tm%tTemp(i, j, k)
+          call ftp_refresh_thermal_properties_from_T_undim(ftp)
+          tm%rhoh (i, j, k) = ftp%rhoh
+          tm%hEnth(i, j, k) = ftp%h
+          tm%kCond(i, j, k) = ftp%k
+          fl%dDens(i, j, k) = ftp%d
+          fl%mVisc(i, j, k) = ftp%m
+        end do
+      end do
+    end do
+
+    return
+  end subroutine 
 !==========================================================================================================
 !==========================================================================================================
 !> \brief Defination of a procedure in the type t_fluidThermoProperty.
@@ -1124,22 +1150,10 @@ contains
          jj = dm%dccc%xst(2) + j - 1 
          tm%tTemp(:, j, :) = (dm%yc(jj) - dm%lyb) / (dm%lyt - dm%lyb) &
                            * (dm%fbcy_const(2, 5) - Ts) + Ts
-        write(*,*) 'test', j, jj, tm%tTemp(1, j, 1)
+        !write(*,*) 'test', j, jj, tm%tTemp(1, j, 1)
       end do
 
-      do k = 1, dm%dccc%xsz(3)
-        do j = 1, dm%dccc%xsz(2)
-          do i = 1, dm%dccc%xsz(1)
-            ftp%t = tm%tTemp(i, j, k)
-            call ftp_refresh_thermal_properties_from_T_undim(ftp)
-            tm%rhoh (i, j, k) = ftp%rhoh
-            tm%hEnth(i, j, k) = ftp%h
-            tm%kCond(i, j, k) = ftp%k
-            fl%dDens(i, j, k) = ftp%d
-            fl%mVisc(i, j, k) = ftp%m
-          end do
-        end do
-      end do
+      call ftp_refresh_thermal_properties_from_T_undim_3Dtm(fl, tm, dm)
     end if 
 
     if(nrank == 0) call Print_debug_end_msg()

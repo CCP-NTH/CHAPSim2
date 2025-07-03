@@ -445,7 +445,7 @@ contains
       filename(4) = trim('pf1d_T1y_undim.dat') !(undim)
       call map_bc_1d_uprofile( filename(4), ny, dm%yc, var1y(1:ny) )
       call initialise_fbcx_given_profile(dm%fbcx_ftp(:,:,:)%t, var1y, dm%dccc%xst(2),'Ty')
-      call ftp_refresh_thermal_properties_from_T_undim_3d(dm%fbcx_ftp)
+      call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcx_ftp)
     else 
       if(nrank == 0 .and. dm%ibcx_nominal(1, 1) == IBC_DATABASE) &
       call Print_warning_msg("The thermal field's inlet temperature is the same as Tini given.")
@@ -457,7 +457,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
       if(dm%ibcx_nominal(n, 5) == IBC_DIRICHLET) then
         dm%fbcx_ftp(n, :, :)%t   = dm%fbcx_const(n, 5)
-        call ftp_refresh_thermal_properties_from_T_undim_3D(dm%fbcx_ftp)
+        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcx_ftp)
       else if (dm%ibcx_nominal(n, 5) == IBC_NEUMANN) then
         dm%fbcx_qw(n, :, :) = dm%fbcx_const(n, 5) 
         dm%fbcx_ftp = tm%ftp_ini
@@ -469,7 +469,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
       if(dm%ibcy_nominal(n, 5) == IBC_DIRICHLET) then
         dm%fbcy_ftp(:, n, :)%t   = dm%fbcy_const(n, 5)
-        call ftp_refresh_thermal_properties_from_T_undim_3D(dm%fbcy_ftp)
+        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp)
         !write(*,*) 'test, bc-T', dm%fbcy_const(n, 5), dm%fbcy_ftp(4, n, 4)%t
       else if (dm%ibcy_nominal(n, 5) == IBC_NEUMANN) then
         dm%fbcy_qw(:, n, :) = dm%fbcy_const(n, 5) 
@@ -482,7 +482,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
       if( dm%ibcz_nominal(n, 5) == IBC_DIRICHLET ) then
         dm%fbcz_ftp(:, :, n)%t   = dm%fbcz_const(n, 5)
-        call ftp_refresh_thermal_properties_from_T_undim_3D(dm%fbcz_ftp)
+        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcz_ftp)
       else if (dm%ibcz_nominal(n, 5) == IBC_NEUMANN) then
         dm%fbcz_qw(:, :, n) = dm%fbcz_const(n, 5) 
         dm%fbcz_ftp = tm%ftp_ini

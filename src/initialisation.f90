@@ -32,10 +32,12 @@ module flow_thermo_initialiasation
   private :: initialise_flow_from_given_values
   private :: initialise_vortexgreen_2dflow
   private :: initialise_vortexgreen_3dflow
+  private  :: initialise_vortexgreen_3dflow_thermo
 
   public  :: Validate_TGV2D_error
   public  :: initialise_flow_fields
   public  :: initialise_thermo_fields
+  
 
 contains
 !==========================================================================================================
@@ -158,7 +160,7 @@ contains
   !> \param[in]     
   !> \param[out]    
   !==========================================================================================================
-  subroutine Generate_random_field(dm, fl)
+  subroutine Generate_random_field(fl, dm)
     use random_number_generation_mod
     use parameters_constant_mod
     use mpi_mod
@@ -333,7 +335,7 @@ contains
   !> \param[in]     d             domain
   !> \param[out]    f             flow
   !==========================================================================================================
-  subroutine initialise_poiseuille_flow(dm, fl)
+  subroutine initialise_poiseuille_flow(fl, dm)
     use input_general_mod
     use udf_type_mod
     use boundary_conditions_mod
@@ -477,7 +479,7 @@ contains
 
 !==========================================================================================================
   !==========================================================================================================
-  subroutine initialise_flow_from_given_inlet(dm, fl)
+  subroutine initialise_flow_from_given_inlet(fl, dm)
     use udf_type_mod, only: t_domain
     use precision_mod, only: WP
     use parameters_constant_mod, only: ZERO
@@ -574,27 +576,27 @@ contains
     else if (fl%inittype == INIT_INTERPL) then
 
     else if (fl%inittype == INIT_RANDOM) then
-      call Generate_random_field(dm, fl)
+      call Generate_random_field(fl, dm)
 
     else if (fl%inittype == INIT_INLET) then
-      call Generate_random_field(dm, fl)
-      call initialise_flow_from_given_inlet(dm, fl)
+      call Generate_random_field(fl, dm)
+      call initialise_flow_from_given_inlet(fl, dm)
 
     else if (fl%inittype == INIT_GVCONST) then
-      call Generate_random_field(dm, fl)
+      call Generate_random_field(fl, dm)
       call initialise_flow_from_given_values(fl)
 
     else if (fl%inittype == INIT_POISEUILLE) then
-      call Generate_random_field(dm, fl)
-      call initialise_poiseuille_flow(dm, fl)
+      call Generate_random_field(fl, dm)
+      call initialise_poiseuille_flow(fl, dm)
 
     else if (fl%inittype == INIT_FUNCTION) then
       if (dm%icase == ICASE_TGV2D) then
-        call initialise_vortexgreen_2dflow (dm, fl)
+        call initialise_vortexgreen_2dflow (fl, dm)
       else if (dm%icase == ICASE_TGV3D) then
-        call initialise_vortexgreen_3dflow (dm, fl)
+        call initialise_vortexgreen_3dflow (fl, dm)
       else if (dm%icase == ICASE_BURGERS) then
-        !call initialise_burgers_flow      (dm, fl)
+        !call initialise_burgers_flow      (fl, dm)
       else
       end if
     else
@@ -666,6 +668,10 @@ contains
     else if (tm%inittype == INIT_INTERPL) then
     else
       call initialise_thermal_properties (fl, tm, dm)
+      if (dm%icase == ICASE_TGV3D) then
+        call initialise_vortexgreen_3dflow_thermo(fl, tm, dm)
+        call ftp_refresh_thermal_properties_from_T_undim_3Dtm(fl, tm, dm)
+      end if
       tm%time = ZERO
       tm%iteration = 0
     end if
@@ -692,7 +698,7 @@ contains
 !> \param[in]     d             domain
 !> \param[out]    f             flow
 !_______________________________________________________________________________
-  subroutine  initialise_vortexgreen_2dflow(dm, fl)
+  subroutine  initialise_vortexgreen_2dflow(fl, dm)
     use parameters_constant_mod!, only : HALF, ZERO, SIXTEEN, TWO
     use udf_type_mod
     use math_mod
@@ -890,7 +896,7 @@ contains
 !> \param[in]     d             domain
 !> \param[out]    f             flow
 !_______________________________________________________________________________
-  subroutine  initialise_vortexgreen_3dflow(dm, fl)
+  subroutine  initialise_vortexgreen_3dflow(fl, dm)
     use parameters_constant_mod!, only : HALF, ZERO, SIXTEEN, TWO, PI
     use udf_type_mod
     use math_mod
@@ -964,8 +970,8 @@ contains
         do i = 1, dtmp%xsz(1)
           ii = dtmp%xst(1) + i - 1
           xc = dm%h(1) * (real(ii - 1, WP) + HALF)
-          fl%pres(i, j, k)= ONE / SIXTEEN * ( cos(TWO * xc) + cos(TWO * yc) ) * &
-                      (cos(TWO * zc) + TWO)
+          fl%pres(i, j, k)= ONE / SIXTEEN * ( cos_wp(TWO * xc) + cos_wp(TWO * yc) ) * &
+                      (cos_wp(TWO * zc) + TWO)
         end do
       end do
     end do
@@ -974,5 +980,56 @@ contains
     
     return
   end subroutine initialise_vortexgreen_3dflow
+  !==========================================================================================================
+  subroutine  initialise_vortexgreen_3dflow_thermo(fl, tm, dm)
+    use parameters_constant_mod!, only : HALF, ZERO, SIXTEEN, TWO, PI
+    use udf_type_mod
+    use math_mod
+    
+    implicit none
+    type(t_domain), intent(in ) :: dm
+    type(t_flow), intent(inout) :: fl
+    type(t_thermo), intent(inout) :: tm
+    real(WP) :: xc, yc, zc
+    real(WP) :: xp, yp, zp
+    real(WP) :: ux, uy, uz
+    integer :: i, j, k, ii, jj, kk
+    type(DECOMP_INFO) :: dtmp
+    integer, parameter :: i_ini_T = 1 ! 1 = isothermal T perturbation, 2 = T proportional to Kinetic Energy
+
+    if(nrank == 0) call Print_debug_inline_msg("Initialising Taylor Green Vortex thermo field ...")
+
+
+    if( .not. dm%is_thermo) return
+      
+    dtmp = dm%dccc
+    do k = 1, dtmp%xsz(3)
+      kk = dtmp%xst(3) + k - 1
+      zc = dm%h(3) * (real(kk - 1, WP) + HALF)
+      do j = 1, dtmp%xsz(2)
+        jj = dtmp%xst(2) + j - 1 !local2global_yid(j, dtmp)
+        yc = dm%yc(jj)
+        do i = 1, dtmp%xsz(1)
+          ii = dtmp%xst(1) + i - 1
+          xc = dm%h(1) * (real(ii - 1, WP) + HALF)
+          ! Method 1: 
+          if(i_ini_T == 1) then ! isothermal perturbation
+            tm%Ttemp(i, j, k)= ONE + 0.01_WP * cos_wp(xc) * cos_wp(yc) * cos_wp(zc)
+          else if(i_ini_T == 2) then ! T proportional to kinetic energy
+            ux =  sin_wp ( xc ) * cos_wp ( yc ) * cos_wp ( zc )
+            uy = -cos_wp ( xc ) * sin_wp ( yc ) * cos_wp ( zc )
+            uz = ZERO
+            tm%Ttemp(i, j, k)= ONE + 0.01_WP * (ux * ux + uy * uy + uz * uz)
+          else
+            tm%Ttemp(i, j, k)= ONE
+          end if
+        end do
+      end do
+    end do
+
+    if(nrank == 0) call Print_debug_end_msg()
+    
+    return
+  end subroutine
 
 end module flow_thermo_initialiasation
