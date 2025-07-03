@@ -341,14 +341,20 @@ if [[ "$CLEAN_BUILD" == "only" ]]; then
     exit 0
 fi
 
-BUILD_MODE=$(get_choice_input "Select CHAPSim build mode" "gnu,gnu-steps,default")
+BUILD_MODE=$(get_choice_input "Select CHAPSim build mode" "gnu-g, gnu-debugs, intel, cray, default")
 
 case "$BUILD_MODE" in
-    gnu)
-        MAKE_TARGET="make cfg=gnu"
+    gnu-g)
+        MAKE_TARGET="make cfg=gnu-g"
         ;;
-    gnu-steps)
-        MAKE_TARGET="make cfg=gnu-steps"
+    gnu-debugs)
+        MAKE_TARGET="make cfg=gnu-debugs"
+        ;;
+    intel)
+        MAKE_TARGET="make cfg=intel"
+        ;;
+    cray)
+        MAKE_TARGET="make cfg=cray"
         ;;
     default)
         MAKE_TARGET="make all"

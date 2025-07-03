@@ -28,14 +28,14 @@ COMMON_FOPTS = -fallow-argument-mismatch -Wno-unused -Wno-unused-dummy-argument 
 COMMON_FFLGS = -DDOUBLE_PREC -fdefault-real-8 -fdefault-double-8
 
 # Compiler and flags based on configuration
-ifeq ($(cfg), gnu)
+ifeq ($(cfg), gnu-g)
   FC     = mpif90
   FOPTS  = -g -O0 -Wall -Wextra -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
            -ffree-line-length-512 -Wuninitialized -pedantic -finit-real=snan -fstack-protector -fimplicit-none \
            -cpp -fopenmp $(COMMON_FOPTS)
   FFLGS  = $(COMMON_FFLGS)
   FDEBG  = # No DEBUG_STEPS for this config
-else ifeq ($(cfg), gnu-steps)
+else ifeq ($(cfg), gnu-debug)
   FC     = mpif90
   FOPTS  = -g -O0 -Wall -Wextra -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
            -ffree-line-length-512 -Wuninitialized -pedantic -finit-real=snan -fstack-protector -fimplicit-none \
