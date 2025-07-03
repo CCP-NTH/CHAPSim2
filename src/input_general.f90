@@ -893,11 +893,16 @@ contains
     ! set up constant for time step marching 
     !----------------------------------------------------------------------------------------------------------
     do i = 1, nxdomain
-      !option 1: to set up pressure treatment, for O(dt^2)
+
+      !option 1: Kim & Moin 1982
+      ! domain(i)%sigma1p = ZERO
+      ! domain(i)%sigma2p = ONE
+
+      !option 2: to set up pressure treatment, for O(dt^2)
       !domain(i)%sigma1p = ONE
       !domain(i)%sigma2p = HALF
   
-      !option 2: to set up pressure treatment, for O(dt)
+      !option 3: to set up pressure treatment, for O(dt)
       domain(i)%sigma1p = ONE
       domain(i)%sigma2p = ONE
   

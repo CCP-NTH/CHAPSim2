@@ -785,11 +785,11 @@ contains
 
     ! Process and write thermal fields if enabled
     if (dm%is_thermo) then
-      call process_and_write_field(fl%gx, dm, "rho*ux", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gx, dm, "gx", trim(visu_filename), iteration, &
                                   X_DIRECTION, opt_bc=dm%ibcx_qx)
-      call process_and_write_field(fl%gy, dm, "rho*uy", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gy, dm, "gy", trim(visu_filename), iteration, &
                                   Y_DIRECTION, opt_bc=dm%ibcy_qy)
-      call process_and_write_field(fl%gz, dm, "rho*uz", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gz, dm, "gz", trim(visu_filename), iteration, &
                                   Z_DIRECTION, opt_bc=dm%ibcz_qz)
     end if
 

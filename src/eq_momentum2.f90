@@ -2119,7 +2119,9 @@ contains
     fl%pcor = drhodt + div
 
 #ifdef DEBUG_STEPS
+    write(*,*) 'drhodt', drhodt(1, 1:4, 1)
     write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
+    write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
 #endif
 !----------------------------------------------------------------------------------------------------------
 ! For cylindrical coordinate:
@@ -2134,7 +2136,7 @@ contains
     call wrt_3d_pt_debug (fl%pcor, dm%dccc, fl%iteration, isub, 'PhiRHS@RHS phi') ! debug_ww
     !call wrt_3d_all_debug(fl%pcor, dm%dccc,   fl%iteration, 'PhiRHS@RHS phi') ! debug_ww
 
-    write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
+    !write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
 #endif
 !----------------------------------------------------------------------------------------------------------
 !   solve Poisson

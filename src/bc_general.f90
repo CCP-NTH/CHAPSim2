@@ -188,9 +188,11 @@ end function
       dm%ibcz_qz(n) = ibcz(n, 3)
       dm%ibcz_pr(n) = ibcz(n, 4)
       dm%ibcz_Tm(n) = ibcz(n, 5)
+
       dm%ibcx_ftp(n) = dm%ibcx_Tm(n)
       dm%ibcy_ftp(n) = dm%ibcy_Tm(n)
       dm%ibcz_ftp(n) = dm%ibcz_Tm(n)
+      
       if(dm%ibcx_Tm(n) == IBC_NEUMANN) dm%ibcx_ftp(n) = IBC_DIRICHLET
       if(dm%ibcy_Tm(n) == IBC_NEUMANN) dm%ibcy_ftp(n) = IBC_DIRICHLET
       if(dm%ibcz_Tm(n) == IBC_NEUMANN) dm%ibcz_ftp(n) = IBC_DIRICHLET

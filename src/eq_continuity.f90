@@ -25,6 +25,7 @@ contains
   subroutine Calculate_drhodt(fl, dm)
     use parameters_constant_mod
     use udf_type_mod
+    use find_max_min_ave_mod
     implicit none
     type(t_domain), intent(in) :: dm
     type(t_flow), intent(inout) :: fl
@@ -32,6 +33,7 @@ contains
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(out) :: drhodt
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div0
+    real(WP) :: maxdrhodt
 
 
     if( .not. dm%is_thermo) return
@@ -62,12 +64,14 @@ contains
 
     !fl%drhodt = zero
     
-#ifdef DEBUG_STEPS
-    write(*,*) 'rho   ', fl%ddens  (1, 1:4, 1)
-    write(*,*) 'rhom1 ', fl%ddensm1(1, 1:4, 1)
-    write(*,*) 'rhom2 ', fl%ddensm2(1, 1:4, 1)
-    write(*,*) 'drhodt', fl%drhodt(1, 1:4, 1)
-#endif
+!#ifdef DEBUG_STEPS
+    write(*,*) 'rho   ', fl%ddens  (1, :, 1)
+    write(*,*) 'rhom1 ', fl%ddensm1(1, :, 1)
+    !write(*,*) 'rhom2 ', fl%ddensm2(:, :, :)
+    !write(*,*) 'drhodt', fl%drhodt (:, :, :)
+    write(*,*) 'drhodt', fl%drhodt(1, :, 1)
+    call Find_maximum_absvar3d(fl%drhodt, maxdrhodt, dm%dccc, "Max. drhodt")
+!#endif
 
 
     return

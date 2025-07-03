@@ -665,7 +665,7 @@ contains
       call read_statistics_thermo(tm, dm)
     else if (tm%inittype == INIT_INTERPL) then
     else
-      call initialise_thermal_properties (fl, tm)
+      call initialise_thermal_properties (fl, tm, dm)
       tm%time = ZERO
       tm%iteration = 0
     end if
