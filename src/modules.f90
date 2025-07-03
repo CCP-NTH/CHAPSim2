@@ -392,6 +392,7 @@ module udf_type_mod
     real(WP) :: rhoh ! mass enthalpy
     real(WP) :: cp ! specific heat capacity 
     real(WP) :: b  ! thermal expansion
+    real(WP) :: drhoh_drho
   end type t_fluidThermoProperty
 !----------------------------------------------------------------------------------------------------------
 !  parameters to calculate the fluid thermal property 
@@ -863,6 +864,8 @@ module math_mod
     module procedure atan_sp
     module procedure atan_dp
   end interface atan_wp
+
+  public :: compute_dfdx_central2
   
 contains
 
@@ -982,6 +985,39 @@ contains
       d = HALF
     end if
   end function
+
+  subroutine compute_dfdx_central2(N, f, x, dfdx)
+    integer, intent(in)  :: N
+    real(WP), intent(in)  :: f(N), x(N)
+    real(WP), intent(out) :: dfdx(N)
+
+    integer :: i
+    real(WP) :: h1, h2
+
+    ! Forward 2nd-order difference at the first point
+    h1 = x(2) - x(1)
+    h2 = x(3) - x(2)
+    dfdx(1) = (-h2/(h1*(h1 + h2))) * f(1) + &
+              ((h2 - h1)/(h1*h2))     * f(2) + &
+              (h1/(h2*(h1 + h2)))     * f(3)
+
+    ! Centered 2nd-order difference for interior points
+    do i = 2, N-1
+      h1 = x(i) - x(i-1)
+      h2 = x(i+1) - x(i)
+      dfdx(i) = (-h2/(h1*(h1 + h2))) * f(i-1) + &
+                ((h2 - h1)/(h1*h2)) * f(i)   + &
+                (h1/(h2*(h1 + h2))) * f(i+1)
+    end do
+
+    ! Backward 2nd-order difference at the last point
+    h1 = x(N-1) - x(N-2)
+    h2 = x(N) - x(N-1)
+    dfdx(N) = (-h2/(h1*(h1 + h2))) * f(N-2) + &
+              ((h2 - h1)/(h1*h2)) * f(N-1) + &
+              (h1/(h2*(h1 + h2))) * f(N)
+    return
+  end subroutine
 
 end module math_mod
 !==========================================================================================================

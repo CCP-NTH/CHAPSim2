@@ -54,7 +54,13 @@ else ifeq ($(cfg), cray)
   FOPTS  = -cpp
   FFLGS  =
   FDEBG  = -DDEBUG_STEPS -DDEBUG_FFT
-else # default for 'make all'
+else ifeq ($(cfg), gnu-o3)
+  FC     = mpif90
+  FOPTS  = -O3 -Wall -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
+           -finit-local-zero -ffree-line-length-512 -cpp -fopenmp -fimplicit-none $(COMMON_FOPTS)
+  FFLGS  = -DDOUBLE_PREC
+  FDEBG  =
+else
   FC     = mpif90
   FOPTS  = -O3 -Wall -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
            -finit-local-zero -ffree-line-length-512 -cpp -fopenmp -fimplicit-none $(COMMON_FOPTS)

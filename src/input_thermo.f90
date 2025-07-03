@@ -642,6 +642,8 @@ contains
 !> \param[in]     ref_T0          reference temperature
 !==========================================================================================================
   subroutine buildup_property_relations_from_table
+    use math_mod
+    implicit none
     integer, parameter :: IOMSG_LEN = 200
     character(len = IOMSG_LEN) :: iotxt
     integer :: ioerr, inputUnit
@@ -716,6 +718,8 @@ contains
 
     is_ftplist_dim = .false.
 
+    call compute_dfdx_central2(fluidparam%nlist, ftplist(:)%rhoh, ftplist(:)%d, ftplist(:)%drhoh_drho)
+
     return
   end subroutine buildup_property_relations_from_table
 !==========================================================================================================
@@ -748,6 +752,8 @@ contains
 !> \param[inout]  none          NA
 !==========================================================================================================
   subroutine buildup_property_relations_from_function
+    use math_mod
+    implicit none
     integer :: i
 
     call ftp_get_thermal_properties_dimensional_from_T(fluidparam%ftp0ref)
@@ -769,6 +775,8 @@ contains
     fluidparam%dhmax = ftplist(i)%rhoh
 
     is_ftplist_dim = .false.
+
+    call compute_dfdx_central2(fluidparam%nlist, ftplist(:)%rhoh, ftplist(:)%d, ftplist(:)%drhoh_drho)
 
     return
   end subroutine buildup_property_relations_from_function
@@ -824,12 +832,13 @@ contains
     ! end if
     
     open (newunit = ftp_unit1, file = trim(dir_chkp)//'/check_ftplist_undim.dat')
-    write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
+    write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h, drhoh_drho'
     open (newunit = ftp_unit2, file = trim(dir_chkp)//'/check_ftplist_dim.dat')
     write(ftp_unit2, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
 
     do i = 1, fluidparam%nlist
-      write(ftp_unit1, '(8ES13.5)') ftplist(i)%h, ftplist(i)%t, ftplist(i)%d, ftplist(i)%m, ftplist(i)%k, ftplist(i)%cp, ftplist(i)%b, ftplist(i)%rhoh
+      write(ftp_unit1, '(9ES13.5)') ftplist(i)%h, ftplist(i)%t, ftplist(i)%d, ftplist(i)%m, &
+        ftplist(i)%k, ftplist(i)%cp, ftplist(i)%b, ftplist(i)%rhoh, ftplist(i)%drhoh_drho
       call ftp_convert_undim_to_dim(ftplist(i), ftp_dim)  
       write(ftp_unit2, '(8ES13.5)') ftp_dim%h, ftp_dim%t, ftp_dim%d, ftp_dim%m, ftp_dim%k, ftp_dim%cp, ftp_dim%b, ftp_dim%rhoh
     end do
@@ -841,7 +850,7 @@ contains
     dhmin = fluidparam%dhmin + TRUNCERR
     dhmax = fluidparam%dhmax - TRUNCERR
     open (newunit = ftp_unit1, file = trim(dir_chkp)//'/check_ftp_from_dh_undim.dat')
-    write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
+    write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h, drhoh_drho'
     open (newunit = ftp_unit2, file = trim(dir_chkp)//'/check_ftp_from_dh_dim.dat')
     write(ftp_unit2, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
     do i = 1, n
@@ -849,7 +858,7 @@ contains
       !write(*,*) ftp%rhoh
       call ftp_refresh_thermal_properties_from_DH(ftp)
       call ftp_is_T_in_scope(ftp)
-      write(ftp_unit1, '(8ES13.5)') ftp%h, ftp%t, ftp%d, ftp%m, ftp%k, ftp%cp, ftp%b, ftp%rhoh
+      write(ftp_unit1, '(8ES13.5)') ftp%h, ftp%t, ftp%d, ftp%m, ftp%k, ftp%cp, ftp%b, ftp%rhoh, ftp%drhoh_drho
       call ftp_convert_undim_to_dim(ftp, ftp_dim)  
       write(ftp_unit2, '(8ES13.5)') ftp_dim%h, ftp_dim%t, ftp_dim%d, ftp_dim%m, ftp_dim%k, ftp_dim%cp, ftp_dim%b, ftp_dim%rhoh
     end do

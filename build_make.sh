@@ -341,29 +341,38 @@ if [[ "$CLEAN_BUILD" == "only" ]]; then
     exit 0
 fi
 
-BUILD_MODE=$(get_choice_input "Select CHAPSim build mode" "gnu-g, gnu-debugs, intel, cray, default")
+# Prompt user and capture single-letter choice
+BUILD_MODE=$(get_choice_input "Select CHAPSim build mode: [a]default, [b]gnu-o3, [c]gnu-g, [d]gnu-debug, [e]intel, [f]cray" "a,b,c,d,e,f")
 
+# Determine make target based on selection
 case "$BUILD_MODE" in
-    gnu-g)
+    a)
+        MAKE_TARGET="make all"
+        ;;
+    b)
+        MAKE_TARGET="make cfg=gnu-o3"
+        ;;
+    c)
         MAKE_TARGET="make cfg=gnu-g"
         ;;
-    gnu-debugs)
-        MAKE_TARGET="make cfg=gnu-debugs"
+    d)
+        MAKE_TARGET="make cfg=gnu-debug"
         ;;
-    intel)
+    e)
         MAKE_TARGET="make cfg=intel"
         ;;
-    cray)
+    f)
         MAKE_TARGET="make cfg=cray"
-        ;;
-    default)
-        MAKE_TARGET="make all"
         ;;
     *)
         echo "Error: Unexpected build mode '$BUILD_MODE'. Exiting."
         exit 1
         ;;
 esac
+
+# Optionally run it
+echo "Running: $MAKE_TARGET"
+eval $MAKE_TARGET
 
 if [[ "$CLEAN_BUILD" =~ ^(yes|y)$ ]]; then
     MAKE_TARGET="make clean && $MAKE_TARGET"
