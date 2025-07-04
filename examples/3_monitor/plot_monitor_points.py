@@ -74,7 +74,7 @@ def plot_monitor_points(N, M):
         successful_files.append(filename)
         print(f"Successfully reading data from: {filename}")
         
-        # Skip every 100 points
+        # Skip every M points
         time = data[::M, 0]
         
         # Plot each variable
