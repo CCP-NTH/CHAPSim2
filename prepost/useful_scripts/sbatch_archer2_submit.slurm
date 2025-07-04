@@ -3,7 +3,7 @@
 #SBATCH --output=job%j.out
 #SBATCH --error=job%j.err
 #SBATCH --time=23:00:00
-#SBATCH --nodes=1
+#SBATCH --nodes=2
 #SBATCH --tasks-per-node=128
 #SBATCH --cpus-per-task=1
 
