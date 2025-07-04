@@ -61,7 +61,18 @@ rm -f *.log *.dat fort* *.err *.out
 
 # Delete directories starting with 2_, 3_, 4_
 echo "Deleting directories starting with 2_, 3_, 4_..."
-rm -rf 2_* 3_* 4_*
+for prefix in 2_ 3_ 4_; do
+  for dir in ${prefix}*/ ; do
+    if [ -d "$dir" ]; then
+      echo "Cleaning directory: $dir"
+      # Delete all files except .py and .sh
+      find "$dir" -type f ! \( -name "*.py" -o -name "*.sh" \) -exec rm -f {} +
+
+      # Optionally, delete empty subdirectories
+      find "$dir" -type d -empty -delete
+    fi
+  done
+done
 
 # Delete 0_src folder if requested
 if [ "$delete_0_src" = true ]; then

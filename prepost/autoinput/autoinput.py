@@ -109,6 +109,7 @@ class Init(Enum):
     GIVEN = 4
     POISEUILLE = 5
     FUNCTION = 6
+    GVBCLN = 7
 
 class Stretching(Enum):
     NONE = 0
@@ -294,7 +295,7 @@ def get_thermo_settings():
     ifluid = get_input("Which fluid flow (1: scp-H20, 2:scp-CO2, 3:sodium, 4:lead, 5:bismuth, 6:LBE)", "1", int)
     refl0 = get_input("Reference length (meter)", 0.001, float)
     refT0 = get_input("Reference Temperature (Kelvin)", 645.15, float)
-    inittm = get_input("Thermal field initialization (0:Restart, 1:Interpolation, 2:Random, 3:Inlet. 4:Given, 5:Poiseuille, 6:function)", 4, int)
+    inittm = get_input("Thermal field initialization (0:Restart, 1:Interpolation, 2:Random, 3:Inlet. 4:Given, 5:Poiseuille, 6:functioni, 7:GivenBCMix)", 4, int)
     Tini = get_input("Initial temperature (Kelvin)", 645.15, float)
     if inittm == Init.RESTART.value:
       irestartfrom = get_input("Iteration to restart", 2000, int)
