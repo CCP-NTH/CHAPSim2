@@ -670,6 +670,9 @@ contains
       end if
       tm%time = ZERO
       tm%iteration = 0
+      ! reset time for flow field when a new thermal field is enabled. 
+      fl%time = ZERO
+      fl%iteration = 0
     end if
     if(.not. is_drhodt_implicit) then
     fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
