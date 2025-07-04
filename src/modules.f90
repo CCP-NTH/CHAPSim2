@@ -76,9 +76,14 @@ module parameters_constant_mod
   use precision_mod
   implicit none
 !----------------------------------------------------------------------------------------------------------
-! constants
+! user defined constant
 !----------------------------------------------------------------------------------------------------------
-  logical, parameter :: is_IO_off = .false. ! true for code performance evaluation without IO
+  logical, parameter :: is_IO_off = .false.         ! true for code performance evaluation without IO
+  logical, parameter :: is_strong_coupling = .true. ! true = RK(rhoh, g)); false = RK(rhoh) + RK(g)
+  logical, parameter :: is_drhodt_implicit = .true. ! true = (d1-d0)/dt; false = d(rhoh)/dt / (drhoh/drho)
+!----------------------------------------------------------------------------------------------------------
+! constants
+!----------------------------------------------------------------------------------------------------------  
   real(WP), parameter :: ZPONE       = 0.1_WP
   real(WP), parameter :: EIGHTH      = 0.125_WP
   real(WP), parameter :: ZPTWO       = 0.2_WP
@@ -685,6 +690,7 @@ module udf_type_mod
     real(WP), allocatable :: hEnth(:, :, :)
     real(WP), allocatable :: kCond(:, :, :)
     real(WP), allocatable :: tTemp(:, :, :)
+    real(WP), allocatable :: drhoh_drho(:, :, :)
     real(WP), allocatable :: ene_rhs(:, :, :)  ! current step rhs
     real(WP), allocatable :: ene_rhs0(:, :, :) ! last step rhs
     real(WP), allocatable :: fbcx_rhoh_rhs0(:, :)  !

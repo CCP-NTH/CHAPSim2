@@ -95,9 +95,10 @@ contains
       call alloc_x(fl%dDens,   dm%dccc) ; fl%dDens = ONE
       call alloc_x(fl%mVisc,   dm%dccc) ; fl%mVisc = ONE
       call alloc_x(fl%drhodt,  dm%dccc) ; fl%drhodt = ZERO
-
+      if(.not. is_drhodt_implicit) then
       call alloc_x(fl%dDensm1, dm%dccc) ; fl%dDensm1 = ONE
       call alloc_x(fl%dDensm2, dm%dccc) ; fl%dDensm2 = ONE
+      end if
 
       call alloc_x(fl%gx0,      dm%dpcc) ; fl%gx0 = ZERO
       call alloc_x(fl%gy0,      dm%dcpc) ; fl%gy0 = ZERO
@@ -138,6 +139,7 @@ contains
     call alloc_x(tm%tTemp,    dm%dccc) ; tm%tTemp = ONE
     call alloc_x(tm%ene_rhs,  dm%dccc) ; tm%ene_rhs = ZERO
     call alloc_x(tm%ene_rhs0, dm%dccc) ; tm%ene_rhs0 = ZERO
+    call alloc_x(tm%drhoh_drho, dm%dccc); tm%drhoh_drho = ONE
 
     if(dm%is_conv_outlet) then 
       allocate (tm%fbcx_rhoh_rhs0(dm%dccc%xsz(2), dm%dccc%xsz(3))); tm%fbcx_rhoh_rhs0 = ZERO
@@ -233,9 +235,9 @@ contains
     call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz)
 
     if(nrank == 0) call Print_debug_inline_msg("Max/min velocity for generated random velocities:")
-    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2ae)
-    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2ae)
-    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2ae)
+    call Find_max_min_3d(fl%qx, opt_name="qx")
+    call Find_max_min_3d(fl%qy, opt_name="qy")
+    call Find_max_min_3d(fl%qz, opt_name="qz")
 ! to validate the random number generated is MPI processor independent.
 #ifdef DEBUG_STEPS
     call wrt_3d_pt_debug(fl%qx, dm%dpcc,   fl%iteration, 0, 'qx@af radm') ! debug_ww
@@ -395,12 +397,6 @@ contains
       ux = fl%qx
       str = 'qx'
     end if
-
-    if(nrank == 0) call Print_debug_inline_msg("Max/min velocity for generated initial velocities:")
-    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2ae)
-    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2ae)
-    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2ae)
-
     call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
     if(nrank == 0) then
       write(*, wrtfmt1e) "The initial, [original] bulk "//str//" = ", ubulk
@@ -419,16 +415,16 @@ contains
     if(nrank == 0) then
       write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     end if
-    if(nrank == 0) call Print_debug_inline_msg("Maximum [velocity] for real initial flow field:")
-    call Find_max_min_absvar3d(fl%qx, "qx", wrtfmt2ae)
-    call Find_max_min_absvar3d(fl%qy, "qy", wrtfmt2ae)
-    call Find_max_min_absvar3d(fl%qz, "qz", wrtfmt2ae)
+    if(nrank == 0) call Print_debug_inline_msg("Max/Min [velocity] for real initial flow field:")
+    call Find_max_min_3d(fl%qx, opt_name="qx")
+    call Find_max_min_3d(fl%qy, opt_name="qy")
+    call Find_max_min_3d(fl%qz, opt_name="qz")
 
     if(dm%is_thermo) then
-      if(nrank == 0) call Print_debug_inline_msg("Maximum [mass flux] for real initial flow field:")
-      call Find_max_min_absvar3d(fl%gx, "gx", wrtfmt2ae)
-      call Find_max_min_absvar3d(fl%gy, "gy", wrtfmt2ae)
-      call Find_max_min_absvar3d(fl%gz, "gz", wrtfmt2ae)
+      if(nrank == 0) call Print_debug_inline_msg("Max/Min [mass flux] for real initial flow field:")
+      call Find_max_min_3d(fl%gx, opt_name="gx")
+      call Find_max_min_3d(fl%gy, opt_name="gy")
+      call Find_max_min_3d(fl%gz, opt_name="gz")
     end if
 
     ! to do : to add a scaling for turbulence generator inlet scaling, u = u * m / rho
@@ -675,9 +671,10 @@ contains
       tm%time = ZERO
       tm%iteration = 0
     end if
-
+    if(.not. is_drhodt_implicit) then
     fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
     fl%dDensm2(:, :, :) = fl%dDens(:, :, :)
+    end if
  
     call write_visu_thermo(tm, fl, dm, 'init')
 

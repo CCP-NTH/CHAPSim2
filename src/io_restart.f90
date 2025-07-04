@@ -163,8 +163,10 @@ contains
     if(dm%is_thermo) then
       fl%dDens  (:, :, :) = ONE
       fl%mVisc  (:, :, :) = ONE
+      if(.not. is_drhodt_implicit) then
       fl%dDensm1(:, :, :) = ONE
       fl%dDensm2(:, :, :) = ONE
+      end if
     end if
 
     return
@@ -218,8 +220,10 @@ contains
     call Update_thermal_properties(fl, tm, dm)
     call convert_primary_conservative (fl, dm, IQ2G)
 
+    if(.not. is_drhodt_implicit) then
     fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
     fl%dDensm2(:, :, :) = fl%dDens(:, :, :)
+    end if
 
     return
   end subroutine

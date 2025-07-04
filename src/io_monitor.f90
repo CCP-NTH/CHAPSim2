@@ -61,7 +61,7 @@ contains
       else
         open(newunit = myunit, file = trim(flname), status="new", action="write")
         write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
-        write(myunit, *) "# time, mass_conservation at inlet, bulk, outlet, total mass change rate, kinetic energy change rate" ! to add more instantanous or statistics
+        write(myunit, *) "# time, mass_conservation at bulk, inlet, outlet, total mass change rate, kinetic energy change rate" ! to add more instantanous or statistics
         close(myunit)
       end if
     end if

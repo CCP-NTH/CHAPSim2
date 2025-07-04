@@ -6,10 +6,65 @@ module eq_energy_mod
 
   private :: Compute_energy_rhs
   private :: Calculate_energy_fractional_step
-
+  private :: Calculate_drhodt
   public  :: Update_thermal_properties
   public  :: Solve_energy_eq
 contains
+!==========================================================================================================
+  subroutine Calculate_drhodt(fl, tm, dm)
+    use parameters_constant_mod
+    use udf_type_mod
+    use find_max_min_ave_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    type(t_thermo), intent(in) :: tm
+    type(t_flow), intent(inout) :: fl
+    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(in)  :: dens, densm1
+    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(out) :: drhodt
+    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div
+    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div0
+    real(WP) :: maxdrhodt
+
+    if( .not. dm%is_thermo) return
+    ! thermal field is half time step ahead of the velocity field
+    ! -----*-----$-----*-----$-----*-----$-----*-----$-----*-----$-----*
+    !           d_(i-1)     d_i   u_i    d_(i+1)
+
+    ! select case (dm%iTimeScheme)
+    !   case (ITIME_EULER) ! 1st order
+    !     fl%drhodt = fl%dDens - fl%dDensm1
+    !     fl%drhodt = fl%drhodt / dm%dt
+    !   case (ITIME_AB2) ! 2nd order
+    !     fl%drhodt = fl%dDens - fl%dDensm2
+    !     fl%drhodt = fl%drhodt / (TWO * dm%dt)
+    !   case (ITIME_RK3, ITIME_RK3_CN) ! 3rd order
+    !     fl%drhodt = -fl%dDensm2 + SIX * fl%dDensm1 - THREE * fl%dDens
+    !     fl%drhodt = fl%drhodt / (dm%dt * SIX)
+    !   case default
+    !     fl%drhodt = fl%dDens - fl%dDensm1
+    !     fl%drhodt = fl%drhodt / dm%dt
+    ! end select
+
+    if(is_drhodt_implicit) then
+      ! drho/dt = d(rhoh)/dt/(drhoh/drho) in energy equation
+      fl%drhodt = tm%ene_rhs / dm%dt / tm%drhoh_drho
+    else 
+      fl%drhodt = fl%dDens - fl%dDensm1
+      fl%drhodt = fl%drhodt / dm%dt
+    end if
+
+!#ifdef DEBUG_STEPS
+    !write(*,*) 'rho   ', fl%ddens  (1, :, 1)
+    !write(*,*) 'rhom1 ', fl%ddensm1(1, :, 1)
+    !write(*,*) 'rhom2 ', fl%ddensm2(:, :, :)
+    !write(*,*) 'drhodt', fl%drhodt (:, :, :)
+    !write(*,*) 'drhodt', fl%drhodt(1, :, 1)
+    !call Find_max_min_3d(fl%drhodt, opt_calc='MAXI', opt_name='drho_dt')
+!#endif
+
+
+    return
+  end subroutine Calculate_drhodt
 !==========================================================================================================
   subroutine Update_thermal_properties(fl, tm, dm)
     use parameters_constant_mod
@@ -43,6 +98,7 @@ contains
           tm%kCond(i, j, k) = ftp%k
           fl%dDens(i, j, k) = ftp%d
           fl%mVisc(i, j, k) = ftp%m
+          tm%drhoh_drho(i, j, k) = ftp%drhoh_drho
         end do
       end do
     end do
@@ -445,11 +501,21 @@ contains
     integer,        intent(in)    :: isub
     real(WP) :: uxdx
     integer :: j, k
-
-    !if(isub==1) then
+    logical :: is_update_rho
+    
+    ! back up density to last time step
+    is_update_rho = .false.
+    if(.not. is_drhodt_implicit) then
+      if(is_strong_coupling) then
+        is_update_rho = .true.
+      else
+        if(isub == 1) is_update_rho = .true.
+      end if
+    end if
+    if(is_update_rho) then
       fl%dDensm2(:, :, :) = fl%dDensm1(:, :, :)
       fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
-    !end if
+    end if
 !----------------------------------------------------------------------------------------------------------
 ! to set up halo b.c. for cylindrical pipe
 !----------------------------------------------------------------------------------------------------------
@@ -476,12 +542,15 @@ contains
 !----------------------------------------------------------------------------------------------------------
 !   update other properties from rho * h
 !----------------------------------------------------------------------------------------------------------
+    !if(isub==3) then
     call Update_thermal_properties(fl, tm, dm)
     call update_fbcy_cc_thermo_halo(fl, tm, dm)
 #ifdef DEBUG_STEPS
     write(*,*) 'T-e', tm%tTemp(1, 1:4, 1)
     call wrt_3d_pt_debug(tm%tTemp,   dm%dccc, fl%iteration, isub, 'T@af stepping') ! debug_ww
 #endif
+    ! calculate drho/dt
+    call Calculate_drhodt(fl, tm, dm)
 
   return
   end subroutine

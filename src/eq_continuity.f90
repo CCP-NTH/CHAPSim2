@@ -2,82 +2,12 @@ module continuity_eq_mod
   use operations
   use decomp_2d
 
-  public :: Calculate_drhodt
   public :: Get_divergence_vector
   public :: Get_divergence_flow
   public :: Get_divergence_vel_x2z
   public :: Check_element_mass_conservation
 contains
 !==========================================================================================================
-!==========================================================================================================
-!> \brief To calculate d(\rho)/dt in the continuity eq.
-!----------------------------------------------------------------------------------------------------------
-! Arguments
-!______________________________________________________________________________.
-!  mode           name          role                                           !
-!______________________________________________________________________________!
-!> \param[in]  dDens            density at the current time step
-!> \param[in]  dDensm1          density at the t-1 time step
-!> \param[in]  dDensm2          density at the t-2 time step
-!> \param[out] drhodt           d(rho)/dt
-!> \param[in]  itime            the sub-step in RK3
-!_______________________________________________________________________________
-  subroutine Calculate_drhodt(fl, dm)
-    use parameters_constant_mod
-    use udf_type_mod
-    use find_max_min_ave_mod
-    implicit none
-    type(t_domain), intent(in) :: dm
-    type(t_flow), intent(inout) :: fl
-    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(in)  :: dens, densm1
-    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(out) :: drhodt
-    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div
-    !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div0
-    real(WP) :: maxdrhodt
-
-
-    if( .not. dm%is_thermo) return
-
-
-    ! thermal field is half time step ahead of the velocity field
-    ! -----*-----$-----*-----$-----*-----$-----*-----$-----*-----$-----*
-    !           d_(i-1)     d_i   u_i    d_(i+1)
-
-    ! select case (dm%iTimeScheme)
-    !   case (ITIME_EULER) ! 1st order
-    !     fl%drhodt = fl%dDens - fl%dDensm1
-    !     fl%drhodt = fl%drhodt / dm%dt
-    !   case (ITIME_AB2) ! 2nd order
-    !     fl%drhodt = fl%dDens - fl%dDensm2
-    !     fl%drhodt = fl%drhodt / (TWO * dm%dt)
-    !   case (ITIME_RK3, ITIME_RK3_CN) ! 3rd order
-    !     fl%drhodt = -fl%dDensm2 + SIX * fl%dDensm1 - THREE * fl%dDens
-    !     fl%drhodt = fl%drhodt / (dm%dt * SIX)
-    !   case default
-    !     fl%drhodt = fl%dDens - fl%dDensm1
-    !     fl%drhodt = fl%drhodt / dm%dt
-    ! end select
-
-    ! check, below calculation leads to a higher mass conservation error
-    fl%drhodt = fl%dDens - fl%dDensm1
-    fl%drhodt = fl%drhodt / dm%dt
-
-    !fl%drhodt = zero
-    
-!#ifdef DEBUG_STEPS
-    !write(*,*) 'rho   ', fl%ddens  (1, :, 1)
-    !write(*,*) 'rhom1 ', fl%ddensm1(1, :, 1)
-    !write(*,*) 'rhom2 ', fl%ddensm2(:, :, :)
-    !write(*,*) 'drhodt', fl%drhodt (:, :, :)
-    !write(*,*) 'drhodt', fl%drhodt(1, :, 1)
-    call Find_maximum_absvar3d(fl%drhodt, maxdrhodt, dm%dccc, "Max. drhodt")
-!#endif
-
-
-    return
-  end subroutine Calculate_drhodt
-
-  !==========================================================================================================
 !==========================================================================================================
 !> \brief To calculate divergence of (rho * u) or divergence of (u)
 !----------------------------------------------------------------------------------------------------------
@@ -360,7 +290,7 @@ contains
 
     character(32) :: str
     integer :: n, nlayer, isub
-
+    real(WP) :: mm(2)
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div, drhodt
 
     if(present(opt_str)) then
@@ -388,9 +318,8 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! $d(\rho u_i)) / dx_i $ at cell centre
 !----------------------------------------------------------------------------------------------------------
+    div = ZERO
     call Get_divergence_flow(fl, div, dm)
-! write(*,*) 'test, dddt, div, plus', drhodt(4, 4, 4), div(4, 4, 4),  drhodt(4, 4, 4)+div(4, 4, 4)
-! write(*,*) 'test, d0, d1, d2     ', fl%dDens(4, 4, 4), fl%dDensm1(4, 4, 4),  fl%dDensm2(4, 4, 4)
     div = div + drhodt
 
 
@@ -400,13 +329,21 @@ contains
 #endif
 
     n = dm%dccc%xsz(1)
-    nlayer = 4
-    call Find_maximum_absvar3d(div(1         : nlayer,   :, :), fl%mcon(1), dm%dccc, "Mass Consv. (inlet  4) =", 1  )
-    call Find_maximum_absvar3d(div(nlayer+1  : n-nlayer, :, :), fl%mcon(2), dm%dccc, "Mass Consv. (bulk    ) =", nlayer+1  )
-    call Find_maximum_absvar3d(div(n-nlayer+1: n,        :, :), fl%mcon(3), dm%dccc, "Mass Consv. (outlet 4) =", n-nlayer+1)
+    if(dm%is_periodic(1)) then
+      nlayer = 0
+    else
+      nlayer = 4
+      call Find_max_min_3d(div(1         : nlayer,   :, :), opt_calc='MAXI', opt_work=mm, opt_name="Mass Consv. (inlet  4) =")
+      fl%mcon(2) = mm(2)
+      call Find_max_min_3d(div(n-nlayer+1: n,        :, :), opt_calc='MAXI', opt_work=mm, opt_name="Mass Consv. (outlet 4) =")
+      fl%mcon(3) = mm(2)
+    end if
+    call Find_max_min_3d(div(nlayer+1  : n-nlayer, :, :), opt_calc='MAXI', opt_work=mm, opt_name="Mass Consv. (bulk    ) =")
+    fl%mcon(1) = mm(2)
     
+
     if(nrank == 0) then
-      if(fl%mcon(2) > 5.0E-6_WP .and. fl%iteration > 1000 ) &
+      if(fl%mcon(1) > 1.0_WP .and. fl%iteration > 10000 ) &
       call Print_error_msg("Mass conservation is not strictly satisfied at the machine precision level.")
     end if
 

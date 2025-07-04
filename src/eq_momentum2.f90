@@ -2081,13 +2081,14 @@ contains
     use poisson_interface_mod
     use continuity_eq_mod
     use cylindrical_rn_mod
+    use find_max_min_ave_mod
     implicit none
     type(t_domain), intent( in    ) :: dm
     type(t_flow),   intent( inout ) :: fl                  
     integer,        intent( in    ) :: isub
 
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div, drhodt
-    real(WP) :: coeff
+    real(WP) :: coeff, offset(2)
 
 #ifdef DEBUG_STEPS  
     if(nrank == 0) &
@@ -2102,12 +2103,7 @@ contains
 ! $d\rho / dt$ at cell centre
 !----------------------------------------------------------------------------------------------------------
     if (dm%is_thermo) then
-      !if(isub==0) then 
-        !call Calculate_drhodt(fl%dDens, fl%dDensm2, fl%drhodt, dm)
-      !else
-        call Calculate_drhodt(fl, dm)
-        drhodt = fl%drhodt
-      !end if
+      drhodt = fl%drhodt
     else
       drhodt = ZERO
     end if
@@ -2118,11 +2114,11 @@ contains
     call Get_divergence_flow(fl, div, dm)
     fl%pcor = drhodt + div
 
-#ifdef DEBUG_STEPS
-    write(*,*) 'drhodt', drhodt(1, 1:4, 1)
-    write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
-    write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
-#endif
+!#ifdef DEBUG_STEPS
+    ! write(*,*) 'drhodt', drhodt(1, 1:4, 1)
+    ! write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
+    ! write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
+!#endif
 !----------------------------------------------------------------------------------------------------------
 ! For cylindrical coordinate:
 ! Poisson eq is r^2 * d2/dx2 + r * d(r * d/dy)/dy + d2/dz2  = r^2 * div
@@ -2142,6 +2138,9 @@ contains
 !   solve Poisson
 !----------------------------------------------------------------------------------------------------------
     call solve_fft_poisson(fl%pcor, dm)
+
+    call Find_max_min_3d(fl%pcor, opt_calc='MINI', opt_work=offset)
+    fl%pcor = fl%pcor - offset(1)
 
 #ifdef DEBUG_STEPS
     call wrt_3d_pt_debug (fl%pcor, dm%dccc,   fl%iteration, isub, 'phi@sol phi') ! debug_ww
@@ -2254,8 +2253,9 @@ contains
     logical :: flg_bc_conv
     integer :: i
     real(WP) :: pres_bulk
+    real(WP) :: offset(2)
 
-    if(dm%is_thermo) call convert_primary_conservative(fl, dm, IG2Q)
+    if(dm%is_thermo) call convert_primary_conservative(fl, dm, IG2Q) ! to check!
 !----------------------------------------------------------------------------------------------------------
 ! to set up halo b.c. for cylindrical pipe
 !----------------------------------------------------------------------------------------------------------
@@ -2325,7 +2325,12 @@ contains
     if(nrank == 0) &
     call Print_debug_inline_msg("Correcting the pressure term ...")
 #endif
+!write(*,*) 'pres', fl%pres(1, 1:4, 1)
+!write(*,*) 'pcor', fl%pcor(1, 1:4, 1)
     fl%pres = fl%pres + fl%pcor
+
+    call Find_max_min_3d(fl%pres, opt_calc='MINI', opt_work=offset)
+    fl%pres = fl%pres - offset(1)
     ! correct pressure drift
     !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
     !fl%pres = fl%pres - pres_bulk
@@ -2356,10 +2361,6 @@ contains
 !----------------------------------------------------------------------------------------------------------
   if(dm%is_thermo) then
     call convert_primary_conservative(fl, dm, IG2Q)
-    !if(isub == dm%nsubitr) then
-      !fl%dDensm2 = fl%dDensm1
-      !fl%dDensm1 = fl%dDens
-    !end if
   end if
 
   ! if(dm%is_thermo .and.isub == dm%nsubitr) then

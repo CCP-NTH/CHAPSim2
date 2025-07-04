@@ -292,24 +292,37 @@ subroutine Solve_eqs_iteration
     !==========================================================================================================
     !  main solver, domain coupling in each sub-iteration (check)
     !==========================================================================================================
-    do isub = 1, domain(1)%nsubitr
-      !----------------------------------------------------------------------------------------------------------
-      ! update interface values for multiple domain
-      !----------------------------------------------------------------------------------------------------------
-      do i = 1, nxdomain - 1
-        if(is_flow(i))   call update_fbc_2dm_flow_halo  (domain(i), flow(i),   domain(i+1), flow(i+1))
-        if(is_thermo(i)) call update_fbc_2dm_thermo_halo(domain(i), thermo(i), domain(i+1), thermo(i+1))
+    if(is_strong_coupling) then
+      do isub = 1, domain(1)%nsubitr
+        do i = 1, nxdomain - 1
+          if(is_flow(i))   call update_fbc_2dm_flow_halo  (domain(i), flow(i),   domain(i+1), flow(i+1))
+          if(is_thermo(i)) call update_fbc_2dm_thermo_halo(domain(i), thermo(i), domain(i+1), thermo(i+1))
+        end do
+        do i = 1, nxdomain
+          if(is_thermo(i)) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
+          if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
+          if(is_flow(i))   call Solve_momentum_eq(flow(i), domain(i), isub)
+        end do
       end do
-      do i = 1, nxdomain
-        if(is_thermo(i)) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
-        if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
-        if(is_flow(i))   call Solve_momentum_eq(flow(i), domain(i), isub)
+    else
+      do isub = 1, domain(1)%nsubitr
+        do i = 1, nxdomain - 1
+          if(is_thermo(i)) call update_fbc_2dm_thermo_halo(domain(i), thermo(i), domain(i+1), thermo(i+1))
+        end do
+        do i = 1, nxdomain
+          if(is_thermo(i)) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
+        end do
       end do
-#ifdef DEBUG_STEPS
-      !call Print_warning_msg(" === The solver will stop as per the user's request. === ")
-      !stop
-#endif
-    end do
+      do isub = 1, domain(1)%nsubitr
+        do i = 1, nxdomain - 1
+          if(is_flow(i))   call update_fbc_2dm_flow_halo  (domain(i), flow(i),   domain(i+1), flow(i+1))
+        end do
+        do i = 1, nxdomain
+          if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
+          if(is_flow(i))   call Solve_momentum_eq(flow(i), domain(i), isub)
+        end do
+      end do
+    end if
 
     do i = 1, nxdomain - 1
       call update_fbc_2dm_flow_halo(domain(i), flow(i), domain(i+1), flow(i+1))
@@ -327,14 +340,14 @@ subroutine Solve_eqs_iteration
       !if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
       if(is_flow(i)) then
         if(is_thermo(i)) then
-          call Find_max_min_3d(thermo(i)%tTemp, "T :", wrtfmt2ae)
-          call Find_max_min_3d(thermo(i)%rhoh,  "rhoh :", wrtfmt2ae)
+          call Find_max_min_3d(thermo(i)%tTemp, opt_name="T :")
+          !call Find_max_min_3d(thermo(i)%rhoh,  opt_name="rhoh :")
         end if
-        call Find_max_min_3d(flow(i)%qx, "qx :", wrtfmt2ae)
-        call Find_max_min_3d(flow(i)%qy, "qy :", wrtfmt2ae)
-        call Find_max_min_3d(flow(i)%qz, "qz :", wrtfmt2ae)
-        call Find_max_min_3d(flow(i)%pres, "pr :", wrtfmt2ae)
-        call Find_max_min_3d(flow(i)%pcor, "ph :", wrtfmt2ae)
+        call Find_max_min_3d(flow(i)%qx, opt_name="qx :")
+        call Find_max_min_3d(flow(i)%qy, opt_name="qy :")
+        call Find_max_min_3d(flow(i)%qz, opt_name="qz :")
+        call Find_max_min_3d(flow(i)%pres, opt_name="pr :")
+        call Find_max_min_3d(flow(i)%pcor, opt_name="ph :")
         call Check_element_mass_conservation(flow(i), domain(i), iter) 
       end if
       !----------------------------------------------------------------------------------------------------------

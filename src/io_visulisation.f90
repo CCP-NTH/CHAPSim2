@@ -833,6 +833,7 @@ contains
     call write_visu_field(dm, fl%mVisc, dm%dccc, "Visc", trim(visuname), SCALAR, CELL, iter)
     call write_visu_field(dm, tm%kCond, dm%dccc, "Cond", trim(visuname), SCALAR, CELL, iter)
     call write_visu_field(dm, tm%hEnth, dm%dccc, "Enth", trim(visuname), SCALAR, CELL, iter)
+    call write_visu_field(dm, fl%drhodt,dm%dccc, "dddt", trim(visuname), SCALAR, CELL, iter)
 !----------------------------------------------------------------------------------------------------------
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------

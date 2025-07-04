@@ -246,6 +246,7 @@ contains
       this%b = w1 * ftplist(i1)%b + w2 * ftplist(i2)%b
       this%cp = w1 * ftplist(i1)%cp + w2 * ftplist(i2)%cp
       this%rhoh = this%d * this%h
+      this%drhoh_drho = w1 * ftplist(i1)%drhoh_drho + w2 * ftplist(i2)%drhoh_drho
 
     else if(fluidparam%ipropertyState == IPROPERTY_FUNCS) then 
       
@@ -301,6 +302,8 @@ contains
       end select
       this%m = dummy / ftp0ref%m
       this%rhoh = this%d * this%h
+
+      ! to add: this%drhoh_drho = 
     else
       this%t  = ONE
       this%d  = ONE
@@ -399,6 +402,7 @@ contains
     this%t  = w1 * ftplist(i1)%t  + w2 * ftplist(i2)%t
     this%b  = w1 * ftplist(i1)%b  + w2 * ftplist(i2)%b
     this%cp = w1 * ftplist(i1)%cp + w2 * ftplist(i2)%cp
+    this%drhoh_drho = w1 * ftplist(i1)%drhoh_drho + w2 * ftplist(i2)%drhoh_drho
     !this%rhoh = this%d * this%h
     return
   end subroutine ftp_refresh_thermal_properties_from_H
@@ -622,7 +626,7 @@ contains
         end if
         if (ddh < MINP .and. nrank == 0) then
           call Print_warning_msg('The relation (rho * h) = FUNCTION (H) is not monotonicity.') 
-          write(*, wrtfmt1r) ' This occurs from H(J/KG) = ', \
+          write(*, wrtfmt1e) ' This occurs from H(J/KG) = ', \
           ftplist(i)%h  * fluidparam%ftp0ref%t * fluidparam%ftp0ref%cp + fluidparam%ftp0ref%h
           call Print_warning_msg('If this H locates in-between your interested range, please try to increase your reference temeprature.')
         end if
@@ -1143,8 +1147,10 @@ contains
     tm%kCond(:, :, :) = tm%ftp_ini%k
     tm%tTemp(:, :, :) = tm%ftp_ini%t
 
+    if(.not. is_drhodt_implicit) then
     fl%dDensm2(:, :, :) = fl%dDensm1(:, :, :)
     fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
+    end if
 
 
     if(dm%ibcy_Tm(2) == IBC_DIRICHLET .and. tm%inittype == INIT_GVBCLN) then
