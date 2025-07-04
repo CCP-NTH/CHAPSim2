@@ -339,7 +339,7 @@ contains
                              dm%dccp%zsz(2), &
                              dm%dccp%zsz(3))
     !real(WP)   :: cfl_convection, cfl_convection_work
-    real(wp) :: cfl, dy
+    real(wp) :: cfl(2), dy
     integer :: j
 !----------------------------------------------------------------------------------------------------------
 ! Initialisation
@@ -389,12 +389,10 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! Z-pencil : Find the maximum 
 !----------------------------------------------------------------------------------------------------------
-    call transpose_z_to_y(var_zpencil, var_ypencil, dm%dccc)
-    call transpose_y_to_x(var_ypencil, var_xpencil, dm%dccc)
-    call Find_maximum_absvar3d(var_xpencil, cfl, dm%dccc, "CFL (convection) :")
+    call Find_max_min_3d(var_zpencil, opt_calc='MAXI', opt_work=cfl, opt_name='CFL (convection) :')
 
-    if(cfl > ONE) then 
-      dm%dt = dm%dt / REAL(ceiling(cfl / 5.0_WP) * 5, WP)
+    if(cfl(2) > TWO) then 
+      dm%dt = dm%dt / REAL(ceiling(cfl(2)/ 5.0_WP) * 5, WP)
       if(nrank == 0) then
         call Print_warning_msg("Warning: CFL is larger than 1.")
         write(*, wrtfmt1e) 'dt reduced to ', dm%dt

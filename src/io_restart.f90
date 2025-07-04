@@ -152,9 +152,9 @@ contains
     !----------------------------------------------------------------------------------------------------------
     ! to check maximum velocity
     !----------------------------------------------------------------------------------------------------------
-    call Find_max_min_3d(fl%qx, "qx: ", wrtfmt2ae)
-    call Find_max_min_3d(fl%qy, "qy: ", wrtfmt2ae)
-    call Find_max_min_3d(fl%qz, "qz: ", wrtfmt2ae)
+    call Find_max_min_3d(fl%qx, opt_name="qx: ")
+    call Find_max_min_3d(fl%qy, opt_name="qy: ")
+    call Find_max_min_3d(fl%qz, opt_name="qz: ")
     !----------------------------------------------------------------------------------------------------------
     ! to set up other parameters for flow only, which will be updated in thermo flow.
     !----------------------------------------------------------------------------------------------------------

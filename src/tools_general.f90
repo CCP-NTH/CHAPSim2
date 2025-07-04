@@ -1246,10 +1246,11 @@ end module cylindrical_rn_mod
 
 module find_max_min_ave_mod
   use print_msg_mod
+  use wtformat_mod
   public  :: Get_volumetric_average_3d_for_var_xcx
-  public  :: Find_maximum_absvar3d
+  public  :: Find_maximum_absvar3d_loc
   public  :: Find_max_min_3d
-  public  :: Find_max_min_absvar3d
+  !public  :: Find_max_min_absvar3d
 
 contains
 !==========================================================================================================
@@ -1280,7 +1281,7 @@ contains
 
   end subroutine is_valid_number_3D
 !==========================================================================================================
-  subroutine Find_maximum_absvar3d(var, varmax_work, dtmp, str, nxst0)
+  subroutine Find_maximum_absvar3d_loc(var, varmax_work, dtmp, str, nxst0)
     use precision_mod
     use math_mod
     use mpi_mod
@@ -1356,44 +1357,83 @@ contains
     return
   end subroutine
 
-
   !==========================================================================================================
-  subroutine Find_max_min_3d(var,  str, fmt)
+  subroutine Find_max_min_3d(var, opt_abs, opt_calc, opt_work, opt_name)
     use precision_mod
     use math_mod
     use mpi_mod
     use parameters_constant_mod
     implicit none
-
+    ! arguments 
     real(WP), intent(in)  :: var(:, :, :)
-    character(len = *), intent(in) :: str
-    character(len = *), intent(in) :: fmt
-    
+    real(WP), intent(out), optional :: opt_work(2)
+    character(len = 3), intent(in), optional :: opt_abs
+    character(len = 4), intent(in), optional :: opt_calc
+    character(len = *), intent(in), optional :: opt_name
+    ! local variables
     real(WP):: varmax_work, varmin_work
-    real(WP)   :: varmax, varmin
+    real(WP):: varmax, varmin, dummy
+    logical :: imax, imin, iabs
 
     integer :: i, j, k, nx, ny, nz
     nx = size(var, 1)
     ny = size(var, 2)
     nz = size(var, 3)
 
-    varmax = MINN
-    varmin = MAXP
+    if(present(opt_abs)) iabs = .true.
+
+    if (.not. present(opt_calc)) then
+      varmax = MINN
+      varmin = MAXP
+      imax = .true.
+      imin = .true.
+    else
+      imax = .false.
+      imin = .false.
+      select case (opt_calc)
+      case ('MAXI')
+        varmax = MINN
+        imax = .true.
+      case ('MINI')
+        varmin = MAXP
+        imin = .true.
+      case default
+        varmax = MINN
+        varmin = MAXP
+        imax = .true.
+        imin = .true.
+      end select
+    end if
+
     do k = 1, nz
       do j = 1, ny
         do i = 1, nx
-          if( var(i, j, k)  > varmax) varmax = var(i, j, k)
-          if( var(i, j, k)  < varmin) varmin = var(i, j, k)
+          dummy = var(i, j, k)
+          if(iabs) dummy = abs_wp(dummy)
+          if (imax .and. dummy  > varmax) varmax = dummy
+          if (imin .and. dummy  < varmin) varmin = dummy
         end do
       end do
     end do
 
     !call mpi_barrier(MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(varmin, varmin_work, 1, MPI_REAL_WP, MPI_MIN, MPI_COMM_WORLD, ierror)
+    if (imax) call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    if (imin) call mpi_allreduce(varmin, varmin_work, 1, MPI_REAL_WP, MPI_MIN, MPI_COMM_WORLD, ierror)
 
-    if(nrank == 0) then
-      write (*, fmt) 'maximum '//str, varmax_work, ' minimum '//str, varmin_work
+    if(present(opt_work)) then
+      opt_work = MAXP
+      if (imin) opt_work(1) = varmin_work
+      if (imax) opt_work(2) = varmax_work
+    end if
+    if(nrank == 0 .and. present(opt_name)) then
+      if(imax .and. imin) then
+        write (*, wrtfmt2ae) 'maximum '//opt_name, varmax_work, ' minimum '//opt_name, varmin_work
+      else if(imax) then
+        write (*, wrtfmt1el) 'maximum '//opt_name, varmax_work
+      else if(imin) then
+        write (*, wrtfmt1el) 'minimum '//opt_name, varmin_work
+      else
+      end if
     end if
 ! #ifdef DEBUG_FFT
 !     if(varmax_work >   MAXVELO) call Print_error_msg('varmax_work >   MAXVELO')
@@ -1443,51 +1483,51 @@ contains
 !     return
 !   end subroutine
 
-!==========================================================================================================
-  subroutine Find_max_min_absvar3d(var,  str, fmt)
-    use precision_mod
-    use math_mod
-    use mpi_mod
-    use parameters_constant_mod
-    implicit none
+! !==========================================================================================================
+!   subroutine Find_max_min_absvar3d(var,  str, fmt)
+!     use precision_mod
+!     use math_mod
+!     use mpi_mod
+!     use parameters_constant_mod
+!     implicit none
 
-    real(WP), intent(in)  :: var(:, :, :)
-    character(len = *), intent(in) :: str
-    character(len = *), intent(in) :: fmt
+!     real(WP), intent(in)  :: var(:, :, :)
+!     character(len = *), intent(in) :: str
+!     character(len = *), intent(in) :: fmt
     
-    real(WP):: varmax_work, varmin_work
-    real(WP)   :: varmax, varmin
+!     real(WP):: varmax_work, varmin_work
+!     real(WP)   :: varmax, varmin
 
-    integer :: i, j, k, nx, ny, nz
-    nx = size(var, 1)
-    ny = size(var, 2)
-    nz = size(var, 3)
+!     integer :: i, j, k, nx, ny, nz
+!     nx = size(var, 1)
+!     ny = size(var, 2)
+!     nz = size(var, 3)
 
-    varmax = MINN
-    varmin = MAXP
-    do k = 1, nz
-      do j = 1, ny
-        do i = 1, nx
-          if( var(i, j, k)  > varmax) varmax = abs_wp( var(i, j, k) )
-          if( var(i, j, k)  < varmin) varmin = abs_wp( var(i, j, k) )
-        end do
-      end do
-    end do
+!     varmax = MINN
+!     varmin = MAXP
+!     do k = 1, nz
+!       do j = 1, ny
+!         do i = 1, nx
+!           if( var(i, j, k)  > varmax) varmax = abs_wp( var(i, j, k) )
+!           if( var(i, j, k)  < varmin) varmin = abs_wp( var(i, j, k) )
+!         end do
+!       end do
+!     end do
 
-    !call mpi_barrier(MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
-    call mpi_allreduce(varmin, varmin_work, 1, MPI_REAL_WP, MPI_MIN, MPI_COMM_WORLD, ierror)
+!     !call mpi_barrier(MPI_COMM_WORLD, ierror)
+!     call mpi_allreduce(varmax, varmax_work, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+!     call mpi_allreduce(varmin, varmin_work, 1, MPI_REAL_WP, MPI_MIN, MPI_COMM_WORLD, ierror)
 
-    if(nrank == 0) then
-      write (*, fmt) 'max. |'//str//'|', varmax_work, ' min. |'//str//'|', varmin_work
-    end if
-! #ifdef DEBUG_FFT
-!     if(varmax_work >   MAXVELO) call Print_error_msg('varmax_work >  MAXVELO')
-!     if(varmin_work < - MAXVELO) call Print_error_msg('varmax_work < -MAXVELO')
-! #endif
+!     if(nrank == 0) then
+!       write (*, fmt) 'max. |'//str//'|', varmax_work, ' min. |'//str//'|', varmin_work
+!     end if
+! ! #ifdef DEBUG_FFT
+! !     if(varmax_work >   MAXVELO) call Print_error_msg('varmax_work >  MAXVELO')
+! !     if(varmin_work < - MAXVELO) call Print_error_msg('varmax_work < -MAXVELO')
+! ! #endif
 
-    return
-  end subroutine
+!     return
+!   end subroutine
 !==========================================================================================================
   subroutine Get_volumetric_average_3d_for_var_xcx(dm, dtmp, var, fo_work, itype, str)
     use mpi_mod
