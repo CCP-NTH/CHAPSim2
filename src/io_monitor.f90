@@ -291,7 +291,7 @@ contains
       if(ioerr /= 0) then
         call Print_error_msg('Problem openning conservation file')
       end if 
-      write(myunit, '(6ES13.5)') fl%time, fl%mcon(1:3), fl%tt_mass_change, dMKEdt
+      write(myunit, '(6ES18.10)') fl%time, fl%mcon(1:3), fl%tt_mass_change, dMKEdt
       close(myunit)
       ! write out history of bulk variables
       call generate_pathfile_name(flname, dm%idom, trim(fl_bulk), dir_moni, 'log')
@@ -301,9 +301,9 @@ contains
         call Print_error_msg('Problem openning bulk file')
       end if 
       if(dm%is_thermo .and. present(tm)) then
-        write(myunit, '(6ES13.5)') fl%time, fl%tt_kinetic_energy, bulk_qx, bulk_gx, bulk_T, bulk_h
+        write(myunit, '(6ES18.10)') fl%time, fl%tt_kinetic_energy, bulk_qx, bulk_gx, bulk_T, bulk_h
       else
-        write(myunit, '(3ES13.5)') fl%time, fl%tt_kinetic_energy, bulk_qx
+        write(myunit, '(3ES18.10)') fl%time, fl%tt_kinetic_energy, bulk_qx
       end if
       close(myunit)
     end if     
