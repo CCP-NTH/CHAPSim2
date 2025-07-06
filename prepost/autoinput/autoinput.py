@@ -91,6 +91,7 @@ class Case(Enum):
     PIPE = 2
     ANNULAR = 3
     TGV3D = 4
+    DUCT = 5
 
 class Drvfc(Enum):
     NONE = 0
@@ -199,15 +200,18 @@ def get_decomp_settings():
 def get_domain_settings():
     
     global icase
-    icase = get_input("Simulation case (1:Channel, 2:Pipe, 3:Annular, 4:TGV3D, etc.)", 1, int)
+    icase = get_input("Simulation case (1:Channel, 2:Pipe, 3:Annular, 4:TGV3D, 5:DUCT, etc.)", 1, int)
     if icase == Case.TGV3D.value:
        lxx = twopi
        lzz = twopi
+    elif icase == Case.DUCT.value:
+       lxx = get_input("Spanwise length (Lx/h)", 2.0, float)
+       lzz = get_input("Streamwise length (Lz/h)", 12.0, float)
     else:
      lxx = get_input("Streamwise length (Lx/h)", twopi, float)
      lzz = get_input("Spanwise length (Lz/h)", onepi, float) if icase not in [Case.PIPE.value, Case.ANNULAR.value] else twopi
 
-    if icase == Case.CHANNEL.value:
+    if icase in [Case.CHANNEL.value, Case.DUCT.value]:
         lyt, lyb = 1.0, -1.0
     elif icase == Case.PIPE.value:
         lyt, lyb = 1.0, 0.0
@@ -246,7 +250,7 @@ def get_flow_settings():
         initfl = Init.INTRPL.value
     
     if is_restart != 1 and is_extract != 1:
-      if icase in [Case.CHANNEL.value, Case.PIPE.value, Case.ANNULAR.value]:
+      if icase in [Case.CHANNEL.value, Case.DUCT.value, Case.PIPE.value, Case.ANNULAR.value]:
         initfl = Init.POISEUILLE.value
       elif icase == Case.TGV3D.value:
         initfl = Init.FUNCTION.value
@@ -351,19 +355,17 @@ def get_mesh_settings():
     ncy = get_input("Cell number in y", 64, int)
     ncz = get_input("Cell number in z", 64, int)
 
-    if icase == Case.CHANNEL.value:
+    if icase in [Case.CHANNEL.value, Case.DUCT.value, Case.ANNULAR.value]:
         istret = Stretching.SIDE2.value
     elif icase == Case.PIPE.value:
         istret = Stretching.TOP.value
-    elif icase == Case.ANNULAR.value:
-        istret = Stretching.SIDE2.value
     elif icase == Case.TGV3D.value:
         istret = Stretching.NONE.value
     else:
         istret = get(icase, get_input("Grid clustering type (0:None, 1:Centre, 2:2-sides, 3:Bottom, 4:Top)", 0, int))
 
     if istret != Stretching.NONE.value:
-        if icase == Case.CHANNEL.value:
+        if icase in [Case.CHANNEL.value, Case.DUCT.value, Case.ANNULAR.value]:
             rstret1, rstret2, ifftlib = 1, get_input("Stretching factor (recommended 0.1-0.3, smaller means more clustered)", 0.12, float), 3
         elif icase in [Case.PIPE.value, Case.ANNULAR.value]:
             rstret1, rstret2, ifftlib = 2, get_input("Stretching factor (recommended 0.1-0.3, greater means more clustered)", 0.15, float), 2
@@ -431,7 +433,7 @@ def get_bc_settings():
     ffbcz_T2 = 0.0
 
 
-    if icase in [Case.CHANNEL.value, Case.ANNULAR.value]:
+    if icase in [Case.CHANNEL.value, Case.DUCT.value, Case.ANNULAR.value]:
         ifbcy_u1 = BC.DIRICHLET.value
         ifbcy_u2 = BC.DIRICHLET.value
         ifbcy_p1 = BC.NEUMANN.value
@@ -442,6 +444,14 @@ def get_bc_settings():
         ifbcy_T1 = BC.INTERIOR.value
         ifbcy_u2 = BC.DIRICHLET.value
         ifbcy_p2 = BC.NEUMANN.value
+        
+    if icase == Case.DUCT.value:
+        ifbcx_u1 = BC.DIRICHLET.value
+        ifbcx_p1 = BC.NEUMANN.value
+        ifbcx_T1 = BC.NEUMANN.value
+        ifbcx_u2 = BC.DIRICHLET.value
+        ifbcx_p2 = BC.NEUMANN.value
+        ifbcx_T2 = BC.NEUMANN.value
 
     if icase == Case.TGV3D.value:
       iinlet = 0
@@ -458,7 +468,7 @@ def get_bc_settings():
         ifbcx_T2 = BC.NEUMANN.value
 
     if ithermo == 1:
-      if icase in [Case.CHANNEL.value, Case.PIPE.value, Case.ANNULAR.value]:
+      if icase in [Case.CHANNEL.value, Case.DUCT.value, Case.PIPE.value, Case.ANNULAR.value]:  
           if icase == Case.PIPE.value:
             is_T = get_input("Thermal boundary in y (1:constant temperature, 2:constant heat flux)", 2, int)
           else:
@@ -476,6 +486,15 @@ def get_bc_settings():
               ffbcy_T1 = get_input("Heat flux (W/m2) on BC-y bottom", 0.0, float)
             ifbcy_T2 = BC.NEUMANN.value
             ffbcy_T2 = get_input("Heat flux (W/m2) on BC-y top",    0.0, float)
+            
+          if icase == Case.DUCT.value:
+            is_T = get_input("Thermal boundary in x (1:constant temperature, 2:constant heat flux)", 2, int)
+            if is_T == 1:
+                ifbcx_T2 = BC.DIRICHLET.value
+                ffbcx_T2 = get_input("Temperature (Kelvin) on BC-x top", 650.15, float)
+            elif is_T == 2:
+                ifbcx_T2 = BC.NEUMANN.value
+                ffbcx_T2 = get_input("Heat flux (W/m2) on BC-x top",    0.0, float)
     else:
       ifbcx_T1 = ifbcx_u1
       ifbcy_T1 = ifbcy_u1
@@ -486,12 +505,16 @@ def get_bc_settings():
 
     idriven = 0
     drivenCf = 0.0
-    if ifbcx_u1 == BC.PERIODIC.value:
+    if ifbcx_u1 == BC.PERIODIC.value and ifbcz_u1 == BC.PERIODIC.value:
       if icase != Case.TGV3D.value:
-        idriven = get_input("Flow driven method (periodic flow only, none (0), constant mass flux (1), skin friction (2 for x, 5 for z), 3:pressure gradient (3 for x, 6 for z)", 1, int)
-        if idriven in [Drvfc.XTAUW.value, Drvfc.XDPDX.value, Drvfc.ZTAUW.value, Drvfc.ZDPDZ.value]:
-          drivenCf = get_input("Magnitude of driven force", 0.0, float)
-
+        idriven = get_input("Flow driven method (periodic flow only, none (0), constant mass flux (1), skin friction (2), 3:pressure gradient (3)", 1, int)
+    elif ifbcx_u1 != BC.PERIODIC.value and ifbcz_u1 == BC.PERIODIC.value:
+        if icase == Case.DUCT.value:
+            idriven = get_input("Flow driven method (periodic flow only, none (0), constant mass flux (4), skin friction (5), 3:pressure gradient (6)", 4, int)
+    
+    if idriven in [Drvfc.XTAUW.value, Drvfc.XDPDX.value, Drvfc.ZTAUW.value, Drvfc.ZDPDZ.value]:
+       drivenCf = get_input("Magnitude of driven force", 0.0, float)
+       
     return{
         "ifbcx_u": f"{ifbcx_u1},{ifbcx_u2},{ffbcx_u1},{ffbcx_u2}",
         "ifbcx_v": f"{ifbcx_u1},{ifbcx_u2},{ffbcx_u1},{ffbcx_u2}",

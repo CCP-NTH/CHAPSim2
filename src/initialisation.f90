@@ -263,7 +263,7 @@ contains
   !> \param[in]     d             domain
   !> \param[out]    ux_1c1          u(yc), velocity profile along wall-normal direction
   !==========================================================================================================
-  subroutine Generate_poiseuille_flow_profile(dm, ux_1c1)
+  subroutine Generate_poiseuille_flow_profile(dm, u_xy)
     use parameters_constant_mod
     use udf_type_mod
     use math_mod
@@ -271,41 +271,59 @@ contains
     implicit none
 
     type(t_domain), intent(in)  :: dm
-    real(WP),       intent(out) :: ux_1c1(:)
+    real(WP),       intent(out) :: u_xy(:, :)
     
-    real(WP):: a, b, c, yy, ymax, ymin
+    real(WP) :: ay, by, yy, ymax, ymin 
+    real(WP) :: ax, bx, xx, xmax, xmin
+    real(WP) :: fx, fy, c
     integer :: pf_unit
-    integer :: j
+    integer :: i, j
     
     if(nrank == 0) call Print_debug_inline_msg("Generate poiseuille flow profile ...")
 
-    ux_1c1 (:) = ZERO
+    u_xy = ZERO
 
     ymax = dm%yp( dm%np_geo(2) )
     ymin = dm%yp( 1 )
     if (dm%icase == ICASE_CHANNEL) then
-      a = (ymax - ymin) * HALF
-      b = ZERO
+      ay = (ymax - ymin) * HALF
+      by = (ymax + ymin) * HALF
       c = ONEPFIVE
+    else if (dm%icase == ICASE_DUCT) then
+      xmax = dm%lxx
+      xmin = ZERO
+      ay = (ymax - ymin) * HALF
+      by = (ymax + ymin) * HALF
+      ax = (xmax - xmin) * HALF
+      bx = (xmax + xmin) * HALF
+      c = NINE / FOUR
     else if (dm%icase == ICASE_PIPE) then
-      a = (ymax - ymin)
-      b = ZERO
+      ay = (ymax - ymin)
+      by = ZERO
       c = TWO
     else if (dm%icase == ICASE_ANNULAR) then
-      a = (ymax - ymin) * HALF
-      b = (ymax + ymin) * HALF
+      ay = (ymax - ymin) * HALF
+      by = (ymax + ymin) * HALF
       c = TWO
     else 
-      a = (ymax - ymin) * HALF
-      b = ZERO
+      ay = (ymax - ymin) * HALF
+      by = ZERO
       c = ONEPFIVE
     end if
 
-    do j = 1, dm%nc(2)
-      yy = dm%yc(j)
-      ux_1c1(j) = ( ONE - ( (yy - b)**2 ) / a / a ) * c
+    do i = 1, dm%nc(1)
+      if (dm%icase == ICASE_DUCT) then
+        xx = dm%h(1) * (real(i - 1, WP) + HALF)
+        fx = ONE - ((xx - bx)/ax)**2
+      else
+        fx = ONE
+      end if
+      do j = 1, dm%nc(2)
+        yy = dm%yc(j)
+        fy = ONE - ((yy - by)/ay)**2
+        u_xy(i, j) = c * fx * fy
+      end do
     end do
-
     !----------------------------------------------------------------------------------------------------------
     !   Y-pencil : write out velocity profile
     !----------------------------------------------------------------------------------------------------------
@@ -314,9 +332,17 @@ contains
               file    = trim(dir_chkp)//'/check_poiseuille_ux_profile.dat', &
               status  = 'replace',         &
               action  = 'write')
-      write(pf_unit, '(A)') "#id,  yc, ux_laminar, ux_real"
+      write(pf_unit, '(A)') "#xc, yc, u_xy"
       do j = 1, dm%nc(2)
-        write(pf_unit, '(1I3.1, 2ES15.7)') j, dm%yc(j), ux_1c1(j)
+        yy = dm%yc(j)
+        if (dm%icase == ICASE_DUCT) then
+          do i = 1, dm%nc(1)
+            xx = dm%h(1) * (real(i - 1, WP) + HALF)
+            write(pf_unit, '(3ES15.7)') xx, yy, u_xy(i, j)
+          end do
+        else
+          write(pf_unit, '(1I3.1, 2ES15.7)') j, yy, u_xy(1, j)
+        end if
       end do
       close(pf_unit)
     end if
@@ -354,8 +380,9 @@ contains
     integer :: pf_unit
     integer :: i, j, k, jj
     real(WP) :: ubulk
-    real(WP) :: ux_1c1(dm%nc(2))
+    real(WP) :: u_xy(dm%nc(1), dm%nc(2))
     real(WP) :: ux(dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3))
+    real(WP) :: uz(dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3))
     real(WP) :: ux_ypencil(dm%dpcc%ysz(1), dm%dpcc%ysz(2), dm%dpcc%ysz(3))
     character(2) :: str
     
@@ -366,55 +393,75 @@ contains
     !----------------------------------------------------------------------------------------------------------
     !   x-pencil : to get Poiseuille profile for all ranks
     !----------------------------------------------------------------------------------------------------------
-    ux_1c1(:) = ZERO
-    call Generate_poiseuille_flow_profile (dm, ux_1c1)
+    u_xy = ZERO
+    call Generate_poiseuille_flow_profile (dm, u_xy)
     !----------------------------------------------------------------------------------------------------------
     !   x-pencil : to add profile to ux (default: x streamwise)
     !----------------------------------------------------------------------------------------------------------
-    dtmp = dm%dpcc
-    do i = 1, dtmp%xsz(1)
-      do j = 1, dtmp%xsz(2)
-        jj = dtmp%xst(2) + j - 1 !local2global_yid(j, dtmp)
-        do k = 1, dtmp%xsz(3)
-          fl%qx(i, j, k) =  fl%qx(i, j, k) + ux_1c1(jj)
+    if(dm%icase == ICASE_DUCT) then
+      dtmp = dm%dccp
+      do i = 1, dtmp%xsz(1)
+        do j = 1, dtmp%xsz(2)
+          jj = dtmp%xst(2) + j - 1
+          do k = 1, dtmp%xsz(3)
+            fl%qz(i, j, k) =  fl%qz(i, j, k) + u_xy(i, jj)
+          end do
         end do
       end do
-    end do
-#ifdef DEBUG_STEPS
-    call wrt_3d_pt_debug(fl%qx, dm%dpcc,   fl%iteration, 0, 'qx@af init') ! debug_ww
-    call wrt_3d_pt_debug(fl%qy, dm%dcpc,   fl%iteration, 0, 'qy@af init') ! debug_ww
-    call wrt_3d_pt_debug(fl%qz, dm%dccp,   fl%iteration, 0, 'qz@af init') ! debug_ww
-    call wrt_3d_pt_debug(fl%pres, dm%dccc, fl%iteration, 0, 'pr@af init') ! debug_ww
-#endif 
-    !----------------------------------------------------------------------------------------------------------
-    !   x-pencil : Ensure the mass flow rate is 1.
-    !----------------------------------------------------------------------------------------------------------
-    if(dm%is_thermo) then
-      call convert_primary_conservative (fl, dm, IQ2G)
-      ux = fl%gx
-      str = 'gx'
-    else
-      ux = fl%qx
-      str = 'qx'
-    end if
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
-    if(nrank == 0) then
+      if(dm%is_thermo) then
+        call convert_primary_conservative (fl, dm, IQ2G)
+        uz = fl%gz
+        str = 'gz'
+      else
+        uz = fl%qz
+        str = 'qz'
+      end if
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, uz, ubulk, SPACE_AVERAGE, str)
+      if(nrank == 0) &
       write(*, wrtfmt1e) "The initial, [original] bulk "//str//" = ", ubulk
-    end if
-
-    ux(:, :, :) = ux(:, :, :) / ubulk
-    ux_1c1 = ux_1c1 / ubulk
-    if(dm%is_thermo) then
-      fl%gx = ux
-      call convert_primary_conservative(fl, dm, IG2Q)
+      uz = uz / ubulk
+      if(dm%is_thermo) then
+        fl%gz = uz
+        call convert_primary_conservative(fl, dm, IG2Q)
+      else
+        fl%qz = uz
+      end if
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, uz, ubulk, SPACE_AVERAGE, str)
+      if(nrank == 0) &
+      write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     else
-      fl%qx = ux
-    end if
-
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
-    if(nrank == 0) then
+      dtmp = dm%dpcc
+      do i = 1, dtmp%xsz(1)
+        do j = 1, dtmp%xsz(2)
+          jj = dtmp%xst(2) + j - 1
+          do k = 1, dtmp%xsz(3)
+            fl%qx(i, j, k) =  fl%qx(i, j, k) + u_xy(1, jj)
+          end do
+        end do
+      end do
+      if(dm%is_thermo) then
+        call convert_primary_conservative (fl, dm, IQ2G)
+        ux = fl%gx
+        str = 'gx'
+      else
+        ux = fl%qx
+        str = 'qx'
+      end if
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
+      if(nrank == 0) &
+      write(*, wrtfmt1e) "The initial, [original] bulk "//str//" = ", ubulk
+      ux = ux / ubulk
+      if(dm%is_thermo) then
+        fl%gx = ux
+        call convert_primary_conservative(fl, dm, IG2Q)
+      else
+        fl%qx = ux
+      end if
+      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
+      if(nrank == 0) &
       write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     end if
+
     if(nrank == 0) call Print_debug_inline_msg("Max/Min [velocity] for real initial flow field:")
     call Find_max_min_3d(fl%qx, opt_name="qx")
     call Find_max_min_3d(fl%qy, opt_name="qy")
@@ -428,14 +475,12 @@ contains
     end if
 
     ! to do : to add a scaling for turbulence generator inlet scaling, u = u * m / rho
-
     !----------------------------------------------------------------------------------------------------------
     !   some checking
     !----------------------------------------------------------------------------------------------------------
-    call transpose_x_to_y(ux, ux_ypencil, dm%dpcc)
-    if(dm%ibcx_nominal(1, 1) == IBC_PROFILE1D) then
-      call initialise_fbcx_given_profile(dm%fbcx_qx, ux_1c1, dm%dpcc%xst(2), 'qx')
-    end if
+    ! if(dm%ibcx_nominal(1, 1) == IBC_PROFILE1D) then
+    !   call initialise_fbcx_given_profile(dm%fbcx_qx, ux_xy, dm%dpcc%xst(2), 'qx')
+    ! end if
     if(dm%ibcx_nominal(1, 1) == IBC_DATABASE .and. &
        dm%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
       call extract_dirichlet_fbcx(dm%fbcx_qx, fl%qx, dm%dpcc)

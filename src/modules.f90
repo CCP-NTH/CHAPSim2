@@ -185,9 +185,11 @@ module parameters_constant_mod
                         ICASE_PIPE    = 2, &
                         ICASE_ANNULAR = 3, &
                         ICASE_TGV3D   = 4, &
-                        ICASE_TGV2D   = 5, &
-                        ICASE_BURGERS = 6, &
-                        ICASE_ALGTEST = 7
+                        ICASE_DUCT    = 5, &
+                        ICASE_TGV2D   = 6, &
+                        ICASE_BURGERS = 7, &
+                        ICASE_ALGTEST = 8
+                        
 !----------------------------------------------------------------------------------------------------------
 ! flow initilisation
 !----------------------------------------------------------------------------------------------------------     
