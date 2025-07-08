@@ -508,7 +508,8 @@ contains
           end if
           if(domain(i)%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
             domain(i)%ibcx_nominal(2, 2:3) = IBC_CONVECTIVE
-            domain(i)%ibcx_nominal(2, 4:5) = IBC_NEUMANN
+            domain(i)%ibcx_nominal(2, 4) = IBC_NEUMANN
+            domain(i)%ibcx_nominal(2, 5) = IBC_CONVECTIVE
           end if
           !----------------------------------------------------------------------------------------------------------
           ! to exclude non-resonable input

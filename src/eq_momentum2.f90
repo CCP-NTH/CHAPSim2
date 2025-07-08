@@ -666,7 +666,7 @@ contains
 !==========================================================================================================
 ! preparation of intermediate variables to be used - thermal only
 !==========================================================================================================
-    if(.not. dm%is_thermo) then
+    ! if(dm%is_thermo) then
          mu_ccc_xpencil = ONE ! x-v1, default for flow only
          mu_ccc_ypencil = ONE ! y-v2, default for flow only
          mu_ccc_zpencil = ONE ! z-v3, default for flow only
@@ -680,7 +680,7 @@ contains
             fbcx_mu_4cc = ONE
             fbcy_mu_c4c = ONE
             fbcz_mu_cc4 = ONE
-    end if
+    ! end if
     if(dm%is_thermo) then
 !----------------------------------------------------------------------------------------------------------
 !    gx 

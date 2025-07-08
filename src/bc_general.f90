@@ -103,34 +103,55 @@ end function
 
     do n = 1, 2
       do m = 1, 5
-        if (bc_nominal(n, m) == IBC_PROFILE1D)   then
-          ibc(n, m) = IBC_DIRICHLET
-        else if (bc_nominal(n, m) == IBC_TURBGEN )   then
-          if(m == 5) then
-            ibc(n, m) = IBC_DIRICHLET ! for temperature, default is no incoming thermal flow, it is initilazed temperature
-          else if(m == 4) then
-            ibc(n, m) = IBC_NEUMANN    ! for p
-          else 
-            ibc(n, m) = IBC_DIRICHLET  ! for u, v, w
-          end if
-        else if (bc_nominal(n, m) == IBC_DATABASE )   then
-          if(m == 5) then
-            ibc(n, m) = IBC_DIRICHLET ! for temperature, default is no incoming thermal flow, it is initilazed temperature
-          else if(m == 4) then
-            ibc(n, m) = IBC_NEUMANN    ! for p
-          else 
-            ibc(n, m) = IBC_DIRICHLET  ! for u, v, w, check!!
-          end if
-        else if (bc_nominal(n, m) == IBC_CONVECTIVE)   then ! check for convetive outlet
-          if(m == 4) then
-            ibc(n, m) = IBC_NEUMANN    ! for p
-          else 
-            ibc(n, m) = IBC_DIRICHLET  ! for u, v, w, T, check!!
-          end if
-        else
-          ibc(n, m) = bc_nominal(n, m)   
-        end if
+        select case (bc_nominal(n, m))
+
+          case (IBC_PROFILE1D)
+            ! Use Dirichlet BC for all variables
+            ibc(n, m) = IBC_DIRICHLET
+
+          case (IBC_TURBGEN)
+            select case (m)
+              case (5)
+                ! Temperature: assume no incoming thermal flow (initialize temperature)
+                ibc(n, m) = IBC_DIRICHLET
+              case (4)
+                ! Pressure: use Neumann BC
+                ibc(n, m) = IBC_NEUMANN
+              case default
+                ! Velocity components: use Dirichlet BC
+                ibc(n, m) = IBC_DIRICHLET
+            end select
+
+          case (IBC_DATABASE)
+            select case (m)
+              case (5)
+                ! Temperature: same as above
+                ibc(n, m) = IBC_DIRICHLET
+              case (4)
+                ! Pressure: use Neumann BC
+                ibc(n, m) = IBC_NEUMANN
+              case default
+                ! Velocity components: use Dirichlet BC (verify if correct)
+                ibc(n, m) = IBC_DIRICHLET
+            end select
+
+          case (IBC_CONVECTIVE)
+            ! Typically for convective outlet conditions
+            if (m == 4) then
+              ! Pressure: Neumann
+              ibc(n, m) = IBC_NEUMANN
+            else
+              ! Velocity and temperature: Dirichlet (to be verified)
+              ibc(n, m) = IBC_DIRICHLET
+            end if
+
+          case default
+            ! Use the nominal value directly
+            ibc(n, m) = bc_nominal(n, m)
+
+        end select
       end do
+
       if(ibc(n, 1) == IBC_DIRICHLET .and. &
          ibc(n, 2) == IBC_DIRICHLET .and. &
          ibc(n, 3) == IBC_DIRICHLET) then
