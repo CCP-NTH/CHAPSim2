@@ -462,18 +462,6 @@ contains
       write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     end if
 
-    if(nrank == 0) call Print_debug_inline_msg("Max/Min [velocity] for real initial flow field:")
-    call Find_max_min_3d(fl%qx, opt_name="qx")
-    call Find_max_min_3d(fl%qy, opt_name="qy")
-    call Find_max_min_3d(fl%qz, opt_name="qz")
-
-    if(dm%is_thermo) then
-      if(nrank == 0) call Print_debug_inline_msg("Max/Min [mass flux] for real initial flow field:")
-      call Find_max_min_3d(fl%gx, opt_name="gx")
-      call Find_max_min_3d(fl%gy, opt_name="gy")
-      call Find_max_min_3d(fl%gz, opt_name="gz")
-    end if
-
     ! to do : to add a scaling for turbulence generator inlet scaling, u = u * m / rho
     !----------------------------------------------------------------------------------------------------------
     !   some checking
@@ -589,6 +577,7 @@ contains
     use statistics_mod
     use convert_primary_conservative_mod
     use wrt_debug_field_mod
+    use find_max_min_ave_mod
     implicit none
 
     type(t_domain), intent(inout) :: dm
@@ -642,13 +631,20 @@ contains
       end if
     else
     end if
-!----------------------------------------------------------------------------------------------------------
-! to initialise pressure correction term
-!----------------------------------------------------------------------------------------------------------
+
+    if(nrank == 0) call Print_debug_inline_msg("Max/Min [velocity] for real initial flow field:")
+    call Find_max_min_3d(fl%qx, opt_name="qx")
+    call Find_max_min_3d(fl%qy, opt_name="qy")
+    call Find_max_min_3d(fl%qz, opt_name="qz")
+
     if(dm%is_thermo) then
       call convert_primary_conservative (fl, dm, IQ2G)
       !call update_dyn_fbcx_from_flow(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcx_gy, dm%fbcx_gz)
       !call convert_primary_conservative(fl, dm, IG2Q)
+      if(nrank == 0) call Print_debug_inline_msg("Max/Min [mass flux] for real initial flow field:")
+      call Find_max_min_3d(fl%gx, opt_name="gx")
+      call Find_max_min_3d(fl%gy, opt_name="gy")
+      call Find_max_min_3d(fl%gz, opt_name="gz")
     end if
   
 #ifdef DEBUG_STEPS
