@@ -1382,12 +1382,11 @@ contains
 
     if(present(opt_abs)) iabs = .true.
 
-    if (.not. present(opt_calc)) then
-      varmax = MINN
-      varmin = MAXP
-      imax = .true.
-      imin = .true.
-    else
+    varmax = MINN
+    varmin = MAXP
+    imax = .true.
+    imin = .true.
+    if (present(opt_calc)) then
       imax = .false.
       imin = .false.
       select case (opt_calc)
