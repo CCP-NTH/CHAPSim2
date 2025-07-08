@@ -314,11 +314,11 @@ module bc_convective_outlet_mod
     if(nrank == 0) then 
       write(*, *) "m_in, m_out, m_bulk, m_net, scale"
       if(iconv(1)) &
-      write (*, '(10X, A, 4ES13.5, 1F16.13)') 'x: ', fbcm_x(1), fbcm_x(2), bulkm, fbcm_x(1)-fbcm_x(2)+bulkm, scale
+      write (*, '(10X, A, 4ES13.5, 1F16.11)') 'x: ', fbcm_x(1), fbcm_x(2), bulkm, fbcm_x(1)-fbcm_x(2)+bulkm, scale
       if(iconv(2)) &
-      write (*, '(10X, A, 4ES13.5, 1F16.13)') 'y: ', fbcm_y(1), fbcm_y(2), bulkm, fbcm_y(1)-fbcm_y(2)+bulkm, scale
+      write (*, '(10X, A, 4ES13.5, 1F16.11)') 'y: ', fbcm_y(1), fbcm_y(2), bulkm, fbcm_y(1)-fbcm_y(2)+bulkm, scale
       if(iconv(3)) &
-      write (*, '(10X, A, 4ES13.5, 1F16.13)') 'z: ', fbcm_z(1), fbcm_z(2), bulkm, fbcm_z(1)-fbcm_z(2)+bulkm, scale
+      write (*, '(10X, A, 4ES13.5, 1F16.11)') 'z: ', fbcm_z(1), fbcm_z(2), bulkm, fbcm_z(1)-fbcm_z(2)+bulkm, scale
     end if
 #endif
     return
