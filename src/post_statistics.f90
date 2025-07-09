@@ -55,7 +55,7 @@ contains
     fl%pr_mean         = ZERO
     fl%uu_tensor6_mean = ZERO
 
-    if(fl%inittype == INIT_RESTART .and. fl%iteration > dm%stat_istart) then
+    if(fl%inittype == INIT_RESTART .and. fl%iterfrom > dm%stat_istart) then
       call read_statistics_flow(fl, dm)
     end if
 
@@ -119,7 +119,7 @@ contains
     tm%t_mean  = ZERO
     tm%tt_mean = ZERO
 
-    if(tm%inittype == INIT_RESTART .and. tm%iteration > dm%stat_istart) then
+    if(tm%inittype == INIT_RESTART .and. tm%iterfrom > dm%stat_istart) then
       call read_statistics_array(tm%t_mean,  'time_averaged_t',  dm%idom, tm%iterfrom, dm%dccc)
       call read_statistics_array(tm%tt_mean, 'time_averaged_tt', dm%idom, tm%iterfrom, dm%dccc)
     end if
