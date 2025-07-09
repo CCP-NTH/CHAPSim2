@@ -2115,7 +2115,11 @@ contains
     fl%pcor = drhodt + div
 
 !#ifdef DEBUG_STEPS
-    ! write(*,*) 'drhodt', drhodt(1, 1:4, 1)
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
+    write(*,*) 'drhodt+div', coeff
+    fl%pcor = fl%pcor - coeff
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
+    write(*,*) 'corrected drhodt+div', coeff
     ! write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
     ! write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
 !#endif
@@ -2255,7 +2259,7 @@ contains
     real(WP) :: pres_bulk
     real(WP) :: offset(2)
 
-    if(dm%is_thermo) call convert_primary_conservative(fl, dm, IG2Q) ! to check!
+    if(dm%is_thermo) call convert_primary_conservative(fl, dm, IG2Q, IALL) ! to check!
 !----------------------------------------------------------------------------------------------------------
 ! to set up halo b.c. for cylindrical pipe
 !----------------------------------------------------------------------------------------------------------
@@ -2360,7 +2364,7 @@ contains
 ! to update velocity from gx gy gz 
 !----------------------------------------------------------------------------------------------------------
   if(dm%is_thermo) then
-    call convert_primary_conservative(fl, dm, IG2Q)
+    call convert_primary_conservative(fl, dm, IG2Q, IALL)
   end if
 
   ! if(dm%is_thermo .and.isub == dm%nsubitr) then

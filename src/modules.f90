@@ -80,7 +80,7 @@ module parameters_constant_mod
 !----------------------------------------------------------------------------------------------------------
   logical, parameter :: is_IO_off = .false.         ! true for code performance evaluation without IO
   logical, parameter :: is_strong_coupling = .true. ! true = RK(rhoh, g)); false = RK(rhoh) + RK(g)
-  logical, parameter :: is_drhodt_implicit = .true. ! true = (d1-d0)/dt; false = d(rhoh)/dt / (drhoh/drho)
+  logical, parameter :: is_drhodt_implicit = .true. ! false = (d1-d0)/dt; true = d(rhoh)/dt / (drhoh/drho)
 !----------------------------------------------------------------------------------------------------------
 ! constants
 !----------------------------------------------------------------------------------------------------------  
@@ -249,6 +249,9 @@ module parameters_constant_mod
                         SPACE_AVERAGE = 1
   integer, parameter :: IG2Q = -1, &
                         IQ2G = 1
+  integer, parameter :: IBLK = 1, & 
+                        IBND = 2, &
+                        IALL = 3
 !----------------------------------------------------------------------------------------------------------
 ! numerical accuracy
 !----------------------------------------------------------------------------------------------------------             

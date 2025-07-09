@@ -2,7 +2,7 @@ module convert_primary_conservative_mod
   public :: convert_primary_conservative
  contains 
 
-  subroutine convert_primary_conservative(fl, dm, itag)
+  subroutine convert_primary_conservative(fl, dm, itag, iloc)
     use udf_type_mod
     use operations
     use decomp_2d
@@ -12,6 +12,7 @@ module convert_primary_conservative_mod
     type(t_domain), intent(inout)   :: dm
     type(t_flow  ), intent(inout) :: fl
     integer, intent(in) :: itag
+    integer, intent(in) :: iloc
 
     real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3)) ::  d_ccc_ypencil
     real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3)) ::  d_ccc_zpencil
@@ -44,8 +45,10 @@ module convert_primary_conservative_mod
 !----------------------------------------------------------------------------------------------------------
     fbcx_4cc(:, :, :) = dm%fbcx_ftp(:, :, :)%d
     call Get_x_midp_C2P_3D (fl%dDens, d_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4cc)
+    if(iloc == IBLK .or. iloc == IALL) then
     if(itag == IQ2G) fl%gx = fl%qx * d_pcc_xpencil
     if(itag == IG2Q) fl%qx = fl%gx / d_pcc_xpencil
+    end if
 !----------------------------------------------------------------------------------------------------------
 ! y-pencil : u2 -> g2 = u2_cpc * d_cpc
 !----------------------------------------------------------------------------------------------------------
@@ -53,6 +56,7 @@ module convert_primary_conservative_mod
     fbcy_c4c(:, :, :) = dm%fbcy_ftp(:, :, :)%d
     call Get_y_midp_C2P_3D (d_ccc_ypencil, d_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp, fbcy_c4c)
     call axis_estimating_radial_xpx(d_cpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1)) 
+    if(iloc == IBLK .or. iloc == IALL) then
     if(itag == IQ2G) then
       call transpose_x_to_y(fl%qy, qy_cpc_ypencil, dm%dcpc)
       gy_cpc_ypencil = qy_cpc_ypencil * d_cpc_ypencil
@@ -63,12 +67,14 @@ module convert_primary_conservative_mod
       call transpose_y_to_x(qy_cpc_ypencil, fl%qy, dm%dcpc)
     else
     end if
+    end if
 !----------------------------------------------------------------------------------------------------------
 ! Z-pencil : u3 -> g3 = u3_ccp * d_ccp
 !----------------------------------------------------------------------------------------------------------
     call transpose_y_to_z( d_ccc_ypencil,  d_ccc_zpencil, dm%dccc)
     fbcz_cc4(:, :, :) = dm%fbcz_ftp(:, :, :)%d
     call Get_z_midp_C2P_3D (d_ccc_zpencil, d_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp, fbcz_cc4)
+    if(iloc == IBLK .or. iloc == IALL) then
     if(itag == IQ2G) then
       call transpose_x_to_y(fl%qz,          qz_ccp_ypencil, dm%dccp)
       call transpose_y_to_z(qz_ccp_ypencil, qz_ccp_zpencil, dm%dccp)
@@ -83,10 +89,12 @@ module convert_primary_conservative_mod
       call transpose_y_to_x(qz_ccp_ypencil, fl%qz,          dm%dccp)
     else
     end if
+    end if
 
 !----------------------------------------------------------------------------------------------------------
 ! BC: - x pencil
 !----------------------------------------------------------------------------------------------------------
+    if(iloc == IBND .or. iloc == IALL) then
     if(dm%ibcx_qx(1) == IBC_DIRICHLET .or. dm%ibcx_qx(2) == IBC_DIRICHLET) then 
       if(itag == IQ2G) dm%fbcx_gx(:, :, :) = dm%fbcx_qx(:, :, :) * dm%fbcx_ftp(:, :, :)%d
       if(itag == IG2Q) dm%fbcx_qx(:, :, :) = dm%fbcx_gx(:, :, :) / dm%fbcx_ftp(:, :, :)%d
@@ -222,6 +230,7 @@ module convert_primary_conservative_mod
         dm%fbcz_qz(:, :, 4) = dm%fbcz_qz(:, :, 2)
       else
       end if
+    end if
     end if
 
 

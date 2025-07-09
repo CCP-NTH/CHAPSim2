@@ -218,7 +218,7 @@ contains
     if (.not. dm%is_thermo) return
 
     call Update_thermal_properties(fl, tm, dm)
-    call convert_primary_conservative (fl, dm, IQ2G)
+    call convert_primary_conservative (fl, dm, IQ2G, IALL)
 
     if(.not. is_drhodt_implicit) then
     fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
@@ -378,8 +378,9 @@ contains
   end subroutine
 !==========================================================================================================
   subroutine assign_instantaneous_xinlet(fl, dm)
+    use convert_primary_conservative_mod
     implicit none 
-    type(t_flow), intent(in) :: fl
+    type(t_flow), intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
 
     integer :: iter, j, k
@@ -415,11 +416,6 @@ contains
       !if(nrank == 0) write(*,*) 'fbcx_qx2 = ', iter, dm%fbcx_qx(1, :, 32)
     end if
 
-        ! test
-    !write(*,*) 'j, fl%qx(1, j, 1), dm%fbcx_qx(1, j, 1)'
-    !do j = 1, dm%dpcc%xsz(2)
-      !write(*,*) j, fl%qx(1, j, 1), dm%fbcx_qx(1, j, 1)
-    !end do
 
     if(dm%ibcx_nominal(1, 2) == IBC_DATABASE) then
       dtmp = dm%dcpc
@@ -452,6 +448,10 @@ contains
         end do
       end do
       !if(nrank == 0) write(*,*) 'fbcx_pr = ', iter, dm%fbcx_pr(1, :, :)
+    end if
+
+    if(dm%is_thermo) then
+      call convert_primary_conservative(fl, dm, IQ2G, IBND)
     end if
 
     return
@@ -494,7 +494,7 @@ contains
   subroutine read_instantaneous_xinlet(fl, dm)
     use typeconvert_mod
     implicit none 
-    type(t_flow), intent(in) :: fl
+    type(t_flow), intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
     
     character(120):: data_flname_path

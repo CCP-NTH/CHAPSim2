@@ -409,7 +409,7 @@ contains
         end do
       end do
       if(dm%is_thermo) then
-        call convert_primary_conservative (fl, dm, IQ2G)
+        call convert_primary_conservative (fl, dm, IQ2G, IALL)
         uz = fl%gz
         str = 'gz'
       else
@@ -422,7 +422,7 @@ contains
       uz = uz / ubulk
       if(dm%is_thermo) then
         fl%gz = uz
-        call convert_primary_conservative(fl, dm, IG2Q)
+        call convert_primary_conservative(fl, dm, IG2Q, IALL)
       else
         fl%qz = uz
       end if
@@ -440,7 +440,7 @@ contains
         end do
       end do
       if(dm%is_thermo) then
-        call convert_primary_conservative (fl, dm, IQ2G)
+        call convert_primary_conservative (fl, dm, IQ2G, IALL)
         ux = fl%gx
         str = 'gx'
       else
@@ -453,7 +453,7 @@ contains
       ux = ux / ubulk
       if(dm%is_thermo) then
         fl%gx = ux
-        call convert_primary_conservative(fl, dm, IG2Q)
+        call convert_primary_conservative(fl, dm, IG2Q, IALL)
       else
         fl%qx = ux
       end if
@@ -638,9 +638,9 @@ contains
     call Find_max_min_3d(fl%qz, opt_name="qz")
 
     if(dm%is_thermo) then
-      call convert_primary_conservative (fl, dm, IQ2G)
+      call convert_primary_conservative (fl, dm, IQ2G, IALL)
       !call update_dyn_fbcx_from_flow(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcx_gy, dm%fbcx_gz)
-      !call convert_primary_conservative(fl, dm, IG2Q)
+      !call convert_primary_conservative(fl, dm, IG2Q, IALL)
       if(nrank == 0) call Print_debug_inline_msg("Max/Min [mass flux] for real initial flow field:")
       call Find_max_min_3d(fl%gx, opt_name="gx")
       call Find_max_min_3d(fl%gy, opt_name="gy")
