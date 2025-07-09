@@ -80,7 +80,7 @@ module parameters_constant_mod
 !----------------------------------------------------------------------------------------------------------
   logical, parameter :: is_IO_off = .false.         ! true for code performance evaluation without IO
   logical, parameter :: is_strong_coupling = .true. ! true = RK(rhoh, g)); false = RK(rhoh) + RK(g)
-  logical, parameter :: is_drhodt_implicit = .true. ! false = (d1-d0)/dt; true = d(rhoh)/dt / (drhoh/drho)
+  logical, parameter :: is_drhodt_implicit = .false. ! false = (d1-d0)/dt; true = d(rhoh)/dt / (drhoh/drho)
 !----------------------------------------------------------------------------------------------------------
 ! constants
 !----------------------------------------------------------------------------------------------------------  
