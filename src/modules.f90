@@ -144,15 +144,15 @@ module parameters_constant_mod
 
   real(WP), parameter :: EIGHTYSEVEN = 87.0_WP
 
-  real(WP), parameter :: MINP        = 1.0E-16_WP
+  real(WP), parameter :: MINP        = 2.5E-16_WP
   real(WP), parameter :: MAXP        = 1.0E16_WP
   real(WP), parameter :: MAXVELO     = 1.0E3_WP
 
   real(WP), parameter :: MINN        = -1.0E16_WP
-  real(WP), parameter :: MAXN        = -1.0E-16_WP
+  real(WP), parameter :: MAXN        = -2.5E-16_WP
 
 
-  real(WP), parameter :: TRUNCERR    = 1.0E-16_WP
+  real(WP), parameter :: TRUNCERR    = 2.5E-16_WP
 
   
 
