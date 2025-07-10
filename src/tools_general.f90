@@ -1269,7 +1269,7 @@ contains
 
     ! Check for large numbers
     if (maxval(dabs(var)) > 1.0e+10) then
-        write(*,*) 'Large number detected (nrank=', nrank, ') in ', trim(varname)
+        write(*,*) 'Warning: Large number detected (nrank=', nrank, ') in ', trim(varname), ' val = ', maxval(dabs(var))
         call Print_error_msg('A large number is found. Stopping execution.')
     end if
 
