@@ -468,8 +468,8 @@ subroutine inversion5_v1(aaa_in,eee,spI)
         mi = m + i
         do k = spI%yst(3), spI%yen(3)
            do j = spI%yst(1), spI%yen(1)
-              if (rl(aaa(j,m,k,3)) /= zero) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
-              if (iy(aaa(j,m,k,3)) /= zero) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
+              if (dabs(rl(aaa(j,m,k,3))) > MINP) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
+              if (dabs(iy(aaa(j,m,k,3))) > MINP) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
               sr(j,k)=cx(tmp1,tmp2)
               eee(j,mi,k)=cx(rl(eee(j,mi,k)) - tmp1 * rl(eee(j,m,k)),&
                              iy(eee(j,mi,k)) - tmp2 * iy(eee(j,m,k)))
@@ -610,8 +610,8 @@ subroutine inversion5_v2(aaa,eee,spI)
         mi = m + i
         do k = spI%yst(3), spI%yen(3)
            do j = spI%yst(1), spI%yen(1)
-              if (rl(aaa(j,m,k,3)) /= zero) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
-              if (iy(aaa(j,m,k,3)) /= zero) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
+              if (dabs(rl(aaa(j,m,k,3))) > MINP) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
+              if (dabs(iy(aaa(j,m,k,3))) > MINP) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
               sr(j,k) = cx(tmp1, tmp2)
               eee(j,mi,k) = cx(rl(eee(j,mi,k)) - tmp1 * rl(eee(j,m,k)),&
                                iy(eee(j,mi,k)) - tmp2 * iy(eee(j,m,k)))
@@ -3048,7 +3048,7 @@ contains
        !not to have a singular matrice
        do k = sp%yst(3), sp%yen(3)
           do i = sp%yst(1), sp%yen(1)
-             if ((rl(xk2(i)) == zero).and.(rl(zk2(k)) == zero)) then
+             if ((dabs(rl(xk2(i))) < MINP).and.(dabs(rl(zk2(k))) < MINP)) then
                 a(i,1,k,3)=cx_one_one
                 a(i,1,k,4) = zero
                 a(i,1,k,5) = zero
