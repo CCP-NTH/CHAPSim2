@@ -273,7 +273,7 @@ contains
     integer :: i, j, n, jj
 
     jj = 0
-    do j = 1, 1, size(fbcz, 2)
+    do j = 1, size(fbcz, 2)
       if(present(jst)) jj = jst + j - 1
       do i = 1, size(fbcz, 1)
         do n = 1, 2
