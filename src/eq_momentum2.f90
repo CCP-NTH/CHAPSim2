@@ -807,7 +807,7 @@ contains
     end if
 #endif
       call transpose_y_to_x(acpc_ypencil, acpc_xpencil, dm%dcpc) !acpc_xpencil = muiy_cpc_xpencil
-      call get_fbcx_ftp_4pc(fbcx_4cc, fbcx_4pc, dm)
+      if(is_fbcx_velo_required) call get_fbcx_ftp_4pc(fbcx_4cc, fbcx_4pc, dm)
       call Get_x_midp_C2P_3D(acpc_xpencil, muixy_ppc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4pc)
 
       !
@@ -2115,11 +2115,11 @@ contains
     fl%pcor = drhodt + div
 
 !#ifdef DEBUG_STEPS
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
-    write(*,*) 'drhodt+div', coeff
-    fl%pcor = fl%pcor - coeff
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
-    write(*,*) 'corrected drhodt+div', coeff
+    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
+    !write(*,*) 'drhodt+div', coeff
+    !fl%pcor = fl%pcor - coeff
+    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
+    !write(*,*) 'corrected drhodt+div', coeff
     ! write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
     ! write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
 !#endif
@@ -2332,7 +2332,6 @@ contains
 !write(*,*) 'pres', fl%pres(1, 1:4, 1)
 !write(*,*) 'pcor', fl%pcor(1, 1:4, 1)
     fl%pres = fl%pres + fl%pcor
-
     call Find_max_min_3d(fl%pres, opt_calc='MINI', opt_work=offset)
     fl%pres = fl%pres - offset(1)
     ! correct pressure drift

@@ -595,20 +595,18 @@ contains
     real(WP) :: fbc
 
 
-    if(dm%ibcx_nominal(2, 5) == IBC_CONVECTIVE) then
+    if(dm%ibcx_ftp(2) == IBC_DIRICHLET) then
       fbcx_4cc(:, :, :) = fbcx_ftp_4cc(:, :, :)
       call transpose_x_to_y(fbcx_4cc, a4cc_ypencil, dm%d4cc)
       do i = 1, dm%d4pc%ysz(1)
         do k = 1, dm%d4pc%ysz(3)
-          do j = 1, dm%d4pc%ysz(2)
-            if (j==1) then
-              a4pc_ypencil(i, j, k) = (THREE * a4cc_ypencil(i, j, k) - a4cc_ypencil(i, j+1, k))/TWO
-            else if (j==dm%d4pc%ysz(2)) then
-              if(j<=2) call Print_error_msg('get_fbcx_ftp_4pc decomposition error')
-              a4pc_ypencil(i, j, k) = (THREE * a4cc_ypencil(i, j-1, k) - a4cc_ypencil(i, j-2, k))/TWO
-            else
-              a4pc_ypencil(i, j, k) = (a4cc_ypencil(i, j-1, k) + a4cc_ypencil(i, j, k))/TWO
-            end if
+          j = 1
+          a4pc_ypencil(i, j, k) = (THREE * a4cc_ypencil(i, j, k) - a4cc_ypencil(i, j+1, k))/TWO
+          j= dm%d4pc%ysz(2)
+          if(j<=2) call Print_error_msg('get_fbcx_ftp_4pc decomposition error')
+          a4pc_ypencil(i, j, k) = (THREE * a4cc_ypencil(i, j-1, k) - a4cc_ypencil(i, j-2, k))/TWO
+          do j = 2, dm%d4pc%ysz(2)-1
+            a4pc_ypencil(i, j, k) = (a4cc_ypencil(i, j-1, k) + a4cc_ypencil(i, j, k))/TWO
           end do
         end do
       end do 
@@ -616,8 +614,8 @@ contains
       ! call Get_y_midp_C2P_3D(a4cc_ypencil, a4pc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp, fbcy_44c)
        call transpose_y_to_x(a4pc_ypencil, a4pc_xpencil, dm%d4pc)
        fbcx_ftp_4pc(:, :, :) = a4pc_xpencil(:, :, :)
-    !else
-      !fbcx_ftp_4pc(2, :, :) = MAXP 
+    else
+      fbcx_ftp_4pc(2, :, :) = MAXP 
     end if
 
     if(dm%ibcx_ftp(1) == IBC_DIRICHLET) then

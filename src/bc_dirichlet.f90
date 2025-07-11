@@ -457,39 +457,45 @@ contains
 !----------------------------------------------------------------------------------------------------------
       if(dm%ibcx_nominal(n, 5) == IBC_DIRICHLET) then
         dm%fbcx_ftp(n, :, :)%t   = dm%fbcx_const(n, 5)
-        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcx_ftp)
+        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcx_ftp(n:n, :, :))
       else if (dm%ibcx_nominal(n, 5) == IBC_NEUMANN) then
         dm%fbcx_qw(n, :, :) = dm%fbcx_const(n, 5) 
-        dm%fbcx_ftp = tm%ftp_ini
+        dm%fbcx_ftp(n, :, :) = tm%ftp_ini
       else
-        dm%fbcx_ftp = tm%ftp_ini
+        dm%fbcx_ftp(n, :, :) = tm%ftp_ini
       end if
 !----------------------------------------------------------------------------------------------------------
 ! y-bc in y-pencil, ftp, qx, qy, qz, pr
 !----------------------------------------------------------------------------------------------------------
       if(dm%ibcy_nominal(n, 5) == IBC_DIRICHLET) then
         dm%fbcy_ftp(:, n, :)%t   = dm%fbcy_const(n, 5)
-        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp)
+        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp(:, n:n, :))
         !write(*,*) 'test, bc-T', dm%fbcy_const(n, 5), dm%fbcy_ftp(4, n, 4)%t
       else if (dm%ibcy_nominal(n, 5) == IBC_NEUMANN) then
         dm%fbcy_qw(:, n, :) = dm%fbcy_const(n, 5) 
-        dm%fbcy_ftp = tm%ftp_ini
+        dm%fbcy_ftp(n, :, :) = tm%ftp_ini
       else
-        dm%fbcy_ftp = tm%ftp_ini
+        dm%fbcy_ftp(n, :, :) = tm%ftp_ini
       end if
 !----------------------------------------------------------------------------------------------------------
 ! z-bc in z-pencil, qx, qy, qz, pr
 !----------------------------------------------------------------------------------------------------------
       if( dm%ibcz_nominal(n, 5) == IBC_DIRICHLET ) then
         dm%fbcz_ftp(:, :, n)%t   = dm%fbcz_const(n, 5)
-        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcz_ftp)
+        call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcz_ftp(:, :, n:n))
       else if (dm%ibcz_nominal(n, 5) == IBC_NEUMANN) then
         dm%fbcz_qw(:, :, n) = dm%fbcz_const(n, 5) 
-        dm%fbcz_ftp = tm%ftp_ini
+        dm%fbcz_ftp(n, :, :) = tm%ftp_ini
       else 
-        dm%fbcz_ftp = tm%ftp_ini
+        dm%fbcz_ftp(n, :, :) = tm%ftp_ini
       end if
     end do
+    dm%fbcx_ftp(3, :, :) = dm%fbcx_ftp(1, :, :)
+    dm%fbcx_ftp(4, :, :) = dm%fbcx_ftp(2, :, :)
+    dm%fbcy_ftp(3, :, :) = dm%fbcy_ftp(1, :, :)
+    dm%fbcy_ftp(4, :, :) = dm%fbcy_ftp(2, :, :)
+    dm%fbcz_ftp(3, :, :) = dm%fbcz_ftp(1, :, :)
+    dm%fbcz_ftp(4, :, :) = dm%fbcz_ftp(2, :, :)
 
     return
   end subroutine 
