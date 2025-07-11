@@ -800,24 +800,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (bcx==0 .and. bcy==0 .and. bcz==0) then
        poisson => poisson_000
-#ifdef DEBUG_STEPS
-   write(*,*) 'poisson_000 is used.'
-#endif
+!#ifdef DEBUG_STEPS
+   if(nrank == 0) write(*,*) 'poisson_000 is used.'
+!#endif
     else if (bcx==1 .and. bcy==0 .and. bcz==0) then
        poisson => poisson_100
-#ifdef DEBUG_STEPS
-   write(*,*) 'poisson_100 is used.'
-#endif
+!#ifdef DEBUG_STEPS
+   if(nrank == 0) write(*,*) 'poisson_100 is used.'
+!#endif
     else if (bcx==0 .and. bcy==1 .and. bcz==0) then
        poisson => poisson_010
-#ifdef DEBUG_STEPS
-   write(*,*) 'poisson_010 is used.'
-#endif
+!#ifdef DEBUG_STEPS
+   if(nrank == 0) write(*,*) 'poisson_010 is used.'
+!#endif
     else if (bcx==1 .and. bcy==1) then   ! 110 & 111
        poisson => poisson_11x
-#ifdef DEBUG_STEPS
-   write(*,*) 'poisson_11x is used.'
-#endif
+!#ifdef DEBUG_STEPS
+   if(nrank == 0) write(*,*) 'poisson_11x is used.'
+!#endif
     else
        error stop 'boundary condition not supported'
     end if
