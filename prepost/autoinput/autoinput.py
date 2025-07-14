@@ -131,7 +131,8 @@ class BC(Enum):
     TURGEN = 8
     PROFL = 9
     DATABS = 10
-    OTHERS = 11
+    PARABOLIC = 11
+    OTHERS = 12
 
 
 # a general input 
@@ -456,6 +457,9 @@ def get_bc_settings():
     if icase == Case.TGV3D.value:
       iinlet = 0
     else:
+      iinlet = get_input("Is the streamwise periodic? (1:Yes, 0:No) ", 1, int)
+      if(iinlet != 1):
+          iinlet = get_input("Inlet boundary condition: ", 0, int)
       iinlet = get_input("Use database for the streamwise inlet? (1:Yes, 0:No) ", 0, int)
 
 

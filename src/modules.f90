@@ -237,7 +237,8 @@ module parameters_constant_mod
                         IBC_TURBGEN     = 8, & ! nominal only, = IBC_PERIODIC, bulk, 2 ghost layers, dynamic fbc
                         IBC_PROFILE1D   = 9, & ! nominal only, = IBC_DIRICHLET, 
                         IBC_DATABASE    = 10, &! nominal only, = IBC_PERIODIC, bulk, 2 ghost layers, dynamic fbc
-                        IBC_OTHERS      = 11   ! interpolation
+                        IBC_POISEUILLE  = 11, &! nominal only, = IBC_DIRICHLET, 
+                        IBC_OTHERS      = 12   ! interpolation
   integer, parameter :: NBC = 5! u, v, w, p, T
   integer, parameter :: NDIM = 3
   integer, parameter :: IDIM(0:3) = (/0, 1, 2, 3/)

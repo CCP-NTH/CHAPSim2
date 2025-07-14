@@ -469,13 +469,38 @@ contains
     ! if(dm%ibcx_nominal(1, 1) == IBC_PROFILE1D) then
     !   call initialise_fbcx_given_profile(dm%fbcx_qx, ux_xy, dm%dpcc%xst(2), 'qx')
     ! end if
-    if(dm%ibcx_nominal(1, 1) == IBC_DATABASE .and. &
-       dm%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
+    if(dm%ibcx_nominal(1, 1) == IBC_DATABASE) then
       call extract_dirichlet_fbcx(dm%fbcx_qx, fl%qx, dm%dpcc)
       call extract_dirichlet_fbcx(dm%fbcx_qy, fl%qy, dm%dcpc)
       call extract_dirichlet_fbcx(dm%fbcx_qz, fl%qz, dm%dccp)
+    else if(dm%ibcx_nominal(1, 1) == IBC_POISEUILLE .and. dm%icase /= ICASE_DUCT) then
+      dtmp = dm%dpcc
+      do j = 1, dtmp%xsz(2)
+        jj = dtmp%xst(2) + j - 1
+        do k = 1, dtmp%xsz(3)
+          dm%fbcx_qx(1, j, k) =  u_xy(1, jj)
+          dm%fbcx_qy(1, j, k) = ZERO
+          dm%fbcx_qz(1, j, k) = ZERO
+        end do
+      end do
+      dm%fbcx_qx(2, :, :) = dm%fbcx_qx(1, :, :)
+      dm%fbcx_qy(2, :, :) = dm%fbcx_qy(1, :, :)
+      dm%fbcx_qz(2, :, :) = dm%fbcx_qz(1, :, :)
+    else if(dm%ibcx_nominal(1, 1) == IBC_POISEUILLE .and. dm%icase == ICASE_DUCT) then
+      dtmp = dm%dccp
+      do j = 1, dtmp%xsz(2)
+        jj = dtmp%xst(2) + j - 1
+        do i = 1, dtmp%xsz(1)
+          dm%fbcz_qx(i, j, 1) =  u_xy(i, jj)
+          dm%fbcz_qy(i, j, 1) = ZERO
+          dm%fbcz_qz(i, j, 1) = ZERO
+        end do
+      end do
+      dm%fbcz_qx(:, :, 2) = dm%fbcz_qx(:, :, 1)
+      dm%fbcz_qy(:, :, 2) = dm%fbcz_qy(:, :, 1)
+      dm%fbcz_qz(:, :, 2) = dm%fbcz_qz(:, :, 1)
+    else
     end if
-    
     !if(nrank == 0) call Print_debug_end_msg()
 
     return

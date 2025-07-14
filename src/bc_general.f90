@@ -87,6 +87,8 @@ function get_name_bc(ibc) result(str)
     str = 'IBC_PROFILE1D'
   case ( IBC_DATABASE )
     str = 'IBC_DATABASE'
+  case ( IBC_POISEUILLE )
+    str = 'IBC_POISEUILLE'
   case default
     call Print_error_msg('Boundary Conditions Not Supported.')
   end select
@@ -108,7 +110,9 @@ end function
           case (IBC_PROFILE1D)
             ! Use Dirichlet BC for all variables
             ibc(n, m) = IBC_DIRICHLET
-
+          case (IBC_POISEUILLE)
+            ! Use Dirichlet BC for all variables
+            ibc(n, m) = IBC_DIRICHLET
           case (IBC_TURBGEN)
             select case (m)
               case (5)

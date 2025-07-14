@@ -2116,7 +2116,7 @@ contains
 
 !#ifdef DEBUG_STEPS
     !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
-    !write(*,*) 'drhodt+div', coeff
+    !write(*,*) 'input', fl%pcor(:, 2, 2)
     !fl%pcor = fl%pcor - coeff
     !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
     !write(*,*) 'corrected drhodt+div', coeff
@@ -2146,11 +2146,11 @@ contains
     call Find_max_min_3d(fl%pcor, opt_calc='MINI', opt_work=offset)
     fl%pcor = fl%pcor - offset(1)
 
-#ifdef DEBUG_STEPS
-    call wrt_3d_pt_debug (fl%pcor, dm%dccc,   fl%iteration, isub, 'phi@sol phi') ! debug_ww
+!#ifdef DEBUG_STEPS
+    !call wrt_3d_pt_debug (fl%pcor, dm%dccc,   fl%iteration, isub, 'phi@sol phi') ! debug_ww
     !call wrt_3d_all_debug(fl%pcor, dm%dccc,   fl%iteration, 'phi@sol phi') ! debug_ww
-    write(*,*) 'solved_phi', fl%pcor(1, 1:4, 1)
-#endif
+    !write(*,*) 'solved_phi', fl%pcor(:, 2, 2)
+!#endif
     return
   end subroutine
 ! !==========================================================================================================
