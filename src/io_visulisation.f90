@@ -777,11 +777,11 @@ contains
                                 N_DIRECTION)
 
     ! Process and write velocity components (qx, qy, qz)
-    call process_and_write_field(fl%qx, dm, "ux", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qx, dm, "qx", trim(visu_filename), iteration, &
                                 X_DIRECTION, opt_bc=dm%ibcx_qx)
-    call process_and_write_field(fl%qy, dm, "uy", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qy, dm, "qy", trim(visu_filename), iteration, &
                                 Y_DIRECTION, opt_bc=dm%ibcy_qy)
-    call process_and_write_field(fl%qz, dm, "uz", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qz, dm, "qz", trim(visu_filename), iteration, &
                                 Z_DIRECTION, opt_bc=dm%ibcz_qz)
 
     ! Process and write thermal fields if enabled

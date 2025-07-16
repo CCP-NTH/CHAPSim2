@@ -2088,7 +2088,7 @@ contains
     integer,        intent( in    ) :: isub
 
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div, drhodt
-    real(WP) :: coeff, offset(2)
+    real(WP) :: coeff!, offset(2)
 
 #ifdef DEBUG_STEPS  
     if(nrank == 0) &
@@ -2143,8 +2143,8 @@ contains
 !----------------------------------------------------------------------------------------------------------
     call solve_fft_poisson(fl%pcor, dm)
 
-    call Find_max_min_3d(fl%pcor, opt_calc='MINI', opt_work=offset)
-    fl%pcor = fl%pcor - offset(1)
+    !call Find_max_min_3d(fl%pcor, opt_calc='MINI', opt_work=offset)
+    !fl%pcor = fl%pcor - offset(1)
 
 !#ifdef DEBUG_STEPS
     !call wrt_3d_pt_debug (fl%pcor, dm%dccc,   fl%iteration, isub, 'phi@sol phi') ! debug_ww
@@ -2257,7 +2257,7 @@ contains
     logical :: flg_bc_conv
     integer :: i
     real(WP) :: pres_bulk
-    real(WP) :: offset(2)
+    !real(WP) :: offset(2)
 
     if(dm%is_thermo) call convert_primary_conservative(fl, dm, IG2Q, IALL) ! to check!
 !----------------------------------------------------------------------------------------------------------
@@ -2332,8 +2332,8 @@ contains
 !write(*,*) 'pres', fl%pres(1, 1:4, 1)
 !write(*,*) 'pcor', fl%pcor(1, 1:4, 1)
     fl%pres = fl%pres + fl%pcor
-    call Find_max_min_3d(fl%pres, opt_calc='MINI', opt_work=offset)
-    fl%pres = fl%pres - offset(1)
+    !call Find_max_min_3d(fl%pres, opt_calc='MINI', opt_work=offset)
+    !fl%pres = fl%pres - offset(1)
     ! correct pressure drift
     !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
     !fl%pres = fl%pres - pres_bulk
