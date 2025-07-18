@@ -317,6 +317,8 @@ if [[ -f "$LIB_FILE" && "$LIB_REBUILD" != "yes" ]]; then
     LIB_REBUILD=$(get_yes_no_input "Rebuild 2decomp library?(y/n)" "no")
     if [[ "$LIB_REBUILD" =~ ^(yes|y)$ ]]; then
         cd "$PATH_LIB" || { echo "Error: Cannot access $PATH_LIB"; exit 1; }
+        shopt -s extglob
+        find . -maxdepth 1 -not -name 'build_cmake_2decomp.sh' -not -name '.' -exec rm -rv {} +
         ./build_cmake_2decomp.sh || { echo "Error: CMake build failed in $PATH_LIB"; exit 1; }
     fi
 else
