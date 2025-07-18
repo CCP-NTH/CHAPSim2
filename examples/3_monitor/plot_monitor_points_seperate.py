@@ -103,9 +103,10 @@ def plot_single_monitor_point(point_num, M):
     
     return True
 
-def plot_individual_monitor_points(N, M):
+def plot_individual_monitor_points(N, M, R):
     """Plot each monitor point in its own separate figure."""
     print(f"\nStarting to plot {N} individual monitor points...")
+    print(f"Skipping {R} rows.\n")
     print(f"Sampling interval: every {M} points\n")
     
     successful_plots = 0
@@ -186,6 +187,17 @@ if __name__ == "__main__":
                 print(f"Please enter a number between 1 and {max_available}")
         except ValueError:
             print("Please enter a valid integer")
+            
+    # Get user input for skipping rows
+    while True:
+        try:
+            R = int(input("Enter number of lines to skip at the top of the files:"))
+            if R > 0:
+                break
+            else:
+                print("Please enter a positive integer")
+        except ValueError:
+            print("Please enter a valid integer")
     
     # Get user input for sampling interval
     while True:
@@ -199,7 +211,7 @@ if __name__ == "__main__":
             print("Please enter a valid integer")
     
     # Create the plots
-    successful = plot_individual_monitor_points(N, M)
+    successful = plot_individual_monitor_points(N, M, R)
     
     if successful == 0:
         print("\nNo plots were created. Please check your input files.")

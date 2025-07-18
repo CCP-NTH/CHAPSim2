@@ -1,4 +1,9 @@
 module io_tools_mod
+  use print_msg_mod
+  use parameters_constant_mod
+  use decomp_2d_io
+  use udf_type_mod
+  use io_files_mod
   implicit none
 
   !----------------------------------------------------------------------------------------------------------
@@ -17,7 +22,56 @@ module io_tools_mod
   public :: generate_file_name
   public :: generate_pathfile_name
 
+  public  :: write_one_3d_array
+  public  :: read_one_3d_array
+
 contains
+
+!==========================================================================================================
+!==========================================================================================================
+  subroutine read_one_3d_array(var, keyword, idom, iter, dtmp)
+    implicit none 
+    integer, intent(in) :: idom
+    character(*), intent(in) :: keyword
+    integer, intent(in) :: iter
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), dimension(:, :, :), intent(out) :: var( dtmp%xsz(1), &
+                                                      dtmp%xsz(2), &
+                                                      dtmp%xsz(3))
+    character(64):: data_flname_path
+
+    call generate_file_name(data_flname_path, idom, trim(keyword), 'bin', iter)
+    if(.not.file_exists(data_flname_path)) call Print_error_msg("The file "//trim(data_flname_path)//" does not exist.")
+
+    if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(dir_data)//"/"//trim(data_flname_path))
+
+    call decomp_2d_read_one(IPENCIL(1), var, trim(data_flname_path), &
+          opt_dirname=trim(dir_data), &
+          opt_decomp=dtmp, &
+          opt_reduce_prec=.false.)
+
+    return
+  end subroutine
+!==========================================================================================================
+!==========================================================================================================
+  subroutine write_one_3d_array(var, keyword, idom, iter, dtmp, opt_flname)
+    implicit none 
+    real(WP), contiguous, intent(in) :: var( :, :, :)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    character(*), intent(in) :: keyword
+    integer, intent(in) :: idom
+    integer, intent(in) :: iter
+    character(64), intent(out), optional :: opt_flname
+
+    character(64):: data_flname_path
+
+    call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
+    if(.not.file_exists(data_flname_path)) &
+    call decomp_2d_write_one(IPENCIL(1), var, trim(data_flname_path), opt_decomp=dtmp)
+    if(present(opt_flname)) opt_flname = data_flname_path
+
+    return
+  end subroutine
   
 !==========================================================================================================
   subroutine initialise_decomp_io(dm)
@@ -48,10 +102,10 @@ contains
     character(*), intent(in) :: keyword
     character(*), intent(in) :: path
     character(*), intent(in) :: extension
-    character(120), intent(inout), optional :: opt_flname
-    character(120), intent(out) :: flname_path
+    character(64), intent(inout), optional :: opt_flname
+    character(64), intent(out) :: flname_path
     integer, intent(in), optional     :: opt_timetag
-    character(120) :: flname
+    character(64) :: flname
 
     if(present(opt_timetag)) then
       flname = "/domain"//trim(int2str(dmtag))//'_'//trim(keyword)//'_'//trim(int2str(opt_timetag))//"."//trim(extension)
@@ -73,7 +127,7 @@ contains
     
     character(*), intent(in) :: keyword
     character(*), intent(in) :: extension
-    character(120), intent(out) :: flname
+    character(64), intent(out) :: flname
     integer, intent(in), optional      :: timetag
 
     if(present(timetag)) then

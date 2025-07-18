@@ -329,6 +329,7 @@ contains
 #endif
 
     n = dm%dccc%xsz(1)
+    fl%mcon = ZERO
     if(dm%is_periodic(1)) then
       nlayer = 0
     else

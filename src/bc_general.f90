@@ -143,7 +143,7 @@ end function
             ! Typically for convective outlet conditions
             if (m == 4) then
               ! Pressure: Neumann
-              ibc(n, m) = IBC_NEUMANN
+              ibc(n, m) = IBC_NEUMANN !IBC_DIRICHLET !IBC_NEUMANN
             else
               ! Velocity and temperature: Dirichlet (to be verified)
               ibc(n, m) = IBC_DIRICHLET

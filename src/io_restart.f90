@@ -9,80 +9,41 @@ module io_restart_mod
 
   character(len=10), parameter :: io_name = "restart-io"
 
-  private :: write_instantaneous_array
   public  :: write_instantaneous_flow
-  public  :: write_instantaneous_thermo
-  private :: read_instantaneous_array
   public  :: read_instantaneous_flow
-  public  :: read_instantaneous_thermo
   public  :: restore_flow_variables_from_restart
+
+  public  :: write_instantaneous_thermo
+  public  :: read_instantaneous_thermo
   public  :: restore_thermo_variables_from_restart
 
   private :: append_instantaneous_xoutlet
-  private :: write_instantaneous_plane !not used
-  public  :: write_instantaneous_xoutlet
-
   private :: assign_instantaneous_xinlet
-  private :: read_instantaneous_plane !not used
+  public  :: write_instantaneous_xoutlet
   public  :: read_instantaneous_xinlet
 
+  !private :: write_instantaneous_plane !not used
+  !private :: read_instantaneous_plane !not used
+
 contains 
-!==========================================================================================================
-!==========================================================================================================
-  subroutine read_instantaneous_array(var, keyword, idom, iter, dtmp)
-    implicit none 
-    integer, intent(in) :: idom
-    character(*), intent(in) :: keyword
-    integer, intent(in) :: iter
-    type(DECOMP_INFO), intent(in) :: dtmp
-    real(WP), dimension(:, :, :), intent(out) :: var( dtmp%xsz(1), &
-                                                      dtmp%xsz(2), &
-                                                      dtmp%xsz(3))
-    character(120):: data_flname
 
-    call generate_file_name(data_flname, idom, trim(keyword), 'bin', iter)
-    if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(dir_data)//"/"//trim(data_flname))
-
-    call decomp_2d_read_one(IPENCIL(1), var, trim(data_flname), &
-          opt_dirname=trim(dir_data), &
-          opt_decomp=dtmp, &
-          opt_reduce_prec=.false.)
-
-    return
-  end subroutine
-!==========================================================================================================
-!==========================================================================================================
-  subroutine write_instantaneous_array(var, keyword, idom, iter, dtmp)
-    implicit none 
-    real(WP), contiguous, intent(in) :: var( :, :, :)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    character(*), intent(in) :: keyword
-    integer, intent(in) :: idom
-    integer, intent(in) :: iter
-    
-    character(120):: data_flname_path
-
-    call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
-    call decomp_2d_write_one(IPENCIL(1), var, trim(data_flname_path), opt_decomp=dtmp)
-
-    return
-  end subroutine
 !==========================================================================================================
 !==========================================================================================================
   subroutine write_instantaneous_flow(fl, dm)
+    use io_tools_mod
     implicit none
     type(t_domain), intent(in) :: dm
     type(t_flow),   intent(in) :: fl
 
-    character(120):: data_flname_path
-    character(120):: keyword
+    character(64):: data_flname_path
+    character(64):: keyword
 
     if(nrank == 0) call Print_debug_inline_msg("writing out instantaneous 3d flow data ...")
 
-    call write_instantaneous_array(fl%qx, 'qx', dm%idom, fl%iteration, dm%dpcc)
-    call write_instantaneous_array(fl%qy, 'qy', dm%idom, fl%iteration, dm%dcpc)
-    call write_instantaneous_array(fl%qz, 'qz', dm%idom, fl%iteration, dm%dccp)
-    call write_instantaneous_array(fl%pres, 'pr', dm%idom, fl%iteration, dm%dccc)
+    call write_one_3d_array(fl%qx, 'qx', dm%idom, fl%iteration, dm%dpcc)
+    call write_one_3d_array(fl%qy, 'qy', dm%idom, fl%iteration, dm%dcpc)
+    call write_one_3d_array(fl%qz, 'qz', dm%idom, fl%iteration, dm%dccp)
+    call write_one_3d_array(fl%pres, 'pr', dm%idom, fl%iteration, dm%dccc)
 
     if(nrank == 0) call Print_debug_end_msg()
     return
@@ -95,14 +56,14 @@ contains
     type(t_domain), intent(in) :: dm
     type(t_thermo), intent(in) :: tm
 
-    character(120):: data_flname_path
-    character(120):: keyword
+    character(64):: data_flname_path
+    character(64):: keyword
     
 
     if(nrank == 0) call Print_debug_inline_msg("writing out instantaneous 3d thermo data ...")
 
-    call write_instantaneous_array(tm%rhoh,  'rhoh', dm%idom, tm%iteration, dm%dccc)
-    call write_instantaneous_array(tm%tTemp, 'temp', dm%idom, tm%iteration, dm%dccc)
+    call write_one_3d_array(tm%rhoh,  'rhoh', dm%idom, tm%iteration, dm%dccc)
+    call write_one_3d_array(tm%tTemp, 'temp', dm%idom, tm%iteration, dm%dccc)
 
     if(nrank == 0) call Print_debug_end_msg()
     return
@@ -110,20 +71,23 @@ contains
 !==========================================================================================================
 !==========================================================================================================
   subroutine read_instantaneous_flow(fl, dm)
+    use io_tools_mod
     implicit none
     type(t_domain), intent(inout) :: dm
     type(t_flow),   intent(inout) :: fl
 
-    character(120):: data_flname
-    character(120):: keyword
+    character(64):: data_flname
+    character(64):: keyword
 
 
     if(nrank == 0) call Print_debug_inline_msg("read instantaneous flow data ...")
+    fl%iteration = fl%iterfrom
+    fl%time = real(fl%iterfrom, WP) * dm%dt 
 
-    call read_instantaneous_array(fl%qx, 'qx', dm%idom, fl%iterfrom, dm%dpcc)
-    call read_instantaneous_array(fl%qy, 'qy', dm%idom, fl%iterfrom, dm%dcpc)
-    call read_instantaneous_array(fl%qz, 'qz', dm%idom, fl%iterfrom, dm%dccp)
-    call read_instantaneous_array(fl%pres, 'pr', dm%idom, fl%iterfrom, dm%dccc)
+    call read_one_3d_array(fl%qx,   'qx', dm%idom, fl%iterfrom, dm%dpcc)
+    call read_one_3d_array(fl%qy,   'qy', dm%idom, fl%iterfrom, dm%dcpc)
+    call read_one_3d_array(fl%qz,   'qz', dm%idom, fl%iterfrom, dm%dccp)
+    call read_one_3d_array(fl%pres, 'pr', dm%idom, fl%iterfrom, dm%dccc)
     
     if(nrank == 0) call Print_debug_end_msg()
     return
@@ -175,31 +139,23 @@ contains
 !==========================================================================================================
   subroutine read_instantaneous_thermo(tm, dm)
     use thermo_info_mod
+    use io_tools_mod
     implicit none
     type(t_domain), intent(inout) :: dm
     type(t_thermo), intent(inout) :: tm
 
-    character(120):: data_flname
-    character(120):: keyword
+    character(64):: data_flname
+    character(64):: keyword
 
     if (.not. dm%is_thermo) return
     if(nrank == 0) call Print_debug_inline_msg("read instantaneous thermo data ...")
 
     tm%iteration = tm%iterfrom
-
-    keyword = 'rhoh'
-    call generate_file_name(data_flname, dm%idom, keyword, 'bin', tm%iteration)
-    call decomp_2d_read_one(IPENCIL(1), tm%rhoh, trim(data_flname), &
-          opt_dirname=trim(dir_data), &
-          opt_decomp=dm%dccc, &
-          opt_reduce_prec=.false.)
-    keyword = 'temp'
-    call generate_file_name(data_flname, dm%idom, keyword, 'bin', tm%iteration)
-    call decomp_2d_read_one(IPENCIL(1), tm%tTemp, trim(data_flname), &
-          opt_dirname=trim(dir_data), &
-          opt_decomp=dm%dccc, &
-          opt_reduce_prec=.false.)
     tm%time = real(tm%iterfrom, WP) * dm%dt 
+
+    call read_one_3d_array(tm%rhoh,  'rhoh', dm%idom, tm%iteration, dm%dccc)
+    call read_one_3d_array(tm%tTemp, 'temp', dm%idom, tm%iteration, dm%dccc)
+
 
     if(nrank == 0) call Print_debug_end_msg()
     return
@@ -302,41 +258,42 @@ contains
 
     return
   end subroutine
-!==========================================================================================================
-  subroutine write_instantaneous_plane(var, keyword, idom, iter, niter, dtmp)
-    implicit none 
-    real(WP), contiguous, intent(in) :: var( :, :, :)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    character(*), intent(in) :: keyword
-    integer, intent(in) :: idom
-    integer, intent(in) :: iter, niter
+! !==========================================================================================================
+!   subroutine write_instantaneous_plane(var, keyword, idom, iter, niter, dtmp)
+!     implicit none 
+!     real(WP), contiguous, intent(in) :: var( :, :, :)
+!     type(DECOMP_INFO), intent(in) :: dtmp
+!     character(*), intent(in) :: keyword
+!     integer, intent(in) :: idom
+!     integer, intent(in) :: iter, niter
 
-    character(120):: data_flname_path
+!     character(64):: data_flname_path
 
-    call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
+!     call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
 
-    if(nrank==0) write(*, *) 'Write outlet plane data to ['//trim(data_flname_path)//"]"
+!     if(nrank==0) write(*, *) 'Write outlet plane data to ['//trim(data_flname_path)//"]"
  
-    !call decomp_2d_open_io (io_in2outlet, trim(data_flname_path), decomp_2d_write_mode)
-    !call decomp_2d_start_io(io_in2outlet, trim(data_flname_path))!
+!     !call decomp_2d_open_io (io_in2outlet, trim(data_flname_path), decomp_2d_write_mode)
+!     !call decomp_2d_start_io(io_in2outlet, trim(data_flname_path))!
 
-    !call decomp_2d_write_outflow(trim(data_flname_path), trim(keyword), niter, var, io_in2outlet, dtmp)
-    !call decomp_2d_write_plane(IPENCIL(1), var, 1, dtmp%xsz(1), trim(data_flname_path), dtmp)
-    call decomp_2d_write_plane(IPENCIL(1), var, data_flname_path, &
-                                opt_nplanes=niter, &
-                                opt_decomp = dtmp)
-    !call decomp_2d_end_io(io_in2outlet, trim(data_flname_path))
-    !call decomp_2d_close_io(io_in2outlet, trim(data_flname_path))
+!     !call decomp_2d_write_outflow(trim(data_flname_path), trim(keyword), niter, var, io_in2outlet, dtmp)
+!     !call decomp_2d_write_plane(IPENCIL(1), var, 1, dtmp%xsz(1), trim(data_flname_path), dtmp)
+!     call decomp_2d_write_plane(IPENCIL(1), var, data_flname_path, &
+!                                 opt_nplanes=niter, &
+!                                 opt_decomp = dtmp)
+!     !call decomp_2d_end_io(io_in2outlet, trim(data_flname_path))
+!     !call decomp_2d_close_io(io_in2outlet, trim(data_flname_path))
 
-    return
-  end subroutine
+!     return
+!   end subroutine
 !==========================================================================================================
   subroutine write_instantaneous_xoutlet(fl, dm)
+    use io_tools_mod
     implicit none 
     type(t_flow), intent(in) :: fl
     type(t_domain), intent(inout) :: dm
     
-    character(120):: data_flname_path
+    character(64):: data_flname_path
     integer :: idom, niter, iter, j
 
     if(.not. dm%is_record_xoutlet) return
@@ -353,14 +310,14 @@ contains
     if(niter == dm%ndbfre) then
       if( mod(fl%iteration - dm%ndbstart + 1, dm%ndbfre) /= 0 .and. nrank == 0) &
       call Print_warning_msg("niter /= dm%ndbfre, something wrong in writing outlet data")
-      call write_instantaneous_array(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, fl%iteration, dm%dxcc)
-      call write_instantaneous_array(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, fl%iteration, dm%dxcc)
-      call write_instantaneous_array(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, fl%iteration, dm%dxpc)
-      call write_instantaneous_array(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, fl%iteration, dm%dxpc)
-      call write_instantaneous_array(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, fl%iteration, dm%dxcp)
-      call write_instantaneous_array(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, fl%iteration, dm%dxcp)
-      call write_instantaneous_array(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, fl%iteration, dm%dxcc)
-      call write_instantaneous_array(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, fl%iteration, dm%dxcc)
+      call write_one_3d_array(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, fl%iteration, dm%dxcc)
+      call write_one_3d_array(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, fl%iteration, dm%dxcc)
+      call write_one_3d_array(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, fl%iteration, dm%dxpc)
+      call write_one_3d_array(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, fl%iteration, dm%dxpc)
+      call write_one_3d_array(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, fl%iteration, dm%dxcp)
+      call write_one_3d_array(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, fl%iteration, dm%dxcp)
+      call write_one_3d_array(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, fl%iteration, dm%dxcc)
+      call write_one_3d_array(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, fl%iteration, dm%dxcc)
     end if
 ! #ifdef DEBUG_STEPS
 !     write(*,*) 'outlet bc'
@@ -456,48 +413,49 @@ contains
 
     return
   end subroutine
-!==========================================================================================================
-  subroutine read_instantaneous_plane(var, keyword, idom, iter, nfre, dtmp)
-    use decomp_2d_io
-    implicit none 
-    real(WP), contiguous, intent(out) :: var( :, :, :)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    character(*), intent(in) :: keyword
-    integer, intent(in) :: idom
-    integer, intent(in) :: iter
-    integer, intent(in) :: nfre
+! !==========================================================================================================
+!   subroutine read_instantaneous_plane(var, keyword, idom, iter, nfre, dtmp)
+!     use decomp_2d_io
+!     implicit none 
+!     real(WP), contiguous, intent(out) :: var( :, :, :)
+!     type(DECOMP_INFO), intent(in) :: dtmp
+!     character(*), intent(in) :: keyword
+!     integer, intent(in) :: idom
+!     integer, intent(in) :: iter
+!     integer, intent(in) :: nfre
 
-    character(120):: data_flname_path, flname
+!     character(64):: data_flname_path, flname
 
-    call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter, flname)
+!     call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter, flname)
 
-    !call decomp_2d_open_io (io_in2outlet, trim(data_flname_path), decomp_2d_read_mode)
-    if(nrank == 0) call Print_debug_inline_msg("Read data on a plane from file: "//trim(data_flname_path))
-    !call decomp_2d_read_inflow(trim(data_flname_path), trim(keyword), nfre, var, io_in2outlet, dtmp)
-    call decomp_2d_read_plane(IPENCIL(1), var, data_flname_path, nfre, &
-                                opt_decomp = dtmp)
+!     !call decomp_2d_open_io (io_in2outlet, trim(data_flname_path), decomp_2d_read_mode)
+!     if(nrank == 0) call Print_debug_inline_msg("Read data on a plane from file: "//trim(data_flname_path))
+!     !call decomp_2d_read_inflow(trim(data_flname_path), trim(keyword), nfre, var, io_in2outlet, dtmp)
+!     call decomp_2d_read_plane(IPENCIL(1), var, data_flname_path, nfre, &
+!                                 opt_decomp = dtmp)
 
-    !decomp_2d_read_plane(ipencil, var, varname, nplanes, &
-                              !  opt_dirname, &
-                              !  opt_mpi_file_open_info, &
-                              !  opt_mpi_file_set_view_info, &
-                              !  opt_reduce_prec, &
-                              !  opt_decomp, &
-                              !  opt_nb_req, &
-                              !  opt_io)
-    !write(*,*) var
-    !call decomp_2d_close_io(io_in2outlet, trim(data_flname_path))
+!     !decomp_2d_read_plane(ipencil, var, varname, nplanes, &
+!                               !  opt_dirname, &
+!                               !  opt_mpi_file_open_info, &
+!                               !  opt_mpi_file_set_view_info, &
+!                               !  opt_reduce_prec, &
+!                               !  opt_decomp, &
+!                               !  opt_nb_req, &
+!                               !  opt_io)
+!     !write(*,*) var
+!     !call decomp_2d_close_io(io_in2outlet, trim(data_flname_path))
 
-    return
-  end subroutine
+!     return
+!   end subroutine
 !==========================================================================================================
   subroutine read_instantaneous_xinlet(fl, dm)
     use typeconvert_mod
+    use io_tools_mod
     implicit none 
     type(t_flow), intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
     
-    character(120):: data_flname_path
+    character(64):: data_flname_path
     integer :: idom, iter, niter, j
 
 
@@ -529,14 +487,14 @@ contains
 
       if(nrank == 0) call Print_debug_mid_msg("Read inlet database at iteration "&
         //trim(int2str(iter))//'/'//trim(int2str(niter)))
-      call read_instantaneous_array(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, niter, dm%dxcc)
-      call read_instantaneous_array(dm%fbcx_qx_inl2, 'outlet2_qx', dm%idom, niter, dm%dxcc)
-      call read_instantaneous_array(dm%fbcx_qy_inl1, 'outlet1_qy', dm%idom, niter, dm%dxpc)
-      call read_instantaneous_array(dm%fbcx_qy_inl2, 'outlet2_qy', dm%idom, niter, dm%dxpc)
-      call read_instantaneous_array(dm%fbcx_qz_inl1, 'outlet1_qz', dm%idom, niter, dm%dxcp)
-      call read_instantaneous_array(dm%fbcx_qz_inl2, 'outlet2_qz', dm%idom, niter, dm%dxcp)
-      !call read_instantaneous_array(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%dxcc)
-      !call read_instantaneous_array(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%dxcc)
+      call read_one_3d_array(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, niter, dm%dxcc)
+      call read_one_3d_array(dm%fbcx_qx_inl2, 'outlet2_qx', dm%idom, niter, dm%dxcc)
+      call read_one_3d_array(dm%fbcx_qy_inl1, 'outlet1_qy', dm%idom, niter, dm%dxpc)
+      call read_one_3d_array(dm%fbcx_qy_inl2, 'outlet2_qy', dm%idom, niter, dm%dxpc)
+      call read_one_3d_array(dm%fbcx_qz_inl1, 'outlet1_qz', dm%idom, niter, dm%dxcp)
+      call read_one_3d_array(dm%fbcx_qz_inl2, 'outlet2_qz', dm%idom, niter, dm%dxcp)
+      !call read_one_3d_array(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%dxcc)
+      !call read_one_3d_array(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%dxcc)
 ! #ifdef DEBUG_STEPS
       !write(*,*) 'inlet bc1', niter, dm%fbcx_qx_inl1(:, 32, 1)
       !write(*,*) 'inlet bc2', niter, dm%fbcx_qx_inl1(:, 32, 32)

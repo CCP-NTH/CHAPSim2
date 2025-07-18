@@ -26,7 +26,7 @@ module io_visualisation_mod
   real(WP), allocatable :: rp(:, :, :), ta(:, :, :)
   real(WP), allocatable :: xp(:, :, :), yp(:, :, :), zp(:, :, :)
   real(WP), allocatable :: xp1(:), yp1(:), zp1(:)
-  character(120):: grid_flname, grid_flname_1t2d, grid_flname_x, grid_flname_y, grid_flname_z
+  character(64):: grid_flname, grid_flname_1t2d, grid_flname_x, grid_flname_y, grid_flname_z
   !character(6)  :: svisudim
 
   private :: write_visu_headerfooter
@@ -252,7 +252,7 @@ contains
     type(t_domain), intent(in) :: dm
 
     integer :: i, j ,k
-    character(120):: keyword
+    character(64):: keyword
     integer :: iogrid
     character(12) :: istr(3)
     integer :: nnd(3)
@@ -502,8 +502,8 @@ contains
     integer, intent(in)        :: idom
     character(*), intent(in)   :: visuname
 
-    character(120):: keyword
-    character(120):: visu_flname
+    character(64):: keyword
+    character(64):: visu_flname
     character(12):: istr(3)
     character(len=20) :: byte_str
     integer :: ioxdmf
@@ -611,6 +611,7 @@ contains
     use io_files_mod
     use decomp_operation_mod
     use typeconvert_mod
+    use io_tools_mod
     implicit none
     type(t_domain), intent(in) :: dm
     real(WP), contiguous, intent(in) :: var(:, :, :)
@@ -621,10 +622,10 @@ contains
     type(DECOMP_INFO), intent(in) :: dtmp
     integer, intent(in), optional :: iter
 
-    character(120):: data_flname
-    character(120):: data_flname_path
-    character(120):: visu_flname_path
-    character(120):: keyword
+    character(64):: data_flname
+    character(64):: data_flname_path
+    character(64):: visu_flname_path
+    character(64):: keyword
     integer :: nsz(3), nsz0
     integer :: ioxdmf
 
@@ -640,17 +641,13 @@ contains
 ! write data into binary file
 !----------------------------------------------------------------------------------------------------------
     if(dm%visu_idim == Ivisu_3D) then
-      keyword = trim(varname)
-      call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'bin', iter)
-      if(.not.file_exists(data_flname_path)) &
-      call decomp_2d_write_one(IPENCIL(1), var, trim(data_flname_path), opt_decomp=dtmp)
-
+      call write_one_3d_array(var, trim(varname), dm%idom, iter, dtmp, opt_flname = data_flname_path)
     else if(dm%visu_idim == Ivisu_1D_Y) then
       !to add 1D profile
     else 
-      keyword = trim(varname)
-      call generate_file_name(data_flname, dm%idom, keyword, 'bin', iter)
-      call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'bin', iter)
+      !keyword = trim(varname)
+      !call generate_file_name(data_flname, dm%idom, keyword, 'bin', iter)
+      !call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'bin', iter)
       !call decomp_2d_write_plane(IPENCIL(1), var, dm%visu_idim, PLANE_AVERAGE, trim(dir_data), &
       !      trim(data_flname), io_name, opt_decomp=dtmp) ! to update, to check
     end if
@@ -714,10 +711,10 @@ contains
     integer, intent(in) :: idim
     integer, intent(in), optional :: iter
 
-    character(120):: data_flname
-    character(120):: data_flname_path
-    character(120):: visu_flname_path
-    character(120):: keyword
+    character(64):: data_flname
+    character(64):: data_flname_path
+    character(64):: visu_flname_path
+    character(64):: keyword
     integer :: nsz(3)
     integer :: ioxdmf, iofl
 
@@ -759,7 +756,7 @@ contains
 
     ! Local variables
     integer :: iteration
-    character(120) :: visu_filename
+    character(64) :: visu_filename
 
     ! Initialize iteration and filename
     iteration = fl%iteration
@@ -771,26 +768,26 @@ contains
     call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename),dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
 
     ! Write pressure field (cell-centered)
-    call process_and_write_field(fl%pres, dm, "pressure", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%pres, dm, "pr", trim(visu_filename), iteration, &
                                 N_DIRECTION)
     call process_and_write_field(fl%pcor, dm, "phi", trim(visu_filename), iteration, &
                                 N_DIRECTION)
 
     ! Process and write velocity components (qx, qy, qz)
-    call process_and_write_field(fl%qx, dm, "qx", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qx, dm, "qx_ccc", trim(visu_filename), iteration, &
                                 X_DIRECTION, opt_bc=dm%ibcx_qx)
-    call process_and_write_field(fl%qy, dm, "qy", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qy, dm, "qy_ccc", trim(visu_filename), iteration, &
                                 Y_DIRECTION, opt_bc=dm%ibcy_qy)
-    call process_and_write_field(fl%qz, dm, "qz", trim(visu_filename), iteration, &
+    call process_and_write_field(fl%qz, dm, "qz_ccc", trim(visu_filename), iteration, &
                                 Z_DIRECTION, opt_bc=dm%ibcz_qz)
 
     ! Process and write thermal fields if enabled
     if (dm%is_thermo) then
-      call process_and_write_field(fl%gx, dm, "gx", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gx, dm, "gx_ccc", trim(visu_filename), iteration, &
                                   X_DIRECTION, opt_bc=dm%ibcx_qx)
-      call process_and_write_field(fl%gy, dm, "gy", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gy, dm, "gy_ccc", trim(visu_filename), iteration, &
                                   Y_DIRECTION, opt_bc=dm%ibcy_qy)
-      call process_and_write_field(fl%gz, dm, "gz", trim(visu_filename), iteration, &
+      call process_and_write_field(fl%gz, dm, "gz_ccc", trim(visu_filename), iteration, &
                                   Z_DIRECTION, opt_bc=dm%ibcz_qz)
     end if
 
@@ -816,7 +813,7 @@ contains
     character(4), intent(in), optional :: str
 
     integer :: iter 
-    character(120) :: visuname
+    character(64) :: visuname
 
     iter = tm%iteration
     visuname = 'thermo'
@@ -861,7 +858,7 @@ contains
 
     ! Local variables
     integer :: iteration
-    character(120) :: visu_filename
+    character(64) :: visu_filename
 
     ! Initialize iteration and filename
     iteration = fl%iteration
@@ -910,7 +907,7 @@ contains
     type(t_flow),   intent(in) :: fl
 
     integer :: iter 
-    character(120) :: visuname
+    character(64) :: visuname
 
 !==========================================================================================================
 ! write time averaged 3d data
@@ -987,7 +984,7 @@ contains
     type(t_thermo), intent(in) :: tm
 
     integer :: iter 
-    character(120) :: visuname
+    character(64) :: visuname
     
 !==========================================================================================================
 ! write time averaged 3d data
@@ -1060,7 +1057,7 @@ contains
     real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3) ) :: accp_ypencil
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil
 
-    character(120) :: keyword
+    character(64) :: keyword
 
 !----------------------------------------------------------------------------------------------------------
 ! write xdmf header

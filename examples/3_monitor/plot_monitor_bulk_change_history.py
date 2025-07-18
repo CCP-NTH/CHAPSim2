@@ -57,64 +57,71 @@ axes = axes.flatten()
 plt.style.use('bmh')
 
 # Plot 1: Mass Conservation
-axes[0].plot(time_mass, mass_cons_1, 'b-', label='mass_cons[1]')
-axes[0].plot(time_mass, mass_cons_2, 'r-', label='mass_cons[2]')
-axes[0].plot(time_mass, mass_cons_3, 'g-', label='mass_cons[3]')
+axes[0].plot(time_mass, mass_cons_1, 'b-', label='mass_cons_bulk')
 axes[0].set_yscale('log')
 axes[0].set_xlabel('Time')
 axes[0].set_ylabel('Mass Conservation')
 axes[0].grid(True, color='gray', alpha=0.3)
 axes[0].legend()
 
-# Plot 2: MKE
-axes[1].plot(time_bulk, MKE, 'b-', label='MKE')
+# Plot 2: Mass Conservation
+axes[1].plot(time_mass, mass_cons_2, 'r-', label='mass_cons_inlet')
+axes[1].plot(time_mass, mass_cons_3, 'g-', label='mass_cons_outlet')
+axes[1].set_yscale('log')
 axes[1].set_xlabel('Time')
-axes[1].set_ylabel('MKE')
+axes[1].set_ylabel('Mass Conservation')
 axes[1].grid(True, color='gray', alpha=0.3)
 axes[1].legend()
 
-# Plot 3: dtke/dt
-axes[2].plot(time_mass, dtkedt, 'orange', label='dtke/dt')
+# Plot 2: MKE
+axes[2].plot(time_bulk, MKE, 'b-', label='MKE')
 axes[2].set_xlabel('Time')
-axes[2].set_ylabel('dtke/dt')
+axes[2].set_ylabel('MKE')
 axes[2].grid(True, color='gray', alpha=0.3)
 axes[2].legend()
 
-# Plot 4: dm/dt
-axes[3].plot(time_mass, dmdt, 'purple', label='dm/dt')
+# Plot 3: dtke/dt
+axes[3].plot(time_mass, dtkedt, 'orange', label='dtke/dt')
 axes[3].set_xlabel('Time')
-axes[3].set_ylabel('dm/dt')
+axes[3].set_ylabel('dtke/dt')
 axes[3].grid(True, color='gray', alpha=0.3)
 axes[3].legend()
 
-# Plot 5: ux_bulk
-axes[4].plot(time_bulk, ux_bulk, 'r-', label='ux_bulk')
+# Plot 4: dm/dt
+axes[4].plot(time_mass, dmdt, 'purple', label='dm/dt')
 axes[4].set_xlabel('Time')
-axes[4].set_ylabel('ux_bulk')
+axes[4].set_ylabel('dm/dt')
 axes[4].grid(True, color='gray', alpha=0.3)
 axes[4].legend()
 
+# Plot 5: ux_bulk
+axes[5].plot(time_bulk, ux_bulk, 'r-', label='ux_bulk')
+axes[5].set_xlabel('Time')
+axes[5].set_ylabel('ux_bulk')
+axes[5].grid(True, color='gray', alpha=0.3)
+axes[5].legend()
+
 if include_thermo:
     # Plot 6: gx_bulk
-    axes[5].plot(time_bulk, gx_bulk, 'c-', label='gx_bulk')
-    axes[5].set_xlabel('Time')
-    axes[5].set_ylabel('gx_bulk')
-    axes[5].grid(True, color='gray', alpha=0.3)
-    axes[5].legend()
-
-    # Plot 7: T_bulk
-    axes[6].plot(time_bulk, T_bulk, 'brown', label='T_bulk')
+    axes[6].plot(time_bulk, gx_bulk, 'c-', label='gx_bulk')
     axes[6].set_xlabel('Time')
-    axes[6].set_ylabel('T_bulk')
+    axes[6].set_ylabel('gx_bulk')
     axes[6].grid(True, color='gray', alpha=0.3)
     axes[6].legend()
 
-    # Plot 8: H_bulk
-    axes[7].plot(time_bulk, H_bulk, 'olive', label='H_bulk')
+    # Plot 7: T_bulk
+    axes[7].plot(time_bulk, T_bulk, 'brown', label='T_bulk')
     axes[7].set_xlabel('Time')
-    axes[7].set_ylabel('H_bulk')
+    axes[7].set_ylabel('T_bulk')
     axes[7].grid(True, color='gray', alpha=0.3)
     axes[7].legend()
+
+    # Plot 8: H_bulk
+    axes[8].plot(time_bulk, H_bulk, 'olive', label='H_bulk')
+    axes[8].set_xlabel('Time')
+    axes[8].set_ylabel('H_bulk')
+    axes[8].grid(True, color='gray', alpha=0.3)
+    axes[8].legend()
 
 plt.tight_layout()
 fig.suptitle('Monitor Variables History', fontsize=16, y=1.02)
