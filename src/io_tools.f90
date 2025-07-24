@@ -102,8 +102,8 @@ contains
     character(*), intent(in) :: keyword
     character(*), intent(in) :: path
     character(*), intent(in) :: extension
-    character(64), intent(inout), optional :: opt_flname
-    character(64), intent(out) :: flname_path
+    character(*), intent(inout), optional :: opt_flname
+    character(*), intent(out) :: flname_path
     integer, intent(in), optional     :: opt_timetag
     character(64) :: flname
 
@@ -127,7 +127,7 @@ contains
     
     character(*), intent(in) :: keyword
     character(*), intent(in) :: extension
-    character(64), intent(out) :: flname
+    character(*), intent(out) :: flname
     integer, intent(in), optional      :: timetag
 
     if(present(timetag)) then

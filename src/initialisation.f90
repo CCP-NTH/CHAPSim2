@@ -1080,12 +1080,12 @@ contains
           xc = dm%h(1) * (real(ii - 1, WP) + HALF)
           ! Method 1: 
           if(i_ini_T == 1) then ! isothermal perturbation
-            tm%Ttemp(i, j, k)= ONE + 0.01_WP * cos_wp(xc) * cos_wp(yc) * cos_wp(zc)
+            tm%Ttemp(i, j, k)= ONE + fl%noiselevel * cos_wp(xc) * cos_wp(yc) * cos_wp(zc)
           else if(i_ini_T == 2) then ! T proportional to kinetic energy
             ux =  sin_wp ( xc ) * cos_wp ( yc ) * cos_wp ( zc )
             uy = -cos_wp ( xc ) * sin_wp ( yc ) * cos_wp ( zc )
             uz = ZERO
-            tm%Ttemp(i, j, k)= ONE + 0.01_WP * (ux * ux + uy * uy + uz * uz)
+            tm%Ttemp(i, j, k)= ONE + fl%noiselevel * (ux * ux + uy * uy + uz * uz)
           else
             tm%Ttemp(i, j, k)= ONE
           end if

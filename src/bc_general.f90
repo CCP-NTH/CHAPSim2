@@ -155,12 +155,12 @@ end function
 
         end select
       end do
-
-      if(ibc(n, 1) == IBC_DIRICHLET .and. &
-         ibc(n, 2) == IBC_DIRICHLET .and. &
-         ibc(n, 3) == IBC_DIRICHLET) then
-         ibc(n, 4) = IBC_NEUMANN
-      end if
+      ! check
+      ! if(ibc(n, 1) == IBC_DIRICHLET .and. &
+      !    ibc(n, 2) == IBC_DIRICHLET .and. &
+      !    ibc(n, 3) == IBC_DIRICHLET) then
+      !    ibc(n, 4) = IBC_NEUMANN
+      ! end if
     end do
 
     return
@@ -222,18 +222,18 @@ end function
       if(dm%ibcy_Tm(n) == IBC_NEUMANN) dm%ibcy_ftp(n) = IBC_DIRICHLET
       if(dm%ibcz_Tm(n) == IBC_NEUMANN) dm%ibcz_ftp(n) = IBC_DIRICHLET
 
-      if(dm%ibcx_qx(n) == IBC_DIRICHLET) then
-        dm%ibcx_pr(n) = IBC_NEUMANN
-        dm%fbcx_const(n, 4) = ZERO
-      end if
-      if(dm%ibcy_qy(n) == IBC_DIRICHLET) then
-        dm%ibcy_pr(n) = IBC_NEUMANN
-        dm%fbcy_const(n, 4) = ZERO
-      end if
-      if(dm%ibcz_qz(n) == IBC_DIRICHLET) then
-        dm%ibcz_pr(n) = IBC_NEUMANN
-        dm%fbcz_const(n, 4) = ZERO
-      end if
+      ! if(dm%ibcx_qx(n) == IBC_DIRICHLET) then
+      !   dm%ibcx_pr(n) = IBC_NEUMANN
+      !   dm%fbcx_const(n, 4) = ZERO
+      ! end if
+      ! if(dm%ibcy_qy(n) == IBC_DIRICHLET) then
+      !   dm%ibcy_pr(n) = IBC_NEUMANN
+      !   dm%fbcy_const(n, 4) = ZERO
+      ! end if
+      ! if(dm%ibcz_qz(n) == IBC_DIRICHLET) then
+      !   dm%ibcz_pr(n) = IBC_NEUMANN
+      !   dm%fbcz_const(n, 4) = ZERO
+      ! end if
     end do
 
     if(dm%icase == ICASE_PIPE) then

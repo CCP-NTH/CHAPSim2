@@ -289,6 +289,8 @@ contains
     if(nrank == 0) then
       call Print_debug_start_msg("CHAPSim2.0 Starts ...")
       write (*, wrtfmt1i) 'The precision is REAL * ', WP
+      write (*, wrtfmt1l) 'is_strong_coupling : ', is_strong_coupling
+      write (*, wrtfmt1l) 'is_drhodt_implicit : ', is_drhodt_implicit
     end if
     is_any_energyeq = .false.
 
@@ -506,11 +508,11 @@ contains
             domain(i)%ibcx_nominal(1, 2:3) = IBC_DATABASE
             domain(i)%ibcx_nominal(1, 4:5) = IBC_NEUMANN
           end if
-          if(domain(i)%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
-            domain(i)%ibcx_nominal(2, 2:3) = IBC_CONVECTIVE
-            domain(i)%ibcx_nominal(2, 4) = IBC_NEUMANN
-            domain(i)%ibcx_nominal(2, 5) = IBC_NEUMANN !IBC_CONVECTIVE, to check!
-          end if
+          !if(domain(i)%ibcx_nominal(2, 1) == IBC_CONVECTIVE) then
+          !  domain(i)%ibcx_nominal(2, 2:3) = IBC_CONVECTIVE
+            !domain(i)%ibcx_nominal(2, 4) = IBC_NEUMANN
+            !domain(i)%ibcx_nominal(2, 5) = IBC_NEUMANN !IBC_CONVECTIVE, to check!
+          !end if
           !----------------------------------------------------------------------------------------------------------
           ! to exclude non-resonable input
           !----------------------------------------------------------------------------------------------------------
