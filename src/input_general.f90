@@ -47,6 +47,8 @@ contains
     character(72) :: str
 
     select case(icase)
+    case ( ICASE_DUCT) 
+      str = 'ICASE_DUCT'
     case ( ICASE_OTHERS) 
       str = 'ICASE_OTHERS'
     case ( ICASE_CHANNEL )
