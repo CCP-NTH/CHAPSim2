@@ -49,6 +49,7 @@ module thermo_info_mod
   public  :: ftp_refresh_thermal_properties_from_T_undim_3Dftp
   public  :: ftp_refresh_thermal_properties_from_T_undim_3Dtm
   private :: ftp_refresh_thermal_properties_from_H
+  public  :: ftp_refresh_thermal_properties_from_H_3Dftp
   private :: ftp_convert_undim_to_dim
   private :: ftp_print
   public  :: ftp_refresh_thermal_properties_from_DH
@@ -220,6 +221,7 @@ contains
     real(WP) :: d1, dm
     real(WP) :: w1, w2
     real(WP) :: t1, dummy
+    real(WP) :: drho_dt, dh_dt
 
     !call Print_debug_start_msg("ftp_refresh_thermal_properties_from_T_undim")
     if(fluidparam%ipropertyState == IPROPERTY_TABLE) then 
@@ -258,6 +260,7 @@ contains
       dummy = fluidparam%CoD(0) + &
               fluidparam%CoD(1) * t1
       this%d = dummy / ftp0ref%d
+      drho_dt = fluidparam%CoD(1) * ftp0ref%t / ftp0ref%d
   
       ! K = thermal conductivity = f(T)
       dummy = fluidparam%CoK(0) + &
@@ -281,7 +284,11 @@ contains
               fluidparam%CoH(2) * (t1**2 - fluidparam%TM0**2) + &
               fluidparam%CoH(3) * (t1**3 - fluidparam%TM0**3)
       this%h = (dummy - ftp0ref%h) / (ftp0ref%cp * ftp0ref%t)
-  
+      dh_dt =        -fluidparam%CoH(-1) / t1**2 + &
+                      fluidparam%CoH(1) +          &
+                TWO * fluidparam%CoH(2) * t1 +     &
+              THREE * fluidparam%CoH(3) * t1**2 
+      dh_dt = dh_dt / ftp0ref%cp
       ! B = f(T)
       dummy = ONE / (fluidparam%CoB - t1)
       this%b = dummy / ftp0ref%b
@@ -302,8 +309,7 @@ contains
       end select
       this%m = dummy / ftp0ref%m
       this%rhoh = this%d * this%h
-
-      ! to add: this%drhoh_drho = 
+      this%drhoh_drho = this%h + this%d * dh_dt / drho_dt
     else
       this%t  = ONE
       this%d  = ONE
@@ -313,6 +319,7 @@ contains
       this%b  = ONE
       this%h  = ZERO
       this%rhoh = ZERO
+      this%drhoh_drho = ONE
     end if
     return
   end subroutine ftp_refresh_thermal_properties_from_T_undim
@@ -407,6 +414,20 @@ contains
     return
   end subroutine ftp_refresh_thermal_properties_from_H
 !==========================================================================================================
+  subroutine ftp_refresh_thermal_properties_from_H_3Dftp( ftp3d )
+    type(t_fluidThermoProperty), intent(inout) :: ftp3d(:, :, :)
+    integer :: i, j, k
+
+    do i = 1, size(ftp3d, 1)
+      do j = 1, size(ftp3d, 2)
+        do k = 1, size(ftp3d, 3)
+            call ftp_refresh_thermal_properties_from_H(ftp3d(i, j, k))
+        end do
+      end do
+    end do 
+    return
+  end subroutine
+!==========================================================================================================
 !==========================================================================================================
 !> \brief Defination of a procedure in the type t_fluidThermoProperty.
 !>  to update the thermal properties based on the known enthalpy per unit mass.     
@@ -426,7 +447,7 @@ contains
 
     integer :: i1, i2, im
     real(WP) :: d1, dm
-    real(WP) :: w1, w2
+    real(WP) :: w1, w2, res
 
     if(is_ftplist_dim) call Print_error_msg("Error. Please provide undimentional variables.")
 
@@ -444,30 +465,36 @@ contains
       end if
       this%rhoh = fluidparam%dhmax
     end if
-
-    i1 = 1
-    i2 = fluidparam%nlist
-
-    do while ( (i2 - i1) > 1)
-      im = i1 + (i2 - i1) / 2
-      d1 = ftplist(i1)%rhoh - this%rhoh
-      dm = ftplist(im)%rhoh - this%rhoh
-      if ( (d1 * dm) > MINP ) then
-        i1 = im
-      else
-        i2 = im
-      end if
-    end do
-
-    w1 = (ftplist(i2)%rhoh - this%rhoh) / (ftplist(i2)%rhoh - ftplist(i1)%rhoh) 
-    w2 = ONE - w1
     
     if(fluidparam%ipropertyState == IPROPERTY_TABLE) then 
-      this%h = w1 * ftplist(i1)%h + w2 * ftplist(i2)%h
-      call ftp_refresh_thermal_properties_from_H(this)
-      this%h = this%rhoh / this%d
-      call ftp_refresh_thermal_properties_from_H(this)
+      !this%h = w1 * ftplist(i1)%h + w2 * ftplist(i2)%h
+      res = MAXP
+      im = 1
+      !do while (res > 1e-6_WP .or. im <= 5)
+      do im = 1, 2
+        !res = this%h
+        this%h = this%rhoh / this%d
+        !res = dabs(res - this%h)
+        call ftp_refresh_thermal_properties_from_H(this)
+        !im = im + 1
+      end do
     else if (fluidparam%ipropertyState == IPROPERTY_FUNCS) then 
+      i1 = 1
+      i2 = fluidparam%nlist
+
+      do while ( (i2 - i1) > 1)
+        im = i1 + (i2 - i1) / 2
+        d1 = ftplist(i1)%rhoh - this%rhoh
+        dm = ftplist(im)%rhoh - this%rhoh
+        if ( (d1 * dm) > MINP ) then
+          i1 = im
+        else
+          i2 = im
+        end if
+      end do
+
+      w1 = (ftplist(i2)%rhoh - this%rhoh) / (ftplist(i2)%rhoh - ftplist(i1)%rhoh) 
+      w2 = ONE - w1
       this%t = w1 * ftplist(i1)%t + w2 * ftplist(i2)%t
       call ftp_refresh_thermal_properties_from_T_undim(this)
     else  
@@ -722,6 +749,7 @@ contains
 
     is_ftplist_dim = .false.
 
+    if(is_drhodt_chain) &
     call compute_dfdx_central2(fluidparam%nlist, ftplist(:)%rhoh, ftplist(:)%d, ftplist(:)%drhoh_drho)
 
     return
@@ -800,7 +828,7 @@ contains
   subroutine Write_thermo_property
     use io_files_mod
     implicit none
-    type(t_fluidThermoProperty) :: ftp
+    !type(t_fluidThermoProperty) :: ftp
     type(t_fluidThermoProperty) :: ftp_dim
     integer :: n, i
     real(WP) :: dhmax, dhmin
@@ -853,21 +881,23 @@ contains
     n = 128
     dhmin = fluidparam%dhmin + TRUNCERR
     dhmax = fluidparam%dhmax - TRUNCERR
-    open (newunit = ftp_unit1, file = trim(dir_chkp)//'/check_ftp_from_dh_undim.dat')
-    write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h, drhoh_drho'
-    open (newunit = ftp_unit2, file = trim(dir_chkp)//'/check_ftp_from_dh_dim.dat')
-    write(ftp_unit2, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
-    do i = 1, n
-      ftp%rhoh = dhmin + (dhmax - dhmin) * real(i - 1, WP) / real(n - 1, WP)
-      !write(*,*) ftp%rhoh
-      call ftp_refresh_thermal_properties_from_DH(ftp)
-      call ftp_is_T_in_scope(ftp)
-      write(ftp_unit1, '(8ES13.5)') ftp%h, ftp%t, ftp%d, ftp%m, ftp%k, ftp%cp, ftp%b, ftp%rhoh, ftp%drhoh_drho
-      call ftp_convert_undim_to_dim(ftp, ftp_dim)  
-      write(ftp_unit2, '(8ES13.5)') ftp_dim%h, ftp_dim%t, ftp_dim%d, ftp_dim%m, ftp_dim%k, ftp_dim%cp, ftp_dim%b, ftp_dim%rhoh
-    end do
-    close (ftp_unit1)
-    close (ftp_unit2)
+    !write(*, *) 'dhmin, dhmax', dhmin, dhmax
+    ! open (newunit = ftp_unit1, file = trim(dir_chkp)//'/check_ftp_from_dh_undim.dat')
+    ! write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h, drhoh_drho'
+    ! write(ftp_unit1, *) '# dhmax = ', dhmax, ' dhmin = ', dhmin
+    ! open (newunit = ftp_unit2, file = trim(dir_chkp)//'/check_ftp_from_dh_dim.dat')
+    ! write(ftp_unit2, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
+    ! do i = 1, n
+    !   ftp%rhoh = dhmin + (dhmax - dhmin) * real(i - 1, WP) / real(n - 1, WP)
+    !   !write(*,*) ftp%rhoh
+    !   call ftp_refresh_thermal_properties_from_DH(ftp)
+    !   call ftp_is_T_in_scope(ftp)
+    !   write(ftp_unit1, '(8ES13.5)') ftp%h, ftp%t, ftp%d, ftp%m, ftp%k, ftp%cp, ftp%b, ftp%rhoh, ftp%drhoh_drho
+    !   call ftp_convert_undim_to_dim(ftp, ftp_dim)  
+    !   write(ftp_unit2, '(8ES13.5)') ftp_dim%h, ftp_dim%t, ftp_dim%d, ftp_dim%m, ftp_dim%k, ftp_dim%cp, ftp_dim%b, ftp_dim%rhoh
+    ! end do
+    ! close (ftp_unit1)
+    ! close (ftp_unit2)
 
     if (nrank == 0 ) then
       call Print_debug_mid_msg("The range of the property table (undim)")
@@ -1121,9 +1151,8 @@ contains
     type(t_thermo), intent(inout) :: tm
     type(t_domain), intent(in) :: dm
 
-    integer :: i, j, k, jj
+    integer :: j, jj
     real(WP) :: Ts
-    type(t_fluidThermoProperty) :: ftp
     
     if(nrank == 0) call Print_debug_start_msg("Initialise thermal variables ...")
     !----------------------------------------------------------------------------------------------------------
@@ -1146,12 +1175,6 @@ contains
     tm%hEnth(:, :, :) = tm%ftp_ini%h
     tm%kCond(:, :, :) = tm%ftp_ini%k
     tm%tTemp(:, :, :) = tm%ftp_ini%t
-
-    if(.not. is_drhodt_implicit) then
-    fl%dDensm2(:, :, :) = fl%dDensm1(:, :, :)
-    fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
-    end if
-
 
     if(dm%ibcy_Tm(2) == IBC_DIRICHLET .and. tm%inittype == INIT_GVBCLN) then
 

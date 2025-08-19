@@ -1,6 +1,5 @@
 module boundary_conditions_mod
   use bc_dirichlet_mod
-  use bc_convective_outlet_mod
   use bc_ndomain_interior_mod
   use udf_type_mod
   use parameters_constant_mod
@@ -87,6 +86,8 @@ function get_name_bc(ibc) result(str)
     str = 'IBC_PROFILE1D'
   case ( IBC_DATABASE )
     str = 'IBC_DATABASE'
+  case ( IBC_POISEUILLE )
+    str = 'IBC_POISEUILLE'
   case default
     call Print_error_msg('Boundary Conditions Not Supported.')
   end select
@@ -108,7 +109,9 @@ end function
           case (IBC_PROFILE1D)
             ! Use Dirichlet BC for all variables
             ibc(n, m) = IBC_DIRICHLET
-
+          case (IBC_POISEUILLE)
+            ! Use Dirichlet BC for all variables
+            ibc(n, m) = IBC_DIRICHLET
           case (IBC_TURBGEN)
             select case (m)
               case (5)
@@ -139,7 +142,7 @@ end function
             ! Typically for convective outlet conditions
             if (m == 4) then
               ! Pressure: Neumann
-              ibc(n, m) = IBC_NEUMANN
+              ibc(n, m) = IBC_NEUMANN !IBC_DIRICHLET !IBC_NEUMANN
             else
               ! Velocity and temperature: Dirichlet (to be verified)
               ibc(n, m) = IBC_DIRICHLET
@@ -151,12 +154,12 @@ end function
 
         end select
       end do
-
-      if(ibc(n, 1) == IBC_DIRICHLET .and. &
-         ibc(n, 2) == IBC_DIRICHLET .and. &
-         ibc(n, 3) == IBC_DIRICHLET) then
-         ibc(n, 4) = IBC_NEUMANN
-      end if
+      ! check
+      ! if(ibc(n, 1) == IBC_DIRICHLET .and. &
+      !    ibc(n, 2) == IBC_DIRICHLET .and. &
+      !    ibc(n, 3) == IBC_DIRICHLET) then
+      !    ibc(n, 4) = IBC_NEUMANN
+      ! end if
     end do
 
     return
@@ -218,18 +221,18 @@ end function
       if(dm%ibcy_Tm(n) == IBC_NEUMANN) dm%ibcy_ftp(n) = IBC_DIRICHLET
       if(dm%ibcz_Tm(n) == IBC_NEUMANN) dm%ibcz_ftp(n) = IBC_DIRICHLET
 
-      if(dm%ibcx_qx(n) == IBC_DIRICHLET) then
-        dm%ibcx_pr(n) = IBC_NEUMANN
-        dm%fbcx_const(n, 4) = ZERO
-      end if
-      if(dm%ibcy_qy(n) == IBC_DIRICHLET) then
-        dm%ibcy_pr(n) = IBC_NEUMANN
-        dm%fbcy_const(n, 4) = ZERO
-      end if
-      if(dm%ibcz_qz(n) == IBC_DIRICHLET) then
-        dm%ibcz_pr(n) = IBC_NEUMANN
-        dm%fbcz_const(n, 4) = ZERO
-      end if
+      ! if(dm%ibcx_qx(n) == IBC_DIRICHLET) then
+      !   dm%ibcx_pr(n) = IBC_NEUMANN
+      !   dm%fbcx_const(n, 4) = ZERO
+      ! end if
+      ! if(dm%ibcy_qy(n) == IBC_DIRICHLET) then
+      !   dm%ibcy_pr(n) = IBC_NEUMANN
+      !   dm%fbcy_const(n, 4) = ZERO
+      ! end if
+      ! if(dm%ibcz_qz(n) == IBC_DIRICHLET) then
+      !   dm%ibcz_pr(n) = IBC_NEUMANN
+      !   dm%fbcz_const(n, 4) = ZERO
+      ! end if
     end do
 
     if(dm%icase == ICASE_PIPE) then
@@ -431,7 +434,6 @@ end function
     type(t_domain), intent(inout) :: dm
     type(t_flow), intent(inout)      :: fl
 
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
     real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc_xpencil
 
     ! Check if the case and coordinate system are valid
@@ -500,28 +502,37 @@ end function
 
 !==========================================================================================================
 !==========================================================================================================
-  subroutine update_fbcy_cc_thermo_halo(fl, tm, dm)  ! for cylindrical only
+  subroutine update_fbcy_cc_thermo_halo(tm, dm)  ! for cylindrical only
     use thermo_info_mod
     use find_max_min_ave_mod
     use cylindrical_rn_mod
     implicit none 
     type(t_domain), intent(inout) :: dm
     type(t_thermo), intent(in)    :: tm
-    type(t_flow),   intent(inout) :: fl
     real(WP) :: fbcy(dm%dccc%ysz(1), 4, dm%dccc%ysz(3))
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
 
     ! Check if thermo is enabled and the case and coordinate system are valid
-    if (.not. dm%is_thermo .or. dm%icase /= ICASE_PIPE .or. dm%icoordinate /= ICYLINDRICAL) return
+    if (.not. dm%is_thermo .or. &
+        dm%icase /= ICASE_PIPE .or. &
+        dm%icoordinate /= ICYLINDRICAL) return
     
 !----------------------------------------------------------------------------------------------------------
 !   ! Update thermo boundary condition in y-direction (interior)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_Tm(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_Tm for the centre of the pipe.') !
-    fbcy = dm%fbcy_ftp%t
-    call axis_mirroring_interior_fbcy(tm%tTemp, fbcy, dm%knc_sym, dm%dccc)
-    dm%fbcy_ftp%t = fbcy
-    call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp)
+    if(fluidparam%ipropertyState == IPROPERTY_TABLE) then 
+      fbcy = dm%fbcy_ftp%h
+      call axis_mirroring_interior_fbcy(tm%hEnth, fbcy, dm%knc_sym, dm%dccc)
+      dm%fbcy_ftp%h = fbcy
+      call ftp_refresh_thermal_properties_from_H_3Dftp(dm%fbcy_ftp)
+    end if
+
+    if(fluidparam%ipropertyState == IPROPERTY_FUNCS) then 
+      fbcy = dm%fbcy_ftp%t
+      call axis_mirroring_interior_fbcy(tm%tTemp, fbcy, dm%knc_sym, dm%dccc)
+      dm%fbcy_ftp%t = fbcy
+      call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp)
+    end if
 
     return
   end subroutine
@@ -590,7 +601,7 @@ end function
     type(t_domain), intent(inout)   :: dm
     
     integer :: mbc(2, 3), mbc0(2, 3)
-    integer :: bc(2), n
+    integer :: bc(2)
 !----------------------------------------------------------------------------------------------------------
 !   x-mom
 !----------------------------------------------------------------------------------------------------------

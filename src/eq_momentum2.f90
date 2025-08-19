@@ -122,7 +122,7 @@ contains
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
     type(t_domain), intent(in) :: dm
-    real(WP), dimension(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)), intent(in)    :: rhs1_pfc
+    real(WP), dimension(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)), intent(inout)    :: rhs1_pfc
     real(WP), dimension(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)), intent(inout) :: rhs0, rhs1
     integer,  intent(in) :: isub
     
@@ -156,7 +156,7 @@ contains
 !==========================================================================================================
 !> \brief To calcuate all rhs of momentum eq.
 !==========================================================================================================
-  subroutine Compute_momentum_rhs(fl, dm, isub)
+  subroutine Compute_momentum_rhs(fl, dm, isub, opt_dens, opt_visc)
     use parameters_constant_mod
     use udf_type_mod
     use operations
@@ -167,11 +167,11 @@ contains
     use find_max_min_ave_mod
     use cylindrical_rn_mod
     implicit none
-
+    ! arguments
     type(t_flow),   intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
     integer,     intent(in ) :: isub
-
+    real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)), intent(in), optional :: opt_dens, opt_visc
 !----------------------------------------------------------------------------------------------------------
 ! result variables
 !----------------------------------------------------------------------------------------------------------
@@ -290,6 +290,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
 !   intermediate variables : if dm%is_thermo = true
 !----------------------------------------------------------------------------------------------------------
+    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: d_ccc_xpencil
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: mu_ccc_xpencil    ! x-v1, thermal only
     real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: mu_ccc_ypencil    ! y-v2, thermal only
     real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: mu_ccc_zpencil    ! z-v3, thermal only
@@ -396,7 +397,8 @@ contains
 !   d --> d_ypencil --> d_zpencil
 !----------------------------------------------------------------------------------------------------------    
     if(dm%is_thermo .and. fl%igravity /= 0) then
-      call transpose_x_to_y (fl%dDens,      dDens_ypencil, dm%dccc)
+      d_ccc_xpencil = opt_dens
+      call transpose_x_to_y (d_ccc_xpencil,      dDens_ypencil, dm%dccc)
       call transpose_y_to_z (dDens_ypencil, dDens_zpencil, dm%dccc)
     end if
 !----------------------------------------------------------------------------------------------------------
@@ -794,7 +796,7 @@ contains
 #ifdef DEBUG_STEPS
       write(*,*) 'fbcy_m', fbcy_c4c(1, 1:4, 1)
 #endif
-      mu_ccc_xpencil = fl%mVisc
+      mu_ccc_xpencil = opt_visc
       call transpose_x_to_y(mu_ccc_xpencil, mu_ccc_ypencil, dm%dccc)
       call transpose_y_to_z(mu_ccc_ypencil, mu_ccc_zpencil, dm%dccc)
       !
@@ -807,7 +809,7 @@ contains
     end if
 #endif
       call transpose_y_to_x(acpc_ypencil, acpc_xpencil, dm%dcpc) !acpc_xpencil = muiy_cpc_xpencil
-      call get_fbcx_ftp_4pc(fbcx_4cc, fbcx_4pc, dm)
+      if(is_fbcx_velo_required) call get_fbcx_ftp_4pc(fbcx_4cc, fbcx_4pc, dm)
       call Get_x_midp_C2P_3D(acpc_xpencil, muixy_ppc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4pc)
 
       !
@@ -1146,7 +1148,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     if(dm%is_thermo .and. (fl%igravity == i .or. fl%igravity == -i) )  then
       fbcx_4cc(:, :, :) = dm%fbcx_ftp(:, :, :)%d
-      call Get_x_midp_C2P_3D(fl%dDens, apcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4cc )
+      call Get_x_midp_C2P_3D(d_ccc_xpencil, apcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4cc )
       mx_rhs_pfc_xpencil =  mx_rhs_pfc_xpencil + fl%fgravity(i) * apcc_xpencil
     end if
 !----------------------------------------------------------------------------------------------------------
@@ -1420,7 +1422,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     if(dm%is_thermo .and. (fl%igravity == i .or. fl%igravity == -i) )  then
       if(dm%icoordinate == ICYLINDRICAL) then
-        call gravity_decomposition_to_rz(fl%dDens, fl%igravity, fl%fgravity(i), acpc_ypencil, accp_zpencil, dm)
+        call gravity_decomposition_to_rz(d_ccc_xpencil, fl%igravity, fl%fgravity(i), acpc_ypencil, accp_zpencil, dm)
         mz_rhs_pfc_zpencil = mz_rhs_pfc_zpencil + accp_zpencil
       else
         fbcy_c4c(:, :, :) = dm%fbcy_ftp(:, :, :)%d
@@ -1720,7 +1722,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     if(dm%is_thermo .and. (fl%igravity == i .or. fl%igravity == -i) )  then
       if(dm%icoordinate == ICYLINDRICAL) then
-        call gravity_decomposition_to_rz(fl%dDens, fl%igravity, fl%fgravity(i), acpc_ypencil, accp_zpencil, dm)
+        call gravity_decomposition_to_rz(d_ccc_xpencil, fl%igravity, fl%fgravity(i), acpc_ypencil, accp_zpencil, dm)
         my_rhs_pfc_ypencil = my_rhs_pfc_ypencil + accp_zpencil
       else
         fbcz_cc4(:, :, :) = dm%fbcz_ftp(:, :, :)%d
@@ -2082,13 +2084,16 @@ contains
     use continuity_eq_mod
     use cylindrical_rn_mod
     use find_max_min_ave_mod
+    use typeconvert_mod
+    use io_visualisation_mod
     implicit none
     type(t_domain), intent( in    ) :: dm
     type(t_flow),   intent( inout ) :: fl                  
     integer,        intent( in    ) :: isub
 
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div, drhodt
-    real(WP) :: coeff, offset(2)
+    real(WP) :: coeff!, offset(2)
+    integer :: i, j, k
 
 #ifdef DEBUG_STEPS  
     if(nrank == 0) &
@@ -2115,11 +2120,15 @@ contains
     fl%pcor = drhodt + div
 
 !#ifdef DEBUG_STEPS
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
-    write(*,*) 'drhodt+div', coeff
-    fl%pcor = fl%pcor - coeff
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
-    write(*,*) 'corrected drhodt+div', coeff
+    ! call Find_max_min_3d(drhodt/div, opt_name='drhodt/div')
+    !call write_visu_any3darray(drhodt, 'drhodt', 'debug'//trim(int2str(isub)), dm%dccc, dm, fl%iteration)
+    !call write_visu_any3darray(div, 'div', 'debug'//trim(int2str(isub)), dm%dccc, dm, fl%iteration)
+    !call write_visu_any3darray(drhodt/div, 'drhodt-div', 'debug'//trim(int2str(isub)), dm%dccc, dm, fl%iteration)
+    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
+    !write(*,*) 'input', fl%pcor(:, 2, 2)
+    !fl%pcor = fl%pcor - coeff
+    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
+    !write(*,*) 'corrected drhodt+div', coeff
     ! write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
     ! write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
 !#endif
@@ -2143,14 +2152,14 @@ contains
 !----------------------------------------------------------------------------------------------------------
     call solve_fft_poisson(fl%pcor, dm)
 
-    call Find_max_min_3d(fl%pcor, opt_calc='MINI', opt_work=offset)
-    fl%pcor = fl%pcor - offset(1)
+    !call Find_max_min_3d(fl%pcor, opt_calc='MINI', opt_work=offset)
+    !fl%pcor = fl%pcor - offset(1)
 
-#ifdef DEBUG_STEPS
-    call wrt_3d_pt_debug (fl%pcor, dm%dccc,   fl%iteration, isub, 'phi@sol phi') ! debug_ww
+!#ifdef DEBUG_STEPS
+    !call wrt_3d_pt_debug (fl%pcor, dm%dccc,   fl%iteration, isub, 'phi@sol phi') ! debug_ww
     !call wrt_3d_all_debug(fl%pcor, dm%dccc,   fl%iteration, 'phi@sol phi') ! debug_ww
-    write(*,*) 'solved_phi', fl%pcor(1, 1:4, 1)
-#endif
+    !write(*,*) 'solved_phi', fl%pcor(:, 2, 2)
+!#endif
     return
   end subroutine
 ! !==========================================================================================================
@@ -2158,7 +2167,7 @@ contains
 !     use udf_type_mod
 !     use parameters_constant_mod
 !     use decomp_2d_poisson
-!     use decomp_extended_mod
+!     use transpose_extended_mod
 !     use continuity_eq_mod
 
 !     implicit none
@@ -2189,7 +2198,7 @@ contains
 !       rhs_ypencil = ZERO
 !       rhs_zpencil = ZERO
 !       rhs_zpencil_ggg = ZERO
-!       call Calculate_drhodt(dm, tm%dDens, tm%dDensm1, tm%dDensm2, rhs)
+!       call Calculate_drhodt(dm, tm%dDens, tm%dDens0, tm%dDensm2, rhs)
 !       call transpose_x_to_y(rhs,         rhs_ypencil)
 !       call transpose_y_to_z(rhs_ypencil, rhs_zpencil)
 !       call zpencil_index_llg2ggg(rhs_zpencil, rhs_zpencil_ggg, dm%dccc)
@@ -2232,55 +2241,71 @@ contains
 !> \param[inout]  dm            domain
 !> \param[in]     isub         RK sub-iteration
 !==========================================================================================================
-  subroutine Solve_momentum_eq(fl, dm, isub)
-    use udf_type_mod
-    use typeconvert_mod
-    use continuity_eq_mod
+  subroutine Solve_momentum_eq(fl, dm, isub, opt_tm)
+    use bc_convective_outlet_mod
     use boundary_conditions_mod
-    use parameters_constant_mod
-    use mpi_mod
-    use solver_tools_mod
+    use continuity_eq_mod
     use convert_primary_conservative_mod
-    use io_restart_mod
+    use eq_energy_mod
     use find_max_min_ave_mod
+    use io_restart_mod
+    use mpi_mod
+    use parameters_constant_mod
+    use solver_tools_mod
+    use typeconvert_mod
+    use udf_type_mod
 #ifdef DEBUG_STEPS
     use io_tools_mod
     use typeconvert_mod
     use wtformat_mod
 #endif
     implicit none
-
+    ! arguments
     type(t_flow),   intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
+    type(t_thermo), intent(in), optional :: opt_tm
     integer,        intent(in)    :: isub
-    
+    ! local variables
     logical :: flg_bc_conv
     integer :: i
     real(WP) :: pres_bulk
-    real(WP) :: offset(2)
+    real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: dens, visc
 
-    if(dm%is_thermo) call convert_primary_conservative(fl, dm, IG2Q, IALL) ! to check!
-!----------------------------------------------------------------------------------------------------------
-! to set up halo b.c. for cylindrical pipe
-!----------------------------------------------------------------------------------------------------------
-    if(dm%icoordinate == ICYLINDRICAL) call update_fbcy_cc_flow_halo(fl, dm)
-!----------------------------------------------------------------------------------------------------------
-! to set up convective outlet b.c. assume x direction
-!----------------------------------------------------------------------------------------------------------
-    if(dm%is_conv_outlet) call update_fbcx_convective_outlet_flow(fl, dm, isub)
-!----------------------------------------------------------------------------------------------------------
-! to calculate the rhs of the momenturn equation in stepping method
-!----------------------------------------------------------------------------------------------------------
-    call Compute_momentum_rhs(fl, dm, isub)
-!----------------------------------------------------------------------------------------------------------
-! to update intermediate (\hat{q}) or (\hat{g})
-!----------------------------------------------------------------------------------------------------------
+    ! set up thermo info based on different time stepping
+    if(dm%is_thermo) then
+      if(.not. is_strong_coupling) then
+        dens = (fl%dDens + fl%dDens0) * HALF
+        visc = (fl%mVisc + fl%mVisc0) * HALF
+        if(isub == 1) then
+          if (dm%is_conv_outlet(1)) fl%qx0 = fl%qx
+          if (dm%is_conv_outlet(3)) fl%qz0 = fl%qz
+          fl%gx0 = fl%gx
+          fl%gy0 = fl%gy
+          fl%gz0 = fl%gz
+          call Calculate_drhodt(fl, dm, opt_tm)
+        end if
+      else
+        dens = fl%dDens
+        visc = fl%mVisc
+        call Calculate_drhodt(fl, dm, opt_tm)
+      end if
+    end if
+    ! to set up convective outlet b.c. assume x direction
+    if(dm%is_conv_outlet(1)) call update_fbcx_convective_outlet_flow(fl, dm, isub)
+    if(dm%is_conv_outlet(3)) call update_fbcz_convective_outlet_flow(fl, dm, isub)
+    ! Main Momentum RHS
     if ( .not. dm%is_thermo) then 
+      ! to calculate the rhs of the momenturn equation in stepping method
+      call Compute_momentum_rhs(fl, dm, isub)
+      ! to update intermediate (\hat{q}) or (\hat{g})
       fl%qx = fl%qx + fl%mx_rhs
       fl%qy = fl%qy + fl%my_rhs
       fl%qz = fl%qz + fl%mz_rhs
       call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
     else if ( dm%is_thermo) then 
+      ! to calculate the rhs of the momenturn equation in stepping method
+      call Compute_momentum_rhs(fl, dm, isub, dens, visc)
+      ! to update intermediate (\hat{q}) or (\hat{g})
       fl%gx = fl%gx + fl%mx_rhs
       fl%gy = fl%gy + fl%my_rhs
       fl%gz = fl%gz + fl%mz_rhs
@@ -2288,34 +2313,7 @@ contains
     else
       call Print_error_msg("Error in velocity updating")
     end if
-    if(dm%icoordinate == ICYLINDRICAL) call update_fbcy_cc_flow_halo(fl, dm)
-    
-#ifdef DEBUG_STEPS
-    if ( .not. dm%is_thermo) then     
-    call wrt_3d_pt_debug(fl%qx, dm%dpcc, fl%iteration, isub, 'qx_bf divg') ! debug_ww
-    call wrt_3d_pt_debug(fl%qy, dm%dcpc, fl%iteration, isub, 'qy_bf divg') ! debug_ww
-    call wrt_3d_pt_debug(fl%qz, dm%dccp, fl%iteration, isub, 'qz_bf divg') ! debug_ww
-    else
-    call wrt_3d_pt_debug(fl%gx, dm%dpcc, fl%iteration, isub, 'gx_bf divg') ! debug_ww
-    call wrt_3d_pt_debug(fl%gy, dm%dcpc, fl%iteration, isub, 'gy_bf divg') ! debug_ww
-    call wrt_3d_pt_debug(fl%gz, dm%dccp, fl%iteration, isub, 'gz_bf divg') ! debug_ww
-    end if
-    !write(*,*) 'qx', fl%qx(:, 1, 1), fl%qx(:, 8, 8)
-    !write(*,*) 'qy', fl%qy(:, 1, 1), fl%qy(:, 8, 8)
-    !write(*,*) 'qz', fl%qz(:, 1, 1), fl%qz(:, 8, 8)
-#endif
-
-    !in order for a high order spacial accuracy
-    ! to use Alternating direction implicit method
-    ! ref: Cui2013: Convergence analysis of high-order compact 
-    ! alternating direction implicit nnn/schemes for the two-dimensional 
-    ! time fractional equation
-
-! #ifdef DEBUG_STEPS
-!   call write_snapshot_any3darray(fl%qx, 'qxs_RK'//trim(int2str(isub)), 'debug', dm%dpcc, dm, fl%iteration)
-!   call write_snapshot_any3darray(fl%qy, 'qys_RK'//trim(int2str(isub)), 'debug', dm%dcpc, dm, fl%iteration)
-!   call write_snapshot_any3darray(fl%qz, 'qzs_RK'//trim(int2str(isub)), 'debug', dm%dccp, dm, fl%iteration)
-! #endif
+    if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
 !----------------------------------------------------------------------------------------------------------
 ! to solve Poisson equation
 !----------------------------------------------------------------------------------------------------------
@@ -2332,9 +2330,8 @@ contains
 !write(*,*) 'pres', fl%pres(1, 1:4, 1)
 !write(*,*) 'pcor', fl%pcor(1, 1:4, 1)
     fl%pres = fl%pres + fl%pcor
-
-    call Find_max_min_3d(fl%pres, opt_calc='MINI', opt_work=offset)
-    fl%pres = fl%pres - offset(1)
+    !call Find_max_min_3d(fl%pres, opt_calc='MINI', opt_work=offset)
+    !fl%pres = fl%pres - offset(1)
     ! correct pressure drift
     !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
     !fl%pres = fl%pres - pres_bulk
@@ -2351,7 +2348,7 @@ contains
     else
       call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
     end if
-    if(dm%icoordinate == ICYLINDRICAL) call update_fbcy_cc_flow_halo(fl, dm)
+    if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
 #ifdef DEBUG_STEPS
     if(dm%is_thermo) then
     call wrt_3d_pt_debug(fl%gx, dm%dpcc,   fl%iteration, isub, 'gx_updated') ! debug_ww
@@ -2364,7 +2361,7 @@ contains
 ! to update velocity from gx gy gz 
 !----------------------------------------------------------------------------------------------------------
   if(dm%is_thermo) then
-    call convert_primary_conservative(fl, dm, IG2Q, IALL)
+    call convert_primary_conservative(dm, fl%dDens, IG2Q, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
   end if
 
   ! if(dm%is_thermo .and.isub == dm%nsubitr) then
@@ -2373,8 +2370,8 @@ contains
   !     fl%pres = fl%pres + fl%pcor
   !     call Correct_massflux(fl, fl%pcor, dm, isub)
   !     call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
-  !     if(dm%icoordinate == ICYLINDRICAL) call update_fbcy_cc_flow_halo(fl, dm)
-  !     call convert_primary_conservative(fl, dm, IG2Q)
+  !     if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
+  !     call convert_primary_conservative(fl%dDens, dm, IG2Q)
   !     call Check_element_mass_conservation(fl, dm, isub) 
   !   end do
   ! end if

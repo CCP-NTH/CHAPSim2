@@ -2,7 +2,7 @@ module convert_primary_conservative_mod
   public :: convert_primary_conservative
  contains 
 
-  subroutine convert_primary_conservative(fl, dm, itag, iloc)
+  subroutine convert_primary_conservative(dm, dens, itag, iloc, qx, qy, qz, gx, gy, gz)
     use udf_type_mod
     use operations
     use decomp_2d
@@ -10,63 +10,70 @@ module convert_primary_conservative_mod
     use cylindrical_rn_mod
     implicit none
     type(t_domain), intent(inout)   :: dm
-    type(t_flow  ), intent(inout) :: fl
     integer, intent(in) :: itag
     integer, intent(in) :: iloc
+    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)), intent(in) :: dens
+    real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3)), intent(inout), optional ::  qx, gx
+    real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3)), intent(inout), optional ::  qy, gy
+    real(WP), dimension( dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3)), intent(inout), optional ::  qz, gz
 
     real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3)) ::  d_ccc_ypencil
     real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3)) ::  d_ccc_zpencil
-
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3)) ::  d_pcc_xpencil
     real(WP), dimension( dm%dpcc%ysz(1), dm%dpcc%ysz(2), dm%dpcc%ysz(3)) ::  d_pcc_ypencil
     real(WP), dimension( dm%dpcc%zsz(1), dm%dpcc%zsz(2), dm%dpcc%zsz(3)) ::  d_pcc_zpencil
-
     real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3)) ::  d_cpc_xpencil
     real(WP), dimension( dm%dcpc%zsz(1), dm%dcpc%zsz(2), dm%dcpc%zsz(3)) ::  d_cpc_zpencil
     real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3)) ::  d_cpc_ypencil
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3)) :: qy_cpc_ypencil
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3)) :: gy_cpc_ypencil
-
     real(WP), dimension( dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3)) ::  d_ccp_xpencil
     real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3)) ::  d_ccp_ypencil
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3)) ::  d_ccp_zpencil
-    real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3)) :: qz_ccp_ypencil
-    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3)) :: qz_ccp_zpencil
-    real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3)) :: gz_ccp_ypencil
-    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3)) :: gz_ccp_zpencil
+
+    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3)) :: acpc_ypencil
+    real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3)) :: accp_ypencil
+    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3)) :: accp_zpencil
+
 
     real(WP), dimension( 4, dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: fbcx_4cc 
     real(WP), dimension( dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3) ) :: fbcy_c4c
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), 4 ) :: fbcz_cc4
     
     if(.not. dm%is_thermo) return
+    if(iloc == IBLK .or. iloc == IALL) then
+      if(.not. present(qx)) call Print_error_msg(' Lack of primary variables')
+      if(.not. present(qy)) call Print_error_msg(' Lack of primary variables')
+      if(.not. present(qz)) call Print_error_msg(' Lack of primary variables')
+      if(.not. present(gx)) call Print_error_msg(' Lack of conservative variables')
+      if(.not. present(gy)) call Print_error_msg(' Lack of conservative variables')
+      if(.not. present(gz)) call Print_error_msg(' Lack of conservative variables')
+    end if
 !----------------------------------------------------------------------------------------------------------
 ! x-pencil : u1 -> g1 = u1_pcc * d_pcc
 !----------------------------------------------------------------------------------------------------------
     fbcx_4cc(:, :, :) = dm%fbcx_ftp(:, :, :)%d
-    call Get_x_midp_C2P_3D (fl%dDens, d_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4cc)
+    call Get_x_midp_C2P_3D (dens, d_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4cc)
     if(iloc == IBLK .or. iloc == IALL) then
-    if(itag == IQ2G) fl%gx = fl%qx * d_pcc_xpencil
-    if(itag == IG2Q) fl%qx = fl%gx / d_pcc_xpencil
+    if(itag == IQ2G) gx = qx * d_pcc_xpencil
+    if(itag == IG2Q) qx = gx / d_pcc_xpencil
     end if
 !----------------------------------------------------------------------------------------------------------
 ! y-pencil : u2 -> g2 = u2_cpc * d_cpc
 !----------------------------------------------------------------------------------------------------------
-    call transpose_x_to_y(fl%dDens, d_ccc_ypencil, dm%dccc)
+    call transpose_x_to_y(dens, d_ccc_ypencil, dm%dccc)
     fbcy_c4c(:, :, :) = dm%fbcy_ftp(:, :, :)%d
     call Get_y_midp_C2P_3D (d_ccc_ypencil, d_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp, fbcy_c4c)
     call axis_estimating_radial_xpx(d_cpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1)) 
     if(iloc == IBLK .or. iloc == IALL) then
-    if(itag == IQ2G) then
-      call transpose_x_to_y(fl%qy, qy_cpc_ypencil, dm%dcpc)
-      gy_cpc_ypencil = qy_cpc_ypencil * d_cpc_ypencil
-      call transpose_y_to_x(gy_cpc_ypencil, fl%gy, dm%dcpc)
-    else if(itag == IG2Q) then
-      call transpose_x_to_y(fl%gy, gy_cpc_ypencil, dm%dcpc)
-      qy_cpc_ypencil = gy_cpc_ypencil / d_cpc_ypencil
-      call transpose_y_to_x(qy_cpc_ypencil, fl%qy, dm%dcpc)
-    else
-    end if
+      if(itag == IQ2G) then
+        call transpose_x_to_y(qy, acpc_ypencil, dm%dcpc)
+        acpc_ypencil = acpc_ypencil * d_cpc_ypencil
+        call transpose_y_to_x(acpc_ypencil, gy, dm%dcpc)
+      else if(itag == IG2Q) then
+        call transpose_x_to_y(gy, acpc_ypencil, dm%dcpc)
+        acpc_ypencil = acpc_ypencil / d_cpc_ypencil
+        call transpose_y_to_x(acpc_ypencil, qy, dm%dcpc)
+      else
+      end if
     end if
 !----------------------------------------------------------------------------------------------------------
 ! Z-pencil : u3 -> g3 = u3_ccp * d_ccp
@@ -75,20 +82,16 @@ module convert_primary_conservative_mod
     fbcz_cc4(:, :, :) = dm%fbcz_ftp(:, :, :)%d
     call Get_z_midp_C2P_3D (d_ccc_zpencil, d_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp, fbcz_cc4)
     if(iloc == IBLK .or. iloc == IALL) then
-    if(itag == IQ2G) then
-      call transpose_x_to_y(fl%qz,          qz_ccp_ypencil, dm%dccp)
-      call transpose_y_to_z(qz_ccp_ypencil, qz_ccp_zpencil, dm%dccp)
-      gz_ccp_zpencil = qz_ccp_zpencil * d_ccp_zpencil
-      call transpose_z_to_y(gz_ccp_zpencil, gz_ccp_ypencil, dm%dccp)
-      call transpose_y_to_x(gz_ccp_ypencil, fl%gz,          dm%dccp)
-    else if(itag == IG2Q) then
-      call transpose_x_to_y(fl%gz,          gz_ccp_ypencil, dm%dccp)
-      call transpose_y_to_z(gz_ccp_ypencil, gz_ccp_zpencil, dm%dccp)
-      qz_ccp_zpencil = gz_ccp_zpencil / d_ccp_zpencil
-      call transpose_z_to_y(qz_ccp_zpencil, qz_ccp_ypencil, dm%dccp)
-      call transpose_y_to_x(qz_ccp_ypencil, fl%qz,          dm%dccp)
-    else
-    end if
+      if(itag == IQ2G) then
+        call transpose_to_z_pencil(qz, accp_zpencil, dm%dccp, IPENCIL(1))
+        accp_zpencil = accp_zpencil * d_ccp_zpencil
+        call transpose_from_z_pencil(accp_zpencil, gz, dm%dccp, IPENCIL(1))
+      else if(itag == IG2Q) then
+        call transpose_to_z_pencil(gz, accp_zpencil, dm%dccp, IPENCIL(1))
+        accp_zpencil = accp_zpencil / d_ccp_zpencil
+        call transpose_from_z_pencil(accp_zpencil, qz, dm%dccp, IPENCIL(1))
+      else
+      end if
     end if
 
 !----------------------------------------------------------------------------------------------------------
@@ -236,4 +239,5 @@ module convert_primary_conservative_mod
 
     return
   end subroutine
+
 end module

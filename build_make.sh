@@ -222,7 +222,7 @@ setup_2decomp_git() {
 # -----------------------------------------------------------------------------
 # Step 0: Git Repository Setup/Refresh (Optional)
 # -----------------------------------------------------------------------------
-REFRESH_GIT=$(get_yes_no_input "Setup/refresh 2decomp-fft git repository? (y/n)" "no")
+REFRESH_GIT=$(get_yes_no_input "Setup/refresh 2decomp-fft git repository? (y/N)" "no")
 if [[ "$REFRESH_GIT" =~ ^(yes|y)$ ]]; then
     if setup_2decomp_git; then
         echo "Git repository setup/refresh completed successfully."
@@ -231,7 +231,7 @@ if [[ "$REFRESH_GIT" =~ ^(yes|y)$ ]]; then
         LIB_REBUILD="yes"
     else
         echo "❌ Error: Git repository setup/refresh failed."
-        CONTINUE_ANYWAY=$(get_yes_no_input "Continue with build anyway? (y/n)" "no")
+        CONTINUE_ANYWAY=$(get_yes_no_input "Continue with build anyway? (y/N)" "no")
         if [[ ! "$CONTINUE_ANYWAY" =~ ^(yes|y)$ ]]; then
             echo "Build aborted."
             exit 1
@@ -314,9 +314,11 @@ fi
 # Step 1: Check and Build the Library
 # -----------------------------------------------------------------------------
 if [[ -f "$LIB_FILE" && "$LIB_REBUILD" != "yes" ]]; then
-    LIB_REBUILD=$(get_yes_no_input "Rebuild 2decomp library?(y/n)" "no")
+    LIB_REBUILD=$(get_yes_no_input "Rebuild 2decomp library?(y/N)" "no")
     if [[ "$LIB_REBUILD" =~ ^(yes|y)$ ]]; then
         cd "$PATH_LIB" || { echo "Error: Cannot access $PATH_LIB"; exit 1; }
+        shopt -s extglob
+        find . -maxdepth 1 -not -name 'build_cmake_2decomp.sh' -not -name '.' -exec rm -rv {} +
         ./build_cmake_2decomp.sh || { echo "Error: CMake build failed in $PATH_LIB"; exit 1; }
     fi
 else
@@ -328,9 +330,9 @@ fi
 # -----------------------------------------------------------------------------
 # Step 2: Prompt for Build Options
 # -----------------------------------------------------------------------------
-CLEAN_BUILD=$(get_yes_no_input "Perform a clean build first? (y/n) (Enter 'only' to just clean and exit)" "no")
+CLEAN_BUILD=$(get_yes_no_input "Perform a clean build first? (y/N) (Enter 'clean' for 'make clean' only)" "no")
 
-if [[ "$CLEAN_BUILD" == "only" ]]; then
+if [[ "$CLEAN_BUILD" == "clean" ]]; then
     echo "Running 'make clean' in $PATH_BUILD..."
     if [[ ! -d "$PATH_BUILD" ]]; then
         echo "Error: Cannot access $PATH_BUILD"
@@ -341,29 +343,23 @@ if [[ "$CLEAN_BUILD" == "only" ]]; then
     exit 0
 fi
 
-# Prompt user and capture single-letter choice
-BUILD_MODE=$(get_choice_input "Select CHAPSim build mode: [a]default, [b]gnu-o3, [c]gnu-g, [d]gnu-debug, [e]intel, [f]cray" "a,b,c,d,e,f")
+# Prompt user and capture single-letter choice (default = a)
+echo -n "Select CHAPSim build mode: [A]default, [b]gnu-o3, [c]gnu-g, [d]gnu-debug, [e]intel, [f]cray [A]: "
+read -r choice
+
+# Use 'a' as default if empty
+BUILD_MODE=${choice:-a}
+# Normalize to lowercase
+BUILD_MODE=$(echo "$BUILD_MODE" | tr '[:upper:]' '[:lower:]')
 
 # Determine make target based on selection
 case "$BUILD_MODE" in
-    a)
-        MAKE_TARGET="make all"
-        ;;
-    b)
-        MAKE_TARGET="make cfg=gnu-o3"
-        ;;
-    c)
-        MAKE_TARGET="make cfg=gnu-g"
-        ;;
-    d)
-        MAKE_TARGET="make cfg=gnu-debug"
-        ;;
-    e)
-        MAKE_TARGET="make cfg=intel"
-        ;;
-    f)
-        MAKE_TARGET="make cfg=cray"
-        ;;
+    a|"") MAKE_TARGET="make all" ;;
+    b)    MAKE_TARGET="make cfg=gnu-o3" ;;
+    c)    MAKE_TARGET="make cfg=gnu-g" ;;
+    d)    MAKE_TARGET="make cfg=gnu-debug" ;;
+    e)    MAKE_TARGET="make cfg=intel" ;;
+    f)    MAKE_TARGET="make cfg=cray" ;;
     *)
         echo "Error: Unexpected build mode '$BUILD_MODE'. Exiting."
         exit 1
@@ -371,9 +367,6 @@ case "$BUILD_MODE" in
 esac
 
 # Optionally run it
-echo "Running: $MAKE_TARGET"
-eval $MAKE_TARGET
-
 if [[ "$CLEAN_BUILD" =~ ^(yes|y)$ ]]; then
     MAKE_TARGET="make clean && $MAKE_TARGET"
 fi

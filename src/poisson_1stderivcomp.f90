@@ -105,7 +105,7 @@ contains
     !real(WP) :: alcai, aci, bci
     
 
-    if (nrank == 0) call Print_debug_start_msg("Building up the interface for the poisson solver ...")
+    if (nrank == 0) call Print_debug_mid_msg("Building up the interface for the poisson solver ...")
 !----------------------------------------------------------------------------------------------------------
     istret = dm%istret
     if (istret /= 0) then
@@ -468,8 +468,8 @@ subroutine inversion5_v1(aaa_in,eee,spI)
         mi = m + i
         do k = spI%yst(3), spI%yen(3)
            do j = spI%yst(1), spI%yen(1)
-              if (rl(aaa(j,m,k,3)) /= zero) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
-              if (iy(aaa(j,m,k,3)) /= zero) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
+              if (dabs(rl(aaa(j,m,k,3))) > MINP) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
+              if (dabs(iy(aaa(j,m,k,3))) > MINP) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
               sr(j,k)=cx(tmp1,tmp2)
               eee(j,mi,k)=cx(rl(eee(j,mi,k)) - tmp1 * rl(eee(j,m,k)),&
                              iy(eee(j,mi,k)) - tmp2 * iy(eee(j,m,k)))
@@ -610,8 +610,8 @@ subroutine inversion5_v2(aaa,eee,spI)
         mi = m + i
         do k = spI%yst(3), spI%yen(3)
            do j = spI%yst(1), spI%yen(1)
-              if (rl(aaa(j,m,k,3)) /= zero) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
-              if (iy(aaa(j,m,k,3)) /= zero) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
+              if (dabs(rl(aaa(j,m,k,3))) > MINP) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
+              if (dabs(iy(aaa(j,m,k,3))) > MINP) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
               sr(j,k) = cx(tmp1, tmp2)
               eee(j,mi,k) = cx(rl(eee(j,mi,k)) - tmp1 * rl(eee(j,m,k)),&
                                iy(eee(j,mi,k)) - tmp2 * iy(eee(j,m,k)))
@@ -800,24 +800,24 @@ contains
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     if (bcx==0 .and. bcy==0 .and. bcz==0) then
        poisson => poisson_000
-#ifdef DEBUG_STEPS
-   write(*,*) 'poisson_000 is used.'
-#endif
+!#ifdef DEBUG_STEPS
+   if(nrank == 0) write(*,*) 'poisson_000 is used.'
+!#endif
     else if (bcx==1 .and. bcy==0 .and. bcz==0) then
        poisson => poisson_100
-#ifdef DEBUG_STEPS
-   write(*,*) 'poisson_100 is used.'
-#endif
+!#ifdef DEBUG_STEPS
+   if(nrank == 0) write(*,*) 'poisson_100 is used.'
+!#endif
     else if (bcx==0 .and. bcy==1 .and. bcz==0) then
        poisson => poisson_010
-#ifdef DEBUG_STEPS
-   write(*,*) 'poisson_010 is used.'
-#endif
+!#ifdef DEBUG_STEPS
+   if(nrank == 0) write(*,*) 'poisson_010 is used.'
+!#endif
     else if (bcx==1 .and. bcy==1) then   ! 110 & 111
        poisson => poisson_11x
-#ifdef DEBUG_STEPS
-   write(*,*) 'poisson_11x is used.'
-#endif
+!#ifdef DEBUG_STEPS
+   if(nrank == 0) write(*,*) 'poisson_11x is used.'
+!#endif
     else
        error stop 'boundary condition not supported'
     end if
@@ -3048,7 +3048,7 @@ contains
        !not to have a singular matrice
        do k = sp%yst(3), sp%yen(3)
           do i = sp%yst(1), sp%yen(1)
-             if ((rl(xk2(i)) == zero).and.(rl(zk2(k)) == zero)) then
+             if ((dabs(rl(xk2(i))) < MINP).and.(dabs(rl(zk2(k))) < MINP)) then
                 a(i,1,k,3)=cx_one_one
                 a(i,1,k,4) = zero
                 a(i,1,k,5) = zero

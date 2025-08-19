@@ -6,18 +6,18 @@ module eq_energy_mod
 
   private :: Compute_energy_rhs
   private :: Calculate_energy_fractional_step
-  private :: Calculate_drhodt
+  public  :: Calculate_drhodt
   public  :: Update_thermal_properties
   public  :: Solve_energy_eq
 contains
 !==========================================================================================================
-  subroutine Calculate_drhodt(fl, tm, dm)
+  subroutine Calculate_drhodt(fl, dm, opt_tm)
     use parameters_constant_mod
     use udf_type_mod
     use find_max_min_ave_mod
     implicit none
     type(t_domain), intent(in) :: dm
-    type(t_thermo), intent(in) :: tm
+    type(t_thermo), intent(in), optional :: opt_tm
     type(t_flow), intent(inout) :: fl
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(in)  :: dens, densm1
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(out) :: drhodt
@@ -32,30 +32,30 @@ contains
 
     ! select case (dm%iTimeScheme)
     !   case (ITIME_EULER) ! 1st order
-    !     fl%drhodt = fl%dDens - fl%dDensm1
+    !     fl%drhodt = fl%dDens - fl%dDens0
     !     fl%drhodt = fl%drhodt / dm%dt
     !   case (ITIME_AB2) ! 2nd order
     !     fl%drhodt = fl%dDens - fl%dDensm2
     !     fl%drhodt = fl%drhodt / (TWO * dm%dt)
     !   case (ITIME_RK3, ITIME_RK3_CN) ! 3rd order
-    !     fl%drhodt = -fl%dDensm2 + SIX * fl%dDensm1 - THREE * fl%dDens
+    !     fl%drhodt = -fl%dDensm2 + SIX * fl%dDens0 - THREE * fl%dDens
     !     fl%drhodt = fl%drhodt / (dm%dt * SIX)
     !   case default
-    !     fl%drhodt = fl%dDens - fl%dDensm1
+    !     fl%drhodt = fl%dDens - fl%dDens0
     !     fl%drhodt = fl%drhodt / dm%dt
     ! end select
 
-    if(is_drhodt_implicit) then
+    if(is_drhodt_chain) then
       ! drho/dt = d(rhoh)/dt/(drhoh/drho) in energy equation
-      fl%drhodt = tm%ene_rhs / dm%dt / tm%drhoh_drho
+      if(.not. present(opt_tm)) call Print_error_msg('opt_tm should be provided.')
+      fl%drhodt = opt_tm%ene_rhs / dm%dt / opt_tm%drhoh_drho
     else 
-      fl%drhodt = fl%dDens - fl%dDensm1
+      fl%drhodt = fl%dDens - fl%dDens0
       fl%drhodt = fl%drhodt / dm%dt
     end if
-
 !#ifdef DEBUG_STEPS
     !write(*,*) 'rho   ', fl%ddens  (1, :, 1)
-    !write(*,*) 'rhom1 ', fl%ddensm1(1, :, 1)
+    !write(*,*) 'rhom1 ', fl%dDens0(1, :, 1)
     !write(*,*) 'rhom2 ', fl%ddensm2(:, :, :)
     !write(*,*) 'drhodt', fl%drhodt (:, :, :)
     !write(*,*) 'drhodt', fl%drhodt(1, :, 1)
@@ -66,7 +66,7 @@ contains
     return
   end subroutine Calculate_drhodt
 !==========================================================================================================
-  subroutine Update_thermal_properties(fl, tm, dm)
+  subroutine Update_thermal_properties(dens, visc, tm, dm)
     use parameters_constant_mod
     use udf_type_mod
     use operations
@@ -74,13 +74,13 @@ contains
     use cylindrical_rn_mod
     implicit none
     type(t_domain), intent(inout) :: dm
-    type(t_flow),   intent(inout) :: fl
     type(t_thermo), intent(inout) :: tm
-    real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: dh_pcc
-    real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: dh_ypencil
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: dh_cpc_ypencil
-    real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: dh_zpencil
-    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: dh_ccp_zpencil
+    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(inout) :: dens, visc
+    real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: dh_pcc, d_pcc
+    real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: dh_ypencil, d_ypencil
+    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: dh_cpc_ypencil, d_cpc_ypencil
+    real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: dh_zpencil, d_zpencil
+    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: dh_ccp_zpencil, d_ccp_zpencil
     
     real(WP), dimension( dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3) ) :: fbcy_c4c
     integer :: i, j, k
@@ -92,12 +92,13 @@ contains
       do j = 1, dm%dccc%xsz(2)
         do i = 1, dm%dccc%xsz(1)
           ftp%rhoh = tm%rhoh(i, j, k)
+          ftp%d = dens(i, j, k)
           call ftp_refresh_thermal_properties_from_DH(ftp)
           tm%hEnth(i, j, k) = ftp%h
           tm%tTemp(i, j, k) = ftp%T
           tm%kCond(i, j, k) = ftp%k
-          fl%dDens(i, j, k) = ftp%d
-          fl%mVisc(i, j, k) = ftp%m
+          dens(i, j, k) = ftp%d
+          visc(i, j, k) = ftp%m
           tm%drhoh_drho(i, j, k) = ftp%drhoh_drho
         end do
       end do
@@ -109,11 +110,13 @@ contains
   if( dm%ibcx_Tm(1) == IBC_NEUMANN .or. &
       dm%ibcx_Tm(2) == IBC_NEUMANN) then
     call Get_x_midp_C2P_3D(tm%rhoh, dh_pcc, dm, dm%iAccuracy, dm%ibcx_ftp) ! exterpolation, check
+    call Get_x_midp_C2P_3D(dens,d_pcc, dm, dm%iAccuracy, dm%ibcx_ftp)
     if(dm%ibcx_Tm(1) == IBC_NEUMANN .and. &
        dm%dpcc%xst(1) == 1) then 
       do j = 1, size(dm%fbcx_ftp, 2)
         do k = 1, size(dm%fbcx_ftp, 3)
           ftp%rhoh = dh_pcc(1, j, k)
+          ftp%d = d_pcc(1, j, k)
           call ftp_refresh_thermal_properties_from_DH(ftp)
           dm%fbcx_ftp(1, j, k) = ftp
           dm%fbcx_ftp(3, j, k) = ftp
@@ -125,6 +128,7 @@ contains
       do j = 1, size(dm%fbcx_ftp, 2)
         do k = 1, size(dm%fbcx_ftp, 3)
           ftp%rhoh = dh_pcc(dm%np(1), j, k)
+          ftp%d = d_pcc(dm%np(1), j, k)
           call ftp_refresh_thermal_properties_from_DH(ftp)
           dm%fbcx_ftp(2, j, k) = ftp
           dm%fbcx_ftp(4, j, k) = ftp
@@ -141,12 +145,16 @@ contains
     call transpose_x_to_y(tm%rhoh, dh_ypencil, dm%dccc)
     call Get_y_midp_C2P_3D(dh_ypencil, dh_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp) ! exterpolation, check
     call axis_estimating_radial_xpx(dh_cpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1))
+    call transpose_x_to_y(dens, d_ypencil, dm%dccc)
+    call Get_y_midp_C2P_3D(d_ypencil, d_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp) ! exterpolation, check
+    call axis_estimating_radial_xpx(d_cpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1))
     
     if(dm%ibcy_Tm(1) == IBC_NEUMANN .and. &
        dm%dcpc%yst(2) == 1) then 
       do i = 1, size(dm%fbcy_ftp, 1)
         do k = 1, size(dm%fbcy_ftp, 3)
           ftp%rhoh = dh_cpc_ypencil(i, 1, k)
+          ftp%d = d_cpc_ypencil(i, 1, k)
           call ftp_refresh_thermal_properties_from_DH(ftp)
           dm%fbcy_ftp(i, 1, k) = ftp
           dm%fbcy_ftp(i, 3, k) = ftp
@@ -158,6 +166,7 @@ contains
       do i = 1, size(dm%fbcy_ftp, 1)
         do k = 1, size(dm%fbcy_ftp, 3)
           ftp%rhoh = dh_cpc_ypencil(i, dm%np(2), k)
+          ftp%d = d_cpc_ypencil(i, dm%np(2), k)
           call ftp_refresh_thermal_properties_from_DH(ftp)
           dm%fbcy_ftp(i, 2, k) = ftp
           dm%fbcy_ftp(i, 4, k) = ftp
@@ -173,12 +182,17 @@ contains
     call transpose_x_to_y(tm%rhoh, dh_ypencil, dm%dccc)
     call transpose_y_to_z(dh_ypencil, dh_zpencil, dm%dccc)
     call Get_z_midp_C2P_3D(dh_zpencil, dh_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp) ! exterpolation, check
+
+    call transpose_x_to_y(dens, d_ypencil, dm%dccc)
+    call transpose_y_to_z(d_ypencil, d_zpencil, dm%dccc)
+    call Get_z_midp_C2P_3D(d_zpencil, d_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp) ! exterpolation, check
     
     if(dm%ibcz_Tm(1) == IBC_NEUMANN .and. &
        dm%dccp%zst(1) == 1) then 
       do j = 1, size(dm%fbcz_ftp, 2)
         do i = 1, size(dm%fbcz_ftp, 1)
           ftp%rhoh = dh_ccp_zpencil(i, j, 1)
+          ftp%d = d_ccp_zpencil(i, j, 1)
           call ftp_refresh_thermal_properties_from_DH(ftp)
           dm%fbcz_ftp(i, j, 1) = ftp
           dm%fbcz_ftp(i, j, 3) = ftp
@@ -190,6 +204,7 @@ contains
       do j = 1, size(dm%fbcz_ftp, 2)
         do i = 1, size(dm%fbcz_ftp, 1)
           ftp%rhoh = dh_ccp_zpencil(i, j, dm%np(3))
+          ftp%d = d_ccp_zpencil(i, j, dm%np(3))
           call ftp_refresh_thermal_properties_from_DH(ftp)
           dm%fbcz_ftp(i, j, 2) = ftp
           dm%fbcz_ftp(i, j, 4) = ftp
@@ -232,7 +247,7 @@ contains
     return
   end subroutine
 !==========================================================================================================
-  subroutine Compute_energy_rhs(fl, tm, dm, isub)
+  subroutine Compute_energy_rhs(gx, gy, gz, tm, dm, isub)
     use operations
     use udf_type_mod
     use thermo_info_mod
@@ -241,20 +256,23 @@ contains
     use cylindrical_rn_mod
     use wrt_debug_field_mod
     implicit none
+    ! arguments
     type(t_domain), intent(in) :: dm
-    type(t_flow),   intent(in) :: fl
     type(t_thermo), intent(inout) :: tm
     integer,        intent(in) :: isub    
-
+    real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ), intent(in) :: gx
+    real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ), intent(in) :: gy
+    real(WP), dimension( dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3) ), intent(in) :: gz
+    ! local variables
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: accc_xpencil
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: apcc_xpencil
+    real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc_xpencil
     real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: accc_ypencil
     real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3) ) :: accp_ypencil
     real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
     real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: accc_zpencil
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil
     
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: gy_cpc_ypencil
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: gz_ccp_zpencil 
 
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dppc%xsz(3) ) :: hEnth_pcc_xpencil
@@ -278,12 +296,6 @@ contains
     
     integer  :: n, i, j, k
     integer  :: mbc(1:2, 1:3)
-!==========================================================================================================
-!   preparation
-!==========================================================================================================
-    call transpose_x_to_y(fl%gy,        gy_cpc_ypencil,   dm%dcpc)   ! for d(g_y h)/dy
-    call transpose_x_to_y(fl%gz,        accp_ypencil,     dm%dccp)   ! intermediate, accp_ypencil = gz_ypencil
-    call transpose_y_to_z(accp_ypencil, gz_ccp_zpencil,   dm%dccp)   ! for d(g_z h)/dz
 !----------------------------------------------------------------------------------------------------------
 !    h --> h_pcc
 !      --> h_ypencil --> h_cpc_ypencil
@@ -326,21 +338,14 @@ contains
 !==========================================================================================================
 ! the RHS of energy equation : convection terms
 !==========================================================================================================
-    tm%ene_rhs      = ZERO
+    tm%ene_rhs          = ZERO
     ene_rhs_ccc_ypencil = ZERO
     ene_rhs_ccc_zpencil = ZERO
 !----------------------------------------------------------------------------------------------------------
 ! conv-x-e, x-pencil : d (gx * h_pcc) / dx 
 !----------------------------------------------------------------------------------------------------------
-    ! !------b.c.------
-    ! if(is_fbcx_velo_required) then
-    !   fbcx_4cc(:, :, :) = dm%fbcx_ftp(:, :, :)%h
-    !   fbcx_4cc = - fbcx_4cc * dm%fbcx_gx
-    ! else
-    !   fbcx_4cc = MAXP
-    ! end if
     !------bulk------
-    apcc_xpencil = - fl%gx * hEnth_pcc_xpencil
+    apcc_xpencil = - gx * hEnth_pcc_xpencil
     !------b.c.------
     if(is_fbcx_velo_required) then
       call extract_dirichlet_fbcx(fbcx_4cc, apcc_xpencil, dm%dpcc)
@@ -358,7 +363,8 @@ contains
 ! conv-y-e, y-pencil : d (gy * h_cpc) / dy  * (1/r)
 !----------------------------------------------------------------------------------------------------------
     !------bulk------
-    acpc_ypencil = - gy_cpc_ypencil * hEnth_cpc_ypencil
+    call transpose_x_to_y(gy, acpc_ypencil,   dm%dcpc)   ! for d(g_y h)/dy
+    acpc_ypencil = - acpc_ypencil * hEnth_cpc_ypencil
     !------b.c.------
     if(is_fbcy_velo_required) then
       call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
@@ -378,6 +384,8 @@ contains
 ! conv-z-e, z-pencil : d (gz * h_ccp) / dz   * (1/r)
 !----------------------------------------------------------------------------------------------------------
     !------bulk------
+    call transpose_x_to_y(gz,           accp_ypencil,     dm%dccp)   ! intermediate, accp_ypencil = gz_ypencil
+    call transpose_y_to_z(accp_ypencil, gz_ccp_zpencil,   dm%dccp)   ! for d(g_z h)/dz
     accp_zpencil = - gz_ccp_zpencil * hEnth_ccp_zpencil
     ! if(dm%icoordinate == ICYLINDRICAL) &
     ! call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
@@ -411,7 +419,7 @@ contains
     else
       fbcx_4cc = MAXP
     end if  
-    !------PDE------
+    !------PDE------f
     call Get_x_1der_P2C_3D(apcc_xpencil, accc_xpencil, dm, dm%iAccuracy, ebcx_difu, fbcx_4cc)
     tm%ene_rhs = tm%ene_rhs + accc_xpencil * tm%rPrRen
 #ifdef DEBUG_STEPS
@@ -479,8 +487,8 @@ contains
 ! time approaching
 !==========================================================================================================
 #ifdef DEBUG_STEPS
-    call wrt_3d_pt_debug(tm%tTemp,   dm%dccc, fl%iteration, isub, 'T@bf stepping') ! debug_ww
-    call wrt_3d_pt_debug(tm%ene_rhs, dm%dccc, fl%iteration, isub, 'energy_rhs@bf stepping') ! debug_ww
+    call wrt_3d_pt_debug(tm%tTemp,   dm%dccc, tm%iteration, isub, 'T@bf stepping') ! debug_ww
+    call wrt_3d_pt_debug(tm%ene_rhs, dm%dccc, tm%iteration, isub, 'energy_rhs@bf stepping') ! debug_ww
     write(*,*) 'rhs-e', tm%ene_rhs(1, 1:4, 1)
 #endif
     call Calculate_energy_fractional_step(tm%ene_rhs0, tm%ene_rhs, dm%dccc, dm, isub)
@@ -494,63 +502,55 @@ contains
     use thermo_info_mod 
     use solver_tools_mod
     use boundary_conditions_mod
+    use bc_convective_outlet_mod
+    use convert_primary_conservative_mod
     implicit none
+    ! arguments
     type(t_domain), intent(inout)    :: dm
     type(t_flow),   intent(inout) :: fl
     type(t_thermo), intent(inout) :: tm
     integer,        intent(in)    :: isub
+    ! local variables
     real(WP) :: uxdx
     integer :: j, k
-    logical :: is_update_rho
-    
-    ! back up density to last time step
-    is_update_rho = .false.
-    if(.not. is_drhodt_implicit) then
-      if(is_strong_coupling) then
-        is_update_rho = .true.
-      else
-        if(isub == 1) is_update_rho = .true.
+    real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: gx, ux
+    real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: gy, uy
+    real(WP), dimension( dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3) ) :: gz, uz
+    !
+    ! set up flow info based on different time stepping
+    if(is_strong_coupling) then
+      gx = fl%gx
+      gy = fl%gy
+      gz = fl%gz
+      if (dm%is_conv_outlet(1)) ux = fl%qx
+      if (dm%is_conv_outlet(3)) uz = fl%qz
+    else
+      gx = (fl%gx0 + fl%gx) * HALF
+      gy = (fl%gy0 + fl%gy) * HALF
+      gz = (fl%gz0 + fl%gz) * HALF
+      call convert_primary_conservative (dm, fl%dDens, IG2Q, IBLK, ux, uy, uz, gx, gy, gz)
+    end if
+    ! backup density and viscosity 
+    if (.not. is_drhodt_chain) then
+      if (is_strong_coupling .or. isub == 1) then
+        fl%dDens0 = fl%dDens
+        fl%mVisc0 = fl%mVisc
       end if
     end if
-    if(is_update_rho) then
-      fl%dDensm2(:, :, :) = fl%dDensm1(:, :, :)
-      fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
-    end if
-!----------------------------------------------------------------------------------------------------------
-! to set up halo b.c. for cylindrical pipe
-!----------------------------------------------------------------------------------------------------------
-    call update_fbcy_cc_thermo_halo(fl, tm, dm)
-!----------------------------------------------------------------------------------------------------------
-! to set up convective outlet b.c. assume x direction
-!----------------------------------------------------------------------------------------------------------
-    call update_fbcx_convective_outlet_thermo(fl, tm, dm, isub)
-!----------------------------------------------------------------------------------------------------------
-!   calculate rhs of energy equation
-!----------------------------------------------------------------------------------------------------------
-    call Compute_energy_rhs(fl, tm, dm, isub)
-!----------------------------------------------------------------------------------------------------------
-!   update rho * h
-!----------------------------------------------------------------------------------------------------------
-#ifdef DEBUG_STEPS
-    write(*,*) 'rhoh-e-bf', tm%rhoh(1, 1:4, 1)
-#endif
+    ! compute b.c. info from convective b.c. if specified.
+    if (dm%is_conv_outlet(1)) call update_fbcx_convective_outlet_thermo(ux, tm, dm, isub)
+    if (dm%is_conv_outlet(3)) call update_fbcz_convective_outlet_thermo(uz, tm, dm, isub)
+    ! calculate rhs of energy equation
+    call Compute_energy_rhs(gx, gy, gz, tm, dm, isub)
+    !  update rho * h
     tm%rhoh = tm%rhoh + tm%ene_rhs
-#ifdef DEBUG_STEPS
-    write(*,*) 'rhoh-e-af', tm%rhoh(1, 1:4, 1)
-    call wrt_3d_pt_debug(tm%rhoh, dm%dccc, fl%iteration, isub, 'rhoh@af stepping') ! debug_ww
-#endif
-!----------------------------------------------------------------------------------------------------------
-!   update other properties from rho * h
-!----------------------------------------------------------------------------------------------------------
-    !if(isub==3) then
-    call Update_thermal_properties(fl, tm, dm)
-    call update_fbcy_cc_thermo_halo(fl, tm, dm)
-#ifdef DEBUG_STEPS
-    write(*,*) 'T-e', tm%tTemp(1, 1:4, 1)
-    call wrt_3d_pt_debug(tm%tTemp,   dm%dccc, fl%iteration, isub, 'T@af stepping') ! debug_ww
-#endif
+    !  update other properties from rho * h for domain + b.c.
+    call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm)
+    if (dm%icase == ICASE_PIPE) call update_fbcy_cc_thermo_halo(tm, dm)
+
     ! calculate drho/dt
-    call Calculate_drhodt(fl, tm, dm)
+    !if(isub==3) &
+    call Calculate_drhodt(fl, dm, opt_tm=tm)
 
   return
   end subroutine

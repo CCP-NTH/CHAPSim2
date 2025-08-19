@@ -26,13 +26,14 @@ endif
 # Common Fortran Compiler Flags
 COMMON_FOPTS = -fallow-argument-mismatch -Wno-unused -Wno-unused-dummy-argument -Wno-maybe-uninitialized
 COMMON_FFLGS = -DDOUBLE_PREC -fdefault-real-8 -fdefault-double-8
+FOPTS_WARNING = -Wunused-variable -Wunused-parameter -Wunused-dummy-argument
 
 # Compiler and flags based on configuration
 ifeq ($(cfg), gnu-g)
   FC     = mpif90
   FOPTS  = -g -O0 -Wall -Wextra -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
            -ffree-line-length-512 -Wuninitialized -pedantic -finit-real=snan -fstack-protector -fimplicit-none \
-           -cpp -fopenmp $(COMMON_FOPTS)
+           -cpp -fopenmp $(COMMON_FOPTS) #$(FOPTS_WARNING)
   FFLGS  = $(COMMON_FFLGS)
   FDEBG  = # No DEBUG_STEPS for this config
 else ifeq ($(cfg), gnu-debug)
@@ -85,7 +86,6 @@ OBJS1 = $(addprefix $(DIR_OBJ)/, \
       tools_general.o \
       input_thermo.o \
       bc_dirichlet.o \
-      bc_convective_outlet.o \
       bc_ndomain_interior.o \
       bc_general.o \
       input_general.o \
@@ -102,6 +102,7 @@ OBJS1 = $(addprefix $(DIR_OBJ)/, \
       poisson_fishpack.o \
       poisson_1stderivcomp.o \
       poisson_interface.o \
+      bc_convective_outlet.o \
       eq_continuity.o \
       eq_energy.o \
       eq_mhd.o \

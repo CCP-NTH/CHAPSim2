@@ -825,18 +825,239 @@ contains
 
 end module 
 !============================================================================
+module transpose_extended_mod
+  use decomp_2d
+  implicit none 
+  
+  public :: transpose_to_y_pencil
+  public :: transpose_to_z_pencil
+  public :: transpose_from_z_pencil
+  public :: transpose_from_y_pencil
+  public :: get_dimensions
+
+contains
+  ! Helper subroutine: Get dimensions based on pencil
+  subroutine get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
+    use parameters_constant_mod
+    implicit none
+    type(DECOMP_INFO), intent(in) :: dtmp
+    integer, intent(in)          :: pencil
+    integer, intent(out)         :: nx, ny, nz, nyst
+
+    select case (pencil)
+      case (IPENCIL(1))
+        nx = dtmp%xsz(1)
+        ny = dtmp%xsz(2)
+        nz = dtmp%xsz(3)
+        nyst = dtmp%xst(2)
+      case (IPENCIL(2))
+        nx = dtmp%ysz(1)
+        ny = dtmp%ysz(2)
+        nz = dtmp%ysz(3)
+        nyst = dtmp%yst(2)
+      case (IPENCIL(3))
+        nx = dtmp%zsz(1)
+        ny = dtmp%zsz(2)
+        nz = dtmp%zsz(3)
+        nyst = dtmp%zst(2)
+      case default
+        nx = 0
+        ny = 0
+        nz = 0
+        nyst = 0
+    end select
+  end subroutine get_dimensions
+!============================================================================
+  ! Helper subroutine: Transpose input data to y-pencil
+!============================================================================
+  subroutine transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
+    use parameters_constant_mod
+    implicit none
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(in)         :: var(:, :, :)
+    real(WP), intent(out)        :: var_ypencil(:, :, :)
+    integer, intent(in)          :: pencil
+
+    select case (pencil)
+      case (IPENCIL(1))
+        call transpose_x_to_y(var, var_ypencil, dtmp)
+      case (IPENCIL(2))
+        var_ypencil = var
+      case (IPENCIL(3))
+        call transpose_z_to_y(var, var_ypencil, dtmp)
+      case default
+        ! Handle invalid pencil case (optional: add error handling)
+    end select
+  end subroutine transpose_to_y_pencil
+  !============================================================================
+  ! Helper subroutine: Transpose input data to z-pencil
+  !============================================================================
+  subroutine transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
+    use parameters_constant_mod
+    implicit none
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(in)         :: var(:, :, :)
+    real(WP), intent(out)        :: var_zpencil(:, :, :)
+    integer, intent(in)          :: pencil
+
+    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
+
+    select case (pencil)
+      case (IPENCIL(1))
+        call transpose_x_to_y(var, var_ypencil, dtmp)
+        call transpose_y_to_z(var_ypencil, var_zpencil, dtmp)
+      case (IPENCIL(2))
+        call transpose_y_to_z(var, var_zpencil, dtmp)
+      case (IPENCIL(3))
+        var_zpencil = var
+      case default
+        ! Handle invalid pencil case (optional: add error handling)
+    end select
+  end subroutine transpose_to_z_pencil
+  !============================================================================
+  ! Helper subroutine: Transpose data from z-pencil back to original pencil
+  !============================================================================
+  subroutine transpose_from_z_pencil(var_zpencil, var, dtmp, pencil)
+    use parameters_constant_mod
+    implicit none
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(in)         :: var_zpencil(:, :, :)
+    real(WP), intent(out)        :: var(:, :, :)
+    integer, intent(in)          :: pencil
+
+    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
+
+    select case (pencil)
+      case (IPENCIL(1))
+        call transpose_z_to_y(var_zpencil, var_ypencil, dtmp)
+        call transpose_y_to_x(var_ypencil, var, dtmp)
+      case (IPENCIL(2))
+        call transpose_z_to_y(var_zpencil, var, dtmp)
+      case (IPENCIL(3))
+        var = var_zpencil
+      case default
+        ! Handle invalid pencil case (optional: add error handling)
+    end select
+  end subroutine transpose_from_z_pencil
+
+  !============================================================================
+  ! Helper subroutine: Transpose data from y-pencil back to original pencil
+  !============================================================================
+  subroutine transpose_from_y_pencil(var_ypencil, var, dtmp, pencil)
+    use parameters_constant_mod
+    implicit none
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), intent(in)         :: var_ypencil(:, :, :)
+    real(WP), intent(out)        :: var(:, :, :)
+    integer, intent(in)          :: pencil
+
+    select case (pencil)
+      case (IPENCIL(1))
+        call transpose_y_to_x(var_ypencil, var, dtmp)
+      case (IPENCIL(2))
+        var = var_ypencil
+      case (IPENCIL(3))
+        call transpose_y_to_z(var_ypencil, var, dtmp)
+      case default
+        ! Handle invalid pencil case (optional: add error handling)
+    end select
+  end subroutine transpose_from_y_pencil
+
+end module
+
+!============================================================================
+module decomp_extended_mod
+  use parameters_constant_mod
+  implicit none
+
+
+  public :: ypencil_index_lgl2ggl
+  public :: zpencil_index_llg2ggg
+  public :: zpencil_index_ggg2llg
+
+  contains
+!==========================================================================================================
+  subroutine ypencil_index_lgl2ggl(vin, vou, dtmp)
+    use decomp_2d
+    implicit none
+
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), dimension(dtmp%ysz(1),               dtmp%ysz(2), dtmp%ysz(3)), intent(in)  :: vin
+    real(WP), dimension(dtmp%yst(1) : dtmp%yen(2), dtmp%ysz(2), dtmp%zsz(3)), intent(out) :: vou
+
+    integer :: i, j, k, ii
+    vou = ZERO
+    do k = 1, dtmp%ysz(3)
+      do j = 1, dtmp%ysz(2)
+        do i = 1, dtmp%ysz(1)
+          ii = dtmp%yst(1) + i - 1
+          vou(ii, j, k) = vin(i, j, k)
+        end do
+      end do
+    end do
+    return
+  end subroutine 
+!==========================================================================================================
+  subroutine zpencil_index_llg2ggg(vin, vou, dtmp)
+    use decomp_2d
+    
+    implicit none
+
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), dimension(dtmp%zsz(1),               dtmp%zsz(2),               dtmp%zsz(3)), intent(in)  :: vin
+    real(WP), dimension(dtmp%zst(1) : dtmp%zen(1), dtmp%zst(2) : dtmp%zen(2), dtmp%zsz(3)), intent(out) :: vou
+
+    integer :: i, j, k, jj, ii
+
+    vou = ZERO
+    do k = 1, dtmp%zsz(3)
+      do j = 1, dtmp%zsz(2)
+        jj = dtmp%zst(2) + j - 1 !local2global_yid(j, dtmp)
+        do i = 1, dtmp%zsz(1)
+          ii = dtmp%zst(1) + i - 1
+          vou(ii, jj, k) = vin(i, j, k)
+        end do
+      end do
+    end do
+    return
+  end subroutine
+!==========================================================================================================  
+  subroutine zpencil_index_ggg2llg(vin, vou, dtmp)
+    use decomp_2d
+    
+    implicit none
+
+    type(DECOMP_INFO), intent(in) :: dtmp
+    real(WP), dimension(dtmp%zst(1) : dtmp%zen(1), dtmp%zst(2) : dtmp%zen(2), dtmp%zsz(3)), intent(in)   :: vin
+    real(WP), dimension(dtmp%zsz(1),               dtmp%zsz(2),               dtmp%zsz(3)), intent(out)  :: vou
+    
+
+    integer :: i, j, k, jj, ii
+!write(*,*) 'vin', nrank, size(vin, 1), size(vin, 2),size(vin, 3)
+!write(*,*) 'vou', nrank, size(vou, 1), size(vou, 2),size(vou, 3)
+
+    vou = ZERO
+    do k = 1, dtmp%zsz(3)
+      do j = 1, dtmp%zsz(2)
+        jj = dtmp%zst(2) + j - 1 !local2global_yid(j, dtmp)
+        do i = 1, dtmp%zsz(1)
+          ii = dtmp%zst(1) + i - 1
+          vou(i, j, k) = vin(ii, jj, k)
+        end do
+      end do
+    end do
+    return
+  end subroutine
+end module 
+
+!============================================================================
 !============================================================================
 module cylindrical_rn_mod
   use udf_type_mod
   use parameters_constant_mod
   use print_msg_mod
+  use transpose_extended_mod
   implicit none
-
-  private :: transpose_to_y_pencil
-  private :: transpose_to_z_pencil
-  private :: transpose_from_z_pencil
-  private :: transpose_from_y_pencil
-  private :: get_dimensions
 
   public :: axis_estimating_radial_xpx
   !public :: estimate_azimuthal_xpx_on_axis
@@ -877,6 +1098,7 @@ contains
   !============================================================================
   subroutine axis_estimating_radial_xpx(var, dtmp, pencil, dm, idir, is_reversed)
     use math_mod
+    use transpose_extended_mod
     implicit none
     type(DECOMP_INFO), intent(in) :: dtmp
     type(t_domain), intent(in)    :: dm
@@ -887,7 +1109,7 @@ contains
 
     real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil, var_ypencil1
     real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil, var_zpencil1
-    real(WP), dimension(dtmp%zsz(1)) :: uz, uy
+    !real(WP), dimension(dtmp%zsz(1)) :: uz, uy
     integer :: k, i
     real(WP) :: theta, sign
 
@@ -1085,126 +1307,6 @@ contains
 
   end subroutine multiple_cylindrical_rn_x4x
 
-  !============================================================================
-  ! Helper subroutine: Get dimensions based on pencil
-  !============================================================================
-  subroutine get_dimensions(dtmp, pencil, nx, ny, nz, nyst)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    integer, intent(in)          :: pencil
-    integer, intent(out)         :: nx, ny, nz, nyst
-
-    select case (pencil)
-      case (IPENCIL(1))
-        nx = dtmp%xsz(1)
-        ny = dtmp%xsz(2)
-        nz = dtmp%xsz(3)
-        nyst = dtmp%xst(2)
-      case (IPENCIL(2))
-        nx = dtmp%ysz(1)
-        ny = dtmp%ysz(2)
-        nz = dtmp%ysz(3)
-        nyst = dtmp%yst(2)
-      case (IPENCIL(3))
-        nx = dtmp%zsz(1)
-        ny = dtmp%zsz(2)
-        nz = dtmp%zsz(3)
-        nyst = dtmp%zst(2)
-      case default
-        nx = 0
-        ny = 0
-        nz = 0
-        nyst = 0
-    end select
-  end subroutine get_dimensions
-
-  !============================================================================
-  ! Helper subroutine: Transpose input data to y-pencil
-  !============================================================================
-  subroutine transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    real(WP), intent(in)         :: var(:, :, :)
-    real(WP), intent(out)        :: var_ypencil(:, :, :)
-    integer, intent(in)          :: pencil
-
-    select case (pencil)
-      case (IPENCIL(1))
-        call transpose_x_to_y(var, var_ypencil, dtmp)
-      case (IPENCIL(2))
-        var_ypencil = var
-      case (IPENCIL(3))
-        call transpose_z_to_y(var, var_ypencil, dtmp)
-      case default
-        ! Handle invalid pencil case (optional: add error handling)
-    end select
-  end subroutine transpose_to_y_pencil
-  !============================================================================
-  ! Helper subroutine: Transpose input data to z-pencil
-  !============================================================================
-  subroutine transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    real(WP), intent(in)         :: var(:, :, :)
-    real(WP), intent(out)        :: var_zpencil(:, :, :)
-    integer, intent(in)          :: pencil
-
-    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
-
-    select case (pencil)
-      case (IPENCIL(1))
-        call transpose_x_to_y(var, var_ypencil, dtmp)
-        call transpose_y_to_z(var_ypencil, var_zpencil, dtmp)
-      case (IPENCIL(2))
-        call transpose_y_to_z(var, var_zpencil, dtmp)
-      case (IPENCIL(3))
-        var_zpencil = var
-      case default
-        ! Handle invalid pencil case (optional: add error handling)
-    end select
-  end subroutine transpose_to_z_pencil
-  !============================================================================
-  ! Helper subroutine: Transpose data from z-pencil back to original pencil
-  !============================================================================
-  subroutine transpose_from_z_pencil(var_zpencil, var, dtmp, pencil)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    real(WP), intent(in)         :: var_zpencil(:, :, :)
-    real(WP), intent(out)        :: var(:, :, :)
-    integer, intent(in)          :: pencil
-
-    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
-
-    select case (pencil)
-      case (IPENCIL(1))
-        call transpose_z_to_y(var_zpencil, var_ypencil, dtmp)
-        call transpose_y_to_x(var_ypencil, var, dtmp)
-      case (IPENCIL(2))
-        call transpose_z_to_y(var_zpencil, var, dtmp)
-      case (IPENCIL(3))
-        var = var_zpencil
-      case default
-        ! Handle invalid pencil case (optional: add error handling)
-    end select
-  end subroutine transpose_from_z_pencil
-
-  !============================================================================
-  ! Helper subroutine: Transpose data from y-pencil back to original pencil
-  !============================================================================
-  subroutine transpose_from_y_pencil(var_ypencil, var, dtmp, pencil)
-    type(DECOMP_INFO), intent(in) :: dtmp
-    real(WP), intent(in)         :: var_ypencil(:, :, :)
-    real(WP), intent(out)        :: var(:, :, :)
-    integer, intent(in)          :: pencil
-
-    select case (pencil)
-      case (IPENCIL(1))
-        call transpose_y_to_x(var_ypencil, var, dtmp)
-      case (IPENCIL(2))
-        var = var_ypencil
-      case (IPENCIL(3))
-        call transpose_y_to_z(var_ypencil, var, dtmp)
-      case default
-        ! Handle invalid pencil case (optional: add error handling)
-    end select
-  end subroutine transpose_from_y_pencil
-
 end module cylindrical_rn_mod
 !==========================================================================================================
 !==========================================================================================================
@@ -1269,7 +1371,8 @@ contains
 
     ! Check for large numbers
     if (maxval(dabs(var)) > 1.0e+10) then
-        write(*,*) 'Large number detected (nrank=', nrank, ') in ', trim(varname)
+        write(*,*) 'Warning: Large number detected (nrank=', nrank, ') in ', trim(varname), ' val = ', maxval(dabs(var))
+        write(*,*) 'at rank = ', nrank, ', local index = ', maxloc(var) 
         call Print_error_msg('A large number is found. Stopping execution.')
     end if
 
@@ -1297,7 +1400,11 @@ contains
     real(WP), intent(out) :: varmax_work
 
     real(WP)   :: varmax
-    integer :: idg(3), idl(3), idg_work(3)
+    integer :: idg(3), idl(3)
+#ifdef DEBUG_STEPS 
+    integer :: idg_work(3)
+#endif
+
     integer :: i, j, k, nx, ny, nz
     integer :: idgmax(3), nxst
 
@@ -1374,13 +1481,18 @@ contains
     real(WP):: varmax_work, varmin_work
     real(WP):: varmax, varmin, dummy
     logical :: imax, imin, iabs
+    character(len=5) :: abs
 
     integer :: i, j, k, nx, ny, nz
     nx = size(var, 1)
     ny = size(var, 2)
     nz = size(var, 3)
 
-    if(present(opt_abs)) iabs = .true.
+    if(present(opt_abs)) then
+      iabs = .true.
+    else
+      iabs = .false.
+    end if
 
     varmax = MINN
     varmin = MAXP
@@ -1425,12 +1537,18 @@ contains
       if (imax) opt_work(2) = varmax_work
     end if
     if(nrank == 0 .and. present(opt_name)) then
+      if(present(opt_abs)) then
+        abs = '-abs-'
+      else
+        abs = '-'
+      end if
       if(imax .and. imin) then
-        write (*, wrtfmt2ae) 'maximum '//opt_name, varmax_work, ' minimum '//opt_name, varmin_work
+        write (*, wrtfmt2ae) 'maximum'//trim(abs)//opt_name, varmax_work, &
+                             'minimum'//trim(abs)//opt_name, varmin_work
       else if(imax) then
-        write (*, wrtfmt1el) 'maximum '//opt_name, varmax_work
+        write (*, wrtfmt1el) 'maximum'//trim(abs)//opt_name, varmax_work
       else if(imin) then
-        write (*, wrtfmt1el) 'minimum '//opt_name, varmin_work
+        write (*, wrtfmt1el) 'minimum'//trim(abs)//opt_name, varmin_work
       else
       end if
     end if
@@ -1742,7 +1860,7 @@ contains
     return
   end subroutine
 !==========================================================================================================
-  subroutine Get_area_average_2d_for_fbcy(dm, dtmp, var, fo_work, itype, str)
+  subroutine Get_area_average_2d_for_fbcy(dm, dtmp, var, fo_work, itype, str, rdxdz)
     use mpi_mod
     use udf_type_mod
     use parameters_constant_mod
@@ -1756,13 +1874,14 @@ contains
     real(WP),          intent(out):: fo_work(2)
     integer,           intent(in) :: itype
     character(4),      intent(in) :: str
+    integer,           intent(in) :: rdxdz
  
     real(WP) :: area(2), fo(2), area_work(2), array(4), array_work(4)
 #ifdef DEBUG_STEPS 
     real(WP) :: area_real
 #endif
-    integer :: i, k, jj, ny, nz, nx
-    real(WP) :: dz1, dzn, dx
+    integer :: i, k, ny, nz, nx
+    real(WP) :: dz, dx, dz1, dzn
 
     !if(dtmp /= dm%dcpc) call Print_error_msg("Error: Get_area_average_2d_for_yz_pcc is for pcc only.")
     if(dtmp%ysz(2) /= dtmp%yen(2)) call Print_error_msg("Error. This is not y-pencil.")
@@ -1784,13 +1903,15 @@ contains
       end if
       nz = dtmp%ysz(3)
 
-      dx  = dm%h(1)
-      dz1 = dm%h(3)
-      dzn = dm%h(3)
-
-      if(dm%icoordinate == ICYLINDRICAL) then
+      dx = dm%h(1)
+      dz = dm%h(3)
+      !! Note: qy = r*ur, integral r*ur * dtheta dx, therefore no extra r here.
+      if(rdxdz == 1) then
         dz1 = dm%h(3) * dm%rp(1)
         dzn = dm%h(3) * dm%rp(ny)
+      else
+        dz1 = dz
+        dzn = dz
       end if
       do k = 1, nz
         do i = 1, nx

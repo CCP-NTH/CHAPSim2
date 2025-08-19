@@ -258,7 +258,7 @@ subroutine Solve_eqs_iteration
         if ( (iter >= thermo(i)%nIterThermoStart) .and. (iter <= thermo(i)%nIterThermoEnd)) then
           is_thermo(i) = .true.
           if (nrank == 0 .and. .not. is_IO_off) &
-          write(*, wrtfmt1e) "thermal field physical time (s) : ", thermo(i)%time
+          write(*, *) " thermal field physical time (undim) = ", thermo(i)%time
           thermo(i)%time = thermo(i)%time  + domain(i)%dt
           thermo(i)%iteration = thermo(i)%iteration + 1
         end if
@@ -269,7 +269,7 @@ subroutine Solve_eqs_iteration
       if ( (iter >= flow(i)%nIterFlowStart) .and. (iter <=flow(i)%nIterFlowEnd)) then
         is_flow(i) = .true.
         if (nrank == 0 .and. .not. is_IO_off) &
-        write(*, wrtfmt1e) "flow field physical time (s) : ", flow(i)%time
+        write(*, *) " flow    field physical time (undim) = ", flow(i)%time
         flow(i)%time = flow(i)%time + domain(i)%dt
         flow(i)%iteration = flow(i)%iteration + 1
         if (.not. is_IO_off) then
@@ -301,7 +301,11 @@ subroutine Solve_eqs_iteration
         do i = 1, nxdomain
           if(is_thermo(i)) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
           if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
-          if(is_flow(i))   call Solve_momentum_eq(flow(i), domain(i), isub)
+          if(is_flow(i) .and. (.not. is_thermo(i)))  then
+            call Solve_momentum_eq(flow(i), domain(i), isub)
+          else if (is_flow(i) .and. is_thermo(i)) then
+            call Solve_momentum_eq(flow(i), domain(i), isub, opt_tm = thermo(i))
+          end if
         end do
       end do
     else
@@ -319,7 +323,11 @@ subroutine Solve_eqs_iteration
         end do
         do i = 1, nxdomain
           if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
-          if(is_flow(i))   call Solve_momentum_eq(flow(i), domain(i), isub)
+          if(is_flow(i) .and. (.not. is_thermo(i)))  then
+            call Solve_momentum_eq(flow(i), domain(i), isub)
+          else if (is_flow(i) .and. is_thermo(i)) then
+            call Solve_momentum_eq(flow(i), domain(i), isub, opt_tm = thermo(i))
+          end if
         end do
       end do
     end if
@@ -339,6 +347,7 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       !if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
       if(is_flow(i)) then
+        call Check_element_mass_conservation(flow(i), domain(i), iter) 
         if(is_thermo(i)) then
           call Find_max_min_3d(thermo(i)%tTemp, opt_name="T :")
           !call Find_max_min_3d(thermo(i)%rhoh,  opt_name="rhoh :")
@@ -348,7 +357,6 @@ subroutine Solve_eqs_iteration
         call Find_max_min_3d(flow(i)%qz, opt_name="qz :")
         call Find_max_min_3d(flow(i)%pres, opt_name="pr :")
         call Find_max_min_3d(flow(i)%pcor, opt_name="ph :")
-        call Check_element_mass_conservation(flow(i), domain(i), iter) 
       end if
       !----------------------------------------------------------------------------------------------------------
       !  update statistics
