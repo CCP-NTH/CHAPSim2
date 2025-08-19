@@ -183,8 +183,11 @@ contains
   subroutine Get_divergence_vel_x2z(ux, uy, uz, div_zpencil_ggg, dm)
     use parameters_constant_mod
     use udf_type_mod
-    use decomp_extended_mod
+    use transpose_extended_mod
     use cylindrical_rn_mod
+    use poisson_interface_mod
+    use cylindrical_rn_mod
+    use decomp_extended_mod
     implicit none
 
     type(t_domain), intent (in) :: dm

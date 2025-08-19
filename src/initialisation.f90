@@ -69,6 +69,12 @@ contains
     call alloc_x(fl%qx,      dm%dpcc) ; fl%qx = ZERO
     call alloc_x(fl%qy,      dm%dcpc) ; fl%qy = ZERO
     call alloc_x(fl%qz,      dm%dccp) ; fl%qz = ZERO
+    if(.not. is_strong_coupling) then
+      call alloc_x(fl%qx0, dm%dpcc) ; fl%qx0 = ZERO
+      call alloc_x(fl%qy0, dm%dcpc) ; fl%qy0 = ZERO
+      call alloc_x(fl%qz0, dm%dccp) ; fl%qz0 = ZERO
+    end if
+
 
     call alloc_x(fl%pres,    dm%dccc) ; fl%pres = ZERO
     call alloc_x(fl%pcor,    dm%dccc) ; fl%pcor = ZERO
@@ -82,10 +88,15 @@ contains
     call alloc_x(fl%my_rhs0, dm%dcpc) ; fl%my_rhs0 = ZERO
     call alloc_x(fl%mz_rhs0, dm%dccp) ; fl%mz_rhs0 = ZERO
 
-    if(dm%is_conv_outlet) then 
-      allocate (fl%fbcx_qx_rhs0(dm%dpcc%xsz(2), dm%dpcc%xsz(3))); fl%fbcx_qx_rhs0 = ZERO
-      allocate (fl%fbcx_qy_rhs0(dm%dcpc%xsz(2), dm%dcpc%xsz(3))); fl%fbcx_qy_rhs0 = ZERO
-      allocate (fl%fbcx_qz_rhs0(dm%dccp%xsz(2), dm%dccp%xsz(3))); fl%fbcx_qz_rhs0 = ZERO
+    if(dm%is_conv_outlet(1)) then 
+      allocate (fl%fbcx_a0cc_rhs0(dm%dpcc%xsz(2), dm%dpcc%xsz(3))); fl%fbcx_a0cc_rhs0 = ZERO
+      allocate (fl%fbcx_a0pc_rhs0(dm%dcpc%xsz(2), dm%dcpc%xsz(3))); fl%fbcx_a0pc_rhs0 = ZERO
+      allocate (fl%fbcx_a0cp_rhs0(dm%dccp%xsz(2), dm%dccp%xsz(3))); fl%fbcx_a0cp_rhs0 = ZERO
+    end if
+    if(dm%is_conv_outlet(3)) then 
+      allocate (fl%fbcz_apc0_rhs0(dm%dpcc%zsz(1), dm%dpcc%zsz(2))); fl%fbcz_apc0_rhs0 = ZERO
+      allocate (fl%fbcz_acp0_rhs0(dm%dcpc%zsz(1), dm%dcpc%zsz(2))); fl%fbcz_acp0_rhs0 = ZERO
+      allocate (fl%fbcz_acc0_rhs0(dm%dccp%zsz(1), dm%dccp%zsz(2))); fl%fbcz_acc0_rhs0 = ZERO
     end if
 
     if(dm%is_thermo) then
@@ -95,21 +106,17 @@ contains
       call alloc_x(fl%dDens,   dm%dccc) ; fl%dDens = ONE
       call alloc_x(fl%mVisc,   dm%dccc) ; fl%mVisc = ONE
       call alloc_x(fl%drhodt,  dm%dccc) ; fl%drhodt = ZERO
-      if(.not. is_drhodt_implicit) then
-      call alloc_x(fl%dDensm1, dm%dccc) ; fl%dDensm1 = ONE
-      call alloc_x(fl%dDensm2, dm%dccc) ; fl%dDensm2 = ONE
+      if(.not. is_strong_coupling) then
+        call alloc_x(fl%gx0,      dm%dpcc) ; fl%gx0 = ZERO
+        call alloc_x(fl%gy0,      dm%dcpc) ; fl%gy0 = ZERO
+        call alloc_x(fl%gz0,      dm%dccp) ; fl%gz0 = ZERO
+        call alloc_x(fl%dDens0, dm%dccc) ; fl%dDens0 = ONE
+        call alloc_x(fl%mVisc0, dm%dccc) ; fl%mVisc0 = ONE
       end if
-
-      call alloc_x(fl%gx0,      dm%dpcc) ; fl%gx0 = ZERO
-      call alloc_x(fl%gy0,      dm%dcpc) ; fl%gy0 = ZERO
-      call alloc_x(fl%gz0,      dm%dccp) ; fl%gz0 = ZERO
-
-      if(dm%is_conv_outlet) then 
-        allocate (fl%fbcx_gx_rhs0(dm%dpcc%xsz(2), dm%dpcc%xsz(3))); fl%fbcx_gx_rhs0 = ZERO
-        allocate (fl%fbcx_gy_rhs0(dm%dcpc%xsz(2), dm%dcpc%xsz(3))); fl%fbcx_gy_rhs0 = ZERO
-        allocate (fl%fbcx_gz_rhs0(dm%dccp%xsz(2), dm%dccp%xsz(3))); fl%fbcx_gz_rhs0 = ZERO
+      if(.not. is_drhodt_chain) then
+        if(.not. allocated(fl%dDens0)) &
+        call alloc_x(fl%dDens0, dm%dccc) ; fl%dDens0 = ONE
       end if
-
     end if
 
     if(nrank == 0) call Print_debug_end_msg()
@@ -141,8 +148,11 @@ contains
     call alloc_x(tm%ene_rhs0, dm%dccc) ; tm%ene_rhs0 = ZERO
     call alloc_x(tm%drhoh_drho, dm%dccc); tm%drhoh_drho = ONE
 
-    if(dm%is_conv_outlet) then 
+    if(dm%is_conv_outlet(1)) then 
       allocate (tm%fbcx_rhoh_rhs0(dm%dccc%xsz(2), dm%dccc%xsz(3))); tm%fbcx_rhoh_rhs0 = ZERO
+    end if
+    if(dm%is_conv_outlet(2)) then 
+      allocate (tm%fbcz_rhoh_rhs0(dm%dccc%zsz(1), dm%dccc%xsz(2))); tm%fbcz_rhoh_rhs0 = ZERO
     end if
 
     if(nrank == 0) call Print_debug_end_msg()
@@ -409,7 +419,7 @@ contains
         end do
       end do
       if(dm%is_thermo) then
-        call convert_primary_conservative (fl, dm, IQ2G, IALL)
+        call convert_primary_conservative (dm, fl%dDens, IQ2G, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
         uz = fl%gz
         str = 'gz'
       else
@@ -422,7 +432,7 @@ contains
       uz = uz / ubulk
       if(dm%is_thermo) then
         fl%gz = uz
-        call convert_primary_conservative(fl, dm, IG2Q, IALL)
+        call convert_primary_conservative(dm, fl%dDens, IG2Q, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
       else
         fl%qz = uz
       end if
@@ -440,7 +450,7 @@ contains
         end do
       end do
       if(dm%is_thermo) then
-        call convert_primary_conservative (fl, dm, IQ2G, IALL)
+        call convert_primary_conservative (dm, fl%dDens, IQ2G, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
         ux = fl%gx
         str = 'gx'
       else
@@ -453,7 +463,7 @@ contains
       ux = ux / ubulk
       if(dm%is_thermo) then
         fl%gx = ux
-        call convert_primary_conservative(fl, dm, IG2Q, IALL)
+        call convert_primary_conservative(dm, fl%dDens, IG2Q, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
       else
         fl%qx = ux
       end if
@@ -663,9 +673,9 @@ contains
     call Find_max_min_3d(fl%qz, opt_name="qz")
 
     if(dm%is_thermo) then
-      call convert_primary_conservative (fl, dm, IQ2G, IALL)
+      call convert_primary_conservative (dm, fl%dDens, IQ2G, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
       !call update_dyn_fbcx_from_flow(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcx_gy, dm%fbcx_gz)
-      !call convert_primary_conservative(fl, dm, IG2Q, IALL)
+      !call convert_primary_conservative(fl%dDens, dm, itag=IG2Q, iloc=IALL)
       if(nrank == 0) call Print_debug_inline_msg("Max/Min [mass flux] for real initial flow field:")
       call Find_max_min_3d(fl%gx, opt_name="gx")
       call Find_max_min_3d(fl%gy, opt_name="gy")
@@ -685,6 +695,8 @@ contains
 ! to initialise pressure correction term
 !----------------------------------------------------------------------------------------------------------
     fl%pcor(:, :, :) = ZERO 
+    ! to set up halo b.c. for cylindrical pipe
+    if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
 
     call Check_element_mass_conservation(fl, dm, 0, opt_str='initial') 
     call write_visu_flow(fl, dm, 'init')
@@ -703,6 +715,7 @@ contains
     use io_restart_mod
     use statistics_mod
     use io_visualisation_mod
+    use boundary_conditions_mod
     implicit none
 
     type(t_domain), intent(inout) :: dm
@@ -740,10 +753,17 @@ contains
       fl%time = ZERO
       fl%iteration = 0
     end if
-    if(.not. is_drhodt_implicit) then
-    fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
-    fl%dDensm2(:, :, :) = fl%dDens(:, :, :)
+
+    if(.not. is_strong_coupling) then
+      fl%dDens0(:, :, :) = fl%dDens(:, :, :)
+      fl%mVisc0(:, :, :) = fl%mVisc(:, :, :)
     end if
+    if(.not. is_drhodt_chain) then
+      fl%dDens0(:, :, :) = fl%dDens(:, :, :)
+    end if
+
+
+    if (dm%icase == ICASE_PIPE) call update_fbcy_cc_thermo_halo(tm, dm)
  
     call write_visu_thermo(tm, fl, dm, 'init')
 
@@ -990,7 +1010,7 @@ contains
           ii = dtmp%xst(1) + i - 1
           xp = dm%h(1) * real(ii - 1, WP)
           fl%qx(i, j, k) =  sin_wp ( xp ) * cos_wp ( yc ) * cos_wp ( zc )
-          !write(*,*) k, j, i, sin_wp ( xp ) , cos_wp ( yc ) , cos_wp ( zc ), ux(i,j,k)
+          !write(*,*) k, j, i, fl%qx(i,j,k)
         end do
       end do
     end do

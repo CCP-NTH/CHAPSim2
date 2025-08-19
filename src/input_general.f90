@@ -292,7 +292,9 @@ contains
       call Print_debug_start_msg("CHAPSim2.0 Starts ...")
       write (*, wrtfmt1i) 'The precision is REAL * ', WP
       write (*, wrtfmt1l) 'is_strong_coupling : ', is_strong_coupling
-      write (*, wrtfmt1l) 'is_drhodt_implicit : ', is_drhodt_implicit
+      write (*, wrtfmt1l) 'is_drhodt_chain : ', is_drhodt_chain
+      if((.not.is_strong_coupling) .and. is_drhodt_chain) call Print_warning_msg("For a loose coupling, an Euler drho/dt is recommended.")
+      if(is_strong_coupling .and. (.not.is_drhodt_chain)) call Print_warning_msg("For a strong coupling, a drho/dt chain calc is recommended.")
     end if
     is_any_energyeq = .false.
 
@@ -390,6 +392,9 @@ contains
         !----------------------------------------------------------------------------------------------------------
         do i = 1, nxdomain
           if (domain(i)%icase == ICASE_CHANNEL) then
+            domain(i)%lyb = - ONE
+            domain(i)%lyt = ONE
+          else if (domain(i)%icase == ICASE_DUCT) then
             domain(i)%lyb = - ONE
             domain(i)%lyt = ONE
           else if (domain(i)%icase == ICASE_PIPE) then
@@ -528,7 +533,9 @@ contains
               if(domain(i)%ibcy_nominal(n, m) == IBC_PROFILE1D) call Print_error_msg(" This yBC IBC_PROFILE1D is not supported.")
               if(domain(i)%ibcz_nominal(n, m) == IBC_PROFILE1D) call Print_error_msg(" This zBC IBC_PROFILE1D is not supported.")
             end do
-            if(domain(i)%ibcx_nominal(2, m) == IBC_CONVECTIVE) domain(i)%is_conv_outlet = .true.
+            if(domain(i)%ibcx_nominal(2, m) == IBC_CONVECTIVE) domain(i)%is_conv_outlet(1) = .true.
+            if(domain(i)%ibcy_nominal(2, m) == IBC_CONVECTIVE) call Print_error_msg(" Convective Outlet in Y direction is not supported.")
+            if(domain(i)%ibcz_nominal(2, m) == IBC_CONVECTIVE) domain(i)%is_conv_outlet(3) = .true.
           end do 
         end do
 

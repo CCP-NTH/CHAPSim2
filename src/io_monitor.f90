@@ -251,7 +251,7 @@ contains
       call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
       call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(2), is_reversed = .true.)
     end if
-    call Get_area_average_2d_for_fbcy(dm, dm%dcpc, acpc_ypencil, bulk_fbcy, SPACE_INTEGRAL, 'vary')
+    call Get_area_average_2d_for_fbcy(dm, dm%dcpc, acpc_ypencil, bulk_fbcy, SPACE_INTEGRAL, 'vary', rdxdz=1)
     !area averaged mass flux - z - boundary: rho*uz
     if(dm%is_thermo) then
       call transpose_x_to_y(fl%gz,        accp_ypencil, dm%dccp)

@@ -430,7 +430,7 @@ contains
 
     real(WP) :: var1y(1:dm%np(2))
     
-    integer :: ny, n, i, j, k
+    integer :: ny, n
 !----------------------------------------------------------------------------------------------------------
 ! to build up bc with constant values
 ! -3-1-||||-2-4

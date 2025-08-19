@@ -105,7 +105,7 @@ contains
     !real(WP) :: alcai, aci, bci
     
 
-    if (nrank == 0) call Print_debug_start_msg("Building up the interface for the poisson solver ...")
+    if (nrank == 0) call Print_debug_mid_msg("Building up the interface for the poisson solver ...")
 !----------------------------------------------------------------------------------------------------------
     istret = dm%istret
     if (istret /= 0) then

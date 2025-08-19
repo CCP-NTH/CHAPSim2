@@ -76,11 +76,11 @@ module parameters_constant_mod
   use precision_mod
   implicit none
 !----------------------------------------------------------------------------------------------------------
-! user defined constant
+! user defined methods
 !----------------------------------------------------------------------------------------------------------
   logical, parameter :: is_IO_off = .false.         ! true for code performance evaluation without IO
   logical, parameter :: is_strong_coupling = .true. ! true = RK(rhoh, g)); false = RK(rhoh) + RK(g)
-  logical, parameter :: is_drhodt_implicit = .false. ! false = (d1-d0)/dt; true = d(rhoh)/dt / (drhoh/drho)
+  logical, parameter :: is_drhodt_chain = .true.   ! false = (d1-d0)/dt; true = d(rhoh)/dt / (drhoh/drho)
 !----------------------------------------------------------------------------------------------------------
 ! constants
 !----------------------------------------------------------------------------------------------------------  
@@ -435,7 +435,7 @@ module udf_type_mod
     logical :: is_stretching(NDIM)      ! is this direction of stretching grids?
     logical :: is_compact_scheme     ! is compact scheme applied?
     logical :: is_thermo             ! is thermal field considered? 
-    logical :: is_conv_outlet
+    logical :: is_conv_outlet(3)
     logical :: is_record_xoutlet
     logical :: is_read_xinlet
     logical :: is_mhd
@@ -640,6 +640,9 @@ module udf_type_mod
     real(WP), allocatable :: gx0(:, :, :)
     real(WP), allocatable :: gy0(:, :, :)
     real(WP), allocatable :: gz0(:, :, :)
+    real(WP), allocatable :: qx0(:, :, :)
+    real(WP), allocatable :: qy0(:, :, :)
+    real(WP), allocatable :: qz0(:, :, :)
 
     real(WP), allocatable :: pres(:, :, :)
     real(WP), allocatable :: pcor(:, :, :)
@@ -648,8 +651,8 @@ module udf_type_mod
     real(WP), allocatable :: dDens(:, :, :)
     real(WP), allocatable :: drhodt(:, :, :)
     real(WP), allocatable :: mVisc(:, :, :)
-    real(WP), allocatable :: dDensm1(:, :, :)
-    real(WP), allocatable :: dDensm2(:, :, :)
+    real(WP), allocatable :: dDens0(:, :, :)
+    real(WP), allocatable :: mVisc0(:, :, :)
 
     real(WP), allocatable :: mx_rhs(:, :, :) ! current step rhs in x
     real(WP), allocatable :: my_rhs(:, :, :) ! current step rhs in y
@@ -659,12 +662,12 @@ module udf_type_mod
     real(WP), allocatable :: my_rhs0(:, :, :)! last step rhs in y
     real(WP), allocatable :: mz_rhs0(:, :, :)! last step rhs in z
 
-    real(WP), allocatable :: fbcx_qx_rhs0(:, :)  !
-    real(WP), allocatable :: fbcx_qy_rhs0(:, :)
-    real(WP), allocatable :: fbcx_qz_rhs0(:, :)
-    real(WP), allocatable :: fbcx_gx_rhs0(:, :)
-    real(WP), allocatable :: fbcx_gy_rhs0(:, :)
-    real(WP), allocatable :: fbcx_gz_rhs0(:, :)
+    real(WP), allocatable :: fbcx_a0cc_rhs0(:, :)  !
+    real(WP), allocatable :: fbcx_a0pc_rhs0(:, :)
+    real(WP), allocatable :: fbcx_a0cp_rhs0(:, :)
+    real(WP), allocatable :: fbcz_apc0_rhs0(:, :)  !
+    real(WP), allocatable :: fbcz_acp0_rhs0(:, :)
+    real(WP), allocatable :: fbcz_acc0_rhs0(:, :)
 
     real(WP), allocatable :: lrfx(:, :, :) ! Lorentz force  !
     real(WP), allocatable :: lrfy(:, :, :) ! Lorentz force
@@ -700,6 +703,7 @@ module udf_type_mod
     real(WP), allocatable :: ene_rhs(:, :, :)  ! current step rhs
     real(WP), allocatable :: ene_rhs0(:, :, :) ! last step rhs
     real(WP), allocatable :: fbcx_rhoh_rhs0(:, :)  !
+    real(WP), allocatable :: fbcz_rhoh_rhs0(:, :)  !
 
     real(WP), allocatable :: t_mean(:, :, :)
     real(WP), allocatable :: tt_mean(:, :, :)

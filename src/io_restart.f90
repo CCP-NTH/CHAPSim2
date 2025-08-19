@@ -124,14 +124,6 @@ contains
     !----------------------------------------------------------------------------------------------------------
     fl%pcor(:, :, :) = ZERO
     fl%pcor_zpencil_ggg(:, :, :) = ZERO
-    if(dm%is_thermo) then
-      fl%dDens  (:, :, :) = ONE
-      fl%mVisc  (:, :, :) = ONE
-      if(.not. is_drhodt_implicit) then
-      fl%dDensm1(:, :, :) = ONE
-      fl%dDensm2(:, :, :) = ONE
-      end if
-    end if
 
     return
   end subroutine
@@ -173,12 +165,15 @@ contains
 
     if (.not. dm%is_thermo) return
 
-    call Update_thermal_properties(fl, tm, dm)
-    call convert_primary_conservative (fl, dm, IQ2G, IALL)
+    call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm)
+    call convert_primary_conservative (dm, fl%dDens, IQ2G, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
 
-    if(.not. is_drhodt_implicit) then
-    fl%dDensm1(:, :, :) = fl%dDens(:, :, :)
-    fl%dDensm2(:, :, :) = fl%dDens(:, :, :)
+    if(.not. is_strong_coupling) then
+      fl%dDens0(:, :, :) = fl%dDens(:, :, :)
+      fl%mVisc0(:, :, :) = fl%mVisc(:, :, :)
+    end if
+    if(.not. is_drhodt_chain) then
+      fl%dDens0(:, :, :) = fl%dDens(:, :, :)
     end if
 
     return
@@ -408,7 +403,7 @@ contains
     end if
 
     if(dm%is_thermo) then
-      call convert_primary_conservative(fl, dm, IQ2G, IBND)
+      call convert_primary_conservative(dm, fl%dDens, IQ2G, IBND)
     end if
 
     return

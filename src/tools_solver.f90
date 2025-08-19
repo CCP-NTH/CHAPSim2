@@ -591,7 +591,7 @@ contains
     real(WP), dimension(dm%d4cc%ysz(1), dm%d4cc%ysz(2), dm%d4cc%ysz(3)) :: a4cc_ypencil
     real(WP), dimension(dm%d4pc%ysz(1), dm%d4pc%ysz(2), dm%d4pc%ysz(3)) :: a4pc_ypencil
     real(WP), dimension(dm%d4pc%xsz(1), dm%d4pc%xsz(2), dm%d4pc%xsz(3)) :: a4pc_xpencil
-    integer :: ibcy(2), i, j, k
+    integer :: i, j, k!, ibcy(2)
     real(WP) :: fbc
 
 
