@@ -207,7 +207,7 @@ module code_performance_mod
       t(2) = t_elaspsed
       t(3) = t_aveiter
       t(4) = t_remaining
-      call mpi_allreduce(t(:), t_work(:), 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(t, t_work, 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
       t_this_iter0 = t_work(1)
       t_elaspsed0  = t_work(2)
       t_aveiter0   = t_work(3)
@@ -244,7 +244,7 @@ module code_performance_mod
       t = ZERO
       t(1) = t_total
       t(2) = t_aveiter
-      call mpi_allreduce(t(:), t_work(:), 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(t, t_work, 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
       t_total0   = t_work(1)
       t_aveiter0 = t_work(2)
 
@@ -268,7 +268,7 @@ module code_performance_mod
       t = ZERO
       t(1) = t_total
       t(2) = t_postprocessing
-      call mpi_allreduce(t(:), t_work(:), 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(t, t_work, 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
       t_total0          = t_work(1)
       t_postprocessing0 = t_work(2)
 
@@ -1696,7 +1696,7 @@ contains
       !call mpi_barrier(MPI_COMM_WORLD, ierror)
       array(1) = fo
       array(2) = vol
-      call mpi_allreduce( array(:), array_work(:), 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce( array, array_work, 2, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
       fo_work  = array_work(1)
       vol_work = array_work(2)
 
@@ -1778,7 +1778,7 @@ contains
 
       array(1:2) = fo(1:2)
       array(3) = area
-      call mpi_allreduce(array(:),  array_work(:), 3, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(array,  array_work, 3, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
       fo_work(1:2) = array_work(1:2)
       area_work    = array_work(3)
       
@@ -1847,7 +1847,7 @@ contains
 
       array(1:2) = fo(1:2)
       array(3) = area
-      call mpi_allreduce( array(:),  array_work(:), 3, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(array,  array_work, 3, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
       fo_work(1:2) = array_work(1:2)
       area_work    = array_work(3)
 
@@ -1924,7 +1924,7 @@ contains
 
       array(1:2) = fo(1:2)
       array(3:4) = area(1:2)
-      call mpi_allreduce( array(:),  array_work(:), 4, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(array,  array_work, 4, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
       fo_work(1:2)   = array_work(1:2)
       area_work(1:2) = array_work(3:4)
 
