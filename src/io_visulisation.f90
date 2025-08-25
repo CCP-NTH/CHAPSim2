@@ -115,7 +115,7 @@ contains
 
   !   ! --- HDF5 handles and variables ---
   !   integer(HID_T) :: file_id, dset_id, dspace_id, plist_id
-  !   integer(HSIZE_T), dimension(4) :: dims
+  !   integer(HSIZE_T), dimension(4) :: ndims
   !   integer :: error, rank
   !   real(WP), allocatable :: coords(:,:,:,:)
   !   logical :: parallel_io_available = .false.
@@ -144,10 +144,10 @@ contains
 
   !   ! --- Dataset dimensions ---
   !   rank = 4
-  !   dims = [size(xp,1), size(xp,2), size(xp,3), 3]
+  !   ndims = [size(xp,1), size(xp,2), size(xp,3), 3]
 
   !   ! --- Create dataspace ---
-  !   call h5screate_simple_f(rank, dims, dspace_id, error)
+  !   call h5screate_simple_f(rank, ndims, dspace_id, error)
   !   if (error /= 0) error stop "Failed to create dataspace"
 
   !   ! --- Create dataset ---
@@ -162,7 +162,7 @@ contains
   !   if (error /= 0) error stop "Failed to create dataset"
 
   !   ! --- Write data ---
-  !   allocate(coords(dims(1), dims(2), dims(3), dims(4)), stat=error)
+  !   allocate(coords(ndims(1), ndims(2), ndims(3), ndims(4)), stat=error)
   !   if (error /= 0) error stop "Allocation failed"
     
   !   coords(:,:,:,1) = xp
@@ -171,9 +171,9 @@ contains
 
   !   ! Use the correct precision for writing
   !   if (WP == kind(1.0)) then
-  !       call h5dwrite_f(dset_id, H5T_NATIVE_REAL, coords, dims, error)
+  !       call h5dwrite_f(dset_id, H5T_NATIVE_REAL, coords, ndims, error)
   !   else
-  !       call h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, coords, dims, error)
+  !       call h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, coords, ndims, error)
   !   end if
   !   if (error /= 0) error stop "Failed to write dataset"
 
@@ -195,15 +195,15 @@ contains
     integer, intent(in), optional:: opt_nx
 
     ! --- HDF5 handles and variables ---
-    integer(int32) :: dims(3)
+    integer(int32) :: ndims(3)
     integer :: error, i, j, k, unit
     real(WP) :: coord_buffer(3)
     logical :: parallel_io_available = .false.
 
     if(nrank /= 0) return
     ! --- Dataset dimensions ---
-    dims = [size(xp,1), size(xp,2), size(xp,3)]
-    if(present(opt_nx)) dims(1) = opt_nx + 1
+    ndims = [size(xp,1), size(xp,2), size(xp,3)]
+    if(present(opt_nx)) ndims(1) = opt_nx + 1
 
     ! Write to binary file
     open(newunit=unit, file=trim(filename), access='stream', form='unformatted', &
@@ -211,13 +211,13 @@ contains
     if (error /= 0) error stop "Failed to open binary file for writing"
 
     ! Write dimensions first
-    write(unit) dims(1), dims(2), dims(3)
+    write(unit) ndims(1), ndims(2), ndims(3)
     ! Write coordinates in order (x,y,z) for each point
-    do k = 1, dims(3)
-      do j = 1, dims(2)
-        do i = 1, dims(1)
+    do k = 1, ndims(3)
+      do j = 1, ndims(2)
+        do i = 1, ndims(1)
           if(present(opt_nx)) then
-            coord_buffer(1) = real(i, WP)/real(dims(1), WP) * 10.0_WP
+            coord_buffer(1) = real(i, WP)/real(ndims(1), WP) * 10.0_WP
             coord_buffer(2) = yp(1,j,k)
             coord_buffer(3) = zp(1,j,k)
           else
