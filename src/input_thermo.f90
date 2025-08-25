@@ -787,6 +787,7 @@ contains
     use math_mod
     implicit none
     integer :: i
+    real(WP) :: rhoh(N_FUNC2TABLE), d(N_FUNC2TABLE), drhoh_drho(N_FUNC2TABLE)
 
     call ftp_get_thermal_properties_dimensional_from_T(fluidparam%ftp0ref)
     call ftp_get_thermal_properties_dimensional_from_T(fluidparam%ftpini)
@@ -807,8 +808,12 @@ contains
     fluidparam%dhmax = ftplist(i)%rhoh
 
     is_ftplist_dim = .false.
-
-    call compute_dfdx_central2(fluidparam%nlist, ftplist(:)%rhoh, ftplist(:)%d, ftplist(:)%drhoh_drho)
+    if(is_drhodt_chain) then
+      rhoh = ftplist(:)%rhoh
+      d = ftplist(:)%d
+      call compute_dfdx_central2(fluidparam%nlist, rhoh, d, drhoh_drho)
+      ftplist(:)%drhoh_drho = drhoh_drho
+    end if
 
     return
   end subroutine buildup_property_relations_from_function
