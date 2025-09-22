@@ -32,7 +32,7 @@ FOPTS_WARNING = -Wunused-variable -Wunused-parameter -Wunused-dummy-argument
 ifeq ($(cfg), gnu-g)
   FC     = mpif90
   FOPTS  = -g -O0 -Wall -Wextra -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
-           -ffree-line-length-512 -Wuninitialized -pedantic -finit-real=snan -fstack-protector -fimplicit-none \
+           -ffree-line-length-512 -Wuninitialized -finit-real=snan -fstack-protector -fimplicit-none \
            -cpp -fopenmp $(COMMON_FOPTS) #$(FOPTS_WARNING)
   FFLGS  = $(COMMON_FFLGS)
   FDEBG  = # No DEBUG_STEPS for this config
