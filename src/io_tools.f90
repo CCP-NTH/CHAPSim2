@@ -47,7 +47,6 @@ contains
     if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(dir_data)//"/"//trim(data_flname_path))
 
     call decomp_2d_read_one(IPENCIL(1), var, trim(data_flname_path), &
-          opt_dirname=trim(dir_data), &
           opt_decomp=dtmp, &
           opt_reduce_prec=.false.)
 
