@@ -19,7 +19,7 @@ module io_tools_mod
                         Ivisu_1D_Y  = 4    ! y profile
 
   public :: initialise_decomp_io
-  public :: generate_file_name
+  !public :: generate_file_name
   public :: generate_pathfile_name
 
   public  :: write_one_3d_array
@@ -40,8 +40,9 @@ contains
                                                       dtmp%xsz(3))
     character(64):: data_flname_path
 
-    call generate_file_name(data_flname_path, idom, trim(keyword), 'bin', iter)
-    if(.not.file_exists(data_flname_path)) call Print_error_msg("The file "//trim(data_flname_path)//" does not exist.")
+    call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
+    if(.not.file_exists(data_flname_path)) &
+    call Print_error_msg("The file "//trim(dir_data)//trim(data_flname_path)//" does not exist.")
 
     if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(dir_data)//"/"//trim(data_flname_path))
 
@@ -120,24 +121,24 @@ contains
     return
   end subroutine
 !==========================================================================================================
-  subroutine generate_file_name(flname, dmtag, keyword, extension, timetag)
-    use typeconvert_mod
-    implicit none 
-    integer, intent(in)      :: dmtag
+  ! subroutine generate_file_name(flname, dmtag, keyword, extension, timetag)
+  !   use typeconvert_mod
+  !   implicit none 
+  !   integer, intent(in)      :: dmtag
     
-    character(*), intent(in) :: keyword
-    character(*), intent(in) :: extension
-    character(*), intent(out) :: flname
-    integer, intent(in), optional      :: timetag
+  !   character(*), intent(in) :: keyword
+  !   character(*), intent(in) :: extension
+  !   character(*), intent(out) :: flname
+  !   integer, intent(in), optional      :: timetag
 
-    if(present(timetag)) then
-      flname = "domain"//trim(int2str(dmtag))//'_'//trim(keyword)//'_'//trim(int2str(timetag))//"."//trim(extension)
-    else 
-      flname = "domain"//trim(int2str(dmtag))//'_'//trim(keyword)//"."//trim(extension)
-    end if
+  !   if(present(timetag)) then
+  !     flname = "domain"//trim(int2str(dmtag))//'_'//trim(keyword)//'_'//trim(int2str(timetag))//"."//trim(extension)
+  !   else 
+  !     flname = "domain"//trim(int2str(dmtag))//'_'//trim(keyword)//"."//trim(extension)
+  !   end if
 
     
-    return
-  end subroutine
+  !   return
+  ! end subroutine
 !==========================================================================================================
 end module
