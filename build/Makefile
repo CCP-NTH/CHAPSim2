@@ -34,11 +34,11 @@ FOPTS_WARNING = -Wunused-variable -Wunused-parameter -Wunused-dummy-argument
 # Compiler and flags based on configuration
 ifeq ($(cfg), gnu-g)
   FC     = mpif90
-  FOPTS  = -g -O0 $(COMMON_FOPTS) #$(FOPTS_WARNING)
+  FOPTS  = -g -O0 $(COMMON_FOPTS) $(FOPTS_WARNING)
   FDEBG  = # No DEBUG_STEPS for this config
 else ifeq ($(cfg), gnu-debug)
   FC     = mpif90
-  FOPTS  = -g -O0 $(COMMON_FOPTS)
+  FOPTS  = -g -O0 $(COMMON_FOPTS) $(FOPTS_WARNING)
   FDEBG  = -DDEBUG_STEPS
 else ifeq ($(cfg), intel)
   FC     = mpiifort
