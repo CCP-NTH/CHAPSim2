@@ -53,8 +53,8 @@ module convert_primary_conservative_mod
     fbcx_4cc(:, :, :) = dm%fbcx_ftp(:, :, :)%d
     call Get_x_midp_C2P_3D (dens, d_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4cc)
     if(iloc == IBLK .or. iloc == IALL) then
-    if(itag == IQ2G) gx = qx * d_pcc_xpencil
-    if(itag == IG2Q) qx = gx / d_pcc_xpencil
+      if(itag == IQ2G) gx = qx * d_pcc_xpencil
+      if(itag == IG2Q) qx = gx / d_pcc_xpencil
     end if
 !----------------------------------------------------------------------------------------------------------
 ! y-pencil : u2 -> g2 = u2_cpc * d_cpc

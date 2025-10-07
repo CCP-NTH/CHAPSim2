@@ -521,14 +521,22 @@ contains
     real(WP), dimension(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) :: fbcy
     real(WP), dimension(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) :: fbcz
 
-    if(.not. present(fbcx0)) then
-      fbcx = ZERO
-      fbcy = ZERO
-      fbcz = ZERO
-    else 
+    if (present(fbcx0)) then
       fbcx = fbcx0
+    else
+      fbcx = ZERO
+    end if
+
+    if (present(fbcy0)) then
       fbcy = fbcy0
+    else
+      fbcy = ZERO
+    end if
+
+    if (present(fbcz0)) then
       fbcz = fbcz0
+    else
+      fbcz = ZERO
     end if
 
     ! -mx_rhs-

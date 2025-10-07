@@ -24,49 +24,40 @@ ifeq ($(cfg),)
 endif
 
 # Common Fortran Compiler Flags
-COMMON_FOPTS = -fallow-argument-mismatch -Wno-unused -Wno-unused-dummy-argument -Wno-maybe-uninitialized
-COMMON_FFLGS = -DDOUBLE_PREC -fdefault-real-8 -fdefault-double-8
+COMMON_FOPTS = -fallow-argument-mismatch -Wno-unused -Wno-unused-dummy-argument -Wno-maybe-uninitialized \
+               -fdiagnostics-color=always -Wuninitialized -finit-real=snan -finit-integer=-999999 \
+               -ffpe-trap=invalid,zero,overflow -Wall -Wextra -fbacktrace -fbounds-check -fimplicit-none \
+               -cpp -fopenmp -finit-local-zero -ffree-line-length-512 \
+               -DDOUBLE_PREC -fdefault-real-8 -fdefault-double-8
 FOPTS_WARNING = -Wunused-variable -Wunused-parameter -Wunused-dummy-argument
 
 # Compiler and flags based on configuration
 ifeq ($(cfg), gnu-g)
   FC     = mpif90
-  FOPTS  = -g -O0 -Wall -Wextra -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
-           -ffree-line-length-512 -Wuninitialized -finit-real=snan -fstack-protector -fimplicit-none \
-           -cpp -fopenmp $(COMMON_FOPTS) #$(FOPTS_WARNING)
-  FFLGS  = $(COMMON_FFLGS)
+  FOPTS  = -g -O0 $(COMMON_FOPTS) #$(FOPTS_WARNING)
   FDEBG  = # No DEBUG_STEPS for this config
 else ifeq ($(cfg), gnu-debug)
   FC     = mpif90
-  FOPTS  = -g -O0 -Wall -Wextra -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
-           -ffree-line-length-512 -Wuninitialized -finit-real=snan -fstack-protector -fimplicit-none \
-           -cpp -fopenmp $(COMMON_FOPTS)
-  FFLGS  = $(COMMON_FFLGS)
+  FOPTS  = -g -O0 $(COMMON_FOPTS)
   FDEBG  = -DDEBUG_STEPS
 else ifeq ($(cfg), intel)
   FC     = mpiifort
   FOPTS  = -g -assume ieee_fpe_flags -check all -check bounds -check uninit -debug all \
            -fp-stack-check fpe0 -fpe3 -fpe-all=3 -ftrapuv -ftz -warn all,nounused -fpp \
            -convert big_endian
-  FFLGS  = -DDOUBLE_PREC
   FDEBG  = -DDEBUG_STEPS -DDEBUG_FFT
 else ifeq ($(cfg), cray)
   FC     = ftn
   FOPTS  = -cpp
-  FFLGS  =
   FDEBG  = -DDEBUG_STEPS -DDEBUG_FFT
 else ifeq ($(cfg), gnu-o3)
   FC     = mpif90
-  FOPTS  = -O3 -Wall -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
-           -finit-local-zero -ffree-line-length-512 -cpp -fopenmp -fimplicit-none $(COMMON_FOPTS)
-  FFLGS  = -DDOUBLE_PREC
-  FDEBG  =
+  FOPTS  = -O3 $(COMMON_FOPTS)
+  FDEBG  = 
 else
   FC     = mpif90
-  FOPTS  = -O3 -Wall -fbacktrace -fbounds-check -fcheck=all -ffpe-trap=invalid,zero,overflow \
-           -finit-local-zero -ffree-line-length-512 -cpp -fopenmp -fimplicit-none $(COMMON_FOPTS)
-  FFLGS  = -DDOUBLE_PREC
-  FDEBG  =
+  FOPTS  = -O3 $(COMMON_FOPTS)
+  FDEBG  = 
 endif
 
 # HDF5 paths (added)
@@ -134,30 +125,30 @@ default: all
 # Main target for building the program
 $(DIR_BIN)/$(PROGRAM): $(OBJS1) $(OBJS2)
 	@echo -e "\nLinking $(PROGRAM)..."
-	@mkdir -p $(@D) # Ensure the binary directory exists
-	@$(FC) $(FOPTS) $(FFLGS) $(FDEBG) -o $@ $^ $(LIBS)
-	@echo -e "====== Successfully compiled $(PROGRAM) ====== \n"
+	@mkdir -p $(@D) ; # Ensure the binary directory exists
+	@$(FC) $(FOPTS) $(FDEBG) -o $@ $^ $(LIBS)
+	@echo -e "====== Successfully compiled $(PROGRAM) ======\n"
 
 # Rule to compile Fortran 90 files
 $(DIR_OBJ)/%.o: $(DIR_SRC)/%.f90
-	@mkdir -p $(@D) # Ensure the object directory exists
+	@mkdir -p $(@D) ; # Ensure the object directory exists
 	$(call progress)
-	@$(FC) $(INCLUDE) $(FOPTS) $(FFLGS) $(FDEBG) -c -o $@ $<
+	@$(FC) $(INCLUDE) $(FOPTS) $(FDEBG) -c $< -o $@ 2>&1 | tee -a build.log
 
 # Rule to compile Fortran 77 files
 $(DIR_OBJ)/%.o: $(DIR_LIB)/%.f
-	@mkdir -p $(@D) # Ensure the object directory exists
+	@mkdir -p $(@D) ; # Ensure the object directory exists
 	$(call progress)
-	@$(FC) $(F77_OPTS) -c -o $@ $<
+	@$(FC) $(F77_OPTS) -c $< -o $@ 2>&1 | tee -a build.log
 
-# All target (sets cfg to default optimization if not specified)
+# Default build target
 all:
-	$(MAKE) $(DIR_BIN)/$(PROGRAM) cfg=$(cfg)
+	@$(MAKE) $(DIR_BIN)/$(PROGRAM)
 
 # Clean target
 clean:
 	@echo "Cleaning built files and directories... \n"
-	@rm -rf $(DIR_OBJ) $(DIR_BIN)/$(PROGRAM)
+	@rm -rf $(DIR_OBJ) $(DIR_BIN)/$(PROGRAM) build.log
 	@find $(DIR_BLD) -name "*.mod" -delete -o -name "*.smod" -delete # More robust clean for module files
 
 # Phony targets
