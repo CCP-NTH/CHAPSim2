@@ -255,8 +255,7 @@ contains
     call wrt_3d_pt_debug(fl%qz, dm%dccp,   fl%iteration, 0, 'qz@af radm') ! debug_ww
     call wrt_3d_pt_debug(fl%pres, dm%dccc, fl%iteration, 0, 'pr@af radm') ! debug_ww
 #endif
-
-
+    if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
 

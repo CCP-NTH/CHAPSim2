@@ -29,7 +29,7 @@ COMMON_FOPTS = -fallow-argument-mismatch -Wno-unused -Wno-unused-dummy-argument 
                -ffpe-trap=invalid,zero,overflow -Wall -Wextra -fbacktrace -fbounds-check -fimplicit-none \
                -cpp -fopenmp -finit-local-zero -ffree-line-length-512 \
                -DDOUBLE_PREC -fdefault-real-8 -fdefault-double-8
-FOPTS_WARNING = -Wunused-variable -Wunused-parameter -Wunused-dummy-argument
+FOPTS_WARNING = -Wunused-parameter -Wunused-dummy-argument # -Wunused-variable 
 
 # Compiler and flags based on configuration
 ifeq ($(cfg), gnu-g)
