@@ -216,6 +216,8 @@ contains
       str = 'Liquid Sodium'
     case ( ILIQUID_WATER)
       str = 'Liquid Water'
+    case ( ILIQUID_LITHIUM)
+      str = 'Liquid Lithium'
     case default
       call Print_error_msg('The required flow medium is not supported.')
     end select
@@ -1070,22 +1072,40 @@ contains
     return
   end subroutine
 !==========================================================================================================
-  subroutine estimate_spacial_resolution(fl, dm)
+  subroutine estimate_spacial_resolution(fl, dm, opt_mh)
     use udf_type_mod
     implicit none
     type(t_domain), intent(in) :: dm
     type(t_flow),  intent(in)  :: fl
+    type(t_mhd),   intent(in), optional :: opt_mh
+    ! local variables
     real(WP) :: dx_max, dy_max, dz_max
     real(WP) :: cf, dy1, dy2, dy3, dy32, dy33
     real(WP) :: yplus1, yplus2, yplus3, dxplus, dzplus, dzplus2
-    integer :: nx_min, ny_min, nz_min
-
+    real(WP) :: ha_bl, ha_bl_plus
+    real(WP) :: growth_rate1, growth_rate2
+    integer  :: n_pnts_ha
+    integer  :: nx_min, ny_min, nz_min
+    
+    ! excludes non-wall bcs
     if(nrank /= 0) return
     if(dm%icase /= ICASE_PIPE .and. &
        dm%icase /= ICASE_ANNULAR .and. &
        dm%icase /= ICASE_CHANNEL) return
-
-    ! estimate yplus etc
+    call Print_note_msg("DNS MESH RESOLUTION ASSESSMENT")
+    call Print_note_msg("Recommended values based on empirical correlations in [apx_prerun_mod]")
+    call Print_debug_mid_msg("Domain Length Check")
+    write(*, wrtfmt2r) 'Streamwise (x): Current | Recom. min:', dm%lxx, TWOPI
+    if(dm%icase == ICASE_CHANNEL) then
+      write(*, '(A)') '  Note: Lx ≥ 2π for channel flow (≈4π preferred for large-scale structures)'
+    else if(dm%icase == ICASE_PIPE) then
+      write(*, '(A)') '  Note: Lx ≥ 2π for pipe flow (≈8-10 pipe diameters)'
+    end if
+    if(dm%icoordinate == ICARTESIAN) then
+      write(*, wrtfmt2r) 'Spanwise (z):   Current | Recom. min:', dm%lzz, PI
+      write(*, '(A)') '  Note: Lz ≥ π for adequate spanwise correlation'
+    end if
+    ! estimate Re_tau and u_tau
     rmax = ONE
     rmin = ONE
     if(dm%icoordinate == ICYLINDRICAL) then 
@@ -1096,11 +1116,17 @@ contains
     Re_tau = fl%ren * sqrt_wp(cf/TWO)
     if(dm%icase == ICASE_PIPE) Re_tau = Re_tau / TWO
     u_tau = Re_tau/fl%ren
-    dy1 = dm%yp(2)-dm%yp(1)
+    call Print_debug_mid_msg("Flow Parameters:")
+    write(*, wrtfmt1r) 'Friction Reynolds number (Re_tau):', Re_tau
+    write(*, wrtfmt1r) 'Friction velocity (u_tau)        :', u_tau
+    write(*, wrtfmt1r) 'Skin friction coefficient (cf)   :', cf
+    ! calcualte current mesh spacing in normal units
+    dy1 = dm%yp(2) - dm%yp(1)
     dy2 = dm%yp(dm%np(2)/2) - dm%yp(dm%np(2)/2-1)
     dy3 = dm%yp(dm%np(2)) - dm%yp(dm%np(2)-1)
     dy32 = dm%yp(dm%np(2)-1) - dm%yp(dm%np(2)-2)
     dy33 = dm%yp(dm%np(2)-2) - dm%yp(dm%np(2)-3)
+    ! cacluate mesh spacing in wall units
     yplus1 = Re_tau * dy1
     yplus2 = Re_tau * dy2
     yplus3 = Re_tau * dy3
@@ -1109,45 +1135,103 @@ contains
     if(dm%icoordinate == ICYLINDRICAL) then 
       dzplus2 = Re_tau * ( dm%h(3) ) * rmin
     end if
-
+    !
+    call Print_debug_mid_msg("Current Mesh Resolution (wall units)")
+    write(*, '(A)')    '    Wall-normal direction (y):'
+    write(*, wrtfmt1r) '    Δy+ at near wall (j=1)         :', yplus1
+    write(*, wrtfmt1r) '    Δy+ at far wall (j=np)         :', yplus3
+    write(*, wrtfmt1r) '    Δy+ at center (j=np/2)         :', yplus2
+    !
+    ! calculate grid stretching rates
+    growth_rate1 = (abs_wp(dy33 - dy32) + MIN(dy33, dy32)) / MIN(dy33, dy32)
+    growth_rate2 = (abs_wp(dy32 - dy3 ) + MIN(dy32, dy3) ) / MIN(dy32, dy3)
+    call Print_debug_mid_msg("Grid Stretching Assessment")
+    write(*, wrtfmt2r) 'Growth rate at wall (layers 2-3 and 3-4):', growth_rate1, growth_rate2
+    write(*, '(A)')    '  Recommended: Growth rate < 1.2-1.3 for DNS'
+    if(growth_rate1 > 1.3_WP .or. growth_rate2 > 1.3_WP) then
+      call Print_warning_msg("Grid stretching is too aggressive! Reduce stretching factor.")
+      write(*, '(A)') '    High stretching can cause numerical errors and inaccurate statistics'
+    else if(growth_rate1 > 1.2_WP .or. growth_rate2 > 1.2_WP) then
+      write(*, '(A)') '  ⚠ Caution: Growth rate approaching upper limit'
+    else
+      write(*, '(A)') '  ✓ Grid stretching is acceptable'
+    end if
+    !
+    if(yplus1 > ONE) then
+      call Print_warning_msg("Wall spacing too large! Δy+ should be ≤ 1.0 for DNS")
+      write(*, '(A,F6.2,A)') '    Current Δy+ = ', yplus1, ' → Increase Ny or adjust stretching'
+    else if(yplus1 < 0.5_WP) then
+      write(*, '(A)') '  ✓ Excellent wall resolution (Δy+ < 0.5)'
+    else
+      write(*, '(A)') '  ✓ Acceptable wall resolution (Δy+ ≤ 1.0)'
+    end if
+    ! MHD
+    if (dm%is_mhd) then
+      if(.not. present(opt_mh)) call Print_error_msg("Error. Opt_mhd is required.")
+      ha_bl = 1.0_WP / opt_mh%NHartmn
+      ha_bl_plus = ha_bl * Re_tau
+      n_pnts_ha = count( dm%yp <= (ha_bl - 1.0_WP) )
+      write(*, '(A)') repeat('-', 80)
+      call Print_debug_mid_msg("At the current mesh configuration: MHD")
+      write(*, wrtfmt1r) 'MHD boundary layer thickness (δ_Ha)      :', ha_bl
+      write(*, wrtfmt1r) 'MHD boundary layer thickness (δ_Ha+)     :', ha_bl_plus
+      write(*, wrtfmt1i) 'Grid points in MHD boundary layer        :', n_pnts_ha
+      if (n_pnts_ha < 10) then
+        call Print_warning_msg("Insufficient grid points in MHD boundary layer. Recommend at least 10 points.")
+      end if
+    end if
+    ! Calculate recommended minimum mesh resolution
     dymax = MAX(dy1, dy2, dy3)
     dymin = MIN(dy1, dy2, dy3)
-    ! estimate mesh size
+    !
     dx_max = dxplus_max / Re_tau
     dz_max = dzplus_max / Re_tau / rmax
     dy_max = dyplus_max / Re_tau
+    if (dm%is_thermo) then
+      write(*,*) 'pr', fluidparam%ftp0ref%Pr
+      dy_max = MIN(dyplus_max, ONE/fluidparam%ftp0ref%Pr)  / Re_tau
+    end if
+    !
     nx_min = ceiling(dm%lxx/dx_max)
     nz_min = ceiling(dm%lzz/dz_max)
     ny_min = ceiling(dm%nc(2) * dymin / dy_max)
-    ! write out
-    call print_note_msg("The recom. values are based on empirical functions listed in [apx_prerun_mod]")
-    call Print_debug_mid_msg("Checking domain length")
-    write(*, wrtfmt2r) 'current => rec. min. domain length in x :', dm%lxx, TWOPI
-    if(dm%icoordinate == ICARTESIAN) &
-    write(*, wrtfmt2r) 'current => rec. min. domain length in z :', dm%lzz, PI
-    write(*, wrtfmt2r) 'current dy growth rate at 2 layers :', abs_wp(dy33-dy32)/MIN(dy33, dy32), abs_wp(dy32-dy3)/MIN(dy32, dy3)
-    if(dy33/dy32 > 1.3_WP .or. dy32/dy3 > 1.3_WP) &
-    call Print_warning_msg("Grid spacing growth rate is too big for DNS. Consider to reduce the stretching factor.")
-
-    call Print_debug_mid_msg("Estimating more flow information based on Re.")
-    write(*, wrtfmt1r) 'Re_tau :', Re_tau
-    write(*, wrtfmt1r) ' u_tau :', u_tau
-
-    ! write out
-    call Print_debug_mid_msg("Estimating the current mesh resolution (based on isothermal flow)")
-    write(*, wrtfmt1r) 'dy_plus_1    :', yplus1
-    write(*, wrtfmt1r) 'dy_plus_np   :', yplus3
-    write(*, wrtfmt1r) 'dy_plus_np/2 :', yplus2
-    write(*, wrtfmt1r) 'dx_plus      :', dxplus
-    write(*, wrtfmt1r) 'dz_plus      :', dzplus
+    !
+    write(*, '(A)') ''
+    write(*, '(A)')      '  Streamwise direction (x):'
+    write(*, wrtfmt1r)   '    Δx+                            :', dxplus
+    write(*, '(A,F6.1)') '    Recommended: Δx+ ≤ ', dxplus_max
+    
+    write(*, '(A)') ''
+    write(*, '(A)')      '  Spanwise direction (z):'
+    write(*, wrtfmt1r)   '    Δz+ (at outer wall)            :', dzplus
     if(dm%icoordinate == ICYLINDRICAL) then
-    write(*, wrtfmt1r) 'dz_plus_min  :', dzplus2 
+      write(*, wrtfmt1r) '    Δz+ (at inner wall)            :', dzplus2
     end if
-    if(yplus3 > ONE) write(*, *) 'Warning: Adjust Ny and stretching factor to keep yplus at wall < 1'
-    write(*, wrtfmt1il)'Current Ncell:', dm%nc(1) * dm%nc(2) * dm%nc(2)
-    write(*, wrtfmt3i) "rec. min cell numbers in xyz :", nx_min, ny_min, nz_min 
-    write(*, wrtfmt1il)'rec. Ncell:', nx_min * ny_min * nz_min 
-    !write(*, wrtfmt2il)"rec. min N(Re9/4) and Ncell  :", ceiling(fl%ren**(9.0_WP/4.0_WP)), nx_min * ny_min * nz_min
+    write(*, '(A,F6.1)') '    Recommended: Δz+ ≤ ', dzplus_max
+    write(*, '(A)') repeat('-', 80)
+    !
+    call Print_debug_mid_msg("Mesh Resolution Summary")
+    write(*, '(A)') '  Current mesh:'
+    write(*, wrtfmt3i) '    Grid points (Nx, Ny, Nz)      :', dm%nc(1), dm%nc(2), dm%nc(3)
+    write(*, wrtfmt1il)'    Total cells                    :', dm%nc(1) * dm%nc(2) * dm%nc(3)
+    
+    write(*, '(A)') ''
+    write(*, '(A)') '  Recommended minimum mesh for DNS:'
+    write(*, wrtfmt3i) '    Grid points (Nx, Ny, Nz)      :', nx_min, ny_min, nz_min
+    write(*, wrtfmt1il)'    Total cells                    :', nx_min * ny_min * nz_min
+    
+    ! Mesh adequacy check
+    if(dm%nc(1) >= nx_min .and. dm%nc(2) >= ny_min .and. dm%nc(3) >= nz_min) then
+      write(*, '(A)') '  ✓ Current mesh meets minimum DNS resolution requirements'
+    else
+      call Print_warning_msg("Current mesh is below recommended DNS resolution!")
+      if(dm%nc(1) < nx_min) write(*, '(A,I0,A,I0)') '    Increase Nx: ', dm%nc(1), ' → ', nx_min
+      if(dm%nc(2) < ny_min) write(*, '(A,I0,A,I0)') '    Increase Ny: ', dm%nc(2), ' → ', ny_min
+      if(dm%nc(3) < nz_min) write(*, '(A,I0,A,I0)') '    Increase Nz: ', dm%nc(3), ' → ', nz_min
+    end if
+    
+    write(*, '(A)') repeat('=', 80)
+    write(*, '(A)') ''
 
   return 
   end subroutine
