@@ -684,10 +684,34 @@ module udf_type_mod
     real(WP), allocatable :: lrfx(:, :, :) ! Lorentz force  !
     real(WP), allocatable :: lrfy(:, :, :) ! Lorentz force
     real(WP), allocatable :: lrfz(:, :, :) ! Lorentz force
+    ! post processing - basic
+    real(WP), allocatable :: tavg_u(:, :, :, :) ! u, v, w
+    real(WP), allocatable :: tavg_pr(:, :, :)
+    real(WP), allocatable :: tavg_uu(:, :, :, :) ! uu, uv, uw, vv, vw, ww
+    ! post processing - budgets
+    real(WP), allocatable :: tavg_uuu(:, :, :, :) ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
+    real(WP), allocatable :: tavg_pur(:, :, :, :)  ! 3  = up, vp, wp
+    real(WP), allocatable :: tavg_dudu(:, :, :, :) ! 45 = dui/dxj * dum/dun
+    ! du/dx * du/dx, du/dx * du/dy, du/dx * du/dz (1 2 3)
+    ! du/dx * dv/dx, du/dx * dv/dy, du/dx * dv/dz (4 5 6)
+    ! du/dx * dw/dz, du/dx * dw/dy, du/dx * dw/dz (7 8 9)
+    !                du/dy * du/dy, du/dy * du/dz, (10, 11)
+    ! du/dy * dv/dx, du/dy * dv/dy, du/dy * dv/dz (12, 13, 14)
+    ! du/dy * dw/dx, du/dy * dw/dy, du/dy * dw/dz (15, 16, 27)
+    !                               du/dz * du/dz, (18)
+    !                du/dz * dv/dy, du/dz * dv/dz, (19, 20, 21)
+    ! du/dz * dw/dx, du/dz * dw/dy, du/dz * dw/dy, (22, 23, 24)
+    ! dv/dx * dv/dx, dv/dx * dv/dy, dv/dx * dv/dz, (25, 26, 27)
+    ! dv/dx * dw/dx, dv/dx * dw/dy, dv/dx * dw/dz, (28, 29, 30)
+    !                dv/dy * dv/dy, dv/dy * dv/dz, (30, 31)
+    ! dv/dy * dw/dx, dv/dy * dw/dy, dv/dy * dw/dz, (32, 33, 34)
+    !                               dv/dy * dw/dz, (35)
+    !                               dv/dz * dv/dz, (36)
+    ! dv/dz * dw/dx, dv/dz * dw/dy, dv/dz * dw/dz, (37, 38, 39)
+    ! dw/dx * dw/dx, dw/dx * dw/dy, dw/dx * dw/dz, (40, 41, 42)
+    !                dw/dy * dw/dy, dw/dy * dw/dz, (43, 44)
+    !                               dw/dw * dw/dz, (45)
 
-    real(WP), allocatable :: u_vector_mean(:, :, :, :) ! u, v, w
-    real(WP), allocatable :: pr_mean(:, :, :)
-    real(WP), allocatable :: uu_tensor6_mean(:, :, :, :) ! uu, vv, ww, uv, uw, vw
 
   end type t_flow
 !----------------------------------------------------------------------------------------------------------
@@ -717,8 +741,8 @@ module udf_type_mod
     real(WP), allocatable :: fbcx_rhoh_rhs0(:, :)  !
     real(WP), allocatable :: fbcz_rhoh_rhs0(:, :)  !
 
-    real(WP), allocatable :: t_mean(:, :, :)
-    real(WP), allocatable :: tt_mean(:, :, :)
+    real(WP), allocatable :: tavg_T(:, :, :)
+    real(WP), allocatable :: tavg_TT(:, :, :)
     type(t_fluidThermoProperty) :: ftp_ini ! undimensional
   end type t_thermo
   type(t_fluid_parameter) :: fluidparam ! dimensional

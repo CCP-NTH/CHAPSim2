@@ -641,7 +641,10 @@ contains
 ! write data into binary file
 !----------------------------------------------------------------------------------------------------------
     if(dm%visu_idim == Ivisu_3D) then
+      call generate_pathfile_name(data_flname_path, dm%idom, trim(keyword), dir_data, 'bin', iter)
+      if(.not.file_exists(data_flname_path)) &
       call write_one_3d_array(var, trim(varname), dm%idom, iter, dtmp, opt_flname = data_flname_path)
+    if(nrank == 0) write(*,*) data_flname_path
     else if(dm%visu_idim == Ivisu_1D_Y) then
       !to add 1D profile
     else 
@@ -902,18 +905,19 @@ contains
     use udf_type_mod
     use precision_mod
     use operations
+    use typeconvert_mod
     implicit none 
     type(t_domain), intent(in) :: dm
     type(t_flow),   intent(in) :: fl
-
-    integer :: iter 
+    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: accc
+    integer :: iter, i, j, k, s, l, n, ij, sl
     character(64) :: visuname
 
 !==========================================================================================================
 ! write time averaged 3d data
 !==========================================================================================================
     iter = fl%iteration
-    visuname = 'time_averaged_flow'
+    visuname = 't_avg_flow'
 !----------------------------------------------------------------------------------------------------------
 ! write xdmf header
 !----------------------------------------------------------------------------------------------------------
@@ -922,16 +926,58 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write data, 
 !----------------------------------------------------------------------------------------------------------
-    call write_visu_field(dm, fl%pr_mean,                     dm%dccc, "time_averaged_pr", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%u_vector_mean  (:, :, :, 1), dm%dccc, "time_averaged_ux", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%u_vector_mean  (:, :, :, 2), dm%dccc, "time_averaged_uy", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%u_vector_mean  (:, :, :, 3), dm%dccc, "time_averaged_uz", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 1), dm%dccc, "time_averaged_uu", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 2), dm%dccc, "time_averaged_vv", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 3), dm%dccc, "time_averaged_ww", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 4), dm%dccc, "time_averaged_uv", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 5), dm%dccc, "time_averaged_uw", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 6), dm%dccc, "time_averaged_vw", trim(visuname), SCALAR, CELL, iter)
+    ! time mean pressure, <p>
+    call write_visu_field(dm, fl%tavg_pr, dm%dccc, 't_avg_p', trim(visuname), SCALAR, CELL, iter)
+    ! time mean velocity, <up>
+    do i = 1, 3
+      accc = fl%tavg_u (:, :, :, i)
+      call write_visu_field(dm, accc,  dm%dccc, 't_avg_u'//trim(int2str(i)), trim(visuname), SCALAR, CELL, iter)
+      accc = fl%tavg_pur(:, :, :, i)
+      call write_visu_field(dm, accc, dm%dccc, 't_avg_pu'//trim(int2str(i)), trim(visuname), SCALAR, CELL, iter)
+    end do
+    ! time mean Reynolds stress <uiuj>
+    n = 0
+    do i = 1, 3
+      do j = i, 3
+        n = n + 1
+        if (n <= 6) then
+          accc = fl%tavg_uu(:, :, :, n)
+          call write_visu_field(dm, accc, dm%dccc, 't_avg_uu'//trim(int2str(i))//trim(int2str(j)), trim(visuname), SCALAR, CELL, iter)
+        end if
+      end do
+    end do
+    ! time mean <ui*uj*uk>
+    n = 0
+    do i = 1, 3
+      do j = i, 3
+        do k = j, 3
+          n = n + 1
+          if (n <= 10) then
+            accc = fl%tavg_uuu(:, :, :, n)
+            call write_visu_field(dm, accc, dm%dccc, 't_avg_uuu'//trim(int2str(i))//trim(int2str(j))//trim(int2str(k)), &
+            trim(visuname), SCALAR, CELL, iter)
+          end if
+        end do
+      end do
+    end do
+    ! time mean <dui/dxj * dus/dxl>
+    n = 0
+    do i = 1, 3
+      do j = 1, 3
+        ij = (i - 1) * 3 + j
+        do s = 1, 3
+          do l = 1, 3
+            sl = (s - 1) * 3 + l
+            if (ij<=sl) then
+              n = n + 1
+              accc = fl%tavg_dudu(:, :, :, n)
+              call write_visu_field(dm, accc, dm%dccc, 't_avg_dudu'//trim(int2str(i))//trim(int2str(j))//trim(int2str(s))//trim(int2str(l)), &
+              trim(visuname), SCALAR, CELL, iter)
+            end if
+          end do
+        end do
+      end do
+    end do
 !----------------------------------------------------------------------------------------------------------
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
@@ -952,16 +998,59 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write data, 
 !----------------------------------------------------------------------------------------------------------
-    call visu_average_periodic_data(                    fl%pr_mean, dm%dccc, dm, "time_space_averaged_pr", trim(visuname), iter)
-    call visu_average_periodic_data(  fl%u_vector_mean(:, :, :, 1), dm%dccc, dm, "time_space_averaged_ux", trim(visuname), iter)
-    call visu_average_periodic_data(  fl%u_vector_mean(:, :, :, 2), dm%dccc, dm, "time_space_averaged_uy", trim(visuname), iter)
-    call visu_average_periodic_data(  fl%u_vector_mean(:, :, :, 3), dm%dccc, dm, "time_space_averaged_uz", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 1), dm%dccc, dm, "time_space_averaged_uu", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 2), dm%dccc, dm, "time_space_averaged_vv", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 3), dm%dccc, dm, "time_space_averaged_ww", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 4), dm%dccc, dm, "time_space_averaged_uv", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 5), dm%dccc, dm, "time_space_averaged_uw", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 6), dm%dccc, dm, "time_space_averaged_vw", trim(visuname), iter)
+    ! time mean pressure, <p>
+    call visu_average_periodic_data(fl%tavg_pr, "tsp_avg_pr", dm%dccc, dm, trim(visuname), iter)
+    ! time mean velocity, <up>
+    do i = 1, 3
+      accc = fl%tavg_u (:, :, :, i)
+      call visu_average_periodic_data(accc, 'tsp_avg_u'//trim(int2str(i)),  dm%dccc, dm, trim(visuname), iter)
+      accc = fl%tavg_pur(:, :, :, i)
+      call visu_average_periodic_data(accc, 'tsp_avg_pu'//trim(int2str(i)), dm%dccc, dm, trim(visuname), iter)
+    end do
+    ! time mean Reynolds stress <uiuj>
+    n = 0
+    do i = 1, 3
+      do j = i, 3
+        n = n + 1
+        if (n <= 6) then
+          accc = fl%tavg_uu(:, :, :, n)
+          call visu_average_periodic_data(accc, 'tsp_avg_uu'//trim(int2str(i))//trim(int2str(j)), dm%dccc, dm, trim(visuname), iter)
+        end if
+      end do
+    end do
+    ! time mean <ui*uj*uk>
+    n = 0
+    do i = 1, 3
+      do j = i, 3
+        do k = j, 3
+          n = n + 1
+          if (n <= 10) then
+            accc = fl%tavg_uuu(:, :, :, n)
+            call visu_average_periodic_data(accc, 'tsp_avg_uuu'//trim(int2str(i))//trim(int2str(j))//trim(int2str(k)), &
+            dm%dccc, dm, trim(visuname), iter)
+          end if
+        end do
+      end do
+    end do
+    ! time mean <dui/dxj * dus/dxl>
+    n = 0
+    do i = 1, 3
+      do j = 1, 3
+        ij = (i - 1) * 3 + j
+        do s = 1, 3
+          do l = 1, 3
+            sl = (s - 1) * 3 + l
+            if (ij<=sl) then
+              n = n + 1
+              accc = fl%tavg_dudu(:, :, :, n)
+              call visu_average_periodic_data(accc, 'tsp_avg_dudu'//trim(int2str(i))//trim(int2str(j))//trim(int2str(s))//trim(int2str(l)), &
+              dm%dccc, dm, trim(visuname), iter)
+            end if
+          end do
+        end do
+      end do
+    end do
+
 !----------------------------------------------------------------------------------------------------------
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
@@ -999,8 +1088,8 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write data, 
 !----------------------------------------------------------------------------------------------------------
-    call write_visu_field(dm, tm%t_mean,  dm%dccc, "time_averaged_T",  trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, tm%tt_mean, dm%dccc, "time_averaged_TT", trim(visuname), SCALAR, CELL, iter)
+    call write_visu_field(dm, tm%tavg_T,  dm%dccc, "tavg_T",  trim(visuname), SCALAR, CELL, iter)
+    call write_visu_field(dm, tm%tavg_TT, dm%dccc, "tavg_TT", trim(visuname), SCALAR, CELL, iter)
 !----------------------------------------------------------------------------------------------------------
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
@@ -1021,8 +1110,8 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write data, 
 !----------------------------------------------------------------------------------------------------------
-    call visu_average_periodic_data(tm%t_mean,   dm%dccc, dm, "time_space_averaged_T",   trim(visuname), iter)
-    call visu_average_periodic_data(tm%tt_mean,  dm%dccc, dm, "time_space_averaged_TT",  trim(visuname), iter)
+    call visu_average_periodic_data(tm%tavg_T, "tsp_T",  dm%dccc, dm,  trim(visuname), iter)
+    call visu_average_periodic_data(tm%tavg_TT,"tsp_TT", dm%dccc, dm,  trim(visuname), iter)
 !----------------------------------------------------------------------------------------------------------
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
@@ -1092,7 +1181,7 @@ contains
 
 !==========================================================================================================
 !==========================================================================================================
-  subroutine visu_average_periodic_data(data_in, dtmp, dm, str1, str2, iter)
+  subroutine visu_average_periodic_data(data_in, str1, dtmp, dm, str2, iter)
     use udf_type_mod
     use parameters_constant_mod
     implicit none
