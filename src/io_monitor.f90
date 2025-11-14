@@ -338,8 +338,8 @@ contains
 !----------------------------------------------------------------------------------------------------------
     nplc = 0
     do i = 1, dm%proben
-      if( dm%probe_is_in(i) ) nplc = nplc + 1
-      if(nplc > 0) then
+      if( .not. dm%probe_is_in(i) ) cycle
+      nplc = nplc + 1
 !----------------------------------------------------------------------------------------------------------
 ! open file
 !----------------------------------------------------------------------------------------------------------
@@ -350,7 +350,7 @@ contains
         if(ioerr /= 0) then
           !write (*, *) 'Problem openning probing file'
           !write (*, *) 'Message: ', trim (iotxt)
-          call Print_error_msg('Problem openning probing file')
+          call Print_error_msg('Problem opening probing file')
         end if
 !----------------------------------------------------------------------------------------------------------
 ! write out local data
@@ -367,7 +367,6 @@ contains
             fl%pres(ix, iy, iz), fl%pcor(ix, iy, iz)
         end if
         close(myunit)
-      end if
     end do
 
     return
