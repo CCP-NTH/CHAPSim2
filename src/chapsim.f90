@@ -366,11 +366,15 @@ subroutine Solve_eqs_iteration
       !  update statistics
       !----------------------------------------------------------------------------------------------------------
       if (iter > domain(i)%stat_istart .and. is_flow(i)) then
-        call update_statistics_flow(flow(i), domain(i))
+        if(domain(i)%is_thermo) then 
+          call update_stats_flow(flow(i), domain(i), tm=thermo(i))
+        else
+          call update_stats_flow(flow(i), domain(i))
+        end if
       end if
       if(domain(i)%is_thermo .and. is_thermo(i)) then
         if (iter > domain(i)%stat_istart) then
-          call update_statistics_thermo(thermo(i), domain(i))
+          call update_stats_thermo(thermo(i), domain(i))
         end if
       end if
       !----------------------------------------------------------------------------------------------------------
@@ -391,11 +395,11 @@ subroutine Solve_eqs_iteration
       if (mod(iter, domain(i)%ckpt_nfre) == 0) then
         if(is_flow(i)) then
           call write_instantaneous_flow(flow(i), domain(i))
-          if(iter > domain(i)%stat_istart) call write_statistics_flow(flow(i), domain(i))
+          if(iter > domain(i)%stat_istart) call write_stats_flow(flow(i), domain(i))
         end if
         if(domain(i)%is_thermo .and. is_thermo(i)) then
           call write_instantaneous_thermo(thermo(i), domain(i))
-          if(iter > domain(i)%stat_istart) call write_statistics_thermo(thermo(i), domain(i))
+          if(iter > domain(i)%stat_istart) call write_stats_thermo(thermo(i), domain(i))
         end if
       end if
       !----------------------------------------------------------------------------------------------------------

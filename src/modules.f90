@@ -684,14 +684,13 @@ module udf_type_mod
     real(WP), allocatable :: lrfx(:, :, :) ! Lorentz force  !
     real(WP), allocatable :: lrfy(:, :, :) ! Lorentz force
     real(WP), allocatable :: lrfz(:, :, :) ! Lorentz force
-    ! post processing - basic
-    real(WP), allocatable :: tavg_u(:, :, :, :) ! u, v, w
-    real(WP), allocatable :: tavg_pr(:, :, :)
-    real(WP), allocatable :: tavg_uu(:, :, :, :) ! uu, uv, uw, vv, vw, ww
-    ! post processing - budgets
-    real(WP), allocatable :: tavg_uuu(:, :, :, :) ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
-    real(WP), allocatable :: tavg_pur(:, :, :, :)  ! 3  = up, vp, wp
-    real(WP), allocatable :: tavg_dudu(:, :, :, :) ! 45 = dui/dxj * dum/dun
+    ! post processing - sharing
+    real(WP), allocatable :: tavg_u   (:, :, :, :)  ! 3  = u, v, w
+    real(WP), allocatable :: tavg_pr  (:, :, :)
+    real(WP), allocatable :: tavg_pru (:, :, :, :)  ! 3  = pu, pv, pw
+    real(WP), allocatable :: tavg_uu  (:, :, :, :)  ! 6  = uu, uv, uw, vv, vw, ww
+    real(WP), allocatable :: tavg_uuu (:, :, :, :)  ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
+    real(WP), allocatable :: tavg_dudu(:, :, :, :)  ! 45 = dui/dxj * dum/dun
     ! du/dx * du/dx, du/dx * du/dy, du/dx * du/dz (1 2 3)
     ! du/dx * dv/dx, du/dx * dv/dy, du/dx * dv/dz (4 5 6)
     ! du/dx * dw/dz, du/dx * dw/dy, du/dx * dw/dz (7 8 9)
@@ -711,8 +710,17 @@ module udf_type_mod
     ! dw/dx * dw/dx, dw/dx * dw/dy, dw/dx * dw/dz, (40, 41, 42)
     !                dw/dy * dw/dy, dw/dy * dw/dz, (43, 44)
     !                               dw/dw * dw/dz, (45)
-
-
+    ! post processing - thermal
+    real(WP), allocatable :: tavg_f   (:, :, :)    ! f = rho
+    real(WP), allocatable :: tavg_fu  (:, :, :, :) ! 3 = rhou, rhov, rhow
+    real(WP), allocatable :: tavg_fuu (:, :, :, :) ! 6 = rho*uu, rho*uv, rho*uw, rho*vv, rho*vw, rho*ww
+    real(WP), allocatable :: tavg_fuuu(:, :, :, :) ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
+    !
+    real(WP), allocatable :: tavg_tf  (:, :, :)
+    real(WP), allocatable :: tavg_tu  (:, :, :, :) ! 3 = u*t, v*t, w*t ( for temperature transport eq.)
+    real(WP), allocatable :: tavg_tfu (:, :, :, :) ! 3 = rho*u*t, rho*v*t, rho*w*t
+    real(WP), allocatable :: tavg_tfuu(:, :, :, :) ! 6 = rho*uu*t, rho*uv*t, rho*uw*t, rho*vv*t, rho*vw*t, rho*ww*t
+    
   end type t_flow
 !----------------------------------------------------------------------------------------------------------
 !  thermo info
@@ -743,6 +751,8 @@ module udf_type_mod
 
     real(WP), allocatable :: tavg_T(:, :, :)
     real(WP), allocatable :: tavg_TT(:, :, :)
+    real(WP), allocatable :: tavg_dTdT(:, :, :, :)   ! 6 = dt/dx * dt/dx, dt/dx * dt/dy, dt/dx * dt/dz, dt/dy * dt/dy, dt/dy * dt/dz, dt/dz * dt/dz
+
     type(t_fluidThermoProperty) :: ftp_ini ! undimensional
   end type t_thermo
   type(t_fluid_parameter) :: fluidparam ! dimensional

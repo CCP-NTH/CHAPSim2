@@ -29,9 +29,9 @@ module io_visualisation_mod
   character(64):: grid_flname, grid_flname_1t2d, grid_flname_x, grid_flname_y, grid_flname_z
   !character(6)  :: svisudim
 
-  private :: write_visu_headerfooter
-  private :: write_visu_field
-  private :: visu_average_periodic_data
+  public  :: write_visu_headerfooter
+  public  :: write_visu_field
+  public  :: visu_average_periodic_data
   private :: write_visu_profile
   private :: process_and_write_field
   private :: write_mesh_binary_cylindrical
@@ -41,9 +41,6 @@ module io_visualisation_mod
   public  :: write_visu_thermo
   public  :: write_visu_mhd
   public  :: write_visu_any3darray
-
-  public  :: write_visu_stats_flow
-  public  :: write_visu_stats_thermo
   
 contains
 
@@ -515,7 +512,11 @@ contains
 !----------------------------------------------------------------------------------------------------------
     keyword = trim(visuname)
     call generate_pathfile_name(visu_flname, idom, keyword, dir_visu, 'xdmf', iter)
-    open(newunit = ioxdmf, file = trim(visu_flname), action = "write", position="append")
+    if(file_exists(trim(visu_flname))) then
+      open(newunit = ioxdmf, file = trim(visu_flname), action = "write", position="append")
+    else 
+      open(newunit = ioxdmf, file = trim(visu_flname), status="new", action = "write")
+    end if
     nsz = nnd(3) * nnd(2) * nnd(1)
 
     ! Calculate header size (3 integers)
@@ -658,7 +659,11 @@ contains
 ! dataitem for xdmf file
 !----------------------------------------------------------------------------------------------------------
     if (nrank == 0) then
-      open(newunit = ioxdmf, file = trim(visu_flname_path), action = "write", status = "old", position = "append")
+      if(file_exists(trim(visu_flname_path))) then
+        open(newunit = ioxdmf, file = trim(visu_flname_path), action = "write", status = "old", position = "append")
+      else
+        open(newunit = ioxdmf, file = trim(visu_flname_path), action = "write", status = "new")
+      end if
 
       if(trim(centring) == TRIM(CELL)) then
         nsz(1:3) = ncl_visu(1:3, dm%idom)
@@ -897,229 +902,6 @@ contains
     ! Debug message
     if (nrank == 0) call Print_debug_inline_msg("MHD field visualization data written successfully.")
 
-    return
-  end subroutine
-
-!==========================================================================================================
-  subroutine write_visu_stats_flow(fl, dm)
-    use udf_type_mod
-    use precision_mod
-    use operations
-    use typeconvert_mod
-    implicit none 
-    type(t_domain), intent(in) :: dm
-    type(t_flow),   intent(in) :: fl
-    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: accc
-    integer :: iter, i, j, k, s, l, n, ij, sl
-    character(64) :: visuname
-
-!==========================================================================================================
-! write time averaged 3d data
-!==========================================================================================================
-    iter = fl%iteration
-    visuname = 't_avg_flow'
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, 
-!----------------------------------------------------------------------------------------------------------
-    ! time mean pressure, <p>
-    call write_visu_field(dm, fl%tavg_pr, dm%dccc, 't_avg_p', trim(visuname), SCALAR, CELL, iter)
-    ! time mean velocity, <up>
-    do i = 1, 3
-      accc = fl%tavg_u (:, :, :, i)
-      call write_visu_field(dm, accc,  dm%dccc, 't_avg_u'//trim(int2str(i)), trim(visuname), SCALAR, CELL, iter)
-      accc = fl%tavg_pur(:, :, :, i)
-      call write_visu_field(dm, accc, dm%dccc, 't_avg_pu'//trim(int2str(i)), trim(visuname), SCALAR, CELL, iter)
-    end do
-    ! time mean Reynolds stress <uiuj>
-    n = 0
-    do i = 1, 3
-      do j = i, 3
-        n = n + 1
-        if (n <= 6) then
-          accc = fl%tavg_uu(:, :, :, n)
-          call write_visu_field(dm, accc, dm%dccc, 't_avg_uu'//trim(int2str(i))//trim(int2str(j)), trim(visuname), SCALAR, CELL, iter)
-        end if
-      end do
-    end do
-    ! time mean <ui*uj*uk>
-    n = 0
-    do i = 1, 3
-      do j = i, 3
-        do k = j, 3
-          n = n + 1
-          if (n <= 10) then
-            accc = fl%tavg_uuu(:, :, :, n)
-            call write_visu_field(dm, accc, dm%dccc, 't_avg_uuu'//trim(int2str(i))//trim(int2str(j))//trim(int2str(k)), &
-            trim(visuname), SCALAR, CELL, iter)
-          end if
-        end do
-      end do
-    end do
-    ! time mean <dui/dxj * dus/dxl>
-    n = 0
-    do i = 1, 3
-      do j = 1, 3
-        ij = (i - 1) * 3 + j
-        do s = 1, 3
-          do l = 1, 3
-            sl = (s - 1) * 3 + l
-            if (ij<=sl) then
-              n = n + 1
-              accc = fl%tavg_dudu(:, :, :, n)
-              call write_visu_field(dm, accc, dm%dccc, 't_avg_dudu'//trim(int2str(i))//trim(int2str(j))//trim(int2str(s))//trim(int2str(l)), &
-              trim(visuname), SCALAR, CELL, iter)
-            end if
-          end do
-        end do
-      end do
-    end do
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-!==========================================================================================================
-! write time averaged and space averaged 3d data (stored 2d or 1d data)
-!==========================================================================================================
-    if( ANY(dm%is_periodic(:))) then
-
-    iter = fl%iteration
-    visuname = 'time_space_averaged_flow'
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, 
-!----------------------------------------------------------------------------------------------------------
-    ! time mean pressure, <p>
-    call visu_average_periodic_data(fl%tavg_pr, "tsp_avg_pr", dm%dccc, dm, trim(visuname), iter)
-    ! time mean velocity, <up>
-    do i = 1, 3
-      accc = fl%tavg_u (:, :, :, i)
-      call visu_average_periodic_data(accc, 'tsp_avg_u'//trim(int2str(i)),  dm%dccc, dm, trim(visuname), iter)
-      accc = fl%tavg_pur(:, :, :, i)
-      call visu_average_periodic_data(accc, 'tsp_avg_pu'//trim(int2str(i)), dm%dccc, dm, trim(visuname), iter)
-    end do
-    ! time mean Reynolds stress <uiuj>
-    n = 0
-    do i = 1, 3
-      do j = i, 3
-        n = n + 1
-        if (n <= 6) then
-          accc = fl%tavg_uu(:, :, :, n)
-          call visu_average_periodic_data(accc, 'tsp_avg_uu'//trim(int2str(i))//trim(int2str(j)), dm%dccc, dm, trim(visuname), iter)
-        end if
-      end do
-    end do
-    ! time mean <ui*uj*uk>
-    n = 0
-    do i = 1, 3
-      do j = i, 3
-        do k = j, 3
-          n = n + 1
-          if (n <= 10) then
-            accc = fl%tavg_uuu(:, :, :, n)
-            call visu_average_periodic_data(accc, 'tsp_avg_uuu'//trim(int2str(i))//trim(int2str(j))//trim(int2str(k)), &
-            dm%dccc, dm, trim(visuname), iter)
-          end if
-        end do
-      end do
-    end do
-    ! time mean <dui/dxj * dus/dxl>
-    n = 0
-    do i = 1, 3
-      do j = 1, 3
-        ij = (i - 1) * 3 + j
-        do s = 1, 3
-          do l = 1, 3
-            sl = (s - 1) * 3 + l
-            if (ij<=sl) then
-              n = n + 1
-              accc = fl%tavg_dudu(:, :, :, n)
-              call visu_average_periodic_data(accc, 'tsp_avg_dudu'//trim(int2str(i))//trim(int2str(j))//trim(int2str(s))//trim(int2str(l)), &
-              dm%dccc, dm, trim(visuname), iter)
-            end if
-          end do
-        end do
-      end do
-    end do
-
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-
-    end if
-
-    return
-  end subroutine
-
-  !==========================================================================================================
-  subroutine write_visu_stats_thermo(tm, dm)
-    use udf_type_mod
-    use precision_mod
-    use operations
-    implicit none 
-    
-    type(t_domain), intent(in) :: dm
-    type(t_thermo), intent(in) :: tm
-
-    integer :: iter 
-    character(64) :: visuname
-    
-!==========================================================================================================
-! write time averaged 3d data
-!==========================================================================================================
-    iter = tm%iteration
-    visuname = 'time_averaged_thermo'
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, 
-!----------------------------------------------------------------------------------------------------------
-    call write_visu_field(dm, tm%tavg_T,  dm%dccc, "tavg_T",  trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, tm%tavg_TT, dm%dccc, "tavg_TT", trim(visuname), SCALAR, CELL, iter)
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-!==========================================================================================================
-! write time averaged and space averaged 3d data (stored 2d or 1d data)
-!==========================================================================================================
-    if( ANY(dm%is_periodic(:))) then
-
-    iter = tm%iteration
-    visuname = 'time_space_averaged_thermo'
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, 
-!----------------------------------------------------------------------------------------------------------
-    call visu_average_periodic_data(tm%tavg_T, "tsp_T",  dm%dccc, dm,  trim(visuname), iter)
-    call visu_average_periodic_data(tm%tavg_TT,"tsp_TT", dm%dccc, dm,  trim(visuname), iter)
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-
-    end if
-    
     return
   end subroutine
   

@@ -636,7 +636,7 @@ contains
       fl%time = real(fl%iterfrom, WP) * dm%dt 
       call read_instantaneous_flow(fl, dm)
       call restore_flow_variables_from_restart(fl, dm)
-      !call read_statistics_flow(fl, dm)
+      !call read_stats_flow(fl, dm)
       
     else if (fl%inittype == INIT_INTERPL) then
 
@@ -739,7 +739,7 @@ contains
       tm%time = real(tm%iterfrom, WP) * dm%dt 
       call read_instantaneous_thermo  (tm, dm)
       call restore_thermo_variables_from_restart(fl, tm, dm)
-      !call read_statistics_thermo(tm, dm)
+      !call read_stats_thermo(tm, dm)
     else if (tm%inittype == INIT_INTERPL) then
     else
       call initialise_thermal_properties (fl, tm, dm)
