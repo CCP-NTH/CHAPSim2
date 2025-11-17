@@ -221,39 +221,66 @@ contains
     integer :: n, i, j, ij, s, l, sl
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: accc_tavg, opt_accc
 !----------------------------------------------------------------------------------------------------------
-    !(1,1,1,1); (1,1,1,2); (1,1,1,3); (1,1,2,1); (1,1,2,2); (1,1,2,3); (1,1,3,1); (1,1,3,2); (1,1,3,3); index (01-09)
-    !(1,2,1,2); (1,2,1,3); (1,2,2,1); (1,2,2,2); (1,2,2,3); (1,2,3,1); (1,2,3,2); (1,2,3,3); (1,3,1,3); index (10-18)
-    !(1,3,2,1); (1,3,2,2); (1,3,2,3); (1,3,3,1); (1,3,3,2); (1,3,3,3); (2,1,2,1); (2,1,2,2); (2,1,2,3); index (19-27)
-    !(2,1,3,1); (2,1,3,2); (2,1,3,3); (2,2,2,2); (2,2,2,3); (2,2,3,1); (2,2,3,2); (2,2,3,3); (2,3,2,3); index (28-36)
-    !(2,3,3,1); (2,3,3,2); (2,3,3,3); (3,1,3,1); (3,1,3,2); (3,1,3,3); (3,2,3,2); (3,2,3,3); (3,3,3,3); index (37-45)  
+    ![1,1,1,1]; (1,1,1,2); (1,1,1,3); [1,1,2,1]; (1,1,2,2); (1,1,2,3); [1,1,3,1]; (1,1,3,2); (1,1,3,3); index (01-09)
+    ![1,2,1,2]; (1,2,1,3); (1,2,2,1); [1,2,2,2]; (1,2,2,3); (1,2,3,1); [1,2,3,2]; (1,2,3,3); [1,3,1,3]; index (10-18)
+    !(1,3,2,1); (1,3,2,2); [1,3,2,3]; (1,3,3,1); (1,3,3,2); [1,3,3,3]; [2,1,2,1]; (2,1,2,2); (2,1,2,3); index (19-27)
+    ![2,1,3,1]; (2,1,3,2); (2,1,3,3); [2,2,2,2]; (2,2,2,3); (2,2,3,1); [2,2,3,2]; (2,2,3,3); [2,3,2,3]; index (28-36)
+    !(2,3,3,1); (2,3,3,2); [2,3,3,3]; [3,1,3,1]; (3,1,3,2); (3,1,3,3); [3,2,3,2]; (3,2,3,3); [3,3,3,3]; index (37-45)  
+    ! epsilon_{ij} = (i,1,j,1)+(i,2,j,2)+(i,3,j,3)
+    !
 !----------------------------------------------------------------------------------------------------------
+    ! n = 0
+    ! do i = 1, 3
+    !   do j = 1, 3
+    !     ij = (i - 1) * 3 + j
+    !     do s = 1, 3
+    !       do l = 1, 3
+    !         sl = (s - 1) * 3 + l
+    !         if (ij<=sl) then
+    !           n = n + 1
+    !           accc_tavg(:, :, :) = acccn_tavg(:, :, :, n)
+    !           if(mode == STATS_TAVG) then
+    !             if (.not. present(opt_acccnn1)) call Print_error_msg("Error in run_stats_loops45.")
+    !             if (.not. present(opt_acccnn2)) call Print_error_msg("Error in run_stats_loops45.")
+    !             opt_accc(:, :, :) = opt_acccnn1(:, :, :, i, j) * opt_acccnn2(:, :, :, s, l)
+    !             if(present(opt_accc0)) &
+    !             opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
+    !           end if
+    !           call run_stats_action(mode, accc_tavg, &
+    !                trim(str)//trim(int2str(i))//trim(int2str(j))//trim(int2str(s))//trim(int2str(l)), &
+    !                iter, dm, opt_accc, opt_visnm)
+    !           if(mode == STATS_TAVG)&
+    !           acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
+    !         end if
+    !       end do
+    !     end do
+    !   end do
+    ! end do
+
     n = 0
     do i = 1, 3
-      do j = 1, 3
-        ij = (i - 1) * 3 + j
-        do s = 1, 3
-          do l = 1, 3
-            sl = (s - 1) * 3 + l
-            if (ij<=sl) then
-              n = n + 1
-              accc_tavg(:, :, :) = acccn_tavg(:, :, :, n)
-              if(mode == STATS_TAVG) then
-                if (.not. present(opt_acccnn1)) call Print_error_msg("Error in run_stats_loops45.")
-                if (.not. present(opt_acccnn2)) call Print_error_msg("Error in run_stats_loops45.")
-                opt_accc(:, :, :) = opt_acccnn1(:, :, :, i, j) * opt_acccnn2(:, :, :, s, l)
-                if(present(opt_accc0)) &
-                opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
-              end if
-              call run_stats_action(mode, accc_tavg, &
-                   trim(str)//trim(int2str(i))//trim(int2str(j))//trim(int2str(s))//trim(int2str(l)), &
-                   iter, dm, opt_accc, opt_visnm)
-              if(mode == STATS_TAVG)&
-              acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
-            end if
-          end do
-        end do
+      do j = i, 3
+        n = n + 1
+        if (n <= 6) then
+          accc_tavg(:, :, :) = acccn_tavg(:, :, :, n)
+          if(mode == STATS_TAVG) then
+            if (.not. present(opt_acccnn1)) call Print_error_msg("Error in run_stats_loops45.")
+            if (.not. present(opt_acccnn2)) call Print_error_msg("Error in run_stats_loops45.")
+            opt_accc(:, :, :) = opt_acccnn1(:, :, :, i, 1) * opt_acccnn2(:, :, :, j, 1) + &
+                                opt_acccnn1(:, :, :, i, 2) * opt_acccnn2(:, :, :, j, 2) + &
+                                opt_acccnn1(:, :, :, i, 3) * opt_acccnn2(:, :, :, j, 3)
+            if(present(opt_accc0)) &
+            opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
+          end if
+          call run_stats_action(mode, accc_tavg, trim(str)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm)
+          if(mode == STATS_TAVG)&
+          acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
+        end if
       end do
     end do
+    return
+
+    
     return
   end subroutine
 !==========================================================================================================
@@ -284,7 +311,7 @@ contains
     allocate ( fl%tavg_pru (ncl_stat(1, dm%idom), ncl_stat(2, dm%idom), ncl_stat(3, dm%idom), 3) )
     allocate ( fl%tavg_uu  (ncl_stat(1, dm%idom), ncl_stat(2, dm%idom), ncl_stat(3, dm%idom), 6) )
     allocate ( fl%tavg_uuu (ncl_stat(1, dm%idom), ncl_stat(2, dm%idom), ncl_stat(3, dm%idom), 10) )
-    allocate ( fl%tavg_dudu(ncl_stat(1, dm%idom), ncl_stat(2, dm%idom), ncl_stat(3, dm%idom), 45) )
+    allocate ( fl%tavg_dudu(ncl_stat(1, dm%idom), ncl_stat(2, dm%idom), ncl_stat(3, dm%idom), 6) )
     fl%tavg_u    = ZERO
     fl%tavg_pr   = ZERO
     fl%tavg_uu   = ZERO
