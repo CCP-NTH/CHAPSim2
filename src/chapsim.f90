@@ -335,7 +335,10 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       !if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
       if(is_flow(i)) then
-        call Check_element_mass_conservation(flow(i), domain(i)) 
+        call Check_element_mass_conservation(flow(i), domain(i), iter)
+        if(domain(1)%is_mhd) then
+          call check_current_conservation(mhd(i), domain(i))
+        end if
         if(is_thermo(i)) then
           call Find_max_min_3d(thermo(i)%tTemp, opt_name="T :")
           !call Find_max_min_3d(thermo(i)%rhoh,  opt_name="rhoh :")
@@ -345,6 +348,7 @@ subroutine Solve_eqs_iteration
         call Find_max_min_3d(flow(i)%qz, opt_name="qz :")
         call Find_max_min_3d(flow(i)%pres, opt_name="pr :")
         call Find_max_min_3d(flow(i)%pcor, opt_name="ph :")
+        
       end if
       !----------------------------------------------------------------------------------------------------------
       !  update statistics
