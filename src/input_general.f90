@@ -1264,7 +1264,7 @@ contains
     write(*, wrtfmt1e) 'dt_max (convection CFL  ) :', dt_max_cfl1
     write(*, wrtfmt1e) 'dt_max (diffusion  CFL  ) :', dt_max_cfl2
     write(*, wrtfmt1e) 'dt_max (Kolmogorov limit) :', dt_max_phy
-    !write(*, wrtfmt1e) 'dt_max (dt+ = 1) :', ONE/u_tau
+    write(*, wrtfmt1e) 'dt_max (dt+ = 0.1) :', 0.1_WP * fl%ren/Re_tau/Re_tau
 
     ! iteration 
     t_flth = dm%lxx / 1.2_wp 
