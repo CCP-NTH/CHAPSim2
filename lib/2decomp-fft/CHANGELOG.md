@@ -14,6 +14,8 @@ _e.g._ vX.Y - YYYY-MM-DD and a new "Unreleased" section started above.
 - Halo exchange subroutines have been separated from the `update_halo` interface - `update_halo` retains the original behaviour of returning a new array with added halo entries, `halo_exchange` takes a halo-extended array and performs the data exchange to fill the halo entries (and is used internally by `update_halo`).
 
 ### Fixed
+
+- Fixed the calculations of the displacement for MPI_ALL_TO_ALLV communication to avoid issue with 03 optimisation with come compilers [PR #422](https://github.com/2decomp-fft/2decomp-fft/pull/422)
 ### Changed
 
 - The `decomp_info` object now has per-pencil default halo depths (`0` unless set otherwise), when allocating an array this is used to set the halo depth.

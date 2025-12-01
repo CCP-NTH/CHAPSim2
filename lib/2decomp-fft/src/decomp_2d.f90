@@ -1143,43 +1143,35 @@ contains
 
       integer :: i
 
-#if __GNUC__ == 9 &&  __GNUC_MINOR__ == 3
-      !LG : AJOUTS "bidons" pour eviter un plantage en -O3 avec gcc9.3
-      !       * la fonction sortait des valeurs 'aleatoires'
-      !         et le calcul plantait dans MPI_ALLTOALLV
-      !       * pas de plantage en O2
-      if (nrank == 0) then
-         open (newunit=i, status='scratch', form='unformatted')
-         write (i) decomp%x1dist, decomp%y1dist, decomp%y2dist, decomp%z2dist, &
-            decomp%xsz, decomp%ysz, decomp%zsz
-         close (i)
-      end if
-#endif
-
       ! MPI_ALLTOALLV buffer information
+      ! Avoid loops on arrays starting 0 (and not 1)
+      ! with elements that depends on i-1 => Issues with O3 optimiser
+      ! Solution explicitly set element (0) to start with
 
       do i = 0, dims(1) - 1
          decomp%x1cnts(i) = decomp%x1dist(i) * decomp%xsz(2) * decomp%xsz(3)
          decomp%y1cnts(i) = decomp%ysz(1) * decomp%y1dist(i) * decomp%ysz(3)
-         if (i == 0) then
-            decomp%x1disp(i) = 0  ! displacement is 0-based index
-            decomp%y1disp(i) = 0
-         else
-            decomp%x1disp(i) = decomp%x1disp(i - 1) + decomp%x1cnts(i - 1)
-            decomp%y1disp(i) = decomp%y1disp(i - 1) + decomp%y1cnts(i - 1)
-         end if
+      end do
+
+      decomp%x1disp(0) = 0  ! displacement is 0-based index
+      decomp%y1disp(0) = 0
+
+      do i = 1, dims(1) - 1
+         decomp%x1disp(i) = decomp%x1disp(i - 1) + decomp%x1cnts(i - 1)
+         decomp%y1disp(i) = decomp%y1disp(i - 1) + decomp%y1cnts(i - 1)
       end do
 
       do i = 0, dims(2) - 1
          decomp%y2cnts(i) = decomp%ysz(1) * decomp%y2dist(i) * decomp%ysz(3)
          decomp%z2cnts(i) = decomp%zsz(1) * decomp%zsz(2) * decomp%z2dist(i)
-         if (i == 0) then
-            decomp%y2disp(i) = 0  ! displacement is 0-based index
-            decomp%z2disp(i) = 0
-         else
-            decomp%y2disp(i) = decomp%y2disp(i - 1) + decomp%y2cnts(i - 1)
-            decomp%z2disp(i) = decomp%z2disp(i - 1) + decomp%z2cnts(i - 1)
-         end if
+      end do
+
+      decomp%y2disp(0) = 0  ! displacement is 0-based index
+      decomp%z2disp(0) = 0
+
+      do i = 1, dims(2) - 1
+         decomp%y2disp(i) = decomp%y2disp(i - 1) + decomp%y2cnts(i - 1)
+         decomp%z2disp(i) = decomp%z2disp(i - 1) + decomp%z2cnts(i - 1)
       end do
 
       ! MPI_ALLTOALL buffer information

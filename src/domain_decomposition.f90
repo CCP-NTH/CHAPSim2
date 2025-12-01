@@ -4,7 +4,7 @@ module domain_decomposition_mod
   use decomp_2d
   implicit none
 
-  private :: initialise_domain_decomposition
+  public :: initialise_domain_decomposition
   public  :: Buildup_mpi_domain_decomposition
 
 contains

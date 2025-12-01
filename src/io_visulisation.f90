@@ -19,8 +19,8 @@ module io_visualisation_mod
                         X_DIRECTION = 1, &
                         Y_DIRECTION = 2, &
                         Z_DIRECTION = 3
-  integer, allocatable :: nnd_visu(:, :)
-  integer, allocatable :: ncl_visu(:, :)
+  integer :: nnd_visu(3)
+  integer :: ncl_visu(3)
 
   !real(WP), allocatable :: xp(:), yp(:), zp(:)
   real(WP), allocatable :: rp(:, :, :), ta(:, :, :)
@@ -260,8 +260,8 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! allocate
 !----------------------------------------------------------------------------------------------------------
-    if(.not. allocated(nnd_visu)) allocate (nnd_visu(3, nxdomain))
-    if(.not. allocated(ncl_visu)) allocate (ncl_visu(3, nxdomain))
+    !if(.not. allocated(nnd_visu)) allocate (nnd_visu(3, nxdomain))
+    !if(.not. allocated(ncl_visu)) allocate (ncl_visu(3, nxdomain))
     nnd_visu = 0
     ncl_visu = 0
 ! !----------------------------------------------------------------------------------------------------------
@@ -270,9 +270,9 @@ contains
 !     !svisudim = ''
 !     !if(dm%visu_idim == Ivisu_3D) then
 !       !svisudim = "3d"
-!       nnd_visu(1, dm%idom) = xszV(1)
-!       nnd_visu(2, dm%idom) = yszV(2)
-!       nnd_visu(3, dm%idom) = zszV(3)
+!       nnd_visu(1) = xszV(1)
+!       nnd_visu(2) = yszV(2)
+!       nnd_visu(3) = zszV(3)
 !       do i = 1, 3
 !         if(dm%is_periodic(i)) then 
 !           ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -283,9 +283,9 @@ contains
 !       end do
 !     ! !else if(dm%visu_idim == Ivisu_2D_YZ) then
 !     !   svisudim = "2d_xa"
-!     !   nnd_visu(1, dm%idom) = 1
-!     !   nnd_visu(2, dm%idom) = yszV(2)
-!     !   nnd_visu(3, dm%idom) = zszV(3)
+!     !   nnd_visu(1) = 1
+!     !   nnd_visu(2) = yszV(2)
+!     !   nnd_visu(3) = zszV(3)
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -296,9 +296,9 @@ contains
 !     !   end do
 !     ! else if(dm%visu_idim == Ivisu_2D_XZ) then
 !     !   svisudim = "2d_ya"
-!     !   nnd_visu(1, dm%idom) = xszV(1)
-!     !   nnd_visu(2, dm%idom) = 1
-!     !   nnd_visu(3, dm%idom) = zszV(3)
+!     !   nnd_visu(1) = xszV(1)
+!     !   nnd_visu(2) = 1
+!     !   nnd_visu(3) = zszV(3)
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -309,9 +309,9 @@ contains
 !     !   end do
 !     ! else if(dm%visu_idim == Ivisu_2D_XY) then
 !     !   svisudim = "2d_za"
-!     !   nnd_visu(1, dm%idom) = xszV(1)
-!     !   nnd_visu(2, dm%idom) = yszV(2)
-!     !   nnd_visu(3, dm%idom) = 1
+!     !   nnd_visu(1) = xszV(1)
+!     !   nnd_visu(2) = yszV(2)
+!     !   nnd_visu(3) = 1
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -322,9 +322,9 @@ contains
 !     !   end do
 !     ! else if(dm%visu_idim == Ivisu_1D_Y) then
 !     !   svisudim = "2d_xza"
-!     !   nnd_visu(1, dm%idom) = 1
-!     !   nnd_visu(2, dm%idom) = yszV(2)
-!     !   nnd_visu(3, dm%idom) = 1
+!     !   nnd_visu(1) = 1
+!     !   nnd_visu(2) = yszV(2)
+!     !   nnd_visu(3) = 1
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -335,9 +335,9 @@ contains
 !     !   end do
 !     ! else
 !     !   svisudim = "3d"
-!     !   nnd_visu(1, dm%idom) = xszV(1)
-!     !   nnd_visu(2, dm%idom) = yszV(2)
-!     !   nnd_visu(3, dm%idom) = zszV(3)
+!     !   nnd_visu(1) = xszV(1)
+!     !   nnd_visu(2) = yszV(2)
+!     !   nnd_visu(3) = zszV(3)
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -350,29 +350,29 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! calculated structured grids geometry - Cartesian Coordinates
 !----------------------------------------------------------------------------------------------------------    
-    nnd_visu(1:3, dm%idom) = dm%np_geo(1:3)
-    ncl_visu(1:3, dm%idom) = dm%nc(1:3)
-    nnd(1:3) = nnd_visu(1:3, dm%idom)
+    nnd_visu(1:3) = dm%np_geo(1:3)
+    ncl_visu(1:3) = dm%nc(1:3)
+    nnd(1:3) = nnd_visu(1:3)
     if(nrank == 0) then
       if(dm%icoordinate == ICARTESIAN) then
-        if(.not. allocated(xp)) allocate ( xp1(nnd_visu(1, dm%idom)))
-        if(.not. allocated(yp)) allocate ( yp1(nnd_visu(2, dm%idom)))
-        if(.not. allocated(zp)) allocate ( zp1(nnd_visu(3, dm%idom)))
+        if(.not. allocated(xp)) allocate ( xp1(nnd_visu(1)))
+        if(.not. allocated(yp)) allocate ( yp1(nnd_visu(2)))
+        if(.not. allocated(zp)) allocate ( zp1(nnd_visu(3)))
         xp1 = MAXP
         yp1 = MAXP
         zp1 = MAXP
 
-        do i = 1, nnd_visu(1, dm%idom)
+        do i = 1, nnd_visu(1)
           xp1(i) = real(i-1, WP) * dm%h(1)
         enddo
-        do j = 1, nnd_visu(2, dm%idom)
+        do j = 1, nnd_visu(2)
           if(dm%is_stretching(2)) then 
             yp1(j) = dm%yp(j)
           else 
             yp1(j) = real(j-1, WP) * dm%h(2)
           end if
         end do
-        do k = 1, nnd_visu(3, dm%idom)
+        do k = 1, nnd_visu(3)
           zp1(k) = real(k-1, WP) * dm%h(3)
         enddo
       end if
@@ -380,36 +380,36 @@ contains
 ! calculated structured grids geometry - Cylindrical Coordinates
 !---------------------------------------------------------------------------------------------------------- 
       if(dm%icoordinate == ICYLINDRICAL) then
-        if(.not. allocated(xp)) allocate ( xp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
-        if(.not. allocated(yp)) allocate ( yp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
-        if(.not. allocated(zp)) allocate ( zp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
-        if(.not. allocated(rp)) allocate ( rp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
-        if(.not. allocated(ta)) allocate ( ta(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
+        if(.not. allocated(xp)) allocate ( xp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
+        if(.not. allocated(yp)) allocate ( yp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
+        if(.not. allocated(zp)) allocate ( zp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
+        if(.not. allocated(rp)) allocate ( rp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
+        if(.not. allocated(ta)) allocate ( ta(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
         rp = MAXP
         ta = MAXP
         xp = MAXP
         yp = MAXP
         zp = MAXP
 
-        do i = 1, nnd_visu(1, dm%idom)
+        do i = 1, nnd_visu(1)
           xp(i, :, :) = real(i-1, WP) * dm%h(1)
         enddo
-        do j = 1, nnd_visu(2, dm%idom)
+        do j = 1, nnd_visu(2)
           if(dm%is_stretching(2)) then 
             yp(:, j, :) = dm%yp(j)
           else 
             yp(:, j, :) = real(j-1, WP) * dm%h(2)
           end if
         end do
-        do k = 1, nnd_visu(3, dm%idom)
+        do k = 1, nnd_visu(3)
           zp(:, :, k) = real(k-1, WP) * dm%h(3)
         enddo
 
         rp(:, :, :) = yp(:, :, :) 
         ta(:, :, :) = zp(:, :, :) 
-        do k = 1, nnd_visu(3, dm%idom)
-          do j = 1, nnd_visu(2, dm%idom)
-            do i = 1, nnd_visu(1, dm%idom)
+        do k = 1, nnd_visu(3)
+          do j = 1, nnd_visu(2)
+            do i = 1, nnd_visu(1)
               zp(i, j, k) = rp(i, j, k) * dcos(ta(i, j, k))
               yp(i, j, k) = rp(i, j, k) * dsin(ta(i, j, k))
             end do
@@ -419,9 +419,9 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write grids - Cartesian Coordinates, well-structured rectangular grid
 !---------------------------------------------------------------------------------------------------------- 
-      istr(1) = trim(int2str(nnd_visu(1, dm%idom)))
-      istr(2) = trim(int2str(nnd_visu(2, dm%idom)))
-      istr(3) = trim(int2str(nnd_visu(3, dm%idom)))
+      istr(1) = trim(int2str(nnd_visu(1)))
+      istr(2) = trim(int2str(nnd_visu(2)))
+      istr(3) = trim(int2str(nnd_visu(3)))
 
       if(dm%icoordinate == ICARTESIAN) then
       ! Write binary files for each coordinate direction in double precision
@@ -666,9 +666,9 @@ contains
       end if
 
       if(trim(centring) == TRIM(CELL)) then
-        nsz(1:3) = ncl_visu(1:3, dm%idom)
+        nsz(1:3) = ncl_visu(1:3)
       else if (trim(centring) == TRIM(NODE)) then
-        nsz(1:3) = nnd_visu(1:3, dm%idom)
+        nsz(1:3) = nnd_visu(1:3)
       else
       end if
       nsz0 = nsz(1) * nsz(2) * nsz(3)
@@ -773,7 +773,7 @@ contains
 
     ! Write XDMF header
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename),dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename),dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
 
     ! Write pressure field (cell-centered)
     call process_and_write_field(fl%pres, dm, "pr", trim(visu_filename), iteration, &
@@ -801,7 +801,7 @@ contains
 
     ! Write XDMF footer
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
 
     ! Debug message
     if (nrank == 0) call Print_debug_inline_msg("Flow field visualization data written successfully.")
@@ -830,7 +830,7 @@ contains
 ! write xdmf header
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
 !----------------------------------------------------------------------------------------------------------
 ! write data, temperature, to cell centre
 !----------------------------------------------------------------------------------------------------------
@@ -844,7 +844,7 @@ contains
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
 
     if(nrank == 0) call Print_debug_inline_msg("Write out visualisation for thermal field.")
     
@@ -875,7 +875,7 @@ contains
 
     ! Write XDMF header
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
 
     ! Write electric potential field (cell-centered)
     call process_and_write_field(mh%ep, dm, "potential", trim(visu_filename), iteration, &
@@ -897,7 +897,7 @@ contains
                                 Z_DIRECTION, opt_bc=dm%ibcz_qz)
     ! Write XDMF footer
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
 
     ! Debug message
     if (nrank == 0) call Print_debug_inline_msg("MHD field visualization data written successfully.")
@@ -935,7 +935,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     keyword = trim(visuname)//"_"//trim(varname)//'_visu'
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(keyword), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(keyword), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
     !if(nrank==0) write(*,*) keyword, iter
 !----------------------------------------------------------------------------------------------------------
 ! write data, temperature, to cell centre
@@ -955,7 +955,7 @@ contains
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(keyword), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(keyword), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
     
     return
   end subroutine

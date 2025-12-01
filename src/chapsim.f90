@@ -41,6 +41,7 @@ subroutine initialise_chapsim
   use eq_momentum_mod
   use wrt_debug_field_mod
   use mhd_mod
+  use io_field_interpolation_mod
   implicit none
   integer :: i
 
@@ -160,6 +161,13 @@ subroutine initialise_chapsim
       call estimate_spacial_resolution(flow(1), domain(1))
     end if
     call estimate_temporal_resolution(flow(1), domain(1))
+    call Print_debug_start_msg("Pre-run for outputing interpolated fields")
+    if(domain(1)%is_thermo) then 
+      call output_interp_target_field(domain(1), flow(1), thermo(1))
+    else
+      call output_interp_target_field(domain(1), flow(1))
+    end if
+
     stop 'Pre-run is completed.'
   end if
 
