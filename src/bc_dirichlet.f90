@@ -523,11 +523,19 @@ contains
 
     if(.not. present(fbcx0)) then
       fbcx = ZERO
-      fbcy = ZERO
-      fbcz = ZERO
     else
       fbcx = fbcx0
+    end if
+
+    if(.not. present(fbcy0)) then
+      fbcy = ZERO
+    else
       fbcy = fbcy0
+    end if
+
+    if(.not. present(fbcz0)) then
+      fbcz = ZERO
+    else
       fbcz = fbcz0
     end if
 
