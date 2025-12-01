@@ -289,7 +289,8 @@ module parameters_constant_mod
                         ILIQUID_LEAD    = 4, &
                         ILIQUID_BISMUTH = 5, &
                         ILIQUID_LBE     = 6, &
-                        ILIQUID_WATER   = 7 ! to be updated 
+                        ILIQUID_WATER   = 7, & ! to be updated
+                        ILIQUID_LITHIUM = 8 
 !----------------------------------------------------------------------------------------------------------
 ! physical property
 !---------------------------------------------------------------------------------------------------------- 
@@ -306,54 +307,63 @@ module parameters_constant_mod
   real(WP), parameter :: TM0_BI  = 544.6_WP  ! unit: K, melting temperature at 1 atm for Bismuth
   real(WP), parameter :: TM0_LBE = 398.0_WP  ! unit: K, melting temperature at 1 atm for LBE
   real(WP), parameter :: TM0_H2O = 273.15_WP ! unit: K, melting temperature at 1 atm for water
+  real(WP), parameter :: TM0_Li  = 453.65_WP ! unit: K, melting temperature at 1 atm for Lithium
 
   real(WP), parameter :: TB0_Na  = 1155.0_WP ! unit: K, boling temperature at 1 atm for Na
   real(WP), parameter :: TB0_Pb  = 2021.0_WP ! unit: K, boling temperature at 1 atm for Lead
   real(WP), parameter :: TB0_BI  = 1831.0_WP ! unit: K, boling temperature at 1 atm for Bismuth
   real(WP), parameter :: TB0_LBE = 1927.0_WP ! unit: K, boling temperature at 1 atm for LBE
   real(WP), parameter :: TB0_H2O = 373.15_WP ! unit: K, boling temperature at 1 atm for water
+  real(WP), parameter :: TB0_Li  = 1615.0_WP ! unit: K, boling temperature at 1 atm for Lithium
 
   real(WP), parameter :: HM0_Na  = 113.0e3_WP ! unit: J / Kg, latent melting heat, enthalpy for Na
   real(WP), parameter :: HM0_Pb  = 23.07e3_WP ! unit: J / Kg, latent melting heat, enthalpy for Lead
   real(WP), parameter :: HM0_BI  =  53.3e3_WP ! unit: J / Kg, latent melting heat, enthalpy for Bismuth
   real(WP), parameter :: HM0_LBE =  38.6e3_WP ! unit: J / Kg, latent melting heat, enthalpy for LBE
   real(WP), parameter :: HM0_H2O = 334.0e3_WP ! unit: J / Kg, latent melting heat, enthalpy for water
+  real(WP), parameter :: HM0_Li  =  4.55e5_WP  ! unit: J / Kg, latent melting heat, enthalpy for Lithium
 
   ! D = CoD(0) + CoD(1) * T
   real(WP), parameter :: CoD_Na(0:1)  = (/ 1014.0_WP,  -0.235_WP /)
   real(WP), parameter :: CoD_Pb(0:1)  = (/11441.0_WP, -1.2795_WP /)
   real(WP), parameter :: CoD_Bi(0:1)  = (/10725.0_WP,   -1.22_WP /)
   real(WP), parameter :: CoD_LBE(0:1) = (/11065.0_WP,   1.293_WP /)
+  real(WP), parameter :: CoD_Li(0:4)  = (/278.5_WP,  -0.04657_WP, 274.6_WP, 3500.0_WP, 0.467_WP /) ! D = CoD(0) + CoD(1) * T + CoD(2) * (1 - T / CoD(3))^(CoD(4))
 
   ! K = CoK(0) + CoK(1) * T + CoK(2) * T^2
   real(WP), parameter :: CoK_Na(0:2)  = (/104.0_WP,   -0.047_WP,       0.0_WP/)
   real(WP), parameter :: CoK_Pb(0:2)  = (/  9.2_WP,    0.011_WP,       0.0_WP/)
   real(WP), parameter :: CoK_Bi(0:2)  = (/ 7.34_WP,   9.5E-3_WP,       0.0_WP/)
   real(WP), parameter :: CoK_LBE(0:2) = (/3.284_WP, 1.617E-2_WP, -2.305E-6_WP/)
+  real(WP), parameter :: CoK_Li(0:2)  = (/22.28_WP,   0.0500_WP, -1.243E-5_WP/)
 
   ! B = 1 / (CoB - T)
   real(WP), parameter :: CoB_Na = 4316.0_WP
   real(WP), parameter :: CoB_Pb = 8942.0_WP
   real(WP), parameter :: CoB_BI = 8791.0_WP
   real(WP), parameter :: CoB_LBE= 8558.0_WP
+  real(WP), parameter :: CoB_Li = 5620.0_WP
 
   ! Cp = CoCp(-2) * T^(-2) + CoCp(-1) * T^(-1) + CoCp(0) + CoCp(1) * T + CoCp(2) * T^2
   real(WP), parameter :: CoCp_Na(-2:2) = (/-3.001e6_WP, 0.0_WP, 1658.0_WP,   -0.8479_WP, 4.454E-4_WP/)
   real(WP), parameter :: CoCp_Pb(-2:2) = (/-1.524e6_WP, 0.0_WP,  176.2_WP, -4.923E-2_WP, 1.544E-5_WP/)
   real(WP), parameter :: CoCp_Bi(-2:2) = (/ 7.183e6_WP, 0.0_WP,  118.2_WP,  5.934E-3_WP,      0.0_WP/)
   real(WP), parameter :: CoCp_LBE(-2:2)= (/-4.56e5_WP, 0.0_WP,  164.8_WP, - 3.94E-2_WP,  1.25E-5_WP/)
+  real(WP), parameter :: CoCp_Li(-2:2) = (/    0.0_WP, 0.0_WP, 4754.0_WP,  -9.25E-1_WP,  2.91E-4_WP/)
 
   ! H = HM0 + CoH(-1) * (1 / T - 1 / TM0) + CoH(0) + CoH(1) * (T - TM0) +  CoH(2) * (T^2 - TM0^2) +  CoH(3) * (T^3- TM0^3)
   real(WP), parameter :: CoH_Na(-1:3)  = (/  4.56e5_WP, 0.0_WP, 164.8_WP,   -1.97E-2_WP, 4.167E-4_WP/)
   real(WP), parameter :: CoH_Pb(-1:3)  = (/ 1.524e6_WP, 0.0_WP, 176.2_WP, -2.4615E-2_WP, 5.147E-6_WP/)
   real(WP), parameter :: CoH_Bi(-1:3)  = (/-7.183e6_WP, 0.0_WP, 118.2_WP,   2.967E-3_WP,      0.0_WP/)
   real(WP), parameter :: CoH_LBE(-1:3) = (/  4.56e5_WP, 0.0_WP, 164.8_WP,   -1.97E-2_WP, 4.167E-4_WP/)! check, WRong from literature.
+  real(WP), parameter :: CoH_Li(-1:3)  = (/     0.0_WP, 0.0_WP, 4754.0_WP,  -4.625E-1_WP, 9.70E-5_WP/) ! derived from Cp
 
   ! M = vARies
   real(WP), parameter :: CoM_Na(-1:1) = (/556.835_WP,  -6.4406_WP, -0.3958_WP/) ! M = exp ( CoM(-1) / T + CoM(0) + CoM(1) * ln(T) )
   real(WP), parameter :: CoM_Pb(-1:1) = (/ 1069.0_WP,  4.55E-4_WP,     0.0_WP/) ! M = CoM(0) * exp (CoM(-1) / T)
   real(WP), parameter :: CoM_Bi(-1:1) = (/  780.0_WP, 4.456E-4_WP,     0.0_WP/) ! M = CoM(0) * exp (CoM(-1) / T)
   real(WP), parameter :: CoM_LBE(-1:1)= (/  754.1_WP,  4.94E-4_WP,     0.0_WP/) ! M = CoM(0) * exp (CoM(-1) / T)
+  real(WP), parameter :: CoM_Li(-1:1) = (/-4.164_WP, -6.374E-1_WP, 2.921e2_WP/) ! M = exp ( CoM(-1) + CoM(0) * ln(T) + (CoM(1) / T) )
 end module parameters_constant_mod
 !==========================================================================================================
 module wtformat_mod
@@ -403,6 +413,8 @@ module udf_type_mod
     real(WP) :: rhoh ! mass enthalpy
     real(WP) :: cp ! specific heat capacity 
     real(WP) :: b  ! thermal expansion
+    real(WP) :: alpha ! thermal diffusivity, alpha = k / (rho * cp)
+    real(WP) :: Pr ! Pr = m / (rho * alpha) = m * cp / k
     real(WP) :: drhoh_drho
   end type t_fluidThermoProperty
 !----------------------------------------------------------------------------------------------------------
@@ -416,7 +428,7 @@ module udf_type_mod
     real(WP) :: TM0
     real(WP) :: TB0
     real(WP) :: HM0
-    real(WP) :: CoD(0:1)
+    real(WP) :: CoD(0:4)
     real(WP) :: CoK(0:2)
     real(WP) :: CoB
     real(WP) :: CoCp(-2:2)
@@ -672,11 +684,43 @@ module udf_type_mod
     real(WP), allocatable :: lrfx(:, :, :) ! Lorentz force  !
     real(WP), allocatable :: lrfy(:, :, :) ! Lorentz force
     real(WP), allocatable :: lrfz(:, :, :) ! Lorentz force
-
-    real(WP), allocatable :: u_vector_mean(:, :, :, :) ! u, v, w
-    real(WP), allocatable :: pr_mean(:, :, :)
-    real(WP), allocatable :: uu_tensor6_mean(:, :, :, :) ! uu, vv, ww, uv, uw, vw
-
+    ! post processing - sharing
+    real(WP), allocatable :: tavg_u   (:, :, :, :)  ! 3  = u, v, w
+    real(WP), allocatable :: tavg_pr  (:, :, :)
+    real(WP), allocatable :: tavg_pru (:, :, :, :)  ! 3  = pu, pv, pw
+    real(WP), allocatable :: tavg_uu  (:, :, :, :)  ! 6  = uu, uv, uw, vv, vw, ww
+    real(WP), allocatable :: tavg_uuu (:, :, :, :)  ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
+    real(WP), allocatable :: tavg_dudu(:, :, :, :)  ! 6  = dui/dxk * duj/duk (covers 45 = dui/dxj * dum/dun)
+    ! du/dx * du/dx, du/dx * du/dy, du/dx * du/dz (1 2 3)
+    ! du/dx * dv/dx, du/dx * dv/dy, du/dx * dv/dz (4 5 6)
+    ! du/dx * dw/dz, du/dx * dw/dy, du/dx * dw/dz (7 8 9)
+    !                du/dy * du/dy, du/dy * du/dz, (10, 11)
+    ! du/dy * dv/dx, du/dy * dv/dy, du/dy * dv/dz (12, 13, 14)
+    ! du/dy * dw/dx, du/dy * dw/dy, du/dy * dw/dz (15, 16, 27)
+    !                               du/dz * du/dz, (18)
+    !                du/dz * dv/dy, du/dz * dv/dz, (19, 20, 21)
+    ! du/dz * dw/dx, du/dz * dw/dy, du/dz * dw/dy, (22, 23, 24)
+    ! dv/dx * dv/dx, dv/dx * dv/dy, dv/dx * dv/dz, (25, 26, 27)
+    ! dv/dx * dw/dx, dv/dx * dw/dy, dv/dx * dw/dz, (28, 29, 30)
+    !                dv/dy * dv/dy, dv/dy * dv/dz, (30, 31)
+    ! dv/dy * dw/dx, dv/dy * dw/dy, dv/dy * dw/dz, (32, 33, 34)
+    !                               dv/dy * dw/dz, (35)
+    !                               dv/dz * dv/dz, (36)
+    ! dv/dz * dw/dx, dv/dz * dw/dy, dv/dz * dw/dz, (37, 38, 39)
+    ! dw/dx * dw/dx, dw/dx * dw/dy, dw/dx * dw/dz, (40, 41, 42)
+    !                dw/dy * dw/dy, dw/dy * dw/dz, (43, 44)
+    !                               dw/dw * dw/dz, (45)
+    ! post processing - thermal
+    real(WP), allocatable :: tavg_f   (:, :, :)    ! f = rho
+    real(WP), allocatable :: tavg_fu  (:, :, :, :) ! 3 = rhou, rhov, rhow
+    real(WP), allocatable :: tavg_fuu (:, :, :, :) ! 6 = rho*uu, rho*uv, rho*uw, rho*vv, rho*vw, rho*ww
+    real(WP), allocatable :: tavg_fuuu(:, :, :, :) ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
+    !
+    real(WP), allocatable :: tavg_tf  (:, :, :)
+    real(WP), allocatable :: tavg_tu  (:, :, :, :) ! 3 = u*t, v*t, w*t ( for temperature transport eq.)
+    real(WP), allocatable :: tavg_tfu (:, :, :, :) ! 3 = rho*u*t, rho*v*t, rho*w*t
+    real(WP), allocatable :: tavg_tfuu(:, :, :, :) ! 6 = rho*uu*t, rho*uv*t, rho*uw*t, rho*vv*t, rho*vw*t, rho*ww*t
+    
   end type t_flow
 !----------------------------------------------------------------------------------------------------------
 !  thermo info
@@ -705,8 +749,10 @@ module udf_type_mod
     real(WP), allocatable :: fbcx_rhoh_rhs0(:, :)  !
     real(WP), allocatable :: fbcz_rhoh_rhs0(:, :)  !
 
-    real(WP), allocatable :: t_mean(:, :, :)
-    real(WP), allocatable :: tt_mean(:, :, :)
+    real(WP), allocatable :: tavg_T(:, :, :)
+    real(WP), allocatable :: tavg_TT(:, :, :)
+    real(WP), allocatable :: tavg_dTdT(:, :, :, :)   ! 6 = dt/dx * dt/dx, dt/dx * dt/dy, dt/dx * dt/dz, dt/dy * dt/dy, dt/dy * dt/dz, dt/dz * dt/dz
+
     type(t_fluidThermoProperty) :: ftp_ini ! undimensional
   end type t_thermo
   type(t_fluid_parameter) :: fluidparam ! dimensional

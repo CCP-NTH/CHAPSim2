@@ -19,8 +19,8 @@ module io_visualisation_mod
                         X_DIRECTION = 1, &
                         Y_DIRECTION = 2, &
                         Z_DIRECTION = 3
-  integer, allocatable :: nnd_visu(:, :)
-  integer, allocatable :: ncl_visu(:, :)
+  integer :: nnd_visu(3)
+  integer :: ncl_visu(3)
 
   !real(WP), allocatable :: xp(:), yp(:), zp(:)
   real(WP), allocatable :: rp(:, :, :), ta(:, :, :)
@@ -29,9 +29,9 @@ module io_visualisation_mod
   character(64):: grid_flname, grid_flname_1t2d, grid_flname_x, grid_flname_y, grid_flname_z
   !character(6)  :: svisudim
 
-  private :: write_visu_headerfooter
-  private :: write_visu_field
-  private :: visu_average_periodic_data
+  public  :: write_visu_headerfooter
+  public  :: write_visu_field
+  public  :: visu_average_periodic_data
   private :: write_visu_profile
   private :: process_and_write_field
   private :: write_mesh_binary_cylindrical
@@ -41,9 +41,6 @@ module io_visualisation_mod
   public  :: write_visu_thermo
   public  :: write_visu_mhd
   public  :: write_visu_any3darray
-
-  public  :: write_visu_stats_flow
-  public  :: write_visu_stats_thermo
   
 contains
 
@@ -263,8 +260,8 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! allocate
 !----------------------------------------------------------------------------------------------------------
-    if(.not. allocated(nnd_visu)) allocate (nnd_visu(3, nxdomain))
-    if(.not. allocated(ncl_visu)) allocate (ncl_visu(3, nxdomain))
+    !if(.not. allocated(nnd_visu)) allocate (nnd_visu(3, nxdomain))
+    !if(.not. allocated(ncl_visu)) allocate (ncl_visu(3, nxdomain))
     nnd_visu = 0
     ncl_visu = 0
 ! !----------------------------------------------------------------------------------------------------------
@@ -273,9 +270,9 @@ contains
 !     !svisudim = ''
 !     !if(dm%visu_idim == Ivisu_3D) then
 !       !svisudim = "3d"
-!       nnd_visu(1, dm%idom) = xszV(1)
-!       nnd_visu(2, dm%idom) = yszV(2)
-!       nnd_visu(3, dm%idom) = zszV(3)
+!       nnd_visu(1) = xszV(1)
+!       nnd_visu(2) = yszV(2)
+!       nnd_visu(3) = zszV(3)
 !       do i = 1, 3
 !         if(dm%is_periodic(i)) then 
 !           ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -286,9 +283,9 @@ contains
 !       end do
 !     ! !else if(dm%visu_idim == Ivisu_2D_YZ) then
 !     !   svisudim = "2d_xa"
-!     !   nnd_visu(1, dm%idom) = 1
-!     !   nnd_visu(2, dm%idom) = yszV(2)
-!     !   nnd_visu(3, dm%idom) = zszV(3)
+!     !   nnd_visu(1) = 1
+!     !   nnd_visu(2) = yszV(2)
+!     !   nnd_visu(3) = zszV(3)
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -299,9 +296,9 @@ contains
 !     !   end do
 !     ! else if(dm%visu_idim == Ivisu_2D_XZ) then
 !     !   svisudim = "2d_ya"
-!     !   nnd_visu(1, dm%idom) = xszV(1)
-!     !   nnd_visu(2, dm%idom) = 1
-!     !   nnd_visu(3, dm%idom) = zszV(3)
+!     !   nnd_visu(1) = xszV(1)
+!     !   nnd_visu(2) = 1
+!     !   nnd_visu(3) = zszV(3)
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -312,9 +309,9 @@ contains
 !     !   end do
 !     ! else if(dm%visu_idim == Ivisu_2D_XY) then
 !     !   svisudim = "2d_za"
-!     !   nnd_visu(1, dm%idom) = xszV(1)
-!     !   nnd_visu(2, dm%idom) = yszV(2)
-!     !   nnd_visu(3, dm%idom) = 1
+!     !   nnd_visu(1) = xszV(1)
+!     !   nnd_visu(2) = yszV(2)
+!     !   nnd_visu(3) = 1
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -325,9 +322,9 @@ contains
 !     !   end do
 !     ! else if(dm%visu_idim == Ivisu_1D_Y) then
 !     !   svisudim = "2d_xza"
-!     !   nnd_visu(1, dm%idom) = 1
-!     !   nnd_visu(2, dm%idom) = yszV(2)
-!     !   nnd_visu(3, dm%idom) = 1
+!     !   nnd_visu(1) = 1
+!     !   nnd_visu(2) = yszV(2)
+!     !   nnd_visu(3) = 1
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -338,9 +335,9 @@ contains
 !     !   end do
 !     ! else
 !     !   svisudim = "3d"
-!     !   nnd_visu(1, dm%idom) = xszV(1)
-!     !   nnd_visu(2, dm%idom) = yszV(2)
-!     !   nnd_visu(3, dm%idom) = zszV(3)
+!     !   nnd_visu(1) = xszV(1)
+!     !   nnd_visu(2) = yszV(2)
+!     !   nnd_visu(3) = zszV(3)
 !     !   do i = 1, 3
 !     !     if(dm%is_periodic(i)) then 
 !     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
@@ -353,29 +350,29 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! calculated structured grids geometry - Cartesian Coordinates
 !----------------------------------------------------------------------------------------------------------    
-    nnd_visu(1:3, dm%idom) = dm%np_geo(1:3)
-    ncl_visu(1:3, dm%idom) = dm%nc(1:3)
-    nnd(1:3) = nnd_visu(1:3, dm%idom)
+    nnd_visu(1:3) = dm%np_geo(1:3)
+    ncl_visu(1:3) = dm%nc(1:3)
+    nnd(1:3) = nnd_visu(1:3)
     if(nrank == 0) then
       if(dm%icoordinate == ICARTESIAN) then
-        if(.not. allocated(xp)) allocate ( xp1(nnd_visu(1, dm%idom)))
-        if(.not. allocated(yp)) allocate ( yp1(nnd_visu(2, dm%idom)))
-        if(.not. allocated(zp)) allocate ( zp1(nnd_visu(3, dm%idom)))
+        if(.not. allocated(xp)) allocate ( xp1(nnd_visu(1)))
+        if(.not. allocated(yp)) allocate ( yp1(nnd_visu(2)))
+        if(.not. allocated(zp)) allocate ( zp1(nnd_visu(3)))
         xp1 = MAXP
         yp1 = MAXP
         zp1 = MAXP
 
-        do i = 1, nnd_visu(1, dm%idom)
+        do i = 1, nnd_visu(1)
           xp1(i) = real(i-1, WP) * dm%h(1)
         enddo
-        do j = 1, nnd_visu(2, dm%idom)
+        do j = 1, nnd_visu(2)
           if(dm%is_stretching(2)) then 
             yp1(j) = dm%yp(j)
           else 
             yp1(j) = real(j-1, WP) * dm%h(2)
           end if
         end do
-        do k = 1, nnd_visu(3, dm%idom)
+        do k = 1, nnd_visu(3)
           zp1(k) = real(k-1, WP) * dm%h(3)
         enddo
       end if
@@ -383,36 +380,36 @@ contains
 ! calculated structured grids geometry - Cylindrical Coordinates
 !---------------------------------------------------------------------------------------------------------- 
       if(dm%icoordinate == ICYLINDRICAL) then
-        if(.not. allocated(xp)) allocate ( xp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
-        if(.not. allocated(yp)) allocate ( yp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
-        if(.not. allocated(zp)) allocate ( zp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
-        if(.not. allocated(rp)) allocate ( rp(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
-        if(.not. allocated(ta)) allocate ( ta(nnd_visu(1, dm%idom), nnd_visu(2, dm%idom), nnd_visu(3, dm%idom)))
+        if(.not. allocated(xp)) allocate ( xp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
+        if(.not. allocated(yp)) allocate ( yp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
+        if(.not. allocated(zp)) allocate ( zp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
+        if(.not. allocated(rp)) allocate ( rp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
+        if(.not. allocated(ta)) allocate ( ta(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
         rp = MAXP
         ta = MAXP
         xp = MAXP
         yp = MAXP
         zp = MAXP
 
-        do i = 1, nnd_visu(1, dm%idom)
+        do i = 1, nnd_visu(1)
           xp(i, :, :) = real(i-1, WP) * dm%h(1)
         enddo
-        do j = 1, nnd_visu(2, dm%idom)
+        do j = 1, nnd_visu(2)
           if(dm%is_stretching(2)) then 
             yp(:, j, :) = dm%yp(j)
           else 
             yp(:, j, :) = real(j-1, WP) * dm%h(2)
           end if
         end do
-        do k = 1, nnd_visu(3, dm%idom)
+        do k = 1, nnd_visu(3)
           zp(:, :, k) = real(k-1, WP) * dm%h(3)
         enddo
 
         rp(:, :, :) = yp(:, :, :) 
         ta(:, :, :) = zp(:, :, :) 
-        do k = 1, nnd_visu(3, dm%idom)
-          do j = 1, nnd_visu(2, dm%idom)
-            do i = 1, nnd_visu(1, dm%idom)
+        do k = 1, nnd_visu(3)
+          do j = 1, nnd_visu(2)
+            do i = 1, nnd_visu(1)
               zp(i, j, k) = rp(i, j, k) * dcos(ta(i, j, k))
               yp(i, j, k) = rp(i, j, k) * dsin(ta(i, j, k))
             end do
@@ -422,9 +419,9 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! write grids - Cartesian Coordinates, well-structured rectangular grid
 !---------------------------------------------------------------------------------------------------------- 
-      istr(1) = trim(int2str(nnd_visu(1, dm%idom)))
-      istr(2) = trim(int2str(nnd_visu(2, dm%idom)))
-      istr(3) = trim(int2str(nnd_visu(3, dm%idom)))
+      istr(1) = trim(int2str(nnd_visu(1)))
+      istr(2) = trim(int2str(nnd_visu(2)))
+      istr(3) = trim(int2str(nnd_visu(3)))
 
       if(dm%icoordinate == ICARTESIAN) then
       ! Write binary files for each coordinate direction in double precision
@@ -515,7 +512,11 @@ contains
 !----------------------------------------------------------------------------------------------------------
     keyword = trim(visuname)
     call generate_pathfile_name(visu_flname, idom, keyword, dir_visu, 'xdmf', iter)
-    open(newunit = ioxdmf, file = trim(visu_flname), action = "write", position="append")
+    if(file_exists(trim(visu_flname))) then
+      open(newunit = ioxdmf, file = trim(visu_flname), action = "write", position="append")
+    else 
+      open(newunit = ioxdmf, file = trim(visu_flname), status="new", action = "write")
+    end if
     nsz = nnd(3) * nnd(2) * nnd(1)
 
     ! Calculate header size (3 integers)
@@ -641,7 +642,10 @@ contains
 ! write data into binary file
 !----------------------------------------------------------------------------------------------------------
     if(dm%visu_idim == Ivisu_3D) then
+      call generate_pathfile_name(data_flname_path, dm%idom, trim(keyword), dir_data, 'bin', iter)
+      if(.not.file_exists(data_flname_path)) &
       call write_one_3d_array(var, trim(varname), dm%idom, iter, dtmp, opt_flname = data_flname_path)
+    if(nrank == 0) write(*,*) data_flname_path
     else if(dm%visu_idim == Ivisu_1D_Y) then
       !to add 1D profile
     else 
@@ -655,12 +659,16 @@ contains
 ! dataitem for xdmf file
 !----------------------------------------------------------------------------------------------------------
     if (nrank == 0) then
-      open(newunit = ioxdmf, file = trim(visu_flname_path), action = "write", status = "old", position = "append")
+      if(file_exists(trim(visu_flname_path))) then
+        open(newunit = ioxdmf, file = trim(visu_flname_path), action = "write", status = "old", position = "append")
+      else
+        open(newunit = ioxdmf, file = trim(visu_flname_path), action = "write", status = "new")
+      end if
 
       if(trim(centring) == TRIM(CELL)) then
-        nsz(1:3) = ncl_visu(1:3, dm%idom)
+        nsz(1:3) = ncl_visu(1:3)
       else if (trim(centring) == TRIM(NODE)) then
-        nsz(1:3) = nnd_visu(1:3, dm%idom)
+        nsz(1:3) = nnd_visu(1:3)
       else
       end if
       nsz0 = nsz(1) * nsz(2) * nsz(3)
@@ -765,7 +773,7 @@ contains
 
     ! Write XDMF header
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename),dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename),dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
 
     ! Write pressure field (cell-centered)
     call process_and_write_field(fl%pres, dm, "pr", trim(visu_filename), iteration, &
@@ -793,7 +801,7 @@ contains
 
     ! Write XDMF footer
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
 
     ! Debug message
     if (nrank == 0) call Print_debug_inline_msg("Flow field visualization data written successfully.")
@@ -822,7 +830,7 @@ contains
 ! write xdmf header
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
 !----------------------------------------------------------------------------------------------------------
 ! write data, temperature, to cell centre
 !----------------------------------------------------------------------------------------------------------
@@ -836,7 +844,7 @@ contains
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
 
     if(nrank == 0) call Print_debug_inline_msg("Write out visualisation for thermal field.")
     
@@ -867,7 +875,7 @@ contains
 
     ! Write XDMF header
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
 
     ! Write electric potential field (cell-centered)
     call process_and_write_field(mh%ep, dm, "potential", trim(visu_filename), iteration, &
@@ -889,148 +897,11 @@ contains
                                 Z_DIRECTION, opt_bc=dm%ibcz_qz)
     ! Write XDMF footer
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
 
     ! Debug message
     if (nrank == 0) call Print_debug_inline_msg("MHD field visualization data written successfully.")
 
-    return
-  end subroutine
-
-!==========================================================================================================
-  subroutine write_visu_stats_flow(fl, dm)
-    use udf_type_mod
-    use precision_mod
-    use operations
-    implicit none 
-    type(t_domain), intent(in) :: dm
-    type(t_flow),   intent(in) :: fl
-
-    integer :: iter 
-    character(64) :: visuname
-
-!==========================================================================================================
-! write time averaged 3d data
-!==========================================================================================================
-    iter = fl%iteration
-    visuname = 'time_averaged_flow'
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, 
-!----------------------------------------------------------------------------------------------------------
-    call write_visu_field(dm, fl%pr_mean,                     dm%dccc, "time_averaged_pr", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%u_vector_mean  (:, :, :, 1), dm%dccc, "time_averaged_ux", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%u_vector_mean  (:, :, :, 2), dm%dccc, "time_averaged_uy", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%u_vector_mean  (:, :, :, 3), dm%dccc, "time_averaged_uz", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 1), dm%dccc, "time_averaged_uu", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 2), dm%dccc, "time_averaged_vv", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 3), dm%dccc, "time_averaged_ww", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 4), dm%dccc, "time_averaged_uv", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 5), dm%dccc, "time_averaged_uw", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%uu_tensor6_mean(:, :, :, 6), dm%dccc, "time_averaged_vw", trim(visuname), SCALAR, CELL, iter)
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-!==========================================================================================================
-! write time averaged and space averaged 3d data (stored 2d or 1d data)
-!==========================================================================================================
-    if( ANY(dm%is_periodic(:))) then
-
-    iter = fl%iteration
-    visuname = 'time_space_averaged_flow'
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, 
-!----------------------------------------------------------------------------------------------------------
-    call visu_average_periodic_data(                    fl%pr_mean, dm%dccc, dm, "time_space_averaged_pr", trim(visuname), iter)
-    call visu_average_periodic_data(  fl%u_vector_mean(:, :, :, 1), dm%dccc, dm, "time_space_averaged_ux", trim(visuname), iter)
-    call visu_average_periodic_data(  fl%u_vector_mean(:, :, :, 2), dm%dccc, dm, "time_space_averaged_uy", trim(visuname), iter)
-    call visu_average_periodic_data(  fl%u_vector_mean(:, :, :, 3), dm%dccc, dm, "time_space_averaged_uz", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 1), dm%dccc, dm, "time_space_averaged_uu", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 2), dm%dccc, dm, "time_space_averaged_vv", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 3), dm%dccc, dm, "time_space_averaged_ww", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 4), dm%dccc, dm, "time_space_averaged_uv", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 5), dm%dccc, dm, "time_space_averaged_uw", trim(visuname), iter)
-    call visu_average_periodic_data(fl%uu_tensor6_mean(:, :, :, 6), dm%dccc, dm, "time_space_averaged_vw", trim(visuname), iter)
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-
-    end if
-
-    return
-  end subroutine
-
-  !==========================================================================================================
-  subroutine write_visu_stats_thermo(tm, dm)
-    use udf_type_mod
-    use precision_mod
-    use operations
-    implicit none 
-    
-    type(t_domain), intent(in) :: dm
-    type(t_thermo), intent(in) :: tm
-
-    integer :: iter 
-    character(64) :: visuname
-    
-!==========================================================================================================
-! write time averaged 3d data
-!==========================================================================================================
-    iter = tm%iteration
-    visuname = 'time_averaged_thermo'
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, 
-!----------------------------------------------------------------------------------------------------------
-    call write_visu_field(dm, tm%t_mean,  dm%dccc, "time_averaged_T",  trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, tm%tt_mean, dm%dccc, "time_averaged_TT", trim(visuname), SCALAR, CELL, iter)
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-!==========================================================================================================
-! write time averaged and space averaged 3d data (stored 2d or 1d data)
-!==========================================================================================================
-    if( ANY(dm%is_periodic(:))) then
-
-    iter = tm%iteration
-    visuname = 'time_space_averaged_thermo'
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, 
-!----------------------------------------------------------------------------------------------------------
-    call visu_average_periodic_data(tm%t_mean,   dm%dccc, dm, "time_space_averaged_T",   trim(visuname), iter)
-    call visu_average_periodic_data(tm%tt_mean,  dm%dccc, dm, "time_space_averaged_TT",  trim(visuname), iter)
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-
-    end if
-    
     return
   end subroutine
   
@@ -1064,7 +935,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     keyword = trim(visuname)//"_"//trim(varname)//'_visu'
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(keyword), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(keyword), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
     !if(nrank==0) write(*,*) keyword, iter
 !----------------------------------------------------------------------------------------------------------
 ! write data, temperature, to cell centre
@@ -1084,7 +955,7 @@ contains
 ! write xdmf footer
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3, dm%idom), trim(keyword), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+    call write_visu_headerfooter(nnd_visu(1:3), trim(keyword), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
     
     return
   end subroutine
@@ -1092,7 +963,7 @@ contains
 
 !==========================================================================================================
 !==========================================================================================================
-  subroutine visu_average_periodic_data(data_in, dtmp, dm, str1, str2, iter)
+  subroutine visu_average_periodic_data(data_in, str1, dtmp, dm, str2, iter)
     use udf_type_mod
     use parameters_constant_mod
     implicit none

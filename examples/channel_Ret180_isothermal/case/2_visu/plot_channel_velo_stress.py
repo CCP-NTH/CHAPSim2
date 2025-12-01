@@ -23,7 +23,7 @@ Usage:
 2. Configure the DNS_TIME variable in the code to match your simulation time step
 
 3. Run the script:
-   python channel_postprocess_plot.py
+   python channel_postprocess_plot.py --dns-time 200000
 
 Output:
 - Individual component plots: channel_[component].png
@@ -31,432 +31,259 @@ Output:
 
 Author: W Wang (STFC)
 """
-# import necessary libraries
 import os
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import math
 from pylab import rcParams
 
-# User configuration
-DNS_TIME = "200000"  # Time value for DNS data analysis
+# -------------------------------------------------------------
+# 1. USER INPUT (DNS_TIME)
+# -------------------------------------------------------------
+parser = argparse.ArgumentParser(description="CHAPSim2 Channel Flow Post-Processing")
+parser.add_argument(
+    "--dns-time", type=str, required=True, help="Time stamp for DNS data, e.g. 200000"
+)
+args = parser.parse_args()
 
-# Define colormaps and markers
-cbrg = cm.get_cmap(name='brg', lut=None)
-cgry = cm.get_cmap(name='gray', lut=None)
-cbow = cm.get_cmap(name='gist_rainbow', lut=None)
-mlst = ["o", "<", "*", "v", "^", '>', '1', '2', '3', '4', 'x', 's', '8', '+']
+DNS_TIME = args.dns_time
+print(f"\nUsing DNS_TIME = {DNS_TIME}\n")
 
-# Set plot configurations
-plt.rc('figure', facecolor="white")
-plt.rc('legend', fontsize=15)
-rcParams['legend.loc'] = 'best'
+# -------------------------------------------------------------
+# 2. File-name mapping
+# -------------------------------------------------------------
+FILEMAP_MEAN = {"ux": "u1", "uy": "u2", "uz": "u3", "pr": "pr"}
 
-# Plot settings
+FILEMAP_REY = {
+    "uu": "uu11",
+    "uv": "uu12",
+    "uw": "uu13",
+    "vv": "uu22",
+    "vw": "uu23",
+    "ww": "uu33",
+}
+
+# -------------------------------------------------------------
+# 3. Plot settings & parameters
+# -------------------------------------------------------------
+cbrg = cm.get_cmap("brg")
+mlst = ["o", "<", "*", "v", "^", ">", "1", "2", "3", "4", "x", "s", "8", "+"]
+plt.rc("figure", facecolor="white")
+plt.rc("legend", fontsize=15)
+rcParams["legend.loc"] = "best"
+
 figsize = (9, 6)
 dpi = 500
 
-# Parameters configurations
+# -------------------------------------------------------------
+# 4. Parameter metadata
+# -------------------------------------------------------------
 PARAMS = {
-    'ux': {
-        'ref_file': 'chan180.means',
-        'ref_cols': ['y', 'yplus', 'umean', 'umeandy', 'wmean', 'wmeandy', 'pmean'],
-        'ref_skiprows': 25,
-        'ylabel': r'$u_x^+$',
-        'ref_key': 'umean',
-        'scaling': 'mean'
+    "ux": {
+        "ref_file": "chan180.means",
+        "ref_key": "umean",
+        "scaling": "mean",
+        "ylabel": r"$u_x^+$",
     },
-    'uy': {
-        'ref_file': 'chan180.means',
-        'ref_cols': ['y', 'yplus', 'umean', 'umeandy', 'wmean', 'wmeandy', 'pmean'],
-        'ref_skiprows': 25,
-        'ylabel': r'$u_y^+$',
-        'ref_key': 'umean',  # This won't be used as we'll plot zero
-        'scaling': 'mean'
+    "uy": {
+        "ref_file": "chan180.means",
+        "ref_key": "umean",
+        "scaling": "mean",
+        "ylabel": r"$u_y^+$",
     },
-    'uz': {
-        'ref_file': 'chan180.means',
-        'ref_cols': ['y', 'yplus', 'umean', 'umeandy', 'wmean', 'wmeandy', 'pmean'],
-        'ref_skiprows': 25,
-        'ylabel': r'$u_z^+$',
-        'ref_key': 'wmean',
-        'scaling': 'mean'
+    "uz": {
+        "ref_file": "chan180.means",
+        "ref_key": "wmean",
+        "scaling": "mean",
+        "ylabel": r"$u_z^+$",
     },
-    'pr': {
-        'ref_file': 'chan180.means',
-        'ref_cols': ['y', 'yplus', 'umean', 'umeandy', 'wmean', 'wmeandy', 'pmean'],
-        'ref_skiprows': 25,
-        'ylabel': r'$p^+$',
-        'ref_key': 'pmean',
-        'scaling': 'mean'
+    "pr": {
+        "ref_file": "chan180.means",
+        "ref_key": "pmean",
+        "scaling": "mean",
+        "ylabel": r"$p^+$",
     },
-    'uu': {
-        'ref_file': 'chan180.reystress',
-        'ref_cols': ['y', 'yplus', 'uu', 'vv', 'ww', 'uv', 'uw', 'vw'],
-        'ref_skiprows': 25,
-        'ylabel': r'$u_{rms}^+$',
-        'ref_key': 'uu',
-        'scaling': 'rms'
+    "uu": {
+        "ref_file": "chan180.reystress",
+        "ref_key": "uu",
+        "scaling": "rms",
+        "ylabel": r"$u_{rms}^+$",
     },
-    'vv': {
-        'ref_file': 'chan180.reystress',
-        'ref_cols': ['y', 'yplus', 'uu', 'vv', 'ww', 'uv', 'uw', 'vw'],
-        'ref_skiprows': 25,
-        'ylabel': r'$v_{rms}^+$',
-        'ref_key': 'vv',
-        'scaling': 'rms'
+    "vv": {
+        "ref_file": "chan180.reystress",
+        "ref_key": "vv",
+        "scaling": "rms",
+        "ylabel": r"$v_{rms}^+$",
     },
-    'ww': {
-        'ref_file': 'chan180.reystress',
-        'ref_cols': ['y', 'yplus', 'uu', 'vv', 'ww', 'uv', 'uw', 'vw'],
-        'ref_skiprows': 25,
-        'ylabel': r'$w_{rms}^+$',
-        'ref_key': 'ww',
-        'scaling': 'rms'
+    "ww": {
+        "ref_file": "chan180.reystress",
+        "ref_key": "ww",
+        "scaling": "rms",
+        "ylabel": r"$w_{rms}^+$",
     },
-    'uv': {
-        'ref_file': 'chan180.reystress',
-        'ref_cols': ['y', 'yplus', 'uu', 'vv', 'ww', 'uv', 'uw', 'vw'],
-        'ref_skiprows': 25,
-        'ylabel': r'$\overline{u^\prime v^\prime}^+$',
-        'ref_key': 'uv',
-        'scaling': 'reynolds'
-    }
+    "uv": {
+        "ref_file": "chan180.reystress",
+        "ref_key": "uv",
+        "scaling": "reynolds",
+        "ylabel": r"$\overline{u^\prime v^\prime}^+$",
+    },
 }
-
+# -------------------------------------------------------------
+# 5. Analyzer class
+# -------------------------------------------------------------
 class ChannelFlowAnalyzer:
-    def __init__(self, param_name):
-        if param_name not in PARAMS:
-            raise ValueError(f"Unknown parameter: {param_name}")
-        
-        self.param = PARAMS[param_name]
-        self.param_name = param_name
-        self.setup_constants()
-        self.load_reference_data()
-        self.load_flow_data()
-        
-    def setup_constants(self):
-        """Initialize constants for the analysis"""
+    def __init__(self, name):
+        if name not in PARAMS:
+            raise ValueError(name)
+
+        self.name = name
+        self.param = PARAMS[name]
+
         self.Re = 2800
         self.Re0 = 2784.0
         self.Ret = 178.12
         self.utau0 = self.Ret / self.Re0
-        
-        # Print reference values
-        print(f"\nFor reference data:")
-        print(f"utau0 = {self.utau0:.6f}")
-        print(f"tauw0 = {self.utau0 * self.utau0:.6f}")
-        
-        # Calculate wall quantities from ux data
-        ux_file = os.path.join('../1_data', f"domain1_time_space_averaged_ux_{DNS_TIME}.dat")
-        ux_data = np.genfromtxt(ux_file, names=['j', 'y', 'ux'])
-        dudy = ux_data['ux'][0] / (1.0 + ux_data['y'][0])
+
+        # wall quantities
+        self.load_wall_shear()
+        self.load_ref()
+        self.load_dns()
+
+    # ---------------------------------------------------------
+    def load_wall_shear(self):
+        """Compute u_tau using ux profile"""
+        fname = os.path.join(
+            "../1_data", f"domain1_tsp_avg_{FILEMAP_MEAN['ux']}_{DNS_TIME}.dat"
+        )
+        ux = np.genfromtxt(fname, names=["j", "y", "ux"])
+
+        dudy = ux["ux"][0] / (1.0 + ux["y"][0])
         self.tauw = dudy / self.Re
         self.utau = math.sqrt(abs(self.tauw))
-        
-        # Print calculated values
-        print(f"\nFor all parameters (calculated from ux):")
-        print(f"u_tau = {self.utau:.6f}")
-        print(f"tau_w = {self.tauw:.6f}\n")
-        
-    def load_reference_data(self):
-        """Load reference data from MKM180 profiles"""
-        ref_path = '../../MKM180_profiles'
-        ref_file = os.path.join(ref_path, self.param['ref_file'])
-        self.ref_data = np.genfromtxt(
-            ref_file, 
-            delimiter=None, 
-            skip_header=self.param['ref_skiprows'], 
-            skip_footer=0,
-            names=self.param['ref_cols']
-        )
-    
-    def load_flow_data(self):
-        """Load and process flow data"""
-        dns_path = '../1_data'
-        dns_file = os.path.join(dns_path, f"domain1_time_space_averaged_{self.param_name}_{DNS_TIME}.dat")
-        data = np.genfromtxt(
-            dns_file, 
-            delimiter=None, 
-            skip_header=0, 
-            skip_footer=0,
-            names=['j', 'y', self.param_name]
-        )
-        # Convert structured array to dictionary for easier manipulation
-        self.dns_data = {name: data[name] for name in data.dtype.names}
-        
-        # Transform y coordinates to match reference data
-        y = self.dns_data['y']
-        y_transformed = np.zeros_like(y)
-        
-        # Apply transformation: y=y+1 for -1<y<0 and y=1-y for 0<y<1
-        for i in range(len(y)):
-            if -1 < y[i] < 0:
-                y_transformed[i] = y[i] + 1
-            elif 0 <= y[i] < 1:
-                y_transformed[i] = 1 - y[i]
-                
-        self.dns_data['y'] = y_transformed
-        
-        # Process the data
-        self.process_data()
-        
-    def process_data(self):
-        """Process the data based on parameter type"""
-        # Calculate y+
-        self.dns_data['yplus'] = self.Re * self.utau * self.dns_data['y']
-        
-        if self.param_name == 'pr':
-            # For pressure, scale by tauw and shift to make first point zero
-            pr_data = self.dns_data[self.param_name] / self.tauw
-            pr_data = pr_data - pr_data[0]  # Shift data to make first point zero
-            self.dns_data['scaled'] = pr_data
-        elif self.param['scaling'] == 'mean':
-            # Process mean velocity
-            self.dns_data['scaled'] = self.dns_data[self.param_name] / self.utau
-        elif self.param['scaling'] == 'rms':
-            # Load mean velocities for RMS calculations
-            ux_file = os.path.join('../1_data', f"domain1_time_space_averaged_ux_{DNS_TIME}.dat")
-            uz_file = os.path.join('../1_data', f"domain1_time_space_averaged_uz_{DNS_TIME}.dat")
-            uy = np.zeros_like(self.dns_data['y'])  # uy is zero in channel flow
-            
-            # Load and transform ux data
-            ux_data = np.genfromtxt(ux_file, names=['j', 'y', 'ux'])
-            y = ux_data['y']
-            y_transformed = np.zeros_like(y)
-            for i in range(len(y)):
-                if -1 < y[i] < 0:
-                    y_transformed[i] = y[i] + 1
-                elif 0 <= y[i] < 1:
-                    y_transformed[i] = 1 - y[i]
-            ux = ux_data['ux']
-            
-            # Load and transform uz data
-            uz_data = np.genfromtxt(uz_file, names=['j', 'y', 'uz'])
-            uz = uz_data['uz']
-            
-            # Calculate RMS values based on parameter
-            if self.param_name == 'uu':
-                self.dns_data['scaled'] = np.sqrt(self.dns_data[self.param_name] - ux * ux) / self.utau
-            elif self.param_name == 'vv':
-                self.dns_data['scaled'] = np.sqrt(self.dns_data[self.param_name] - uy * uy) / self.utau
-            elif self.param_name == 'ww':
-                self.dns_data['scaled'] = np.sqrt(self.dns_data[self.param_name] - uz * uz) / self.utau
-                
-        elif self.param['scaling'] == 'reynolds':
-            # For uv correlation
-            ux_file = os.path.join('../1_data', f"domain1_time_space_averaged_ux_{DNS_TIME}.dat")
-            ux_data = np.genfromtxt(ux_file, names=['j', 'y', 'ux'])
-            uy = np.zeros_like(self.dns_data['y'])  # uy is zero in channel flow
-            
-            # Transform coordinates for ux
-            y = ux_data['y']
-            y_transformed = np.zeros_like(y)
-            for i in range(len(y)):
-                if -1 < y[i] < 0:
-                    y_transformed[i] = y[i] + 1
-                elif 0 <= y[i] < 1:
-                    y_transformed[i] = 1 - y[i]
-            ux = ux_data['ux']
-            
-            # Calculate Reynolds stress
-            self.dns_data['scaled'] = (self.dns_data[self.param_name] - ux * uy) / (self.utau * self.utau)
-            
-    def plot_profile(self):
-        """Plot the flow profile"""
-        fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
-        
-        # Set labels
-        ax.set_xlabel(r'$y^+$', fontsize=20)
-        ax.set_ylabel(self.param['ylabel'], fontsize=20)
-        
-        # Special handling for uy (reference is zero)
-        if self.param_name == 'uy':
-            # Generate zero reference line
-            yplus_ref = np.logspace(-1, 3, 100)  # Create log-spaced points
-            zeros_ref = np.zeros_like(yplus_ref)
-            
-            # Plot reference data
-            ax.plot(
-                yplus_ref,
-                zeros_ref,
-                marker=mlst[1],
-                mfc='none',
-                ms=4,
-                mec=cbrg(0.00),
-                color=cbrg(0.00),
-                linestyle='-',
-                label='MKM180'
-            )
-        else:
-            # Prepare reference data - take sqrt for Reynolds stress terms
-            ref_data_plot = self.ref_data[self.param['ref_key']]
-            if self.param['scaling'] == 'rms':
-                ref_data_plot = np.sqrt(ref_data_plot)
-            elif self.param['scaling'] == 'reynolds':
-                ref_data_plot = np.abs(ref_data_plot)
-                mask = self.ref_data['yplus'] > 0
-                ref_data_plot = ref_data_plot[mask]
-                ref_yplus = self.ref_data['yplus'][mask]
-            else:
-                ref_yplus = self.ref_data['yplus']
-            
-            # Plot reference data
-            ax.plot(
-                ref_yplus if self.param['scaling'] == 'reynolds' else self.ref_data['yplus'],
-                ref_data_plot,
-                marker=mlst[1],
-                mfc='none',
-                ms=4,
-                mec=cbrg(0.00),
-                color=cbrg(0.00),
-                linestyle='None',
-                label='MKM180'
-            )
-        
-        # Plot DNS data
-        if self.param['scaling'] == 'reynolds':
-            self.dns_data['scaled'] = np.abs(self.dns_data['scaled'])
-            mask = self.dns_data['yplus'] > 0
-            plot_yplus = self.dns_data['yplus'][mask]
-            plot_scaled = self.dns_data['scaled'][mask]
-        else:
-            plot_yplus = self.dns_data['yplus']
-            plot_scaled = self.dns_data['scaled']
-        
-        ax.plot(
-            plot_yplus,
-            plot_scaled,
-            marker='none',
-            color=cbrg(0.50),
-            linestyle='-.',
-            label='CHAPsim2'
-        )
-        
-        # Set x-axis to log scale and range
-        ax.set_xscale('log')
-        ax.set_xlim(0.1, 500)
-        
-        # Customize plot
-        ax.legend(loc='upper left', ncol=1, labelspacing=0.1, frameon=False, handlelength=3.2, numpoints=1)
-        ax.grid(True, which="both", ls="-", alpha=0.2)
-        
-        # Save plot
-        fig.savefig(f'channel_{self.param_name}.png')
-        print(f"channel_{self.param_name}... Done!")
-        plt.close('all')
 
-    def plot_all_rms(self):
-        """Plot all RMS components in one figure"""
-        fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
-        
-        # Set labels
-        ax.set_xlabel(r'$y^+$', fontsize=20)
-        ax.set_ylabel(r'$u_{i,rms}^+$', fontsize=20)
-        
-        # Colors and markers for different components
-        colors = {'uu': cbrg(0.0), 'vv': cbrg(0.3), 'ww': cbrg(0.6)}
-        markers = {'uu': 'o', 'vv': 's', 'ww': '^'}  # Different markers for each component
-        labels = {'uu': r'$u_{rms}^+$', 'vv': r'$v_{rms}^+$', 'ww': r'$w_{rms}^+$'}
-        
-        # Load reference data for all components
-        ref_path = '../../MKM180_profiles'
-        ref_file = os.path.join(ref_path, 'chan180.reystress')
-        ref_data = np.genfromtxt(
-            ref_file,
-            delimiter=None,
-            skip_header=25,
-            skip_footer=0,
-            names=['y', 'yplus', 'uu', 'vv', 'ww', 'uv', 'uw', 'vw']
-        )
-        
-        # Plot reference data for each component
-        for comp in ['uu', 'vv', 'ww']:
-            ax.plot(
-                ref_data['yplus'],
-                np.sqrt(ref_data[comp]),
-                marker=markers[comp],
-                mfc='none',
-                ms=6,
-                mec=colors[comp],
-                color=colors[comp],
-                linestyle='None',
-                markevery=1,  # Adjust marker frequency
-                label=f'MKM180 {labels[comp]}'
-            )
-        
-        # Load and process DNS data for each component
-        for comp in ['uu', 'vv', 'ww']:
-            # Load the data
-            dns_file = os.path.join('../1_data', f"domain1_time_space_averaged_{comp}_{DNS_TIME}.dat")
-            data = np.genfromtxt(dns_file, names=['j', 'y', comp])
-            
-            # Transform y coordinates
-            y = data['y']
-            y_transformed = np.zeros_like(y)
-            for i in range(len(y)):
-                if -1 < y[i] < 0:
-                    y_transformed[i] = y[i] + 1
-                elif 0 <= y[i] < 1:
-                    y_transformed[i] = 1 - y[i]
-            
-            # Calculate yplus
-            yplus = self.Re * self.utau * y_transformed
-            
-            # Load mean velocities if needed
-            if comp == 'uu':
-                ux_file = os.path.join('../1_data', f"domain1_time_space_averaged_ux_{DNS_TIME}.dat")
-                ux_data = np.genfromtxt(ux_file, names=['j', 'y', 'ux'])
-                mean_vel = ux_data['ux']
-            elif comp == 'vv':
-                mean_vel = np.zeros_like(y)  # uy is zero in channel flow
+        print(f"Computed utau = {self.utau:.6f}")
+
+    # ---------------------------------------------------------
+    def load_ref(self):
+        """Load MKM180 reference"""
+        folder = "../../MKM180_profiles"
+        ref_file = os.path.join(folder, self.param["ref_file"])
+
+        if self.param["ref_file"] == "chan180.means":
+            names = ["y", "yplus", "umean", "umeandy", "wmean", "wmeandy", "pmean"]
+        else:
+            names = ["y", "yplus", "uu", "vv", "ww", "uv", "uw", "vw"]
+
+        self.ref = np.genfromtxt(ref_file, skip_header=25, names=names)
+
+    # ---------------------------------------------------------
+    def load_dns(self):
+        """Load CHAPSim DNS data"""
+
+        # mean-field file name
+        if self.name in FILEMAP_MEAN:
+            fname = f"domain1_tsp_avg_{FILEMAP_MEAN[self.name]}_{DNS_TIME}.dat"
+        else:
+            fname = f"domain1_tsp_avg_{FILEMAP_REY[self.name]}_{DNS_TIME}.dat"
+
+        fpath = os.path.join("../1_data", fname)
+        data = np.genfromtxt(fpath, names=["j", "y", self.name])
+
+        # map y
+        y = data["y"]
+        y_new = np.where(y < 0, y + 1, 1 - y)
+        yplus = self.Re * self.utau * y_new
+
+        self.dns_yplus = yplus
+        self.dns_raw = data[self.name]
+
+        # scaling
+        if self.param["scaling"] == "mean":
+            self.dns_val = self.dns_raw / self.utau
+
+        elif self.param["scaling"] == "reynolds":
+            self.dns_val = self.dns_raw / (self.utau * self.utau)
+
+        elif self.param["scaling"] == "rms":
+            # load u1, u2, u3 as needed
+            if self.name == "uu":
+                meanfile = f"domain1_tsp_avg_u1_{DNS_TIME}.dat"
+                meancol = "ux"
+            elif self.name == "vv":
+                meanfile = f"domain1_tsp_avg_u2_{DNS_TIME}.dat"
+                meancol = "uy"
             else:  # ww
-                uz_file = os.path.join('../1_data', f"domain1_time_space_averaged_uz_{DNS_TIME}.dat")
-                uz_data = np.genfromtxt(uz_file, names=['j', 'y', 'uz'])
-                mean_vel = uz_data['uz']
-            
-            # Calculate RMS
-            rms = np.sqrt(data[comp] - mean_vel * mean_vel) / self.utau
-            
-            # Plot DNS data
-            ax.plot(
-                yplus,
-                rms,
-                color=colors[comp],
-                linestyle='-.',
-                label=f'CHAPsim2 {labels[comp]}'
-            )
-        
-        # Set x-axis to log scale and range
-        ax.set_xscale('log')
-        ax.set_xlim(0.1, 500)
-        
-        # Customize plot
-        ax.legend(loc='upper left', ncol=1, labelspacing=0.1, frameon=False, handlelength=3.2, numpoints=1)
-        ax.grid(True, which="both", ls="-", alpha=0.2)
-        
-        # Save plot
-        fig.savefig('channel_all_rms.png')
-        print("channel_all_rms... Done!")
-        plt.close('all')
+                meanfile = f"domain1_tsp_avg_u3_{DNS_TIME}.dat"
+                meancol = "uz"
 
+            mf = np.genfromtxt(
+                os.path.join("../1_data", meanfile), names=["j", "y", meancol]
+            )
+
+            mean = mf[meancol]
+            self.dns_val = np.sqrt(self.dns_raw - mean * mean) / self.utau
+
+    # ---------------------------------------------------------
+    def plot(self):
+        """Plot a single component"""
+
+        fig, ax = plt.subplots(figsize=figsize, dpi=dpi)
+        ax.set_xlabel(r"$y^+$", fontsize=20)
+        ax.set_ylabel(self.param["ylabel"], fontsize=20)
+        ax.set_xscale("log")
+
+        # ref
+        refval = self.ref[self.param["ref_key"]]
+        if self.param["scaling"] == "rms":
+            refval = np.sqrt(refval)
+        if self.param["scaling"] == "reynolds":
+            refval = np.abs(refval)
+
+        ax.plot(
+            self.ref["yplus"],
+            refval,
+            marker=mlst[1],
+            mfc="none",
+            ms=4,
+            color=cbrg(0.0),
+            linestyle="None",
+            label="MKM180",
+        )
+
+        # dns
+        ax.plot(
+            self.dns_yplus,
+            self.dns_val,
+            linestyle="--",
+            color=cbrg(0.5),
+            label="CHAPSim2",
+        )
+
+        ax.grid(True, which="both", ls="-", alpha=0.2)
+        ax.legend()
+        ax.set_xlim(0.1, 500)
+
+        fig.savefig(f"channel_{self.name}.png")
+        plt.close()
+        print(f"Saved channel_{self.name}.png")
+
+
+# -------------------------------------------------------------
+# 6. MAIN
+# -------------------------------------------------------------
 def main():
-    # Initialize with any parameter to get the common values (Re, utau, etc.)
-    analyzer = ChannelFlowAnalyzer('ux')
-    
-    # Plot individual components
-    for param_name in ['ux', 'uy', 'uz', 'pr', 'uu', 'vv', 'ww', 'uv']:
-        analyzer = ChannelFlowAnalyzer(param_name)
-        analyzer.plot_profile()
-    
-    # Plot all RMS components together
-    analyzer.plot_all_rms()
+    # loop all components
+    for name in PARAMS.keys():
+        print(f"\n=== Processing {name} ===")
+        ChannelFlowAnalyzer(name).plot()
+
+    print("\nAll plots completed.\n")
+
 
 if __name__ == "__main__":
     main()
-
-
 
 
 

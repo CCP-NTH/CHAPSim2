@@ -4,7 +4,7 @@ module domain_decomposition_mod
   use decomp_2d
   implicit none
 
-  private :: initialise_domain_decomposition
+  public :: initialise_domain_decomposition
   public  :: Buildup_mpi_domain_decomposition
 
 contains
@@ -153,8 +153,8 @@ contains
       call initialise_decomp_io(domain(i))
       call write_monitor_ini(domain(i))
       call write_visu_ini(domain(i))
-      call init_statistics_flow(flow(i), domain(i))
-      if(domain(i)%is_thermo) call init_statistics_thermo(thermo(i), domain(i))
+      call init_stats_flow(flow(i), domain(i))
+      if(domain(i)%is_thermo) call init_stats_thermo(thermo(i), domain(i))
 #ifdef DEBUG_STEPS
       allocate( id ( domain(i)%dccc%xsz(1), domain(i)%dccc%xsz(2), domain(i)%dccc%xsz(3)) )
       id(:, :, :) = real(nrank, WP)

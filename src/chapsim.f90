@@ -41,6 +41,7 @@ subroutine initialise_chapsim
   use eq_momentum_mod
   use wrt_debug_field_mod
   use mhd_mod
+  use io_field_interpolation_mod
   implicit none
   integer :: i
 
@@ -60,12 +61,6 @@ subroutine initialise_chapsim
   do i = 1, nxdomain
     call Buildup_geometry_mesh_info(domain(i))
   end do
-  if(nrank == 0 .and. is_prerun) then
-    call Print_debug_start_msg("Pre-run for input variables adjustment")
-    call estimate_spacial_resolution(flow(1), domain(1))
-    call estimate_temporal_resolution(flow(1), domain(1))
-    stop 'Pre-run is completed.'
-  end if
 !----------------------------------------------------------------------------------------------------------
 !> build up operation coefficients for all x-subdomains
 !----------------------------------------------------------------------------------------------------------
@@ -158,6 +153,23 @@ subroutine initialise_chapsim
   !call Print_warning_msg(" === The solver will stop as per the user's request. === ")
   !stop
 #endif
+  if(nrank == 0 .and. is_prerun) then
+    call Print_debug_start_msg("Pre-run for input variables adjustment")
+    if (domain(1)%is_mhd) then
+      call estimate_spacial_resolution(flow(1), domain(1), mhd(1))
+    else
+      call estimate_spacial_resolution(flow(1), domain(1))
+    end if
+    call estimate_temporal_resolution(flow(1), domain(1))
+    call Print_debug_start_msg("Pre-run for outputing interpolated fields")
+    if(domain(1)%is_thermo) then 
+      call output_interp_target_field(domain(1), flow(1), thermo(1))
+    else
+      call output_interp_target_field(domain(1), flow(1))
+    end if
+
+    stop 'Pre-run is completed.'
+  end if
 
   return
 end subroutine initialise_chapsim
@@ -362,11 +374,15 @@ subroutine Solve_eqs_iteration
       !  update statistics
       !----------------------------------------------------------------------------------------------------------
       if (iter > domain(i)%stat_istart .and. is_flow(i)) then
-        call update_statistics_flow(flow(i), domain(i))
+        if(domain(i)%is_thermo) then 
+          call update_stats_flow(flow(i), domain(i), tm=thermo(i))
+        else
+          call update_stats_flow(flow(i), domain(i))
+        end if
       end if
       if(domain(i)%is_thermo .and. is_thermo(i)) then
         if (iter > domain(i)%stat_istart) then
-          call update_statistics_thermo(thermo(i), domain(i))
+          call update_stats_thermo(thermo(i), domain(i))
         end if
       end if
       !----------------------------------------------------------------------------------------------------------
@@ -387,11 +403,11 @@ subroutine Solve_eqs_iteration
       if (mod(iter, domain(i)%ckpt_nfre) == 0) then
         if(is_flow(i)) then
           call write_instantaneous_flow(flow(i), domain(i))
-          if(iter > domain(i)%stat_istart) call write_statistics_flow(flow(i), domain(i))
+          if(iter > domain(i)%stat_istart) call write_stats_flow(flow(i), domain(i))
         end if
         if(domain(i)%is_thermo .and. is_thermo(i)) then
           call write_instantaneous_thermo(thermo(i), domain(i))
-          if(iter > domain(i)%stat_istart) call write_statistics_thermo(thermo(i), domain(i))
+          if(iter > domain(i)%stat_istart) call write_stats_thermo(thermo(i), domain(i))
         end if
       end if
       !----------------------------------------------------------------------------------------------------------

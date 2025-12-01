@@ -506,5 +506,397 @@ contains
 
     return
   end subroutine
+end module 
 !==========================================================================================================
+!==========================================================================================================
+module io_field_interpolation_mod
+  use udf_type_mod
+  USE precision_mod
+  implicit none
+
+  type(t_domain) :: domain_tgt
+  type(t_flow)   :: flow_tgt
+  type(t_thermo) :: thermo_tgt
+  character(len = 21) :: input_tgt = 'input_chapsim_tgt.ini'
+
+  private :: Read_input_parameters_tgt
+  private :: binary_search_loc2index
+  private :: trilinear_interp_point
+  private :: build_up_interp_target_field_flow
+  public  :: output_interp_target_field
+
+  contains 
+!==========================================================================================================
+  subroutine Read_input_parameters_tgt(dm, fl, tm, flinput)
+    use parameters_constant_mod
+    use print_msg_mod
+    implicit none
+    character(len = *), intent(in) :: flinput 
+    type(t_domain), intent(inout) :: dm
+    type(t_flow)  , intent(inout) :: fl
+    type(t_thermo), intent(inout) :: tm
+
+    integer, parameter :: IOMSG_LEN = 200
+    character(len = IOMSG_LEN) :: iotxt
+    integer :: ioerr, inputUnit
+    integer  :: slen
+    character(len = 80) :: secname
+    character(len = 80) :: varname
+    ! open file1000dd
+    open ( newunit = inputUnit, &
+           file    = flinput, &
+           status  = 'old', &
+           action  = 'read', &
+           iostat  = ioerr, &
+           iomsg   = iotxt )
+    if(ioerr /= 0) then
+      ! write (*, *) 'Problem openning : ', flinput, ' for reading.'
+      ! write (*, *) 'Message: ', trim (iotxt)
+      call Print_error_msg('Error in opening the input file: input_chapsim_interp_source.ini')
+    end if
+    !
+    if(nrank == 0) &
+    call Print_debug_start_msg("Reading General Parameters from "//flinput//" ...")
+    ! reading input
+    do 
+      ! reading headings/comments
+      read(inputUnit, '(a)', iostat = ioerr) secname
+      slen = len_trim(secname)
+      if (ioerr /=0 ) exit
+      if ( (secname(1:1) == ';') .or. &
+           (secname(1:1) == '#') .or. &
+           (secname(1:1) == ' ') .or. &
+           (slen == 0) ) then
+        cycle
+      end if
+      if(nrank == 0) call Print_debug_mid_msg("Reading "//secname(1:slen))
+      ! [domain]
+      if ( secname(1:slen) == '[domain]' ) then
+        read(inputUnit, *, iostat = ioerr) varname, dm%icase
+        read(inputUnit, *, iostat = ioerr) varname, dm%lxx
+        read(inputUnit, *, iostat = ioerr) varname, dm%lyt
+        read(inputUnit, *, iostat = ioerr) varname, dm%lyb
+        read(inputUnit, *, iostat = ioerr) varname, dm%lzz
+      ! [mesh] 
+      else if ( secname(1:slen) == '[mesh]' ) then
+        read(inputUnit, *, iostat = ioerr) varname, dm%nc(1)
+        read(inputUnit, *, iostat = ioerr) varname, dm%nc(2)
+        read(inputUnit, *, iostat = ioerr) varname, dm%nc(3)
+        read(inputUnit, *, iostat = ioerr) varname, dm%istret
+        read(inputUnit, *, iostat = ioerr) varname, dm%mstret, dm%rstret
+        read(inputUnit, *, iostat = ioerr) varname, dm%ifft_lib
+      else
+        exit
+      end if
+    end do
+    ! end of reading, clearing dummies
+    if(.not.IS_IOSTAT_END(ioerr)) &
+    call Print_error_msg( 'Problem reading '//flinput // &
+    ' in Subroutine: '// "Read_general_input_tgt")
+
+    close(inputUnit)
+    return
+  end subroutine 
+!==========================================================================================================
+  SUBROUTINE binary_search_loc2index(x_target, x_array, idx)
+    IMPLICIT NONE
+    REAL(WP), INTENT(IN) :: x_target
+    REAL(WP), INTENT(IN) :: x_array(:)
+    INTEGER, INTENT(OUT) :: idx
+    !
+    INTEGER :: n, left, right, mid
+    !
+    n = size(x_array, 1)
+    ! Handle boundary cases
+    IF (x_target <= x_array(1)) THEN
+      idx = 1
+      RETURN
+    END IF
+    IF (x_target >= x_array(n)) THEN
+      idx = n - 1
+      RETURN
+    END IF
+    ! Binary search
+    left = 1
+    right = n
+    DO WHILE (right - left > 1)
+      mid = (left + right) / 2
+      IF (x_target <= x_array(mid)) THEN
+        right = mid
+      ELSE
+        left = mid
+      END IF
+    END DO
+    idx = left
+    RETURN
+  END SUBROUTINE binary_search_loc2index
+!==========================================================================================================
+  SUBROUTINE trilinear_interp_point(x_target, y_target, z_target, &
+                                        x_src, y_src, z_src, var_src, &
+                                        var_interp)
+    USE parameters_constant_mod
+    IMPLICIT NONE
+    REAL(WP), INTENT(IN) :: x_target, y_target, z_target
+    REAL(WP), INTENT(IN) :: x_src(:), y_src(:), z_src(:)
+    REAL(WP), INTENT(IN) :: var_src(:, :, :)
+    REAL(WP), INTENT(OUT) :: var_interp
+
+    INTEGER :: i_src, j_src, k_src, nx, ny, nz
+    REAL(WP) :: xi, eta, zeta
+    REAL(WP) :: dx, dy, dz
+    REAL(WP) :: c000, c001, c010, c011, c100, c101, c110, c111
+    REAL(WP) :: c00, c01, c10, c11, c0, c1
+
+    nx = SIZE(x_src)
+    ny = SIZE(y_src)
+    nz = SIZE(z_src)
+
+    !-------------------------------------------------------------
+    ! Find enclosing cell indices
+    !-------------------------------------------------------------
+    CALL binary_search_loc2index(x_target, x_src, i_src)
+    CALL binary_search_loc2index(y_target, y_src, j_src)
+    CALL binary_search_loc2index(z_target, z_src, k_src)
+
+    ! Clamp indices to valid range (ensure i_src+1 <= nx)
+    i_src = MIN(i_src, nx-1)
+    j_src = MIN(j_src, ny-1)
+    k_src = MIN(k_src, nz-1)
+
+    !-------------------------------------------------------------
+    ! Compute normalized coordinates within the cell
+    !-------------------------------------------------------------
+    dx = x_src(i_src+1) - x_src(i_src)
+    dy = y_src(j_src+1) - y_src(j_src)
+    dz = z_src(k_src+1) - z_src(k_src)
+
+    ! Avoid division by zero
+    IF (dx == 0.0_wp) dx = 1.0_wp
+    IF (dy == 0.0_wp) dy = 1.0_wp
+    IF (dz == 0.0_wp) dz = 1.0_wp
+
+    xi   = (x_target - x_src(i_src)) / dx
+    eta  = (y_target - y_src(j_src)) / dy
+    zeta = (z_target - z_src(k_src)) / dz
+
+    ! Clamp normalized coordinates to [0,1] to avoid extrapolation outside last cell
+    xi   = MAX(0.0_wp, MIN(1.0_wp, xi))
+    eta  = MAX(0.0_wp, MIN(1.0_wp, eta))
+    zeta = MAX(0.0_wp, MIN(1.0_wp, zeta))
+
+    !-------------------------------------------------------------
+    ! Trilinear interpolation
+    !-------------------------------------------------------------
+    c000 = var_src(i_src  , j_src  , k_src  )
+    c001 = var_src(i_src  , j_src  , k_src+1)
+    c010 = var_src(i_src  , j_src+1, k_src  )
+    c011 = var_src(i_src  , j_src+1, k_src+1)
+    c100 = var_src(i_src+1, j_src  , k_src  )
+    c101 = var_src(i_src+1, j_src  , k_src+1)
+    c110 = var_src(i_src+1, j_src+1, k_src  )
+    c111 = var_src(i_src+1, j_src+1, k_src+1)
+
+    ! Interpolate in z
+    c00 = c000*(1.0_wp - zeta) + c001*zeta
+    c01 = c010*(1.0_wp - zeta) + c011*zeta
+    c10 = c100*(1.0_wp - zeta) + c101*zeta
+    c11 = c110*(1.0_wp - zeta) + c111*zeta
+
+    ! Interpolate in y
+    c0 = c00*(1.0_wp - eta) + c01*eta
+    c1 = c10*(1.0_wp - eta) + c11*eta
+
+    ! Interpolate in x
+    var_interp = c0*(1.0_wp - xi) + c1*xi
+    RETURN
+  END SUBROUTINE trilinear_interp_point
+!==========================================================================================================
+  subroutine build_up_interp_target_field_flow(fl_src, dm_src, fl_tgt, dm_tgt)
+    use udf_type_mod
+    use parameters_constant_mod
+    implicit none
+    type(t_domain), intent(in)    :: dm_src  ! source
+    type(t_flow)  , intent(in)    :: fl_src  ! source
+    type(t_domain), intent(inout) :: dm_tgt  ! target
+    type(t_flow)  , intent(inout) :: fl_tgt  ! target
+    !
+    type(DECOMP_INFO) :: dtmp
+    integer :: i, j, k, ii, jj, kk
+    real(WP) :: xc_src(dm_src%nc(1))
+    real(WP) :: zc_src(dm_src%nc(3))
+    real(WP) :: xp_src(dm_src%np(1))
+    real(WP) :: zp_src(dm_src%np(3))
+    real(WP) :: x_target, y_target, z_target
+    real(WP) :: var_target
+    ! 
+    ! x-center and x-face
+    xc_src = dm_src%h(1) * ( [(REAL(i-1,WP)+HALF, i=1,dm_src%nc(1))] )
+    xp_src = dm_src%h(1) * ( [(REAL(i-1,WP),      i=1,dm_src%np(1))] )
+    ! z-center and z-face
+    zc_src = dm_src%h(3) * ( [(REAL(k-1,WP)+HALF, k=1,dm_src%nc(3))] )
+    zp_src = dm_src%h(3) * ( [(REAL(k-1,WP),      k=1,dm_src%np(3))] )
+    ! ux 
+    dtmp = dm_tgt%dpcc
+    do k = 1, dtmp%xsz(3)
+      kk = dtmp%xst(3) + k - 1
+      z_target = dm_tgt%h(3) * (REAL(kk - 1, WP) + HALF)
+      do j = 1, dtmp%xsz(2)
+        jj = dtmp%xst(2) + j - 1
+        y_target = dm_tgt%yc(jj)
+        do i = 1, dtmp%xsz(1)
+          x_target = dm_tgt%h(1) * REAL(i - 1, WP)
+          call trilinear_interp_point(x_target, y_target, z_target, &
+                                      xp_src(:), dm_src%yc(:), zc_src(:), fl_src%qx(:, :, :), var_target)
+          fl_tgt%qx(i, j, k) = var_target
+        end do
+      end do
+    end do
+    ! uy
+    dtmp = dm_tgt%dcpc
+    do k = 1, dtmp%xsz(3)
+      kk = dtmp%xst(3) + k - 1
+      z_target = dm_tgt%h(3) * (REAL(kk - 1, WP) + HALF)
+      do j = 1, dtmp%xsz(2)
+        jj = dtmp%xst(2) + j - 1
+        y_target = dm_tgt%yp(jj)
+        do i = 1, dtmp%xsz(1)
+          x_target = dm_tgt%h(1) * (REAL(i - 1, WP) + HALF)
+          call trilinear_interp_point(x_target, y_target, z_target, &
+                                      xc_src(:), dm_src%yp(:), zc_src(:), fl_src%qy(:, :, :), var_target)
+          fl_tgt%qy(i, j, k) = var_target
+        end do
+      end do
+    end do
+    ! uz
+    dtmp = dm_tgt%dccp
+    do k = 1, dtmp%xsz(3)
+      kk = dtmp%xst(3) + k - 1
+      z_target = dm_tgt%h(3) * (REAL(kk - 1, WP))
+      do j = 1, dtmp%xsz(2)
+        jj = dtmp%xst(2) + j - 1
+        y_target = dm_tgt%yc(jj)
+        do i = 1, dtmp%xsz(1)
+          x_target = dm_tgt%h(1) * (REAL(i - 1, WP) + HALF)
+          call trilinear_interp_point(x_target, y_target, z_target, &
+                                      xc_src(:), dm_src%yc(:), zp_src(:), fl_src%qz(:, :, :), var_target)
+          fl_tgt%qz(i, j, k) = var_target
+        end do
+      end do
+    end do
+    ! p
+    dtmp = dm_tgt%dccc
+    do k = 1, dtmp%xsz(3)
+      kk = dtmp%xst(3) + k - 1
+      z_target = dm_tgt%h(3) * (REAL(kk - 1, WP)+ HALF)
+      do j = 1, dtmp%xsz(2)
+        jj = dtmp%xst(2) + j - 1
+        y_target = dm_tgt%yc(jj)
+        do i = 1, dtmp%xsz(1)
+          x_target = dm_tgt%h(1) * (REAL(i - 1, WP) + HALF)
+          call trilinear_interp_point(x_target, y_target, z_target, &
+                                      xc_src(:), dm_src%yc(:), zc_src(:), fl_src%pres(:, :, :), var_target)
+          fl_tgt%pres(i, j, k) = var_target
+        end do
+      end do
+    end do
+    return
+  end subroutine
+!==========================================================================================================
+  subroutine build_up_interp_target_field_thermo(tm_src, dm_src, tm_tgt, dm_tgt)
+    use udf_type_mod
+    use parameters_constant_mod
+    implicit none
+    type(t_domain), intent(in)    :: dm_src  ! source
+    type(t_thermo), intent(in)    :: tm_src  ! source
+    type(t_domain), intent(inout) :: dm_tgt  ! target
+    type(t_thermo), intent(inout) :: tm_tgt  ! target
+    !
+    type(DECOMP_INFO) :: dtmp
+    integer :: i, j, k, ii, jj, kk
+    real(WP) :: xc_src(dm_src%nc(1))
+    real(WP) :: zc_src(dm_src%nc(3))
+    real(WP) :: x_target, y_target, z_target
+    real(WP) :: var_target
+    !
+    ! xc
+    do i = 1, dm_src%nc(1)
+      xc_src(i) = dm_src%h(1) * (REAL(i - 1, WP) + HALF)
+    end do
+    ! zc
+    do k = 1, dm_src%nc(3)
+      zc_src(k) = dm_src%h(3) * (REAL(k - 1, WP) + HALF)
+    end do
+    ! scalars
+    dtmp = dm_tgt%dccc
+    do k = 1, dtmp%xsz(3)
+      kk = dtmp%xst(3) + k - 1
+      z_target = dm_tgt%h(3) * (REAL(kk - 1, WP)+ HALF)
+      do j = 1, dtmp%xsz(2)
+        jj = dtmp%xst(2) + j - 1
+        y_target = dm_tgt%yc(jj)
+        do i = 1, dtmp%xsz(1)
+          x_target = dm_tgt%h(1) * (REAL(i - 1, WP) + HALF)
+          call trilinear_interp_point(x_target, y_target, z_target, &
+                                      xc_src(:), dm_src%yc(:), zc_src(:), tm_src%rhoh(:, :, :), var_target)
+          tm_tgt%rhoh(i, j, k) = var_target
+          call trilinear_interp_point(x_target, y_target, z_target, &
+                                      xc_src(:), dm_src%yc(:), zc_src(:), tm_src%tTemp(:, :, :), var_target)
+          tm_tgt%tTemp(i, j, k) = var_target
+        end do
+      end do
+    end do
+    return
+  end subroutine
+!==========================================================================================================
+  subroutine output_interp_target_field(dm_src, fl_src, tm_src)
+    use parameters_constant_mod
+    use udf_type_mod
+    use io_files_mod
+    use print_msg_mod
+    use input_general_mod
+    use geometry_mod
+    use domain_decomposition_mod
+    use io_restart_mod
+    use io_visualisation_mod
+    implicit none 
+    type(t_domain), intent(in) :: dm_src
+    type(t_flow)  , intent(in) :: fl_src
+    type(t_thermo), intent(in), optional :: tm_src
+
+    if(.not.file_exists(trim(input_tgt))) then
+      call Print_warning_msg('No field interpolation is carried out.')
+      return
+    end if
+    
+    if(nproc > 1) call Print_error_msg('Field interpolation and io are in serial mode only.')
+    ! geo/domain
+    call Read_input_parameters_tgt(domain_tgt,flow_tgt, thermo_tgt, input_tgt)
+    domain_tgt%is_periodic(:) = dm_src%is_periodic(:)
+    domain_tgt%ibcx_qx = dm_src%ibcx_qx
+    domain_tgt%ibcy_qy = dm_src%ibcy_qy
+    domain_tgt%ibcz_qz = dm_src%ibcz_qz
+    call Buildup_geometry_mesh_info(domain_tgt)
+    call initialise_domain_decomposition(domain_tgt)
+    ! allocate variables
+    call alloc_x(flow_tgt%qx,   domain_tgt%dpcc) ; flow_tgt%qx = ZERO
+    call alloc_x(flow_tgt%qy,   domain_tgt%dcpc) ; flow_tgt%qy = ZERO
+    call alloc_x(flow_tgt%qz,   domain_tgt%dccp) ; flow_tgt%qz = ZERO
+    call alloc_x(flow_tgt%pres, domain_tgt%dccc) ; flow_tgt%pres = ZERO
+    ! interpolation from src to target
+    call build_up_interp_target_field_flow(fl_src, dm_src, flow_tgt, domain_tgt)
+    ! write out
+    call write_instantaneous_flow(flow_tgt, domain_tgt)
+    !call write_visu_flow(flow_tgt, domain_tgt)
+    if(domain_tgt%is_thermo) then
+      call alloc_x(thermo_tgt%rhoh,  domain_tgt%dccc) ; thermo_tgt%rhoh = ZERO
+      call alloc_x(thermo_tgt%tTemp, domain_tgt%dccc) ; thermo_tgt%tTemp = ZERO
+      call build_up_interp_target_field_thermo(tm_src, dm_src, thermo_tgt, domain_tgt)
+      call write_instantaneous_thermo(thermo_tgt, domain_tgt)
+      !call write_visu_thermo(thermo_tgt, flow_tgt, domain_tgt)
+    end if 
+
+    call Print_debug_mid_msg("Fields interpolation is completed successfully.")
+
+    return
+  end subroutine
 end module 

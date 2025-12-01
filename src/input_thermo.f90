@@ -153,15 +153,21 @@ contains
       this%h = w1 * ftplist(i1)%h + w2 * ftplist(i2)%h
       this%b = w1 * ftplist(i1)%b + w2 * ftplist(i2)%b
       this%cp = w1 * ftplist(i1)%cp + w2 * ftplist(i2)%cp
-      this%rhoh = this%d * this%h
 
     else if(fluidparam%ipropertyState == IPROPERTY_FUNCS) then 
       
       t1 = this%t
-  
+
       ! D = density = f(T)
-      this%d = fluidparam%CoD(0) + &
-               fluidparam%CoD(1) * t1
+      select case (fluidparam%ifluid)
+        case (ILIQUID_LITHIUM)
+          this%d = fluidparam%CoD(0) + &
+                   fluidparam%CoD(1) * t1 + &
+                   fluidparam%CoD(2) * (1.0_WP - t1 / fluidparam%CoD(3))**(fluidparam%CoD(4))
+        case default
+          this%d = fluidparam%CoD(0) + &
+                   fluidparam%CoD(1) * t1
+      end select
   
       ! K = thermal conductivity = f(T)
       this%k = fluidparam%CoK(0) + &
@@ -199,16 +205,22 @@ contains
           dummy = CoM_Bi(0)  * EXP (CoM_Bi(-1) / t1)
         case (ILIQUID_LBE)
           dummy = CoM_LBE(0) * EXP (CoM_LBE(-1) / t1)
+        case (ILIQUID_LITHIUM)
+          dummy = EXP( CoM_Li(-1) + CoM_Li(0) * LOG(t1) + (CoM_Li(1) / t1) )
         case default
           dummy = EXP( CoM_Na(-1) / t1 + &
                        CoM_Na(0) + &
                        CoM_Na(1) * LOG(t1) )
       end select
       this%m = dummy
-      this%rhoh = this%d * this%h
     else
       call Print_error_msg ("Error.")
     end if
+    !
+    this%rhoh = this%d * this%h
+    this%alpha = this%k / this%d / this%cp
+    this%Pr = this%m * this%cp /this%k
+    !
     return
   end subroutine ftp_get_thermal_properties_dimensional_from_T
 !==========================================================================================================
@@ -247,7 +259,6 @@ contains
       this%h = w1 * ftplist(i1)%h + w2 * ftplist(i2)%h
       this%b = w1 * ftplist(i1)%b + w2 * ftplist(i2)%b
       this%cp = w1 * ftplist(i1)%cp + w2 * ftplist(i2)%cp
-      this%rhoh = this%d * this%h
       this%drhoh_drho = w1 * ftplist(i1)%drhoh_drho + w2 * ftplist(i2)%drhoh_drho
 
     else if(fluidparam%ipropertyState == IPROPERTY_FUNCS) then 
@@ -257,11 +268,22 @@ contains
       t1 = this%t * ftp0ref%t
 
       ! D = density = f(T)
-      dummy = fluidparam%CoD(0) + &
-              fluidparam%CoD(1) * t1
-      this%d = dummy / ftp0ref%d
-      drho_dt = fluidparam%CoD(1) * ftp0ref%t / ftp0ref%d
-  
+      select case (fluidparam%ifluid)
+        case (ILIQUID_LITHIUM)
+          dummy = fluidparam%CoD(0) + &
+                  fluidparam%CoD(1) * t1 + &
+                  fluidparam%CoD(2) * (1.0_WP - t1 / fluidparam%CoD(3))**(fluidparam%CoD(4))
+          this%d = dummy / ftp0ref%d
+          drho_dt = (fluidparam%CoD(1) - fluidparam%CoD(2) * fluidparam%CoD(4) * &
+                    (1.0_WP - t1 / fluidparam%CoD(3))**(fluidparam%CoD(4) - 1.0_WP) / &
+                    fluidparam%CoD(3)) * ftp0ref%t / ftp0ref%d
+        case default
+          dummy = fluidparam%CoD(0) + &
+                  fluidparam%CoD(1) * t1
+          this%d = dummy / ftp0ref%d
+          drho_dt = fluidparam%CoD(1) * ftp0ref%t / ftp0ref%d
+      end select
+
       ! K = thermal conductivity = f(T)
       dummy = fluidparam%CoK(0) + &
               fluidparam%CoK(1) * t1 + &
@@ -304,11 +326,13 @@ contains
           dummy = CoM_Bi(0) * EXP (CoM_Bi(-1) / t1)
         case (ILIQUID_LBE)
           dummy = CoM_LBE(0) * EXP (CoM_LBE(-1) / t1)
+        case (ILIQUID_LITHIUM)
+          dummy = EXP( CoM_Li(-1) + CoM_Li(0) * LOG(t1) + (CoM_Li(1) / t1) )
         case default
           dummy = EXP( CoM_Na(-1) / t1 + CoM_Na(0) + CoM_Na(1) * LOG(t1) )
       end select
       this%m = dummy / ftp0ref%m
-      this%rhoh = this%d * this%h
+      ! d(rho*h)/drho = h + rho * dh/drho
       this%drhoh_drho = this%h + this%d * dh_dt / drho_dt
     else
       this%t  = ONE
@@ -318,9 +342,13 @@ contains
       this%cp = ONE
       this%b  = ONE
       this%h  = ZERO
-      this%rhoh = ZERO
       this%drhoh_drho = ONE
     end if
+
+    this%rhoh = this%d * this%h
+    this%alpha = this%k / this%d / this%cp
+    this%Pr = this%m * this%cp /this%k
+
     return
   end subroutine ftp_refresh_thermal_properties_from_T_undim
 !==========================================================================================================
@@ -410,7 +438,11 @@ contains
     this%b  = w1 * ftplist(i1)%b  + w2 * ftplist(i2)%b
     this%cp = w1 * ftplist(i1)%cp + w2 * ftplist(i2)%cp
     this%drhoh_drho = w1 * ftplist(i1)%drhoh_drho + w2 * ftplist(i2)%drhoh_drho
-    !this%rhoh = this%d * this%h
+
+    this%rhoh = this%d * this%h
+    this%alpha = this%k / this%d / this%cp
+    this%Pr = this%m * this%cp /this%k
+
     return
   end subroutine ftp_refresh_thermal_properties_from_H
 !==========================================================================================================
@@ -915,6 +947,9 @@ contains
       write (*, wrtfmt1r) 'Cp(J/Kg/K):',                  fluidparam%ftp0ref%cp
       write (*, wrtfmt1e) 'Enthalphy(J):',                fluidparam%ftp0ref%h
       write (*, wrtfmt1e) 'mass enthaphy(Kg J/m3):',      fluidparam%ftp0ref%rhoh
+      write (*, wrtfmt1e) 'thermal diffusivity(m2/s):',   fluidparam%ftp0ref%alpha
+      write (*, wrtfmt1e) 'Prandtl Number:',              fluidparam%ftp0ref%Pr
+
 
       call Print_debug_mid_msg("The initial thermal properties (dimensional) are")
       write (*, wrtfmt1r) 'Temperature(K):',              fluidparam%ftpini%t
@@ -924,8 +959,8 @@ contains
       write (*, wrtfmt1r) 'Cp(J/Kg/K):',                  fluidparam%ftpini%cp
       write (*, wrtfmt1e) 'Enthalphy(J):',                fluidparam%ftpini%h
       write (*, wrtfmt1e) 'mass enthaphy(Kg J/m3):',      fluidparam%ftpini%rhoh
-
-      write (*, wrtfmt1e) 'Prandtl Number :',  fluidparam%ftp0ref%m * fluidparam%ftp0ref%cp / fluidparam%ftp0ref%k
+      write (*, wrtfmt1e) 'thermal diffusivity(m2/s):',   fluidparam%ftpini%alpha
+      write (*, wrtfmt1e) 'Prandtl Number:',              fluidparam%ftpini%Pr
     end if
 
     return
@@ -1020,6 +1055,19 @@ contains
       fluidparam%CoCp(-2:2) = CoCp_LBE(-2:2)
       fluidparam%CoH(-1:3) = CoH_LBE(-1:3)
       fluidparam%CoM(-1:1) = CoM_LBE(-1:1)
+
+      case (ILIQUID_LITHIUM)
+      fluidparam%nlist = N_FUNC2TABLE
+      fluidparam%ipropertyState = IPROPERTY_FUNCS
+      fluidparam%TM0 = TM0_Li
+      fluidparam%TB0 = TB0_Li
+      fluidparam%HM0 = HM0_Li
+      fluidparam%CoD(0:4) = CoD_Li(0:4)
+      fluidparam%CoK(0:2) = CoK_Li(0:2)
+      fluidparam%CoB = CoB_Li
+      fluidparam%CoCp(-2:2) = CoCp_Li(-2:2)
+      fluidparam%CoH(-1:3) = CoH_Li(-1:3)
+      fluidparam%CoM(-1:1) = CoM_Li(-1:1)
 
     case default
       fluidparam%nlist = N_FUNC2TABLE

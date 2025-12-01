@@ -1962,16 +1962,22 @@ contains
       call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%mx_rhs, rhsx_bulk, SPACE_AVERAGE, "mx_rhs")
       !call Get_volumetric_average_3d(.false., dm%ibcy(:, 1), dm%fbcy_var(:, :, :, 1), dm, dm%dpcc, fl%mx_rhs, rhsx_bulk, "mx_rhs")
       fl%mx_rhs = fl%mx_rhs - rhsx_bulk
-    else if (fl%idriven == IDRVF_X_TAUW .or. fl%idriven == IDRVF_X_DPDX) then
+    else if (fl%idriven == IDRVF_X_DPDX) then
       rhsx_bulk = - HALF * fl%drvfc * dm%tAlpha(isub) * dm%dt
       fl%mx_rhs = fl%mx_rhs - rhsx_bulk
+    else if (fl%idriven == IDRVF_X_TAUW) then
+      ! to add on wall-cells only
+      if(nrank == 0) call Print_error_msg('Function to be added soon.')
     else if (fl%idriven == IDRVF_Z_MASSFLUX) then
       call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, fl%mz_rhs, rhsz_bulk, SPACE_AVERAGE, "mz_rhs")
       !call Get_volumetric_average_3d(.false., dm%ibcy(:, 3), dm%fbcy_var(:, :, :, 3), dm, dm%dccp, fl%mz_rhs, rhsz_bulk, "mz_rhs")
       fl%mz_rhs = fl%mz_rhs - rhsz_bulk
-    else if (fl%idriven == IDRVF_Z_TAUW .or. fl%idriven == IDRVF_Z_DPDZ) then
+    else if (fl%idriven == IDRVF_Z_DPDZ) then
       rhsz_bulk = - HALF * fl%drvfc * dm%tAlpha(isub) * dm%dt
       fl%mz_rhs = fl%mz_rhs - rhsz_bulk
+    else if (fl%idriven == IDRVF_Z_TAUW) then
+      ! to add on wall-cells only
+      if(nrank == 0) call Print_error_msg('Function to be added soon.')
     else
     end if
     
