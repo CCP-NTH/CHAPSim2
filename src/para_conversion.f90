@@ -154,7 +154,7 @@ module convert_primary_conservative_mod
       end if
     end if
 
-    if(dm%ibcy_qy(1) == IBC_DIRICHLET .or. dm%ibcy_qy(2) == IBC_DIRICHLET) then 
+    if(dm%ibcy_qy(1) == IBC_DIRICHLET .or. dm%ibcy_qy(1) == IBC_DIRICHLET) then 
       if(itag == IQ2G) then
         dm%fbcy_gy(:, 1, :) = dm%fbcy_qy(:, 1, :) * d_cpc_ypencil(:, 1,              :)
         dm%fbcy_gy(:, 2, :) = dm%fbcy_qy(:, 2, :) * d_cpc_ypencil(:, dm%dcpc%ysz(2), :)
@@ -169,7 +169,7 @@ module convert_primary_conservative_mod
       end if
     end if
 
-    if(dm%ibcy_qz(1) == IBC_DIRICHLET .or. dm%ibcy_qz(2) == IBC_DIRICHLET) then 
+    if(dm%ibcy_qz(1) == IBC_DIRICHLET .or. dm%ibcy_qz(1) == IBC_DIRICHLET) then 
       call transpose_z_to_y(d_ccp_zpencil, d_ccp_ypencil, dm%dccp)
       if(itag == IQ2G) then
         dm%fbcy_gz(:, 1, :) = dm%fbcy_qz(:, 1, :) * d_ccp_ypencil(:, 1,              :)
@@ -187,8 +187,8 @@ module convert_primary_conservative_mod
 !----------------------------------------------------------------------------------------------------------
 ! BC: - z pencil
 !----------------------------------------------------------------------------------------------------------
-    if(dm%ibcz_qx(1) == IBC_DIRICHLET .or. dm%ibcz_qx(2) == IBC_DIRICHLET) then 
-      call transpose_x_to_y(d_pcc_xpencil, d_pcc_ypencil, dm%dpcc)
+    if(dm%ibcz_qx(1) == IBC_DIRICHLET .or. dm%ibcz_qx(1) == IBC_DIRICHLET) then 
+      call transpose_x_to_y(d_pcc_xpencil, d_pcc_ypencil)
       call transpose_y_to_z(d_pcc_ypencil, d_pcc_zpencil, dm%dpcc)
       if(itag == IQ2G) then
         dm%fbcz_gx(:, :, 1) = dm%fbcz_qx(:, :, 1) * d_pcc_zpencil(:, :, 1             )
@@ -204,7 +204,7 @@ module convert_primary_conservative_mod
       end if
     end if
 
-    if(dm%ibcz_qy(1) == IBC_DIRICHLET .or. dm%ibcz_qy(2) == IBC_DIRICHLET) then 
+    if(dm%ibcz_qy(1) == IBC_DIRICHLET .or. dm%ibcz_qy(1) == IBC_DIRICHLET) then 
       call transpose_y_to_x(d_cpc_ypencil, d_cpc_zpencil, dm%dcpc)
       if(itag == IQ2G) then
         dm%fbcz_gy(:, :, 1) = dm%fbcz_qy(:, :, 1) * d_cpc_zpencil(:, :, 1             )

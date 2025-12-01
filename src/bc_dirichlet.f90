@@ -506,9 +506,9 @@ contains
     use print_msg_mod
     implicit none 
     type(t_domain), intent(in) :: dm
-    real(WP), dimension(:,:,:), contiguous, intent(inout) :: ux
-    real(WP), dimension(:,:,:), contiguous, intent(inout) :: uy
-    real(WP), dimension(:,:,:), contiguous, intent(inout) :: uz
+    real(WP), dimension(dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3)), intent (inout) :: ux
+    real(WP), dimension(dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3)), intent (inout) :: uy
+    real(WP), dimension(dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3)), intent (inout) :: uz
     real(WP), dimension(4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)), optional, intent (in) :: fbcx0
     real(WP), dimension(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)), optional, intent (in) :: fbcy0
     real(WP), dimension(dm%dccp%zsz(1), dm%dccp%zsz(2), 4), optional, intent (in) :: fbcz0
@@ -521,22 +521,14 @@ contains
     real(WP), dimension(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) :: fbcy
     real(WP), dimension(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) :: fbcz
 
-    if (present(fbcx0)) then
-      fbcx = fbcx0
-    else
+    if(.not. present(fbcx0)) then
       fbcx = ZERO
-    end if
-
-    if (present(fbcy0)) then
-      fbcy = fbcy0
-    else
       fbcy = ZERO
-    end if
-
-    if (present(fbcz0)) then
-      fbcz = fbcz0
-    else
       fbcz = ZERO
+    else
+      fbcx = fbcx0
+      fbcy = fbcy0
+      fbcz = fbcz0
     end if
 
     ! -mx_rhs-

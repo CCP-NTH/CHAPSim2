@@ -242,7 +242,7 @@ contains
     end do
 
     !     for dirichelt, the perturbation velocity should be zero.
-    call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
+    call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz)
 
     if(nrank == 0) call Print_debug_inline_msg("Max/min velocity for generated random velocities:")
     call Find_max_min_3d(fl%qx, opt_name="qx")
@@ -255,7 +255,8 @@ contains
     call wrt_3d_pt_debug(fl%qz, dm%dccp,   fl%iteration, 0, 'qz@af radm') ! debug_ww
     call wrt_3d_pt_debug(fl%pres, dm%dccc, fl%iteration, 0, 'pr@af radm') ! debug_ww
 #endif
-    if(nrank == 0) call Print_debug_end_msg()
+
+
     return
   end subroutine
 
