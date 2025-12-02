@@ -671,9 +671,9 @@ module io_field_interpolation_mod
     dz = z_src(k_src+1) - z_src(k_src)
 
     ! Avoid division by zero
-    IF (dx == 0.0_wp) dx = 1.0_wp
-    IF (dy == 0.0_wp) dy = 1.0_wp
-    IF (dz == 0.0_wp) dz = 1.0_wp
+    IF (dabs(dx) <= MINP) dx = 1.0_wp
+    IF (dabs(dy) <= MINP) dy = 1.0_wp
+    IF (dabs(dz) <= MINP) dz = 1.0_wp
 
     xi   = (x_target - x_src(i_src)) / dx
     eta  = (y_target - y_src(j_src)) / dy

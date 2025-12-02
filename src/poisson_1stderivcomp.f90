@@ -374,7 +374,7 @@ end module
 !##################################################################
 ! function rl(complexnumber) from incompact3d
 !##################################################################
-function rl(complexnumber)
+pure function rl(complexnumber)
 
   !use param
   use decomp_2d_mpi, only: mytype
