@@ -2339,8 +2339,8 @@ contains
     !call Find_max_min_3d(fl%pres, opt_calc='MINI', opt_work=offset)
     !fl%pres = fl%pres - offset(1)
     ! correct pressure drift
-    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
-    !fl%pres = fl%pres - pres_bulk
+    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
+    fl%pres = fl%pres - pres_bulk
 #ifdef DEBUG_STEPS
     call wrt_3d_pt_debug(fl%pres, dm%dccc,   fl%iteration, isub, 'pr_updated') ! debug_ww
 #endif
