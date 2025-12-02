@@ -698,6 +698,7 @@ contains
         do i = 1, nxdomain
           if(flow(i)%inittype /= INIT_RESTART) flow(i)%iterfrom = 0
           flow(i)%init_velo3d(1:3) = flow(1)%init_velo3d(1:3)
+          if(flow(i)%inittype == INIT_RESTART) flow(i)%reninit = flow(i)%ren
         end do
         
 
