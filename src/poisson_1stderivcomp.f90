@@ -374,49 +374,49 @@ end module
 !##################################################################
 ! function rl(complexnumber) from incompact3d
 !##################################################################
-pure function rl(complexnumber)
+pure function rl(complexnumber) result(res)
 
   !use param
   use decomp_2d_mpi, only: mytype
 
   implicit none
 
-  real(mytype) :: rl
-  complex(mytype) :: complexnumber
+  real(mytype) :: res
+  complex(mytype), intent(in) :: complexnumber
 
-  rl = real(complexnumber, kind=mytype)
+  res = real(complexnumber, kind=mytype)
 
 end function rl
 !##################################################################
 ! function iy(complexnumber) from incompact3d
 !##################################################################
-function iy(complexnumber)
+pure function iy(complexnumber) result(res)
 
   !use param
   use decomp_2d_constants, only: mytype
 
   implicit none
 
-  real(mytype) :: iy
-  complex(mytype) :: complexnumber
+  real(mytype) :: res
+  complex(mytype), intent(in) :: complexnumber
 
-  iy = aimag(complexnumber)
+  res = aimag(complexnumber)
 
 end function iy
 !##################################################################
 ! function cx(realpart,imaginarypart) from incompact3d
 !##################################################################
-function cx(realpart,imaginarypart)
+pure function cx(realpart,imaginarypart) result(res)
 
   !use param
   use decomp_2d_constants, only: mytype
 
   implicit none
 
-  complex(mytype) :: cx
-  real(mytype) :: realpart, imaginarypart
+  complex(mytype) :: res
+  real(mytype),intent(in) :: realpart, imaginarypart
 
-  cx = cmplx(realpart, imaginarypart, kind=mytype)
+  res = cmplx(realpart, imaginarypart, kind=mytype)
 
 end function cx
 !==========================================================================================================
