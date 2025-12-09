@@ -194,7 +194,6 @@ module parameters_constant_mod
 ! flow initilisation
 !----------------------------------------------------------------------------------------------------------     
   integer, parameter :: INIT_RESTART = 0, &
-                        INIT_INTERPL = 1, &
                         INIT_RANDOM  = 2, &
                         INIT_INLET   = 3, &
                         INIT_GVCONST = 4, &

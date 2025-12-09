@@ -237,7 +237,6 @@ def get_domain_settings():
 def get_flow_settings():
     
     is_restart = get_input("Flow restart?(0:No, 1:Yes)", 0, int)
-    is_extract = get_input("Flow field extracted from another field? (0:No, 1:Yes)", 0, int)
     
     initfl = 0
     irestartfrom = 0
@@ -246,11 +245,8 @@ def get_flow_settings():
     if is_restart == 1:
         initfl = Init.RESTART.value
         irestartfrom = get_input("From which iteration to restart", 2000, int)
-
-    if is_extract == 1:
-        initfl = Init.INTRPL.value
     
-    if is_restart != 1 and is_extract != 1:
+    if is_restart != 1 :
       if icase in [Case.CHANNEL.value, Case.DUCT.value, Case.PIPE.value, Case.ANNULAR.value]:
         initfl = Init.POISEUILLE.value
       elif icase == Case.TGV3D.value:
@@ -367,15 +363,14 @@ def get_mesh_settings():
 
     if istret != Stretching.NONE.value:
         if icase in [Case.CHANNEL.value, Case.DUCT.value, Case.ANNULAR.value]:
-            rstret1, rstret2, ifftlib = 1, get_input("Stretching factor (recommended 0.1-0.3, smaller means more clustered)", 0.12, float), 3
+            rstret1, rstret2 = 1, get_input("Stretching factor (recommended 0.1-0.3, smaller means more clustered)", 0.12, float)
         elif icase in [Case.PIPE.value, Case.ANNULAR.value]:
-            rstret1, rstret2, ifftlib = 2, get_input("Stretching factor (recommended 0.1-0.3, greater means more clustered)", 0.15, float), 2
+            rstret1, rstret2 = 2, get_input("Stretching factor (recommended 0.1-0.3, greater means more clustered)", 0.15, float)
         else:
-            rstret1 = get_input("Stretching method (1:Laizet2009, 2:tanh function)", 1, int)
+            rstret1 = get_input("Stretching method (1:Laizet2009, 2:tanh function, 3:power law)", 1, int)
             rstret2 = get_input("Stretching factor (recommended 0.1-0.3)", 0.15, float)
-            ifftlib = get_input("FFT solver (2:2D-FFT, 3:3D-FFT)", 3, int)
     else:
-        rstret1, rstret2, ifftlib = 0, 0.0, 3
+        rstret1, rstret2 = 0, 0.0
 
     
 
@@ -385,7 +380,6 @@ def get_mesh_settings():
         "ncz": ncz,
         "istret": istret,
         "rstret": f"{rstret1},{rstret2}",
-        "ifftlib": ifftlib,
     }
 
 
@@ -457,10 +451,9 @@ def get_bc_settings():
     if icase == Case.TGV3D.value:
       iinlet = 0
     else:
-      iinlet = get_input("Is the streamwise periodic? (1:Yes, 0:No) ", 1, int)
-      if(iinlet != 1):
-          iinlet = get_input("Inlet boundary condition: ", 0, int)
-      iinlet = get_input("Use database for the streamwise inlet? (1:Yes, 0:No) ", 0, int)
+        iinlet = get_input("Is the streamwise periodic? (1:Yes, 0:No) ", 1, int)
+        if iinlet != 1:
+            iinlet = get_input("Inlet boundary condition (4:Dirichlet, 9:1D Profile, 10:Database) ", 10, int)
 
 
     if(iinlet == 1):

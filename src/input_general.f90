@@ -177,8 +177,6 @@ contains
     select case(irst)
     case ( INIT_RESTART) 
       str = 'Initialised from restart'
-    case ( INIT_INTERPL)
-      str = 'Initialised from interpolation of an existing field'
     case ( INIT_RANDOM)
       str = 'Initialised from random numbers'
     case ( INIT_INLET)
@@ -578,8 +576,10 @@ contains
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%mstret, domain(1)%rstret
         domain(:)%rstret = domain(1)%rstret
         domain(:)%mstret = domain(1)%mstret
-        read(inputUnit, *, iostat = ioerr) varname, domain(1)%ifft_lib
-        domain(:)%ifft_lib = domain(1)%ifft_lib
+        !read(inputUnit, *, iostat = ioerr) varname, domain(1)%ifft_lib
+        domain(:)%ifft_lib = FFT_2DECOMP_3DFFT
+        !domain(:)%ifft_lib = FFT_FISHPACK_2DFFT ! for testing only, hidden option
+
 
         do i = 1, nxdomain
           domain(i)%fft_skip_c2c(:) = .false.
@@ -587,6 +587,7 @@ contains
             if (.not. is_even(domain(i)%nc(3))) domain(i)%nc(3) = domain(i)%nc(3) + 1
             domain(i)%fft_skip_c2c(2) = .true.
           end if
+          if (.not. domain(i)%fft_skip_c2c(2)) domain(i)%mstret = MSTRET_3FMD
           !----------------------------------------------------------------------------------------------------------
           !     stretching
           !----------------------------------------------------------------------------------------------------------
