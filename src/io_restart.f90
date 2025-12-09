@@ -300,19 +300,23 @@ contains
     ! store : 
     !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
     !        niter:  1,  2,  3,..., 0->10
-    !    file name: 25, 35, 45 ... 
+    !     To store: 26, 27, 28,..., 35 (MOD: 1, 2, ..., 0)
+    !        niter:  1,  2,  3,..., 0->10
+    !    file name: 10, 20, ... 
     !write(*,*) 'iter, niter', fl%iteration, niter
     if(niter == dm%ndbfre) then
       if( mod(fl%iteration - dm%ndbstart + 1, dm%ndbfre) /= 0 .and. nrank == 0) &
       call Print_warning_msg("niter /= dm%ndbfre, something wrong in writing outlet data")
-      call write_one_3d_array(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, fl%iteration, dm%dxcc)
-      call write_one_3d_array(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, fl%iteration, dm%dxcc)
-      call write_one_3d_array(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, fl%iteration, dm%dxpc)
-      call write_one_3d_array(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, fl%iteration, dm%dxpc)
-      call write_one_3d_array(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, fl%iteration, dm%dxcp)
-      call write_one_3d_array(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, fl%iteration, dm%dxcp)
-      call write_one_3d_array(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, fl%iteration, dm%dxcc)
-      call write_one_3d_array(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, fl%iteration, dm%dxcc)
+      iter = (fl%iteration - dm%ndbstart + 1 )/dm%ndbfre * dm%ndbfre
+      call write_one_3d_array(dm%fbcx_qx_outl1, 'outlet1_qx', dm%idom, iter, dm%dxcc)
+      call write_one_3d_array(dm%fbcx_qx_outl2, 'outlet2_qx', dm%idom, iter, dm%dxcc)
+      call write_one_3d_array(dm%fbcx_qy_outl1, 'outlet1_qy', dm%idom, iter, dm%dxpc)
+      call write_one_3d_array(dm%fbcx_qy_outl2, 'outlet2_qy', dm%idom, iter, dm%dxpc)
+      call write_one_3d_array(dm%fbcx_qz_outl1, 'outlet1_qz', dm%idom, iter, dm%dxcp)
+      call write_one_3d_array(dm%fbcx_qz_outl2, 'outlet2_qz', dm%idom, iter, dm%dxcp)
+      call write_one_3d_array(dm%fbcx_pr_outl1, 'outlet1_pr', dm%idom, iter, dm%dxcc)
+      call write_one_3d_array(dm%fbcx_pr_outl2, 'outlet2_pr', dm%idom, iter, dm%dxcc)
+      !if(nrank == 0) write (*,*) " writing outlet database at ", fl%iteration, 'for iter =', iter -  dm%ndbfre, 'to ', iter
     end if
 ! #ifdef DEBUG_STEPS
 !     write(*,*) 'outlet bc'
@@ -451,7 +455,7 @@ contains
     type(t_domain), intent(inout) :: dm
     
     character(64):: data_flname_path
-    integer :: idom, iter, niter, j
+    integer :: idom, iter, niter, j, nmax
 
 
     if(.not. dm%is_read_xinlet) return
@@ -461,24 +465,24 @@ contains
     ! store : 
     !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
     !        niter:  1,  2,  3,..., 0
-    !    file name: 25, 35, 45 ...
+    !    file name: 10, 20, 45 ...
 
     iter = fl%iteration
-    if(iter > dm%ndbend) then
-      iter = mod(iter, dm%ndbend) ! database recycle
+    nmax = ((dm%ndbend - dm%ndbstart + 1) / dm%ndbfre) * dm%ndbfre
+    if(iter > nmax) then
+      iter = mod(iter, nmax) ! database recycle
     end if
 
     if(mod(iter, dm%ndbfre) == 1 .or. &
        iter == 0) then
 
       if (iter == 0) then
-        niter = dm%ndbstart + dm%ndbfre - 1
+        niter = dm%ndbfre
       else
-        niter = iter + dm%ndbstart - 1
-        niter = niter + dm%ndbfre - 1
+        niter = (iter + dm%ndbfre)/dm%ndbfre * dm%ndbfre
       end if
 
-      if(niter > dm%ndbend) niter = dm%ndbstart + dm%ndbfre - 1
+      !if(niter > dm%ndbend) niter = dm%ndbstart + dm%ndbfre - 1
 
       if(nrank == 0) call Print_debug_mid_msg("Read inlet database at iteration "&
         //trim(int2str(iter))//'/'//trim(int2str(niter)))

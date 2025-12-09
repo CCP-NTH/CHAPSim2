@@ -916,8 +916,8 @@ contains
 
 
     n = 128
-    dhmin = fluidparam%dhmin + TRUNCERR
-    dhmax = fluidparam%dhmax - TRUNCERR
+    dhmin = fluidparam%dhmin + MINP
+    dhmax = fluidparam%dhmax - MINP
     !write(*, *) 'dhmin, dhmax', dhmin, dhmax
     ! open (newunit = ftp_unit1, file = trim(dir_chkp)//'/check_ftp_from_dh_undim.dat')
     ! write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h, drhoh_drho'

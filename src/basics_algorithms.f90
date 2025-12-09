@@ -1,15 +1,54 @@
 module tridiagonal_matrix_algorithm
   implicit none
 
-  private :: Solve_TDMA_basic
+  private :: Solve_TDMA_prediag
   private :: Solve_TDMA_cyclic
   public  :: Preprocess_TDMA_coeffs
   public  :: Solve_TDMA
 
   public :: Test_TDMA_noncyclic
   public :: Test_TDMA_cyclic
+  public :: Solve_TDMA_standard
 
 contains
+ SUBROUTINE Solve_TDMA_standard(NG, T, A, BB, C)
+    use precision_mod
+    IMPLICIT NONE
+
+    INTEGER, INTENT(IN) :: NG
+    REAL(WP), DIMENSION(NG), INTENT(IN)    :: A
+    REAL(WP), DIMENSION(NG), INTENT(IN)    :: BB
+    REAL(WP), DIMENSION(NG), INTENT(IN)    :: C
+    REAL(WP), DIMENSION(NG), INTENT(INOUT) :: T
+    
+    INTEGER :: NR, MM1, I, IP
+    REAL(WP) :: Z
+    REAL(WP), DIMENSION(NG) :: D
+
+    NR = NG
+    MM1 = NR - 1
+    Z = 1.0_WP / BB(1)
+    D(1) = C(1) * Z
+    T(1) = T(1) * Z
+    DO I = 2, MM1
+        Z = 1.0_WP / (BB(I) - A(I) * D(I - 1))
+        D(I) = C(I) * Z
+        T(I) = (T(I) - A(I) * T(I - 1)) * Z
+    END DO
+    Z = BB(NR) - A(NR) * D(MM1)
+    IF (DABS(Z) > 1.0E-10_WP) THEN
+      T(NR) = (T(NR) - A(NR) * T(MM1)) /Z
+    ELSE
+      T(NR) = 0.0_WP
+    END IF
+
+    DO IP = 1, MM1
+      I = NR-IP
+      T(I) = T(I) - D(I) * T(I + 1)
+    END DO
+
+    RETURN
+  END SUBROUTINE
 !==========================================================================================================
   subroutine Preprocess_TDMA_coeffs(a, b, c, d, n)
     use math_mod
@@ -33,7 +72,7 @@ contains
     return
   end subroutine Preprocess_TDMA_coeffs
 !==========================================================================================================
-  subroutine Solve_TDMA_basic(x, a, b, c, d, n)
+  subroutine Solve_TDMA_prediag(x, a, b, c, d, n)
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ! solution of a tridiagnal system of n equations of the form
 ! 
@@ -63,7 +102,7 @@ contains
     end do
 
     return
-  end subroutine Solve_TDMA_basic
+  end subroutine Solve_TDMA_prediag
 !==========================================================================================================
   subroutine Solve_TDMA_cyclic(x, a, b, c, d, n)
 
@@ -76,12 +115,12 @@ contains
     real(WP), intent(in) :: c(n), d(n)
     real(WP) :: x1(n)
 
-    call Solve_TDMA_basic(x(1:n-1), a(1:n-1), b(1:n-1), c(1:n-1), d(1:n-1), n-1)
+    call Solve_TDMA_prediag(x(1:n-1), a(1:n-1), b(1:n-1), c(1:n-1), d(1:n-1), n-1)
     
     x1(:) = 0.0
     x1(1) = - a(1)
     x1(n-1) =  - c(n-1)
-    call Solve_TDMA_basic(x1(1:n-1), a(1:n-1), b(1:n-1), c(1:n-1), d(1:n-1), n-1)
+    call Solve_TDMA_prediag(x1(1:n-1), a(1:n-1), b(1:n-1), c(1:n-1), d(1:n-1), n-1)
 
     x(n) = (x(n) - c(n) * x(1) - a(n) * x(n-1)) / &
            (b(n) + c(n) * x1(1) + a(n) * x1(n-1))
@@ -102,7 +141,7 @@ contains
     if(peri) then
       call Solve_TDMA_cyclic(x(:), a(:), b(:), c(:), d(:), n)
     else 
-      call Solve_TDMA_basic (x(:), a(:), b(:), c(:), d(:), n)
+      call Solve_TDMA_prediag (x(:), a(:), b(:), c(:), d(:), n)
     end if
 
     return

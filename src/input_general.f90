@@ -582,8 +582,10 @@ contains
         domain(:)%ifft_lib = domain(1)%ifft_lib
 
         do i = 1, nxdomain
+          domain(i)%fft_skip_c2c(:) = .false.
           if(domain(i)%icoordinate == ICYLINDRICAL) then
             if (.not. is_even(domain(i)%nc(3))) domain(i)%nc(3) = domain(i)%nc(3) + 1
+            domain(i)%fft_skip_c2c(2) = .true.
           end if
           !----------------------------------------------------------------------------------------------------------
           !     stretching
@@ -619,8 +621,7 @@ contains
             ! do nothing...
           end if
           !
-          if(domain(i)%mstret == MSTRET_TANH)         domain(i)%ifft_lib = FFT_FISHPACK_2DFFT
-          if(domain(i)%ifft_lib == FFT_2DECOMP_3DFFT) domain(i)%mstret   = MSTRET_3FMD
+          if(.not. domain(i)%fft_skip_c2c(2)) domain(i)%mstret   = MSTRET_3FMD
         end do
 
         if(nrank == 0) then
@@ -699,7 +700,13 @@ contains
           if(flow(i)%inittype /= INIT_RESTART) flow(i)%iterfrom = 0
           flow(i)%init_velo3d(1:3) = flow(1)%init_velo3d(1:3)
           if(flow(i)%inittype == INIT_RESTART) flow(i)%reninit = flow(i)%ren
+          if(domain(i)%ibcx_nominal(1, 1) /= IBC_PERIODIC .or. &
+            domain(i)%ibcx_nominal(2, 1) /= IBC_PERIODIC) then 
+            flow(i)%reninit = flow(i)%ren
+          end if
         end do
+
+        
         
 
         if( nrank == 0) then
@@ -826,10 +833,11 @@ contains
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ndbfre, domain(1)%ndbstart, domain(1)%ndbend
         
         do i = 1, nxdomain
-            domain(i)%visu_nskip(1:3) = domain(1)%visu_nskip(1:3)
-            domain(i)%stat_nskip(1:3) = domain(1)%stat_nskip(1:3) 
-           if(domain(i)%is_stretching(2)) domain(i)%visu_nskip(2) = 1
-           if(domain(i)%is_stretching(2)) domain(i)%stat_nskip(2) = 1
+          domain(:)%ndbend = (domain(1)%ndbend - domain(1)%ndbstart + 1)/domain(1)%ndbfre * domain(1)%ndbfre + domain(1)%ndbstart - 1
+          domain(i)%visu_nskip(1:3) = domain(1)%visu_nskip(1:3)
+          domain(i)%stat_nskip(1:3) = domain(1)%stat_nskip(1:3) 
+          if(domain(i)%is_stretching(2)) domain(i)%visu_nskip(2) = 1
+          if(domain(i)%is_stretching(2)) domain(i)%stat_nskip(2) = 1
         end do
 
         if( nrank == 0) then

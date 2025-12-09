@@ -407,7 +407,7 @@ contains
         end do
         call fishpack_fft_1D(ifwrd, LPx, tx, WX)
         do i = 1, dm%dccc%xsz(1)
-          rhs_xpencil(i, j, k) = tx(i)
+          rhs_xpencil(i, j, k) = tx(i)/dm%nc(1)
           !if(dabs(tx(i)) > 1.E+8) write(*,*) 'test1', tx(i)
         end do
 
@@ -430,12 +430,21 @@ contains
         end do
         call fishpack_fft_1D(ifwrd, LPz, tz, WZ)
         do k = 1, dm%dccc%zsz(3)
-          rhs_zpencil(i, j, k) = tz(k)
+          rhs_zpencil(i, j, k) = tz(k)/dm%nc(3)
           !if(dabs(tz(k)) > 1.E+8) write(*,*) 'test2', tz(k)
         end do
 
       end do 
     end do  
+! #ifdef DEBUG_FFT
+    ! do k = 1, dm%dccc%zsz(3)
+    !    do j = 1, dm%dccc%zsz(2)
+    !       do i = 1, dm%dccc%zsz(1)
+    !          write(*,*) 'START',i,j,k,rhs_zpencil(i,j,k)
+    !       end do
+    !    end do
+    ! end do
+! #endif
     !write(*,'(A, I3, 1ES13.5)') ('test2', k, rhs_zpencil(16,32,k), k=1, dm%dccc%zsz(3))
     !-----------------------------------------------------------
     ! transfer data to Y-pencil for Y-TDMA
@@ -514,7 +523,7 @@ contains
     !-----------------------------------------------------------
     ! scale the result
     !-----------------------------------------------------------
-    rhs_xpencil = rhs_xpencil / SCALX / SCALZ
+    rhs_xpencil = rhs_xpencil! / SCALX / SCALZ
 !WRITE(*,*)'fft-out',rhs_xpencil
   return
   end subroutine

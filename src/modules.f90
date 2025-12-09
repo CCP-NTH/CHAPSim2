@@ -144,16 +144,16 @@ module parameters_constant_mod
 
   real(WP), parameter :: EIGHTYSEVEN = 87.0_WP
 
-  real(WP), parameter :: MINP        = 2.5E-16_WP
   real(WP), parameter :: MAXP        = 1.0E16_WP
   real(WP), parameter :: MAXVELO     = 1.0E3_WP
-
   real(WP), parameter :: MINN        = -1.0E16_WP
-  real(WP), parameter :: MAXN        = -2.5E-16_WP
-
-
-  real(WP), parameter :: TRUNCERR    = 2.5E-16_WP
-
+#ifdef SINGLE_PREC
+  real(WP), parameter :: MINP = 1.0E-8_WP
+  real(WP), parameter :: MAXN = -1.0E-8_WP
+#else
+  real(WP), parameter :: MINP = 1.0E-16_WP
+  real(WP), parameter :: MAXN = -1.0E-16_WP
+#endif
   
 
   real(WP), parameter :: PI          = 2.0_WP*(DASIN(1.0_WP)) !3.14159265358979323846_WP !dacos( -ONE ) 
@@ -451,6 +451,7 @@ module udf_type_mod
     logical :: is_record_xoutlet
     logical :: is_read_xinlet
     logical :: is_mhd
+    logical :: fft_skip_c2c(3)
     integer :: idom                  ! domain id
     integer :: icase                 ! case id
     integer :: icoordinate           ! coordinate type
@@ -1033,6 +1034,43 @@ contains
     real(kind = D15P) :: d
     d = atan ( r ) 
   end function
+
+  pure function rl(complexnumber) result(res)
+    use decomp_2d_mpi, only: mytype
+    implicit none
+    real(mytype) :: res
+    complex(mytype), intent(in) :: complexnumber
+    res = real(complexnumber, kind=mytype)
+  end function rl
+
+  pure function iy(complexnumber) result(res)
+    use decomp_2d_constants, only: mytype
+    implicit none
+    real(mytype) :: res
+    complex(mytype), intent(in) :: complexnumber
+    res = aimag(complexnumber)
+  end function iy
+
+  pure function cx(realpart, imaginarypart) result(res)
+    use decomp_2d_constants, only: mytype
+    implicit none
+    complex(mytype) :: res
+    real(mytype), intent(in) :: realpart, imaginarypart
+    res = cmplx(realpart, imaginarypart, kind=mytype)
+  end function cx
+
+  ! Safe division with MINP check
+  pure function safe_divide(numerator, denominator) result(res)
+    use decomp_2d_constants, only: mytype
+    real(mytype), intent(in) :: numerator, denominator
+    real(mytype) :: res
+    
+    if (abs_prec(denominator) > MINP) then
+      res = numerator / denominator
+    else
+      res = ZERO
+    end if
+  end function safe_divide
 
   ! heaviside_step
   pure function heaviside_step ( r ) result (d)

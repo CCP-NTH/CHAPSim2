@@ -91,7 +91,7 @@ OBJS1 = $(addprefix $(DIR_OBJ)/, \
       post_statistics.o \
       domain_decomposition.o \
       poisson_fishpack.o \
-      poisson_1stderivcomp.o \
+      poisson_1stderivcomp_fft2d.o \
       poisson_interface.o \
       bc_convective_outlet.o \
       eq_continuity.o \
