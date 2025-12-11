@@ -281,10 +281,10 @@ contains
     character(len = 80) :: secname
     character(len = 80) :: varname
     integer  :: itmp
-    real(WP) :: rtmp
+    real(WP) :: rtmp, diff, best_diff
     real(WP), allocatable :: rtmpx(:)
     integer, allocatable  :: itmpx(:)
-    integer :: i, j, m, n
+    integer :: i, j, m, n, D, S
     logical :: is_tmp
     logical :: is_any_energyeq
     
@@ -840,8 +840,30 @@ contains
           domain(i)%stat_nskip(1:3) = domain(1)%stat_nskip(1:3) 
           if(domain(i)%is_stretching(2)) domain(i)%visu_nskip(2) = 1
           if(domain(i)%is_stretching(2)) domain(i)%stat_nskip(2) = 1
+          !
+          do n = 1, 3
+            if((domain(i)%visu_nskip(n) < 1) .or. &
+               (domain(i)%visu_nskip(n) > (domain(i)%nc(n)+1))) then
+               domain(i)%visu_nskip(n) = 1
+            end if
+            if(domain(i)%visu_nskip(n) > 1) then
+              D = domain(i)%nc(n) - 1
+              S = 1
+              best_diff = abs(domain(i)%visu_nskip(n) - 1)
+              do j = 1, D
+                if (mod(D, j) == 0) then
+                    diff = abs(domain(i)%visu_nskip(n) - j)
+                    if (diff < best_diff) then
+                        best_diff = diff
+                        S = j
+                    end if
+                end if
+                domain(i)%visu_nskip(n) = S
+              end do
+            end if
+          end do
         end do
-
+        !
         if( nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i

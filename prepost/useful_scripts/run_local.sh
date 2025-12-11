@@ -63,7 +63,7 @@
 
 # Define the base directory for CHAPSim
 # chapsim_dir="/Users/wei.wang/Work_RSDevelopment/1_CHAPSim/CHAPSim2"
-chapsim_dir="/home/weiwang/Work_RSDevelopment/1_CHAPSim/CHAPSim2"
+chapsim_dir="/Users/wei.wang/Work_RSDevelopment/1_CHAPSim/CHAPSim2"
 
 # Check if input_chapsim.ini exists and ask user if they want to regenerate it
 iniautogen_file="$chapsim_dir/prepost/autoinput/autoinput.py"
@@ -152,9 +152,16 @@ if [ "$src_backup" = "y" ] || [ "$src_backup" = "Y" ]; then
     echo "Source files copied to: $src_dir"
 fi
 
-# Ask user for the number of processors (default is 1 if not provided)
-read -p "Enter the number of processors (default is 1): " num_processors
-num_processors=${num_processors:-1}
+# If an argument is provided, use it as the number of processors
+if [ -n "$1" ]; then
+    num_processors="$1"
+else
+    # No argument provided: ask the user
+    read -p "Enter the number of processors (default is 1): " num_processors
+    num_processors=${num_processors:-1}
+fi
+
+echo "Using $num_processors processor(s)..."
 
 # Validate input: Ensure num_processors is a positive integer
 if ! [ "$num_processors" -eq "$num_processors" ] 2>/dev/null || [ "$num_processors" -le 0 ]; then

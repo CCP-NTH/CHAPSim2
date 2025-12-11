@@ -810,7 +810,7 @@ contains
 
     implicit none
 
-    integer :: nx, ny, nz, i
+    !integer :: nx, ny, nz, i
     
     real(mytype) :: rl, iy
     external  rl, iy
@@ -864,14 +864,14 @@ contains
        error stop 'boundary condition not supported'
     end if
 
-    nx = nx_global
-    ny = ny_global
-    nz = nz_global
+    ! nx = nx_global
+    ! ny = ny_global
+    ! nz = nz_global
 
     ! pressure-grid having 1 fewer point for non-periodic directions
-    if (bcx==1) nx=nx-1
-    if (bcy==1) ny=ny-1
-    if (bcz==1) nz=nz-1
+    ! if (bcx==1) nx=nx-1
+    ! if (bcy==1) ny=ny-1
+    ! if (bcz==1) nz=nz-1
 
 #ifdef DEBUG_STEPS
    if(nrank==0) then
@@ -1080,15 +1080,16 @@ contains
 
     real(mytype) :: tmp1, tmp2,x ,y, z, avg_param
 
-    integer :: nx,ny,nz, i,j,k
+    !integer :: nx,ny,nz, 
+    integer :: i,j,k
 
     complex(mytype) :: cx
     real(mytype) :: rl, iy
     external cx, rl, iy
 
-    nx = nx_global
-    ny = ny_global
-    nz = nz_global
+    ! nx = nx_global
+    ! ny = ny_global
+    ! nz = nz_global
 
     if (.not. fft_initialised) then
        call decomp_2d_fft_init(PHYSICAL_IN_Z)
@@ -1255,7 +1256,8 @@ contains
     real(mytype) :: tmp1, tmp2, tmp3, tmp4
     real(mytype) :: xx1,xx2,xx3,xx4,xx5,xx6,xx7,xx8
 
-    integer :: nx,ny,nz, i,j,k, itmp
+    !integer :: nx,ny,nz, 
+    integer :: i,j,k, itmp
 
     complex(mytype) :: cx
     real(mytype) :: rl, iy
@@ -1263,9 +1265,9 @@ contains
 
 100 format(1x,a8,3I4,2F12.6)
 
-    nx = nx_global - 1
-    ny = ny_global
-    nz = nz_global
+    ! nx = nx_global - 1
+    ! ny = ny_global
+    ! nz = nz_global
 
     !write(*,*) 'Poisson_100'
     ! rhs is in Z-pencil but requires global operations in X
@@ -1516,7 +1518,8 @@ contains
     real(mytype) :: tmp1, tmp2, tmp3, tmp4
     real(mytype) :: xx1,xx2,xx3,xx4,xx5,xx6,xx7,xx8
 
-    integer :: nx,ny,nz, i,j,k
+    !integer :: nx,ny,nz, 
+    integer :: i,j,k
 
     complex(mytype) :: cx
     real(mytype) :: rl, iy
@@ -1526,9 +1529,9 @@ contains
 
 100 format(1x,a8,3I4,2F12.6)
 
-    nx = nx_global
-    ny = ny_global - 1
-    nz = nz_global
+    ! nx = nx_global
+    ! ny = ny_global - 1
+    ! nz = nz_global
 
 #ifdef DEBUG_FFT
     if (nrank .eq. 0) write(*,*)'# Poisoon_010 Init'
@@ -1880,7 +1883,8 @@ contains
     real(mytype) :: tmp1, tmp2, tmp3, tmp4
     real(mytype) :: xx1,xx2,xx3,xx4,xx5,xx6,xx7,xx8
 
-    integer :: nx,ny,nz, i,j,k,ii,jj,kk
+    !integer :: nx,ny,nz, 
+    integer :: i,j,k,ii,jj,kk
 
     complex(mytype) :: cx
     real(mytype) :: rl, iy
@@ -1890,9 +1894,9 @@ contains
 
 100 format(1x,a8,3I4,2F12.6)
 
-    nx = nx_global
-    ny = ny_global - 1
-    nz = nz_global
+    ! nx = nx_global
+    ! ny = ny_global - 1
+    ! nz = nz_global
 
 #ifdef DEBUG_FFT
     if (nrank .eq. 0) write(*,*)'# Poisoon_010 Init'
@@ -2266,7 +2270,8 @@ contains
     real(mytype) :: tmp1, tmp2, tmp3, tmp4
     real(mytype) :: xx1,xx2,xx3,xx4,xx5,xx6,xx7,xx8
 
-    integer :: nx,ny,nz, i,j,k
+    !integer :: nx,ny,nz, 
+    integer :: i,j,k
 
     complex(mytype) :: cx
     real(mytype) :: rl, iy
@@ -2277,14 +2282,14 @@ contains
 
 100 format(1x,a8,3I4,2F12.6)
 
-    nx = nx_global - 1
-    ny = ny_global - 1
-    !write(*,*) 'Poisson_11x'
-    if (bcz == 1) then
-       nz = nz_global - 1
-    else if (bcz == 0) then
-       nz = nz_global
-    end if
+    ! nx = nx_global - 1
+    ! ny = ny_global - 1
+    ! !write(*,*) 'Poisson_11x'
+    ! if (bcz == 1) then
+    !    nz = nz_global - 1
+    ! else if (bcz == 0) then
+    !    nz = nz_global
+    ! end if
 
     if (bcz == 1) then  
        do j = 1, ph%zsz(2)
@@ -2788,7 +2793,8 @@ contains
     real(mytype) :: tmp1, tmp2, tmp3, tmp4
     real(mytype) :: xx1,xx2,xx3,xx4,xx5,xx6,xx7,xx8
 
-    integer :: nx,ny,nz, i,j,k
+    !integer :: nx,ny,nz, 
+    integer :: i,j,k
 
     complex(mytype) :: cx
     real(mytype) :: rl, iy
@@ -2799,14 +2805,14 @@ contains
 
 100 format(1x,a8,3I4,2F12.6)
 
-    nx = nx_global - 1
-    ny = ny_global - 1
-    !write(*,*) 'Poisson_11x'
-    if (bcz == 1) then
-       nz = nz_global - 1
-    else if (bcz == 0) then
-       nz = nz_global
-    end if
+    ! nx = nx_global - 1
+    ! ny = ny_global - 1
+    ! !write(*,*) 'Poisson_11x'
+    ! if (bcz == 1) then
+    !    nz = nz_global - 1
+    ! else if (bcz == 0) then
+    !    nz = nz_global
+    ! end if
 
     if (bcz == 1) then  
        do j = 1, ph%zsz(2)

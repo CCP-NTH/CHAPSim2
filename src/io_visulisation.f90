@@ -350,8 +350,26 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! calculated structured grids geometry - Cartesian Coordinates
 !----------------------------------------------------------------------------------------------------------    
-    nnd_visu(1:3) = dm%np_geo(1:3)
-    ncl_visu(1:3) = dm%nc(1:3)
+    if(dm%visu_nskip(1) > 1 .or. dm%visu_nskip(2) > 1 .or. dm%visu_nskip(3) > 1) then
+      nnd_visu(1) = xszV(1)
+      nnd_visu(2) = yszV(2)
+      nnd_visu(3) = zszV(3)
+    else
+      nnd_visu(1) = dm%np_geo(1)
+      nnd_visu(2) = dm%np_geo(2)
+      nnd_visu(3) = dm%np_geo(3)
+    end if
+    
+    ncl_visu(1) = nnd_visu(1)-1
+    ncl_visu(2) = nnd_visu(2)-1
+    ncl_visu(3) = nnd_visu(3)-1
+    ! if(nrank==0) then
+    !   write(*,*) 'Visualisation grid size (nodes and cells):'
+    !   write(*,*) nnd_visu(1:3), ncl_visu(1:3)
+    ! end if
+    ! write(*,*) nrank, xstV(1), xstV(2), xstV(3)
+    ! write(*,*) nrank, xenV(1), xenV(2), xenV(3)
+
     nnd(1:3) = nnd_visu(1:3)
     if(nrank == 0) then
       if(dm%icoordinate == ICARTESIAN) then
@@ -363,17 +381,17 @@ contains
         zp1 = MAXP
 
         do i = 1, nnd_visu(1)
-          xp1(i) = real(i-1, WP) * dm%h(1)
+          xp1(i) = real(i-1, WP) * dm%h(1) * dm%visu_nskip(1)
         enddo
         do j = 1, nnd_visu(2)
           if(dm%is_stretching(2)) then 
             yp1(j) = dm%yp(j)
           else 
-            yp1(j) = real(j-1, WP) * dm%h(2)
+            yp1(j) = real(j-1, WP) * dm%h(2) * dm%visu_nskip(2)
           end if
         end do
         do k = 1, nnd_visu(3)
-          zp1(k) = real(k-1, WP) * dm%h(3)
+          zp1(k) = real(k-1, WP) * dm%h(3) * dm%visu_nskip(3)
         enddo
       end if
 !----------------------------------------------------------------------------------------------------------
@@ -392,17 +410,17 @@ contains
         zp = MAXP
 
         do i = 1, nnd_visu(1)
-          xp(i, :, :) = real(i-1, WP) * dm%h(1)
+          xp(i, :, :) = real(i-1, WP) * dm%h(1) * dm%visu_nskip(1)
         enddo
         do j = 1, nnd_visu(2)
           if(dm%is_stretching(2)) then 
             yp(:, j, :) = dm%yp(j)
           else 
-            yp(:, j, :) = real(j-1, WP) * dm%h(2)
+            yp(:, j, :) = real(j-1, WP) * dm%h(2) * dm%visu_nskip(2)
           end if
         end do
         do k = 1, nnd_visu(3)
-          zp(:, :, k) = real(k-1, WP) * dm%h(3)
+          zp(:, :, k) = real(k-1, WP) * dm%h(3) * dm%visu_nskip(3)
         enddo
 
         rp(:, :, :) = yp(:, :, :) 
@@ -629,6 +647,7 @@ contains
     character(64):: keyword
     integer :: nsz(3), nsz0
     integer :: ioxdmf
+    real(WP), dimension(xstV(1):xenV(1), xstV(2):xenV(2), xstV(3):xenV(3)) :: var_coarse
 
     if((.not. is_same_decomp(dtmp, dm%dccc))) then
       if(nrank == 0) call Print_error_msg("Data is not stored at cell centre. varname = " // trim(varname))
@@ -643,8 +662,15 @@ contains
 !----------------------------------------------------------------------------------------------------------
     if(dm%visu_idim == Ivisu_3D) then
       call generate_pathfile_name(data_flname_path, dm%idom, trim(keyword), dir_data, 'bin', iter)
-      if(.not.file_exists(data_flname_path)) &
-      call write_one_3d_array(var, trim(varname), dm%idom, iter, dtmp, opt_flname = data_flname_path)
+      if(.not.file_exists(data_flname_path)) then
+        if(dm%visu_nskip(1) == 1 .and. dm%visu_nskip(2) == 1 .and. dm%visu_nskip(3) == 1) then
+          call write_one_3d_array(var, trim(varname), dm%idom, iter, dtmp, opt_flname = data_flname_path)
+        else
+          var_coarse = MAXP
+          call fine_to_coarseV(IPENCIL(1), var, var_coarse)
+          call write_one_3d_array(var_coarse, trim(varname), dm%idom, iter, dtmp, opt_flname = data_flname_path)
+        end if
+      end if
     if(nrank == 0) write(*,*) data_flname_path
     else if(dm%visu_idim == Ivisu_1D_Y) then
       !to add 1D profile

@@ -80,7 +80,6 @@ contains
     implicit none 
     type(t_domain), intent(in) :: dm
     
-    logical is_start1 ! is index starting from 1.
 !----------------------------------------------------------------------------------------------------------
 ! if not #ifdef ADIOS2, do nothing below.
 !----------------------------------------------------------------------------------------------------------
@@ -89,8 +88,9 @@ contains
 ! re-define the grid mesh size, considering the nskip
 ! based on decomp_info of dppp (default one defined)
 !---------------------------------------------------------------------------------------------------------- 
-    is_start1 = .true.
-    !call init_coarser_mesh_statV(dm%visu_nskip(1), dm%visu_nskip(2), dm%visu_nskip(3), is_start1)
+    if(dm%visu_nskip(1) > 1 .or. dm%visu_nskip(2) > 1 .or. dm%visu_nskip(3) > 1) then
+      call init_coarser_mesh_statV(dm%visu_nskip(1), dm%visu_nskip(2), dm%visu_nskip(3), from1=.true.)
+    end if
     !call init_coarser_mesh_statS(dm%stat_nskip(1), dm%stat_nskip(2), dm%stat_nskip(3), is_start1)
 
   end subroutine 
