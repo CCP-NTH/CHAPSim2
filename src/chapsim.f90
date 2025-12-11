@@ -375,14 +375,27 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       if (iter > domain(i)%stat_istart .and. is_flow(i)) then
         if(domain(i)%is_thermo) then 
-          call update_stats_flow(flow(i), domain(i), tm=thermo(i))
+          if(domain(i)%is_mhd) then 
+            call update_stats_flow(flow(i), domain(i), tm=thermo(i), mh=mhd(i))
+          else
+            call update_stats_flow(flow(i), domain(i), tm=thermo(i))
+          end if
         else
-          call update_stats_flow(flow(i), domain(i))
+          if(domain(i)%is_mhd) then 
+            call update_stats_flow(flow(i), domain(i), mh=mhd(i))
+          else
+            call update_stats_flow(flow(i), domain(i))
+          end if
         end if
       end if
       if(domain(i)%is_thermo .and. is_thermo(i)) then
         if (iter > domain(i)%stat_istart) then
           call update_stats_thermo(thermo(i), domain(i))
+        end if
+      end if
+      if(domain(i)%is_mhd .and. is_flow(i)) then
+        if (iter > domain(i)%stat_istart) then
+          call update_stats_mhd(mhd(i), domain(i))
         end if
       end if
       !----------------------------------------------------------------------------------------------------------
@@ -423,6 +436,9 @@ subroutine Solve_eqs_iteration
           if(is_flow(i)) call write_visu_stats_flow(flow(i), domain(i))
           if(domain(i)%is_thermo .and. is_thermo(i)) then
             call write_visu_stats_thermo(thermo(i), domain(i))
+          end if
+          if(domain(i)%is_mhd .and. is_flow(i)) then
+            call write_visu_stats_mhd(mhd(i), domain(i))
           end if
         end if
       end if

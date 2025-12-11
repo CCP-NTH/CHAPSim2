@@ -68,6 +68,7 @@ contains
 
     if(mh%is_NStuart) mh%NHartmn = sqrt_wp( ONE/fl%rre * mh%NStuart)
     if(mh%is_NHartmn) mh%NStuart = mh%NHartmn * mh%NHartmn * fl%rre
+    mh%iterfrom = fl%iterfrom
 !----------------------------------------------------------------------------------------------------------
 !   Since B=(a, b, c) is a uniform field (constant in space), thus all derivatives of B are zero.
 !   This means: the the current density introduced by this magnetic field must be zero everywhere, 
@@ -439,6 +440,8 @@ contains
     real(WP), dimension(dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3)) :: accp_ypencil
     real(WP), dimension(dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3)) :: accc_zpencil
     real(WP), dimension(dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3)) :: accp_zpencil
+    !
+    mh%iteration = fl%iteration
 !----------------------------------------------------------------------------------------------------------
 ! calculate vector u cross-product vector b in x-pencil
 !----------------------------------------------------------------------------------------------------------

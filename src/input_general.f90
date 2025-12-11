@@ -779,6 +779,7 @@ contains
           if( (     mhd(1)%is_NStuart  .and.       mhd(1)%is_NHartmn) .or. &
             ( (.not.mhd(1)%is_NStuart) .and. (.not.mhd(1)%is_NHartmn)) ) &
           call Print_error_msg('Please provide either Stuart Number or Hartmann Number')
+          mhd(1)%iterfrom = flow(1)%iterfrom
         else
           read(inputUnit, *, iostat = ioerr) varname, is_tmp, rtmp
           read(inputUnit, *, iostat = ioerr) varname, is_tmp, rtmp
@@ -789,10 +790,10 @@ contains
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
             write (*, wrtfmt1l) 'is thermal field solved?', domain(i)%is_mhd
             if(mhd(1)%is_NStuart) &
-            write (*, wrtfmt1r) 'given Stuart Number :', mhd(1)%NStuart
+            write (*, wrtfmt1r) 'given Stuart Number :', mhd(i)%NStuart
             if(mhd(1)%is_NHartmn) &
-            write (*, wrtfmt1r) 'given Hartmann Number :', mhd(1)%NHartmn
-            write (*, wrtfmt3r) 'Static Magnetic field :', mhd(1)%B_static(1:3)
+            write (*, wrtfmt1r) 'given Hartmann Number :', mhd(i)%NHartmn
+            write (*, wrtfmt3r) 'Static Magnetic field :', mhd(i)%B_static(1:3)
           end do
         else if(nrank == 0) then
          call Print_note_msg(' MHD is not considered. ')

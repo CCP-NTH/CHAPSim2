@@ -155,6 +155,7 @@ contains
       call write_visu_ini(domain(i))
       call init_stats_flow(flow(i), domain(i))
       if(domain(i)%is_thermo) call init_stats_thermo(thermo(i), domain(i))
+      if(domain(i)%is_mhd) call init_stats_mhd(mhd(i), domain(i))
 #ifdef DEBUG_STEPS
       allocate( id ( domain(i)%dccc%xsz(1), domain(i)%dccc%xsz(2), domain(i)%dccc%xsz(3)) )
       id(:, :, :) = real(nrank, WP)

@@ -716,10 +716,11 @@ module udf_type_mod
     real(WP), allocatable :: tavg_fuu (:, :, :, :) ! 6 = rho*uu, rho*uv, rho*uw, rho*vv, rho*vw, rho*ww
     real(WP), allocatable :: tavg_fuuu(:, :, :, :) ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
     !
-    real(WP), allocatable :: tavg_tf  (:, :, :)
-    real(WP), allocatable :: tavg_tu  (:, :, :, :) ! 3 = u*t, v*t, w*t ( for temperature transport eq.)
-    real(WP), allocatable :: tavg_tfu (:, :, :, :) ! 3 = rho*u*t, rho*v*t, rho*w*t
-    real(WP), allocatable :: tavg_tfuu(:, :, :, :) ! 6 = rho*uu*t, rho*uv*t, rho*uw*t, rho*vv*t, rho*vw*t, rho*ww*t
+    real(WP), allocatable :: tavg_fh  (:, :, :)    ! fh= rho * h
+    real(WP), allocatable :: tavg_fuh (:, :, :, :) ! 3 = rho*u*h, rho*v*h, rho*w*h
+    real(WP), allocatable :: tavg_fuuh(:, :, :, :) ! 6 = rho*uu*h, rho*uv*h, rho*uw*h, rho*vv*h, rho*vw*h, rho*ww*h
+    ! MHD
+    real(WP), allocatable :: tavg_eu  (:, :, :, :)  ! 3 = phi * u, phi * v, phi * w
     
   end type t_flow
 !----------------------------------------------------------------------------------------------------------
@@ -749,9 +750,11 @@ module udf_type_mod
     real(WP), allocatable :: fbcx_rhoh_rhs0(:, :)  !
     real(WP), allocatable :: fbcz_rhoh_rhs0(:, :)  !
 
+    real(WP), allocatable :: tavg_h(:, :, :)
+    !real(WP), allocatable :: tavg_hh(:, :, :)
     real(WP), allocatable :: tavg_T(:, :, :)
     real(WP), allocatable :: tavg_TT(:, :, :)
-    real(WP), allocatable :: tavg_dTdT(:, :, :, :)   ! 6 = dt/dx * dt/dx, dt/dx * dt/dy, dt/dx * dt/dz, dt/dy * dt/dy, dt/dy * dt/dz, dt/dz * dt/dz
+    !real(WP), allocatable :: tavg_dTdT(:, :, :, :)   ! 6 = dt/dx * dt/dx, dt/dx * dt/dy, dt/dx * dt/dz, dt/dy * dt/dy, dt/dy * dt/dz, dt/dz * dt/dz
 
     type(t_fluidThermoProperty) :: ftp_ini ! undimensional
   end type t_thermo
@@ -760,6 +763,8 @@ module udf_type_mod
 !  mhd info
 !---------------------------------------------------------------------------------------------------------- 
   type t_mhd
+    integer  :: iterfrom
+    integer  :: iteration
     logical :: is_NStuart
     logical :: is_NHartmn
     real(WP) :: NStuart
@@ -820,6 +825,11 @@ module udf_type_mod
     real(WP), allocatable :: fbcx_bz(:, :, :)
     real(WP), allocatable :: fbcy_bz(:, :, :)
     real(WP), allocatable :: fbcz_bz(:, :, :)
+    !
+    real(WP), allocatable :: tavg_e (:, :, :)    ! e = electric potential, phi
+    real(WP), allocatable :: tavg_j (:, :, :, :) ! 3 = j1 , j2, j3
+    real(WP), allocatable :: tavg_ej(:, :, :, :) ! 3 = phi * j1 , phi * j2, phi * j3
+    real(WP), allocatable :: tavg_jj(:, :, :, :) ! 6 = jj11, jj12, jj13, jj22, jj23, jj33
   end type
 
 
