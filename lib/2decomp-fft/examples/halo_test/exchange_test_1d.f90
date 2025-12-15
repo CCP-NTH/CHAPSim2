@@ -24,7 +24,7 @@ program exchange_test
 
    integer, parameter :: nx_base = 65, ny_base = 48, nz_base = 33
    integer :: nx, ny, nz
-   integer :: p_row = 0, p_col = 0
+   integer :: p_row, p_col
    integer :: resize_domain
    integer :: nranks_tot
 
@@ -41,7 +41,7 @@ program exchange_test
 
    integer :: nx_expected, ny_expected, nz_expected
 
-   logical :: all_pass
+   logical :: passing, all_pass
 
    call MPI_INIT(ierror)
    ! To resize the domain we need to know global number of ranks
@@ -51,6 +51,11 @@ program exchange_test
    nx = nx_base * resize_domain
    ny = ny_base * resize_domain
    nz = nz_base * resize_domain
+
+   ! Create a slab decomposition
+   p_row = 1
+   p_col = nranks_tot
+
    ! Now we can check if user put some inputs
    call decomp_2d_testing_init(p_row, p_col, nx, ny, nz)
 
@@ -285,9 +290,9 @@ contains
       s2 = size(div1, dim=2)
       s3 = size(div1, dim=3)
 
-      halo_extents = halo_extents_t(1, [s1, s2, s3], decomp_main, 1, global)
+      halo_extents = init_halo_extents(1, [s1, s2, s3], decomp_main, [0, 1, 1], global)
 
-      call alloc_x(vh, opt_global=global, opt_depth=1)
+      call alloc_x(vh, opt_global=global, opt_levels=[0, 1, 1])
       call alloc_x(wh, opt_global=global, opt_levels=[0, 1, 1])
 
       ! Populate interiors
@@ -321,7 +326,7 @@ contains
 #endif
       ifirst = 2; ilast = xsize(1) - 1
 
-      call halo_exchange(vh, 1, opt_depth=1)
+      call halo_exchange(vh, 1, opt_levels=[0, 1, 1])
       call halo_exchange(wh, 1, opt_levels=[0, 1, 1])
 
       !$acc data copy(div1)
@@ -550,7 +555,6 @@ contains
       character(len=*), intent(in) :: pencil
       real(mytype), dimension(:, :, :), allocatable :: tmp
       real(mytype) :: divmag, error
-      logical :: passing
 #if defined(_GPU)
       attributes(device) :: tmp
 #endif

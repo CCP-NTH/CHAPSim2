@@ -23,10 +23,17 @@ module m_halo
       integer :: xs, xe
       integer :: ys, ye
       integer :: zs, ze
+      integer :: ipencil
+      integer, dimension(3) :: levels
+      integer, dimension(3) :: sizes
+   contains
+      procedure :: buffer_count  ! How many buffers
+      procedure :: buffer_length ! How many elements in each buffer
+      procedure :: buffer_stride ! How is the buffer data strided
    end type halo_extents_t
 
    interface halo_extents_t
-      procedure init_halo_extents
+      procedure init_halo_extents_short
    end interface halo_extents_t
 
    interface update_halo
@@ -38,7 +45,9 @@ module m_halo
 
    interface halo_exchange
       procedure halo_exchange_real
+      procedure halo_exchange_real_short
       procedure halo_exchange_complex
+      procedure halo_exchange_complex_short
    end interface halo_exchange
 
    private
@@ -46,6 +55,7 @@ module m_halo
    public :: init_neighbour
    public :: halo_exchange
    public :: halo_extents_t
+   public :: init_halo_extents
 
 contains
 
@@ -90,6 +100,15 @@ contains
 
    end subroutine init_neighbour
 
+   !---------------------------------------------------------------------
+   ! Given a local array, return a new array with halo padding filled by neighbouring processes.
+   ! -         in: the local input array
+   ! -        out: the returned array (with padding)
+   ! -      level: the halo depth to be applied in each axis perpendicular to the pencil
+   ! - opt_global: whether to use global (.true.) or local (.false., default) in exchanges
+   ! - opt_pencil: specifies which pencil orientation, otherwise falls back on legacy behaviour
+   !               using the array shape to determine the pencil (not recommended)
+   !---------------------------------------------------------------------
    subroutine update_halo_real_short(in, out, level, opt_global, opt_pencil)
 
       implicit none
@@ -107,6 +126,16 @@ contains
 
    end subroutine update_halo_real_short
 
+   !---------------------------------------------------------------------
+   ! Given a local array, return a new array with halo padding filled by neighbouring processes.
+   ! -         in: the local input array
+   ! -        out: the returned array (with padding)
+   ! -      level: the halo depth to be applied in each axis perpendicular to the pencil
+   ! -     decomp: the decomposition to use
+   ! - opt_global: whether to use global (.true.) or local (.false., default) in exchanges
+   ! - opt_pencil: specifies which pencil orientation, otherwise falls back on legacy behaviour
+   !               using the array shape to determine the pencil (not recommended)
+   !---------------------------------------------------------------------
    subroutine update_halo_real(in, out, level, decomp, opt_global, opt_pencil)
 
       implicit none
@@ -138,6 +167,15 @@ contains
       return
    end subroutine update_halo_real
 
+   !---------------------------------------------------------------------
+   ! Given a local array, return a new array with halo padding filled by neighbouring processes.
+   ! -         in: the local input array
+   ! -        out: the returned array (with padding)
+   ! -      level: the halo depth to be applied in each axis perpendicular to the pencil
+   ! - opt_global: whether to use global (.true.) or local (.false., default) in exchanges
+   ! - opt_pencil: specifies which pencil orientation, otherwise falls back on legacy behaviour
+   !               using the array shape to determine the pencil (not recommended)
+   !---------------------------------------------------------------------
    subroutine update_halo_complex_short(in, out, level, opt_global, opt_pencil)
 
       implicit none
@@ -155,6 +193,16 @@ contains
 
    end subroutine update_halo_complex_short
 
+   !---------------------------------------------------------------------
+   ! Given a local array, return a new array with halo padding filled by neighbouring processes.
+   ! -         in: the local input array
+   ! -        out: the returned array (with padding)
+   ! -      level: the halo depth to be applied in each axis perpendicular to the pencil
+   ! -     decomp: the decomposition to use
+   ! - opt_global: whether to use global (.true.) or local (.false., default) in exchanges
+   ! - opt_pencil: specifies which pencil orientation, otherwise falls back on legacy behaviour
+   !               using the array shape to determine the pencil (not recommended)
+   !---------------------------------------------------------------------
    subroutine update_halo_complex(in, out, level, decomp, opt_global, opt_pencil)
 
       implicit none
@@ -186,6 +234,12 @@ contains
       return
    end subroutine update_halo_complex
 
+   !---------------------------------------------------------------------
+   ! Utility function to determine the pencil orientation based on the shape of an array.
+   ! -      sizes: The [x,y,z] extents of the array
+   ! -     decomp: The decomposition to use
+   ! - opt_pencil: If specified, returns this pencil
+   !---------------------------------------------------------------------
    integer function get_pencil(sizes, decomp, opt_pencil)
       integer, dimension(3), intent(in) :: sizes
       type(decomp_info), intent(in) :: decomp
@@ -233,14 +287,64 @@ contains
 
    end function get_pencil
 
-   type(halo_extents_t) function init_halo_extents(ipencil, sizes, decomp, level, global) result(halo_extents)
+   !---------------------------------------------------------------------
+   ! Simple constructor for the halo_extents_t type. Applies a constant halo depth in each
+   ! perpendicular axis.
+   ! - ipencil: The pencil orientation
+   ! -   sizes: The local array size [x,y,z]
+   ! -  decomp: The parallel decomposition
+   ! -   level: The halo depth to use
+   ! -  global: Use global (.true.) or local (.false., default) numbering?
+   !---------------------------------------------------------------------
+   type(halo_extents_t) function init_halo_extents_short(ipencil, sizes, decomp, level, global) result(halo_extents)
       integer, intent(in) :: ipencil
       integer, dimension(3), intent(in) :: sizes
       type(decomp_info), intent(in) :: decomp
       integer, intent(in) :: level
       logical, intent(in) :: global
 
+      integer, dimension(3) :: levels
+
+      levels(:) = level
+      levels(ipencil) = 0
+
+      halo_extents = init_halo_extents(ipencil, sizes, decomp, levels, global)
+
+   end function init_halo_extents_short
+
+   !---------------------------------------------------------------------
+   ! Full constructor for the halo_extents_t type. Applies a user specified halo depth per axis.
+   ! - ipencil: The pencil orientation
+   ! -   sizes: The local array size [x,y,z]
+   ! -  decomp: The parallel decomposition
+   ! -  levels: The halo depth to use in each axis [x,y,z]
+   ! -  global: Use global (.true.) or local (.false., default) numbering?
+   !---------------------------------------------------------------------
+   type(halo_extents_t) function init_halo_extents(ipencil, sizes, decomp, levels, global) result(halo_extents)
+      integer, intent(in) :: ipencil
+      integer, dimension(3), intent(in) :: sizes
+      type(decomp_info), intent(in) :: decomp
+      integer, dimension(3), intent(in) :: levels
+      logical, intent(in) :: global
+
       integer :: s1, s2, s3
+      integer :: i
+
+      halo_extents%ipencil = ipencil
+      halo_extents%sizes = sizes
+      halo_extents%levels = levels
+
+      ! Check levels are sensible
+      if (any(levels < 0)) then
+         call decomp_2d_abort(1, "Negative halo depths are not supported")
+      end if
+      do i = 1, 3
+         if (i /= ipencil) then
+            if (levels(i) < 1) then
+               call decomp_2d_abort(1, "Halo exchange requires a non-zero depth in all perpendicular directions")
+            end if
+         end if
+      end do
 
       s1 = sizes(1)
       s2 = sizes(2)
@@ -251,47 +355,47 @@ contains
          if (global) then
             halo_extents%xs = decomp%xst(1)
             halo_extents%xe = decomp%xen(1)
-            halo_extents%ys = decomp%xst(2) - level
-            halo_extents%ye = decomp%xen(2) + level
-            halo_extents%zs = decomp%xst(3) - level
-            halo_extents%ze = decomp%xen(3) + level
+            halo_extents%ys = decomp%xst(2)
+            halo_extents%ye = decomp%xen(2)
+            halo_extents%zs = decomp%xst(3)
+            halo_extents%ze = decomp%xen(3)
          else
             halo_extents%xs = 1
             halo_extents%xe = s1
-            halo_extents%ys = 1 - level
-            halo_extents%ye = s2 + level
-            halo_extents%zs = 1 - level
-            halo_extents%ze = s3 + level
+            halo_extents%ys = 1
+            halo_extents%ye = s2
+            halo_extents%zs = 1
+            halo_extents%ze = s3
          end if
       else if (ipencil == 2) then  ! Y-pencil input
          if (global) then
-            halo_extents%xs = decomp%yst(1) - level
-            halo_extents%xe = decomp%yen(1) + level
+            halo_extents%xs = decomp%yst(1)
+            halo_extents%xe = decomp%yen(1)
             halo_extents%ys = decomp%yst(2)
             halo_extents%ye = decomp%yen(2)
-            halo_extents%zs = decomp%yst(3) - level
-            halo_extents%ze = decomp%yen(3) + level
+            halo_extents%zs = decomp%yst(3)
+            halo_extents%ze = decomp%yen(3)
          else
-            halo_extents%xs = 1 - level
-            halo_extents%xe = s1 + level
+            halo_extents%xs = 1
+            halo_extents%xe = s1
             halo_extents%ys = 1
             halo_extents%ye = s2
-            halo_extents%zs = 1 - level
-            halo_extents%ze = s3 + level
+            halo_extents%zs = 1
+            halo_extents%ze = s3
          end if
       else if (ipencil == 3) then  ! Z-pencil input
          if (global) then
-            halo_extents%xs = decomp%zst(1) - level
-            halo_extents%xe = decomp%zen(1) + level
-            halo_extents%ys = decomp%zst(2) - level
-            halo_extents%ye = decomp%zen(2) + level
+            halo_extents%xs = decomp%zst(1)
+            halo_extents%xe = decomp%zen(1)
+            halo_extents%ys = decomp%zst(2)
+            halo_extents%ye = decomp%zen(2)
             halo_extents%zs = decomp%zst(3)
             halo_extents%ze = decomp%zen(3)
          else
-            halo_extents%xs = 1 - level
-            halo_extents%xe = s1 + level
-            halo_extents%ys = 1 - level
-            halo_extents%ye = s2 + level
+            halo_extents%xs = 1
+            halo_extents%xe = s1
+            halo_extents%ys = 1
+            halo_extents%ye = s2
             halo_extents%zs = 1
             halo_extents%ze = s3
          end if
@@ -306,9 +410,80 @@ contains
          call decomp_2d_abort(__FILE__, __LINE__, 10, &
                               'Invalid data passed to update_halo')
       end if
+
+      halo_extents%xs = halo_extents%xs - levels(1)
+      halo_extents%xe = halo_extents%xe + levels(1)
+      halo_extents%ys = halo_extents%ys - levels(2)
+      halo_extents%ye = halo_extents%ye + levels(2)
+      halo_extents%zs = halo_extents%zs - levels(3)
+      halo_extents%ze = halo_extents%ze + levels(3)
+
    end function init_halo_extents
 
-   subroutine halo_exchange_real(arr, ipencil, halo_extents, level, sizes)
+   !---------------------------------------------------------------------
+   ! Simplified interface for performing the halo data exchange.
+   ! -        arr: The halo array, local data is sent to neighbours, on return contains updated halo
+   !               entries.
+   ! -    ipencil: The pencil orientation.
+   ! -  opt_depth: The halo depth when the direction is not the ipencil one
+   ! - opt_levels: The per-axis halo depths to use, if not supplied will use the default depths in
+   !               decomp_main.
+   !---------------------------------------------------------------------
+   subroutine halo_exchange_real_short(arr, ipencil, opt_depth, opt_levels)
+
+      real(mytype), dimension(:, :, :), intent(inout) :: arr
+#if defined(_GPU)
+      attributes(device) :: arr
+#endif
+      integer, intent(in) :: ipencil
+      integer, intent(in), optional :: opt_depth
+      integer, intent(in), dimension(3), optional :: opt_levels
+
+      integer, dimension(3) :: levels
+      integer, dimension(3) :: sizes
+      type(halo_extents_t) :: halo_extents
+
+      ! Safety check
+      if (ipencil < 1 .or. ipencil > 3) then
+         call decomp_2d_abort(__FILE__, __LINE__, ipencil, "Invalid argument")
+      end if
+
+      if (present(opt_levels)) then
+         levels = opt_levels
+      else if (present(opt_depth)) then
+         levels(:) = opt_depth
+         levels(ipencil) = 0
+      else if (ipencil == 1) then
+         levels = decomp_main%xlevel
+      else if (ipencil == 2) then
+         levels = decomp_main%ylevel
+      else if (ipencil == 3) then
+         levels = decomp_main%zlevel
+      else
+         levels = 0
+         call decomp_2d_abort(__FILE__, __LINE__, ipencil, "Invalid levels")
+      end if
+
+      sizes(1) = size(arr, dim=1)
+      sizes(2) = size(arr, dim=2)
+      sizes(3) = size(arr, dim=3)
+      sizes = sizes - 2 * levels
+      halo_extents = init_halo_extents(ipencil, sizes, decomp_main, levels, .false.)
+
+      call halo_exchange(arr, halo_extents)
+
+   end subroutine halo_exchange_real_short
+
+   !---------------------------------------------------------------------
+   ! Full interface for performing the halo data exchange.
+   ! -          arr: The halo array, local data is sent to neighbours, on return contains updated halo
+   !                 entries.
+   ! -      ipencil: The pencil orientation.
+   ! - halo_extents: Halo descriptor object, provides the start/end indices of the extended array.
+   ! -       levels: The per-axis halo depths to use.
+   ! -       sizes: The local array shape.
+   !---------------------------------------------------------------------
+   subroutine halo_exchange_real(arr, halo_extents)
 
       type(halo_extents_t), intent(in) :: halo_extents
       real(mytype), dimension(halo_extents%xs:halo_extents%xe, &
@@ -317,10 +492,11 @@ contains
 #if defined(_GPU)
       attributes(device) :: arr
 #endif
-      integer, intent(in) :: ipencil
-      integer, intent(in) :: level
-      integer, dimension(3), intent(in) :: sizes
 
+      integer :: ipencil
+
+      integer, dimension(3) :: levels
+      integer, dimension(3) :: sizes
       integer :: s1, s2, s3
 
       integer, parameter :: data_type = real_type
@@ -335,6 +511,10 @@ contains
 #ifdef HALO_DEBUG
       integer :: i, j, k
 #endif
+
+      ipencil = halo_extents%ipencil
+      levels = halo_extents%levels
+      sizes = halo_extents%sizes
 
       s1 = sizes(1)
       s2 = sizes(2)
@@ -352,7 +532,70 @@ contains
 
    end subroutine halo_exchange_real
 
-   subroutine halo_exchange_complex(arr, ipencil, halo_extents, level, sizes)
+   !---------------------------------------------------------------------
+   ! Simplified interface for performing the halo data exchange.
+   ! -        arr: The halo array, local data is sent to neighbours, on return contains updated halo
+   !               entries.
+   ! -    ipencil: The pencil orientation.
+   ! -  opt_depth: The halo depth when the direction is not the ipencil one
+   ! - opt_levels: The per-axis halo depths to use, if not supplied will use the default depths in
+   !               decomp_main.
+   !---------------------------------------------------------------------
+   subroutine halo_exchange_complex_short(arr, ipencil, opt_depth, opt_levels)
+
+      complex(mytype), dimension(:, :, :), intent(inout) :: arr
+#if defined(_GPU)
+      attributes(device) :: arr
+#endif
+      integer, intent(in) :: ipencil
+      integer, intent(in), optional :: opt_depth
+      integer, intent(in), dimension(3), optional :: opt_levels
+
+      integer, dimension(3) :: levels
+      integer, dimension(3) :: sizes
+      type(halo_extents_t) :: halo_extents
+
+      ! Safety check
+      if (ipencil < 1 .or. ipencil > 3) then
+         call decomp_2d_abort(__FILE__, __LINE__, ipencil, "Invalid argument")
+      end if
+
+      if (present(opt_levels)) then
+         levels = opt_levels
+      else if (present(opt_depth)) then
+         levels(:) = opt_depth
+         levels(ipencil) = 0
+      else if (ipencil == 1) then
+         levels = decomp_main%xlevel
+      else if (ipencil == 2) then
+         levels = decomp_main%ylevel
+      else if (ipencil == 3) then
+         levels = decomp_main%zlevel
+      else
+         levels = 0
+         call decomp_2d_abort(__FILE__, __LINE__, ipencil, "Invalid levels")
+      end if
+
+      sizes(1) = size(arr, dim=1)
+      sizes(2) = size(arr, dim=2)
+      sizes(3) = size(arr, dim=3)
+      sizes = sizes - 2 * levels
+      halo_extents = init_halo_extents(ipencil, sizes, decomp_main, levels, .false.)
+
+      call halo_exchange(arr, halo_extents)
+
+   end subroutine halo_exchange_complex_short
+
+   !---------------------------------------------------------------------
+   ! Full interface for performing the halo data exchange.
+   ! -          arr: The halo array, local data is sent to neighbours, on return contains updated halo
+   !                 entries.
+   ! -      ipencil: The pencil orientation.
+   ! - halo_extents: Halo descriptor object, provides the start/end indices of the extended array.
+   ! -       levels: The per-axis halo depths to use.
+   ! -       sizes: The local array shape.
+   !---------------------------------------------------------------------
+   subroutine halo_exchange_complex(arr, halo_extents)
 
       type(halo_extents_t), intent(in) :: halo_extents
       complex(mytype), dimension(halo_extents%xs:halo_extents%xe, &
@@ -361,10 +604,10 @@ contains
 #if defined(_GPU)
       attributes(device) :: arr
 #endif
-      integer, intent(in) :: ipencil
-      integer, intent(in) :: level
-      integer, dimension(3), intent(in) :: sizes
 
+      integer :: ipencil
+      integer, dimension(3) :: levels
+      integer, dimension(3) :: sizes
       integer :: s1, s2, s3
 
       integer, parameter :: data_type = complex_type
@@ -379,6 +622,10 @@ contains
 #ifdef HALO_DEBUG
       integer :: i, j, k
 #endif
+
+      ipencil = halo_extents%ipencil
+      levels = halo_extents%levels
+      sizes = halo_extents%sizes
 
       s1 = sizes(1)
       s2 = sizes(2)
@@ -395,5 +642,124 @@ contains
       !$acc exit data delete(neighbour,requests)
 
    end subroutine halo_exchange_complex
+
+   integer function buffer_count(self, dir) result(count)
+      class(halo_extents_t) :: self
+      integer, intent(in) :: dir
+
+      if (self%ipencil == 1) then
+         if (dir == 2) then
+            ! North/South buffer
+            count = self%sizes(3) + 2 * self%levels(3)
+         else if (dir == 3) then
+            ! Top/Bottom buffer: contiguous in memory, count is undefined
+            count = 1
+         else
+            count = 0
+         end if
+      else if (self%ipencil == 2) then
+         if (dir == 1) then
+            ! East/West buffer
+            count = (self%sizes(2) + 2 * self%levels(2)) * (self%sizes(3) + 2 * self%levels(3))
+         else if (dir == 3) then
+            ! Top/Bottom buffer: contiguous in memory, count is undefined
+            count = 1
+         else
+            count = 0
+         end if
+      else if (self%ipencil == 3) then
+         if (dir == 1) then
+            ! East/West buffer
+            count = (self%sizes(2) + 2 * self%levels(2)) * (self%sizes(3) + 2 * self%levels(3))
+         else if (dir == 2) then
+            ! Noth/South buffer
+            count = self%sizes(3) + 2 * self%levels(3)
+         else
+            count = 0
+         end if
+      else
+         count = -1
+      end if
+
+   end function buffer_count
+
+   integer function buffer_length(self, dir) result(length)
+      class(halo_extents_t) :: self
+      integer, intent(in) :: dir
+
+      if (self%ipencil == 1) then
+         if (dir == 2) then
+            ! North/South buffer
+            length = (self%sizes(1) + 2 * self%levels(1)) * self%levels(2)
+         else if (dir == 3) then
+            ! Top/Bottom buffer
+            length = (self%sizes(1) + 2 * self%levels(1)) * (self%sizes(2) + 2 * self%levels(2)) * self%levels(3)
+         else
+            length = 0
+         end if
+      else if (self%ipencil == 2) then
+         if (dir == 1) then
+            ! East/West buffer
+            length = self%levels(1)
+         else if (dir == 3) then
+            ! Top/Bottom buffer
+            length = (self%sizes(1) + 2 * self%levels(1)) * (self%sizes(2) + 2 * self%levels(2)) * self%levels(3)
+         else
+            length = 0
+         end if
+      else if (self%ipencil == 3) then
+         if (dir == 1) then
+            ! East/West buffer
+            length = self%levels(1)
+         else if (dir == 2) then
+            ! Noth/South buffer
+            length = (self%sizes(1) + 2 * self%levels(1)) * self%levels(2)
+         else
+            length = 0
+         end if
+      else
+         length = -1
+      end if
+
+   end function buffer_length
+
+   integer function buffer_stride(self, dir) result(stride)
+      class(halo_extents_t) :: self
+      integer, intent(in) :: dir
+
+      if (self%ipencil == 1) then
+         if (dir == 2) then
+            ! North/South buffer
+            stride = (self%sizes(1) + 2 * self%levels(1)) * (self%sizes(2) + 2 * self%levels(2))
+         else if (dir == 3) then
+            ! Top/Bottom buffer: contiguous in memory, stride is undefined
+            stride = -1
+         else
+            stride = 0
+         end if
+      else if (self%ipencil == 2) then
+         if (dir == 1) then
+            ! East/West buffer
+            stride = self%sizes(1) + 2 * self%levels(1)
+         else if (dir == 3) then
+            ! Top/Bottom buffer: contiguous in memory, stride is undefined
+            stride = -1
+         else
+            stride = 0
+         end if
+      else if (self%ipencil == 3) then
+         if (dir == 1) then
+            ! East/West buffer
+            stride = self%sizes(1) + 2 * self%levels(1)
+         else if (dir == 2) then
+            ! Noth/South buffer
+            stride = (self%sizes(1) + 2 * self%levels(1)) * (self%sizes(2) + 2 * self%levels(2))
+         else
+            stride = 0
+         end if
+      else
+         stride = -1
+      end if
+   end function buffer_stride
 
 end module m_halo
