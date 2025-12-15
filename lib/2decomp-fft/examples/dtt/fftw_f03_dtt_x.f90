@@ -22,6 +22,7 @@ program dtt_x
    type(decomp_info), pointer :: ph => null(), sp => null()
    ! Ouput when there is no periodicity
    real(mytype), target, allocatable, dimension(:, :, :) :: out_r
+   complex(mytype), target, allocatable, dimension(:, :, :) :: out_c
    ! Input
    real(mytype), target, allocatable, dimension(:, :, :) :: in_r
    ! Objects
@@ -51,19 +52,19 @@ program dtt_x
    ! Now we can check if user put some inputs
    call decomp_2d_testing_init(p_row, p_col, nx, ny, nz, dttxi, dttyi, dttzi)
    if (dttxi == -1) then
-      dttxi = 2
+      dttxi = 1
       dttxf = 9
    else
       dttxf = dttxi
    end if
    if (dttyi == -1) then
-      dttyi = 2
+      dttyi = 1
       dttyf = 9
    else
       dttyf = dttyi
    end if
    if (dttzi == -1) then
-      dttzi = 2
+      dttzi = 1
       dttzf = 9
    else
       dttzf = dttzi
@@ -92,7 +93,7 @@ program dtt_x
    do j = dttxi, dttxf
       do k = dttyi, dttyf
          do l = dttzi, dttzf
-
+            if (nrank == 0) write(*,*) "Testing Case j,k,l", j,k,l
             ! Init the FFT engine
             call dtt_engine%init(pencil=PHYSICAL_IN_X, &
                                  nx=nx, ny=ny, nz=nz, &
@@ -101,13 +102,18 @@ program dtt_x
 
             ! Get the decomp_info objects
             ph => decomp_2d_fft_get_ph()
-            sp => ph
+            sp => decomp_2d_fft_get_dtt_sp()
 
             ! Allocate memory and set to zero
             call alloc_x(in_r, ph, opt_global=.true.)
             in_r = 0._mytype
-            call alloc_z(out_r, sp, opt_global=.true.)
-            out_r = 0._mytype
+            if (minval(DTT(:, j, k, l)) == 0) then
+               call alloc_z(out_c, sp, opt_global=.true.)
+               out_c = 0._mytype
+            else
+               call alloc_z(out_r, sp, opt_global=.true.)
+               out_r = 0._mytype
+            end if
 
             ! Local size
             st1 = ph%xst(1); en1 = ph%xen(1)
@@ -127,13 +133,13 @@ program dtt_x
 
             ! Perform forward and backward transform once
             ! Forward, real input, real output
-            call decomp_2d_dtt_3d_r2r(in_r, out_r, DECOMP_2D_FFT_FORWARD)
+            call decomp_2d_dtt_3d_r2x(in_r, out_r, out_c)
             ! Backward, real input, real output
-            call decomp_2d_dtt_3d_r2r(out_r, in_r, DECOMP_2D_FFT_BACKWARD)
+            call decomp_2d_dtt_3d_x2r(in_real=out_r, in_cplx=out_c, out=in_r)
 
             ! Rescale
             if (DTT(1, j, k, l) == 0) then
-               in_r = in_r / real(nx, mytype)
+               in_r = in_r / real(nx - dtt_engine%dtt(7), mytype)
             else if (DTT(1, j, k, l) == 1 .or. DTT(1, j, k, l) == 4) then
                in_r = in_r / real(2 * nx - 2, mytype)
             else if (DTT(1, j, k, l) == 5) then
@@ -142,7 +148,7 @@ program dtt_x
                in_r = in_r / real(2 * nx - 2 * dtt_engine%dtt(7), mytype)
             end if
             if (DTT(2, j, k, l) == 0) then
-               in_r = in_r / real(ny, mytype)
+               in_r = in_r / real(ny - dtt_engine%dtt(8), mytype)
             else if (DTT(2, j, k, l) == 1 .or. DTT(2, j, k, l) == 4) then
                in_r = in_r / real(2 * ny - 2, mytype)
             else if (DTT(2, j, k, l) == 5) then
@@ -151,7 +157,7 @@ program dtt_x
                in_r = in_r / real(2 * ny - 2 * dtt_engine%dtt(8), mytype)
             end if
             if (DTT(3, j, k, l) == 0) then
-               in_r = in_r / real(nz, mytype)
+               in_r = in_r / real(nz - dtt_engine%dtt(9), mytype)
             else if (DTT(3, j, k, l) == 1 .or. DTT(3, j, k, l) == 4) then
                in_r = in_r / real(2 * nz - 2, mytype)
             else if (DTT(3, j, k, l) == 5) then
@@ -213,6 +219,7 @@ program dtt_x
 
             ! Free memory and objects
             if (allocated(out_r)) deallocate (out_r)
+            if (allocated(out_c)) deallocate (out_c)
             deallocate (in_r)
             nullify (sp)
             nullify (ph)

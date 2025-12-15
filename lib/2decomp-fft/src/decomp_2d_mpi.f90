@@ -156,9 +156,9 @@ contains
       if (nrank == 0) then
          write (*, *) '2DECOMP&FFT ERROR - errorcode: ', errorcode
          write (*, *) 'ERROR MESSAGE: '//msg
-         write (error_unit, *) '2DECOMP&FFT ERROR - errorcode: ', errorcode
-         write (error_unit, *) 'ERROR MESSAGE: '//msg
       end if
+      write (error_unit, *) '2DECOMP&FFT ERROR - errorcode: ', errorcode
+      write (error_unit, *) 'ERROR MESSAGE: '//msg
       call MPI_ABORT(decomp_2d_comm, errorcode, ierror)
 
    end subroutine decomp_2d_abort_basic
@@ -180,12 +180,12 @@ contains
          write (*, *) '  error in file  '//file
          write (*, *) '           line  ', line
          write (*, *) '  error message: '//msg
-         write (error_unit, *) '2DECOMP&FFT ERROR'
-         write (error_unit, *) '  errorcode:     ', errorcode
-         write (error_unit, *) '  error in file  '//file
-         write (error_unit, *) '           line  ', line
-         write (error_unit, *) '  error message: '//msg
       end if
+      write (error_unit, *) '2DECOMP&FFT ERROR'
+      write (error_unit, *) '  errorcode:     ', errorcode
+      write (error_unit, *) '  error in file  '//file
+      write (error_unit, *) '           line  ', line
+      write (error_unit, *) '  error message: '//msg
       call MPI_ABORT(decomp_2d_comm, errorcode, ierror)
 
    end subroutine decomp_2d_abort_file_line
@@ -268,9 +268,9 @@ contains
       if (nrank == 0) then
          write (*, *) '2DECOMP&FFT WARNING - errorcode: ', errorcode
          write (*, *) 'ERROR MESSAGE: '//msg
-         write (error_unit, *) '2DECOMP&FFT WARNING - errorcode: ', errorcode
-         write (error_unit, *) 'ERROR MESSAGE: '//msg
       end if
+      write (error_unit, *) '2DECOMP&FFT WARNING - errorcode: ', errorcode
+      write (error_unit, *) 'ERROR MESSAGE: '//msg
 
    end subroutine decomp_2d_warning_basic
 
@@ -289,12 +289,12 @@ contains
          write (*, *) '  error in file  '//file
          write (*, *) '           line  ', line
          write (*, *) '  error message: '//msg
-         write (error_unit, *) '2DECOMP&FFT WARNING'
-         write (error_unit, *) '  errorcode:     ', errorcode
-         write (error_unit, *) '  error in file  '//file
-         write (error_unit, *) '           line  ', line
-         write (error_unit, *) '  error message: '//msg
       end if
+      write (error_unit, *) '2DECOMP&FFT WARNING'
+      write (error_unit, *) '  errorcode:     ', errorcode
+      write (error_unit, *) '  error in file  '//file
+      write (error_unit, *) '           line  ', line
+      write (error_unit, *) '  error message: '//msg
 
    end subroutine decomp_2d_warning_file_line
 

@@ -56,6 +56,9 @@ module decomp_2d_fft
    ! Flag to check if DTT is active
    logical, pointer, save :: with_dtt => null()
 
+   ! Flag to check if a 1D DTT is periodic
+   logical, save :: dtt_x_dft, dtt_y_dft, dtt_z_dft
+
    ! array with the DTT setup
    integer, contiguous, pointer, save :: dtt(:) => null()
 
@@ -63,6 +66,11 @@ module decomp_2d_fft
    !    1, 2, 3 : forward transform in X, Y and Z
    !    4, 5, 6 : backward transform in X, Y and Z
    type(C_PTR), contiguous, pointer, save :: dtt_plan(:) => null()
+
+   ! Decomposition objects for DTT
+   type(decomp_info), pointer, save :: dtt_decomp_xy => null(), &
+                                       dtt_decomp_yz => null(), &
+                                       dtt_decomp_sp => null()
 
    ! Derived type with all the quantities needed to perform FFT
    type decomp_2d_fft_engine
@@ -78,7 +86,11 @@ module decomp_2d_fft
       ! Below is specific to DTT
       logical, public :: with_dtt
       integer, allocatable, public, dimension(:) :: dtt
-      type(C_PTR), private :: dtt_plan(6)
+      type(C_PTR), private :: dtt_plan(6) ! (1:3) Forward (4:6) backward
+      type(decomp_info), pointer, public :: dtt_decomp_sp => null()
+      type(decomp_info), pointer, private :: dtt_decomp_xy => null(), &
+                                             dtt_decomp_yz => null()
+      type(decomp_info), private :: dtt_decomp_sp_target
    contains
       procedure, public :: init => decomp_2d_fft_engine_init
       procedure, public :: fin => decomp_2d_fft_engine_fin
@@ -101,10 +113,10 @@ module decomp_2d_fft
    type(decomp_2d_fft_engine), allocatable, target, save :: fft_engines(:)
 
    public :: decomp_2d_fft_init, decomp_2d_fft_3d, &
-             decomp_2d_dtt_3d_r2r, &
+             decomp_2d_dtt_3d_x2r, decomp_2d_dtt_3d_r2x, &
              decomp_2d_fft_finalize, decomp_2d_fft_get_size, &
              decomp_2d_fft_get_ph, decomp_2d_fft_get_sp, &
-             decomp_2d_fft_get_dtt_input, &
+             decomp_2d_fft_get_dtt_sp, decomp_2d_fft_get_dtt_input, &
              decomp_2d_fft_get_ngrid, decomp_2d_fft_set_ngrid, &
              decomp_2d_fft_use_grid, decomp_2d_fft_engine, &
              decomp_2d_fft_get_engine, decomp_2d_fft_get_format, &
@@ -345,26 +357,27 @@ contains
       class(decomp_2d_fft_engine), intent(inout), target :: engine
       integer, dimension(:), intent(in) :: in_DTT
 
+#ifdef EVEN
+      integer :: dims(2)
+#endif
+
       ! Safety check
       if (size(in_DTT) < 3) call decomp_2d_abort(__FILE__, __LINE__, size(in_DTT), "Invalid argument")
-      if (minval(in_DTT(1:3)) < 1) call decomp_2d_abort(__FILE__, __LINE__, minval(in_DTT(1:3)), "Invalid argument")
-      if (maxval(in_DTT(1:3)) > 8) call decomp_2d_abort(__FILE__, __LINE__, maxval(in_DTT(1:3)), "Invalid argument")
+      if (minval(in_DTT(1:3)) < 0) call decomp_2d_abort(__FILE__, __LINE__, minval(in_DTT), "Invalid argument")
+      if (maxval(in_DTT(1:3)) > 8) call decomp_2d_abort(__FILE__, __LINE__, maxval(in_DTT), "Invalid argument")
 
       ! Prepare engine%dtt
       ! Mandatory
       !    1:3 => type of forward transform
       ! Optional, default values in dtt_assign_default
-      !    4:6 => ifirst, index where the in-place r2r transform starts
+      !    4:6 => ifirst, index where the transform starts in the input
       !    7:9 => ndismiss, number of points skipped
-      !    10:12 => ofirst, should match ifirst (in-place r2r transform)
+      !    10:12 => ofirst, index where the transform starts in the output
       ! Values defined in dtt_invert
       !    12:15 => type of backward transform
       allocate (engine%dtt(15))
       if (size(in_DTT) == 12) then
          engine%dtt(1:12) = in_DTT
-         if (any(engine%dtt(4:6) /= engine%dtt(10:12))) then
-            call decomp_2d_abort(__FILE__, __LINE__, 1, "Setup is not compatible with in-place r2r transforms")
-         end if
       elseif (size(in_DTT) == 3) then
          engine%dtt(1:3) = in_DTT
          call dtt_assign_default(engine%dtt)
@@ -375,17 +388,148 @@ contains
       call dtt_for_fftw(engine%dtt(1:3))
       call dtt_for_fftw(engine%dtt(13:15))
 
+      ! Prepare the decomp_info objects
+      if (engine%format == PHYSICAL_IN_X) then
+         if (engine%dtt(1) == FFTW_FORWARD .and. engine%dtt(7) == 0) then
+            engine%dtt_decomp_xy => engine%sp
+            engine%dtt_decomp_yz => engine%sp
+            engine%dtt_decomp_sp => engine%sp
+         else if (engine%dtt(1) == FFTW_FORWARD) then
+            call decomp_info_init((engine%nx_fft - engine%dtt(7)) / 2 + 1, engine%ny_fft, engine%nz_fft, engine%dtt_decomp_sp_target)
+            engine%dtt_decomp_xy => engine%dtt_decomp_sp_target
+            engine%dtt_decomp_yz => engine%dtt_decomp_sp_target
+            engine%dtt_decomp_sp => engine%dtt_decomp_sp_target
+         else if (engine%dtt(2) == FFTW_FORWARD) then
+            engine%dtt_decomp_xy => engine%ph
+            call decomp_info_init(engine%nx_fft, (engine%ny_fft - engine%dtt(8)) / 2 + 1, engine%nz_fft, engine%dtt_decomp_sp_target)
+            engine%dtt_decomp_yz => engine%dtt_decomp_sp_target
+            engine%dtt_decomp_sp => engine%dtt_decomp_sp_target
+         else if (engine%dtt(3) == FFTW_FORWARD) then
+            engine%dtt_decomp_xy => engine%ph
+            engine%dtt_decomp_yz => engine%ph
+            call decomp_info_init(engine%nx_fft, engine%ny_fft, (engine%nz_fft - engine%dtt(9)) / 2 + 1, engine%dtt_decomp_sp_target)
+            engine%dtt_decomp_sp => engine%dtt_decomp_sp_target
+         else
+            engine%dtt_decomp_xy => engine%ph
+            engine%dtt_decomp_yz => engine%ph
+            engine%dtt_decomp_sp => engine%ph
+         end if
+      else
+         if (engine%dtt(3) == FFTW_FORWARD .and. engine%dtt(9) == 0) then
+            engine%dtt_decomp_yz => engine%sp
+            engine%dtt_decomp_xy => engine%sp
+            engine%dtt_decomp_sp => engine%sp
+         else if (engine%dtt(3) == FFTW_FORWARD) then
+            call decomp_info_init(engine%nx_fft, engine%ny_fft, (engine%nz_fft - engine%dtt(9)) / 2 + 1, engine%dtt_decomp_sp_target)
+            engine%dtt_decomp_yz => engine%dtt_decomp_sp_target
+            engine%dtt_decomp_xy => engine%dtt_decomp_sp_target
+            engine%dtt_decomp_sp => engine%dtt_decomp_sp_target
+         else if (engine%dtt(2) == FFTW_FORWARD) then
+            engine%dtt_decomp_yz => engine%ph
+            call decomp_info_init(engine%nx_fft, (engine%ny_fft - engine%dtt(8)) / 2 + 1, engine%nz_fft, engine%dtt_decomp_sp_target)
+            engine%dtt_decomp_xy => engine%dtt_decomp_sp_target
+            engine%dtt_decomp_sp => engine%dtt_decomp_sp_target
+         else if (engine%dtt(1) == FFTW_FORWARD) then
+            engine%dtt_decomp_yz => engine%ph
+            engine%dtt_decomp_xy => engine%ph
+            call decomp_info_init((engine%nx_fft - engine%dtt(7)) / 2 + 1, engine%ny_fft, engine%nz_fft, engine%dtt_decomp_sp_target)
+            engine%dtt_decomp_sp => engine%dtt_decomp_sp_target
+         else
+            engine%dtt_decomp_yz => engine%ph
+            engine%dtt_decomp_xy => engine%ph
+            engine%dtt_decomp_sp => engine%ph
+         end if
+      end if
+
+      ! Resize the memory pool if needed
+      if (allocated(engine%dtt_decomp_sp_target%x1dist)) then
+         if (use_pool) call decomp_pool%new_shape(complex_type, engine%dtt_decomp_sp_target)
+#ifdef EVEN
+         dims = get_decomp_dims()
+         if (use_pool) call decomp_pool%new_shape(complex_type, shp=(/max(engine%dtt_decomp_sp_target%x1count * dims(1), engine%dtt_decomp_sp_target%y2count * dims(2))/))
+#endif
+      end if
+
       ! Prepare the fftw plans
+      dtt_x_dft = .false.
+      dtt_y_dft = .false.
+      dtt_z_dft = .false.
+      if (engine%dtt(1) == FFTW_FORWARD) dtt_x_dft = .true.
+      if (engine%dtt(2) == FFTW_FORWARD) dtt_y_dft = .true.
+      if (engine%dtt(3) == FFTW_FORWARD) dtt_z_dft = .true.
+      format => engine%format
       engine%dtt_plan = c_null_ptr
-      ! in x
-      call r2r_1m_x_plan(engine%dtt_plan(1), engine%ph, engine%dtt(1), engine%dtt(7))
-      if (engine%dtt(13) /= engine%dtt(1)) call r2r_1m_x_plan(engine%dtt_plan(4), engine%ph, engine%dtt(13), engine%dtt(7))
-      ! in y
-      call r2r_1m_y_plan(engine%dtt_plan(2), engine%ph, engine%dtt(2), engine%dtt(8))
-      if (engine%dtt(14) /= engine%dtt(2)) call r2r_1m_y_plan(engine%dtt_plan(5), engine%ph, engine%dtt(14), engine%dtt(8))
-      ! in z
-      call r2r_1m_z_plan(engine%dtt_plan(3), engine%ph, engine%dtt(3), engine%dtt(9))
-      if (engine%dtt(15) /= engine%dtt(3)) call r2r_1m_z_plan(engine%dtt_plan(6), engine%ph, engine%dtt(15), engine%dtt(9))
+      if (engine%format == PHYSICAL_IN_X) then
+         ! in x
+         if (engine%dtt(1) == FFTW_FORWARD) then
+            call r2rr_1m_x_plan(engine%dtt_plan(1), engine%ph, engine%dtt_decomp_xy, engine%dtt(7))
+            call rr2r_1m_x_plan(engine%dtt_plan(4), engine%dtt_decomp_xy, engine%ph, engine%dtt(7))
+         else
+            call r2r_1m_x_plan(engine%dtt_plan(1), engine%ph, engine%dtt(1), engine%dtt(7))
+            call r2r_1m_x_plan(engine%dtt_plan(4), engine%ph, engine%dtt(13), engine%dtt(7))
+         end if
+         ! in y
+         if (engine%dtt(2) == FFTW_FORWARD) then
+            if (engine%dtt(1) == FFTW_FORWARD) then
+               call rr2rr_1m_y_plan(engine%dtt_plan(2), engine%dtt_decomp_xy, engine%dtt(8), FFTW_FORWARD)
+               call rr2rr_1m_y_plan(engine%dtt_plan(5), engine%dtt_decomp_xy, engine%dtt(8), FFTW_BACKWARD)
+            else
+               call r2rr_1m_y_plan(engine%dtt_plan(2), engine%dtt_decomp_xy, engine%dtt_decomp_yz, engine%dtt(8))
+               call rr2r_1m_y_plan(engine%dtt_plan(5), engine%dtt_decomp_yz, engine%dtt_decomp_xy, engine%dtt(8))
+            end if
+         else
+            call r2r_1m_y_plan(engine%dtt_plan(2), engine%dtt_decomp_xy, engine%dtt(2), engine%dtt(8))
+            call r2r_1m_y_plan(engine%dtt_plan(5), engine%dtt_decomp_xy, engine%dtt(14), engine%dtt(8))
+         end if
+         ! in z
+         if (engine%dtt(3) == FFTW_FORWARD) then
+            if (engine%dtt(1) == FFTW_FORWARD .or. engine%dtt(2) == FFTW_FORWARD) then
+               call rr2rr_1m_z_plan(engine%dtt_plan(3), engine%dtt_decomp_sp, engine%dtt(9), FFTW_FORWARD)
+               call rr2rr_1m_z_plan(engine%dtt_plan(6), engine%dtt_decomp_sp, engine%dtt(9), FFTW_BACKWARD)
+            else
+               call r2rr_1m_z_plan(engine%dtt_plan(3), engine%dtt_decomp_yz, engine%dtt_decomp_sp, engine%dtt(9))
+               call rr2r_1m_z_plan(engine%dtt_plan(6), engine%dtt_decomp_sp, engine%dtt_decomp_yz, engine%dtt(9))
+            end if
+         else
+            call r2r_1m_z_plan(engine%dtt_plan(3), engine%dtt_decomp_sp, engine%dtt(3), engine%dtt(9))
+            call r2r_1m_z_plan(engine%dtt_plan(6), engine%dtt_decomp_sp, engine%dtt(15), engine%dtt(9))
+         end if
+      else
+         ! in z
+         if (engine%dtt(3) == FFTW_FORWARD) then
+            call r2rr_1m_z_plan(engine%dtt_plan(3), engine%ph, engine%dtt_decomp_yz, engine%dtt(9))
+            call rr2r_1m_z_plan(engine%dtt_plan(6), engine%dtt_decomp_yz, engine%ph, engine%dtt(9))
+         else
+            call r2r_1m_z_plan(engine%dtt_plan(3), engine%ph, engine%dtt(3), engine%dtt(9))
+            call r2r_1m_z_plan(engine%dtt_plan(6), engine%ph, engine%dtt(15), engine%dtt(9))
+         end if
+         ! in y
+         if (engine%dtt(2) == FFTW_FORWARD) then
+            if (engine%dtt(3) == FFTW_FORWARD) then
+               call rr2rr_1m_y_plan(engine%dtt_plan(2), engine%dtt_decomp_yz, engine%dtt(8), FFTW_FORWARD)
+               call rr2rr_1m_y_plan(engine%dtt_plan(5), engine%dtt_decomp_yz, engine%dtt(8), FFTW_BACKWARD)
+            else
+               call r2rr_1m_y_plan(engine%dtt_plan(2), engine%dtt_decomp_yz, engine%dtt_decomp_xy, engine%dtt(8))
+               call rr2r_1m_y_plan(engine%dtt_plan(5), engine%dtt_decomp_xy, engine%dtt_decomp_yz, engine%dtt(8))
+            end if
+         else
+            call r2r_1m_y_plan(engine%dtt_plan(2), engine%dtt_decomp_xy, engine%dtt(2), engine%dtt(8))
+            call r2r_1m_y_plan(engine%dtt_plan(5), engine%dtt_decomp_xy, engine%dtt(14), engine%dtt(8))
+         end if
+         ! in x
+         if (engine%dtt(1) == FFTW_FORWARD) then
+            if (engine%dtt(2) == FFTW_FORWARD .or. engine%dtt(3) == FFTW_FORWARD) then
+               call rr2rr_1m_x_plan(engine%dtt_plan(1), engine%dtt_decomp_sp, engine%dtt(7), FFTW_FORWARD)
+               call rr2rr_1m_x_plan(engine%dtt_plan(4), engine%dtt_decomp_sp, engine%dtt(7), FFTW_BACKWARD)
+            else
+               call r2rr_1m_x_plan(engine%dtt_plan(1), engine%dtt_decomp_xy, engine%dtt_decomp_sp, engine%dtt(7))
+               call rr2r_1m_x_plan(engine%dtt_plan(4), engine%dtt_decomp_sp, engine%dtt_decomp_xy, engine%dtt(7))
+            end if
+         else
+            call r2r_1m_x_plan(engine%dtt_plan(1), engine%dtt_decomp_sp, engine%dtt(1), engine%dtt(7))
+            call r2r_1m_x_plan(engine%dtt_plan(4), engine%dtt_decomp_sp, engine%dtt(13), engine%dtt(7))
+         end if
+      end if
 
    end subroutine decomp_2d_fft_engine_dtt_init
 
@@ -407,7 +551,6 @@ contains
 
       ! Specific cases
       do k = 1, 3
-         if (arg_dtt(k) == 0) arg_dtt(k + 6) = 0 ! Periodic, ndismiss = 0
          if (arg_dtt(k) == 1) arg_dtt(k + 6) = 0 ! DCT1, ndismiss = 0
          if (arg_dtt(k) == 5) arg_dtt(k + 3) = 2 ! DST1, ifirst = 2
          if (arg_dtt(k) == 5) arg_dtt(k + 6) = 2 ! DST1, ndismiss = 2
@@ -555,9 +698,12 @@ contains
       nullify (skip_y_c2c)
       nullify (skip_z_c2c)
       nullify (with_dtt)
-      if (associated(dtt)) then
+      if (associated(dtt_decomp_xy)) then
          nullify (dtt)
          nullify (dtt_plan)
+         nullify (dtt_decomp_xy)
+         nullify (dtt_decomp_yz)
+         nullify (dtt_decomp_sp)
       end if
 
       ! Clean the FFTW library
@@ -610,6 +756,13 @@ contains
 
       ! Deallocate the DTT config
       deallocate (engine%dtt)
+
+      ! Clean the decomp_info objects
+      nullify (engine%dtt_decomp_sp)
+      nullify (engine%dtt_decomp_xy)
+      nullify (engine%dtt_decomp_yz)
+      if (allocated(engine%dtt_decomp_sp_target%x1dist)) &
+         call decomp_info_finalize(engine%dtt_decomp_sp_target)
 
       ! Clean the fftw plans
       do i = 1, 6
@@ -716,6 +869,24 @@ contains
       decomp_2d_fft_get_sp => sp
 
    end function decomp_2d_fft_get_sp
+
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   ! Return a pointer to the decomp_info object sp used in DTT
+   !
+   ! The caller should not apply decomp_info_finalize on the pointer
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   function decomp_2d_fft_get_dtt_sp()
+
+      implicit none
+
+      type(decomp_info), pointer :: decomp_2d_fft_get_dtt_sp
+
+      if (.not. associated(dtt_decomp_sp)) then
+         call decomp_2d_abort(__FILE__, __LINE__, -1, 'No DTT available')
+      end if
+      decomp_2d_fft_get_dtt_sp => dtt_decomp_sp
+
+   end function decomp_2d_fft_get_dtt_sp
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    ! Return the number of FFT grids
@@ -830,13 +1001,25 @@ contains
       skip_y_c2c => engine%skip_y_c2c
       skip_z_c2c => engine%skip_z_c2c
       with_dtt => engine%with_dtt
+      dtt_x_dft = .false.
+      dtt_y_dft = .false.
+      dtt_z_dft = .false.
 
       if (with_dtt) then
+         if (engine%dtt(1) == FFTW_FORWARD) dtt_x_dft = .true.
+         if (engine%dtt(2) == FFTW_FORWARD) dtt_y_dft = .true.
+         if (engine%dtt(3) == FFTW_FORWARD) dtt_z_dft = .true.
          dtt => engine%dtt
          dtt_plan => engine%dtt_plan
-      else if (associated(dtt)) then
+         dtt_decomp_xy => engine%dtt_decomp_xy
+         dtt_decomp_yz => engine%dtt_decomp_yz
+         dtt_decomp_sp => engine%dtt_decomp_sp
+      else if (associated(dtt_decomp_xy)) then
          nullify (dtt)
          nullify (dtt_plan)
+         nullify (dtt_decomp_xy)
+         nullify (dtt_decomp_yz)
+         nullify (dtt_decomp_sp)
       end if
 
    end subroutine decomp_2d_fft_engine_use_it
@@ -1205,14 +1388,407 @@ contains
    end subroutine c2r_1m_z_plan
 
    ! Return a FFTW3 plan for multiple 1D DTTs in X direction, with possibility to dismiss points
+   subroutine rr2rr_1m_x_plan(plan, decomp, ndismiss, isign)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp
+      integer, intent(in) :: ndismiss, isign
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a12(:, :, :), a34(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :), a4(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a12(:, :, :), a34(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :), a4(:, :, :)
+#endif
+
+      if (isign == FFTW_FORWARD) then
+         call get_buffer_rr(a12, a1, a2, decomp%xsz, .true.)
+         call get_buffer_rr(a34, a3, a4, decomp%xsz, .true.)
+      else
+         call get_buffer_rr(a12, a2, a1, decomp%xsz, .true.)
+         call get_buffer_rr(a34, a4, a3, decomp%xsz, .true.)
+      end if
+
+      dims(1)%n = decomp%xsz(1) - ndismiss
+      dims(1)%is = 1
+      dims(1)%os = 1
+      howmany(1)%n = decomp%xsz(2) * decomp%xsz(3)
+      howmany(1)%is = decomp%xsz(1)
+      howmany(1)%os = decomp%xsz(1)
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft(1, dims(1), 1, howmany(1), a1, a2, a3, a4, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft(1, dims(1), 1, howmany(1), a1, a2, a3, a4, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a12)
+      call decomp_pool_free(a34)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 8, "Plan creation failed")
+
+   end subroutine rr2rr_1m_x_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in Y direction, with possibility to dismiss points
+   subroutine rr2rr_1m_y_plan(plan, decomp, ndismiss, isign)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp
+      integer, intent(in) :: ndismiss, isign
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a12(:, :, :), a34(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :), a4(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a12(:, :, :), a34(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :), a4(:, :, :)
+#endif
+
+      if (isign == FFTW_FORWARD) then
+         call get_buffer_rr(a12, a1, a2, decomp%ysz, .true.)
+         call get_buffer_rr(a34, a3, a4, decomp%ysz, .true.)
+      else
+         call get_buffer_rr(a12, a2, a1, decomp%ysz, .true.)
+         call get_buffer_rr(a34, a4, a3, decomp%ysz, .true.)
+      end if
+
+      dims(1)%n = decomp%ysz(2) - ndismiss
+      dims(1)%is = decomp%ysz(1)
+      dims(1)%os = decomp%ysz(1)
+      howmany(1)%n = decomp%ysz(1)
+      howmany(1)%is = 1
+      howmany(1)%os = 1
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft(1, dims(1), 1, howmany(1), a1, a2, a3, a4, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft(1, dims(1), 1, howmany(1), a1, a2, a3, a4, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a12)
+      call decomp_pool_free(a34)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 9, "Plan creation failed")
+
+   end subroutine rr2rr_1m_y_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in Z direction, with possibility to dismiss points
+   subroutine rr2rr_1m_z_plan(plan, decomp, ndismiss, isign)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp
+      integer, intent(in) :: ndismiss, isign
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a12(:, :, :), a34(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :), a4(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a12(:, :, :), a34(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :), a4(:, :, :)
+#endif
+
+      if (isign == FFTW_FORWARD) then
+         call get_buffer_rr(a12, a1, a2, decomp%zsz, .true.)
+         call get_buffer_rr(a34, a3, a4, decomp%zsz, .true.)
+      else
+         call get_buffer_rr(a12, a2, a1, decomp%zsz, .true.)
+         call get_buffer_rr(a34, a4, a3, decomp%zsz, .true.)
+      end if
+
+      dims(1)%n = decomp%zsz(3) - ndismiss
+      dims(1)%is = decomp%zsz(1) * decomp%zsz(2)
+      dims(1)%os = decomp%zsz(1) * decomp%zsz(2)
+      howmany(1)%n = decomp%zsz(1) * decomp%zsz(2)
+      howmany(1)%is = 1
+      howmany(1)%os = 1
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft(1, dims(1), 1, howmany(1), a1, a2, a3, a4, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft(1, dims(1), 1, howmany(1), a1, a2, a3, a4, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a12)
+      call decomp_pool_free(a34)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 10, "Plan creation failed")
+
+   end subroutine rr2rr_1m_z_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in X direction, with possibility to dismiss points
+   subroutine rr2r_1m_x_plan(plan, decomp, decomp2, ndismiss)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp, decomp2
+      integer, intent(in) :: ndismiss
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a12(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a12(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#endif
+
+      call get_buffer_rr(a12, a1, a2, decomp%xsz, .true.)
+      call decomp_pool_get(a3, decomp2%xsz)
+
+      dims(1)%n = decomp2%xsz(1) - ndismiss
+      dims(1)%is = 1
+      dims(1)%os = 1
+      howmany(1)%n = decomp%xsz(2) * decomp%xsz(3)
+      howmany(1)%is = decomp%xsz(1)
+      howmany(1)%os = decomp2%xsz(1)
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft_c2r(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft_c2r(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a12)
+      call decomp_pool_free(a3)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 11, "Plan creation failed")
+
+   end subroutine rr2r_1m_x_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in Y direction, with possibility to dismiss points
+   subroutine rr2r_1m_y_plan(plan, decomp, decomp2, ndismiss)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp, decomp2
+      integer, intent(in) :: ndismiss
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a12(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a12(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#endif
+
+      call get_buffer_rr(a12, a1, a2, decomp%ysz, .true.)
+      call decomp_pool_get(a3, decomp2%ysz)
+
+      dims(1)%n = decomp2%ysz(2) - ndismiss
+      dims(1)%is = decomp%ysz(1)
+      dims(1)%os = decomp2%ysz(1)
+      howmany(1)%n = decomp%ysz(1)
+      howmany(1)%is = 1
+      howmany(1)%os = 1
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft_c2r(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft_c2r(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a12)
+      call decomp_pool_free(a3)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 12, "Plan creation failed")
+
+   end subroutine rr2r_1m_y_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in Z direction, with possibility to dismiss points
+   subroutine rr2r_1m_z_plan(plan, decomp, decomp2, ndismiss)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp, decomp2
+      integer, intent(in) :: ndismiss
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a12(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a12(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#endif
+
+      call get_buffer_rr(a12, a1, a2, decomp%zsz, .true.)
+      call decomp_pool_get(a3, decomp2%zsz)
+
+      dims(1)%n = decomp2%zsz(3) - ndismiss
+      dims(1)%is = decomp%zsz(1) * decomp%zsz(2)
+      dims(1)%os = decomp2%zsz(1) * decomp2%zsz(2)
+      howmany(1)%n = decomp%zsz(1) * decomp%zsz(2)
+      howmany(1)%is = 1
+      howmany(1)%os = 1
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft_c2r(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft_c2r(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a12)
+      call decomp_pool_free(a3)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 13, "Plan creation failed")
+
+   end subroutine rr2r_1m_z_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in X direction, with possibility to dismiss points
+   subroutine r2rr_1m_x_plan(plan, decomp, decomp2, ndismiss)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp, decomp2
+      integer, intent(in) :: ndismiss
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a23(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a23(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#endif
+
+      call decomp_pool_get(a1, decomp%xsz)
+      call get_buffer_rr(a23, a2, a3, decomp2%xsz, .true.)
+
+      dims(1)%n = decomp%xsz(1) - ndismiss
+      dims(1)%is = 1
+      dims(1)%os = 1
+      howmany(1)%n = decomp%xsz(2) * decomp%xsz(3)
+      howmany(1)%is = decomp%xsz(1)
+      howmany(1)%os = decomp2%xsz(1)
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft_r2c(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft_r2c(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a1)
+      call decomp_pool_free(a23)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 14, "Plan creation failed")
+
+   end subroutine r2rr_1m_x_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in Y direction, with possibility to dismiss points
+   subroutine r2rr_1m_y_plan(plan, decomp, decomp2, ndismiss)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp, decomp2
+      integer, intent(in) :: ndismiss
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a23(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a23(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#endif
+
+      call decomp_pool_get(a1, decomp%ysz)
+      call get_buffer_rr(a23, a2, a3, decomp2%ysz, .true.)
+
+      dims(1)%n = decomp%ysz(2) - ndismiss
+      dims(1)%is = decomp%ysz(1)
+      dims(1)%os = decomp2%ysz(1)
+      howmany(1)%n = decomp%ysz(1)
+      howmany(1)%is = 1
+      howmany(1)%os = 1
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft_r2c(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft_r2c(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a1)
+      call decomp_pool_free(a23)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 15, "Plan creation failed")
+
+   end subroutine r2rr_1m_y_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in Z direction, with possibility to dismiss points
+   subroutine r2rr_1m_z_plan(plan, decomp, decomp2, ndismiss)
+
+      implicit none
+
+      type(C_PTR), intent(out) :: plan
+      TYPE(DECOMP_INFO), intent(in) :: decomp, decomp2
+      integer, intent(in) :: ndismiss
+
+      ! Local variables
+#ifdef DOUBLE_PREC
+      type(fftw_iodim) :: dims(1), howmany(1)
+      real(C_DOUBLE), contiguous, pointer :: a23(:, :, :)
+      real(C_DOUBLE), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#else
+      type(fftwf_iodim) :: dims(1), howmany(1)
+      real(C_FLOAT), contiguous, pointer :: a23(:, :, :)
+      real(C_FLOAT), contiguous, pointer :: a1(:, :, :), a2(:, :, :), a3(:, :, :)
+#endif
+
+      call decomp_pool_get(a1, decomp%zsz)
+      call get_buffer_rr(a23, a2, a3, decomp2%zsz, .true.)
+
+      dims(1)%n = decomp%zsz(3) - ndismiss
+      dims(1)%is = decomp%zsz(1) * decomp%zsz(2)
+      dims(1)%os = decomp2%zsz(1) * decomp2%zsz(2)
+      howmany(1)%n = decomp%zsz(1) * decomp%zsz(2)
+      howmany(1)%is = 1
+      howmany(1)%os = 1
+#ifdef DOUBLE_PREC
+      plan = fftw_plan_guru_split_dft_r2c(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#else
+      plan = fftwf_plan_guru_split_dft_r2c(1, dims(1), 1, howmany(1), a1, a2, a3, plan_type_dtt)
+#endif
+
+      call decomp_pool_free(a1)
+      call decomp_pool_free(a23)
+
+      if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 16, "Plan creation failed")
+
+   end subroutine r2rr_1m_z_plan
+
+   ! Return a FFTW3 plan for multiple 1D DTTs in X direction, with possibility to dismiss points
    subroutine r2r_1m_x_plan(plan, decomp, dtt, ndismiss)
 
       implicit none
 
       type(C_PTR), intent(out) :: plan
       TYPE(DECOMP_INFO), intent(in) :: decomp
-      integer, intent(in) :: dtt ! Type of DTT compatible with fftw3
-      integer, intent(in) :: ndismiss ! to dismiss n points from the signal
+      integer, intent(in) :: dtt
+      integer, intent(in) :: ndismiss  ! to dismiss n points from the signal
 
       ! Local variables
 #ifdef DOUBLE_PREC
@@ -1224,7 +1800,7 @@ contains
       integer(C_FFTW_R2R_KIND) :: tmp(1)
 
       call decomp_pool_get(a1, decomp%xsz)
-      a2 => a1
+      call decomp_pool_get(a2, decomp%xsz)
 
       ntmp(1) = decomp%xsz(1) - ndismiss
       tmp(1) = dtt
@@ -1238,7 +1814,7 @@ contains
                                  tmp(1), plan_type_dtt)
 
       call decomp_pool_free(a1)
-      nullify (a2)
+      call decomp_pool_free(a2)
       if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 17, "Plan creation failed")
 
    end subroutine r2r_1m_x_plan
@@ -1263,7 +1839,7 @@ contains
       integer(C_FFTW_R2R_KIND) :: tmp(1)
 
       call decomp_pool_get(a1, (/decomp%ysz(1), decomp%ysz(2), 1/))
-      a2 => a1
+      call decomp_pool_get(a2, (/decomp%ysz(1), decomp%ysz(2), 1/))
 
       ntmp(1) = decomp%ysz(2) - ndismiss
       tmp(1) = dtt
@@ -1277,7 +1853,7 @@ contains
                                  tmp(1), plan_type_dtt)
 
       call decomp_pool_free(a1)
-      nullify (a2)
+      call decomp_pool_free(a2)
       if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 18, "Plan creation failed")
 
    end subroutine r2r_1m_y_plan
@@ -1302,7 +1878,7 @@ contains
       integer(C_FFTW_R2R_KIND) :: tmp(1)
 
       call decomp_pool_get(a1, decomp%zsz)
-      a2 => a1
+      call decomp_pool_get(a2, decomp%zsz)
 
       ntmp(1) = decomp%zsz(3) - ndismiss
       tmp(1) = dtt
@@ -1316,7 +1892,7 @@ contains
                                  tmp(1), plan_type_dtt)
 
       call decomp_pool_free(a1)
-      nullify (a2)
+      call decomp_pool_free(a2)
       if (.not. c_associated(plan)) call decomp_2d_abort(__FILE__, __LINE__, 19, "Plan creation failed")
 
    end subroutine r2r_1m_z_plan
@@ -1551,109 +2127,311 @@ contains
 
    end subroutine c2r_1m_z
 
+   ! rr2rr transform, x direction
+   subroutine rr2rr_1m_x(inr, ini, outr, outi, isign)
+
+      implicit none
+
+      ! Arguments
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr, ini
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr, outi
+      integer, intent(in) :: isign
+
+      ! Copy and exit if needed
+      if (skip_x_c2c) then
+         outr = inr
+         outi = ini
+         return
+      end if
+
+      ! Perform the DFT
+      if (isign == DECOMP_2D_FFT_FORWARD) then
+         call wrapper_rr2rr(dtt_plan(1), &
+                            inr, ini, size(inr), &
+                            outr, outi, size(outr))
+      else
+         call wrapper_rr2rr(dtt_plan(4), &
+                            ini, inr, size(inr), &
+                            outi, outr, size(outr))
+      end if
+
+   end subroutine rr2rr_1m_x
+
+   ! rr2rr transform, y direction
+   subroutine rr2rr_1m_y(inr, ini, outr, outi, isign)
+
+      implicit none
+
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr, ini
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr, outi
+      integer, intent(in) :: isign
+
+      ! Local variable
+      integer :: k
+
+      ! Copy and exit if needed
+      if (skip_y_c2c) then
+         outr = inr
+         outi = ini
+         return
+      end if
+
+      ! Perform the DFT
+      if (isign == DECOMP_2D_FFT_FORWARD) then
+         do k = 1, size(inr, 3)
+            call wrapper_rr2rr(dtt_plan(2), &
+                               inr(:, :, k:k), ini(:, :, k:k), size(inr, 1) * size(inr, 2), &
+                               outr(:, :, k:k), outi(:, :, k:k), size(outr, 1) * size(outr, 2))
+         end do
+      else
+         do k = 1, size(inr, 3)
+            call wrapper_rr2rr(dtt_plan(5), &
+                               ini(:, :, k:k), inr(:, :, k:k), size(inr, 1) * size(inr, 2), &
+                               outi(:, :, k:k), outr(:, :, k:k), size(outr, 1) * size(outr, 2))
+         end do
+      end if
+
+   end subroutine rr2rr_1m_y
+
+   ! rr2rr transform, z direction
+   subroutine rr2rr_1m_z(inr, ini, outr, outi, isign)
+
+      implicit none
+
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr, ini
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr, outi
+      integer, intent(in) :: isign
+
+      ! Copy and exit if needed
+      if (skip_z_c2c) then
+         outr = inr
+         outi = ini
+         return
+      end if
+
+      ! Perform the DFT
+      if (isign == DECOMP_2D_FFT_FORWARD) then
+         call wrapper_rr2rr(dtt_plan(3), &
+                            inr, ini, size(inr), &
+                            outr, outi, size(outr))
+      else
+         call wrapper_rr2rr(dtt_plan(6), &
+                            ini, inr, size(inr), &
+                            outi, outr, size(outr))
+      end if
+
+   end subroutine rr2rr_1m_z
+
    ! r2r transform, multiple 1D DTTs in x direction
-   subroutine r2r_1m_x(inr, isign)
+   subroutine r2r_1m_x(inr, outr, isign)
 
       implicit none
 
       real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr
       integer, intent(in) :: isign
 
       ! Local variables
       type(c_ptr) :: plan
-      integer :: ifirst
+      integer :: ifirst, ofirst
 
-      ! Exit if needed
-      if (skip_x_c2c) return
+      ! Copy and exit if needed
+      if (skip_x_c2c) then
+         outr = inr
+         return
+      end if
 
       ! Get the DTT config
       if (isign == DECOMP_2D_FFT_FORWARD) then
          plan = dtt_plan(1)
          ifirst = dtt(4)
+         ofirst = dtt(10)
       else
-         if (c_associated(dtt_plan(4))) then
-            plan = dtt_plan(4)
-         else
-            plan = dtt_plan(1)
-         end if
+         plan = dtt_plan(4)
          ifirst = dtt(10)
+         ofirst = dtt(4)
       end if
 
       ! Perform the DFT
       call wrapper_r2r(plan, &
-                       inr, ifirst, size(inr))
+                       inr, ifirst, size(inr) - ifirst + 1, &
+                       outr, ofirst, size(outr) - ofirst + 1)
 
    end subroutine r2r_1m_x
 
    ! r2r transform, multiple 1D DTTs in y direction
-   subroutine r2r_1m_y(inr, isign)
+   subroutine r2r_1m_y(inr, outr, isign)
 
       implicit none
 
       real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr
       integer, intent(in) :: isign
 
       ! Local variables
       type(c_ptr) :: plan
-      integer :: k, ifirst
+      integer :: k, ifirst, ofirst
 
-      ! Exit if needed
-      if (skip_y_c2c) return
+      ! Copy and exit if needed
+      if (skip_y_c2c) then
+         outr = inr
+         return
+      end if
 
       ! Get the DTT config
       if (isign == DECOMP_2D_FFT_FORWARD) then
          plan = dtt_plan(2)
          ifirst = dtt(5)
+         ofirst = dtt(11)
       else
-         if (c_associated(dtt_plan(5))) then
-            plan = dtt_plan(5)
-         else
-            plan = dtt_plan(2)
-         end if
+         plan = dtt_plan(5)
          ifirst = dtt(11)
+         ofirst = dtt(5)
       end if
 
       ! Perform the DFT
       do k = 1, size(inr, 3)
          call wrapper_r2r(plan, &
-                          inr(:, :, k:k), 1 + size(inr, 1) * (ifirst - 1), size(inr, 1) * size(inr, 2))
+                          inr(:, :, k:k), 1 + size(inr, 1) * (ifirst - 1), size(inr, 1) * (size(inr, 2) - ifirst + 1), &
+                          outr(:, :, k:k), 1 + size(outr, 1) * (ofirst - 1), size(outr, 1) * (size(outr, 2) - ofirst + 1))
       end do
 
    end subroutine r2r_1m_y
 
    ! r2r transform, multiple 1D DTTs in z direction
-   subroutine r2r_1m_z(inr, isign)
+   subroutine r2r_1m_z(inr, outr, isign)
 
       implicit none
 
       real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr
       integer, intent(in) :: isign
 
       ! Local variables
       type(c_ptr) :: plan
-      integer :: ifirst
+      integer :: ifirst, ofirst
 
-      ! Exit if needed
-      if (skip_z_c2c) return
+      ! Copy and exit if needed
+      if (skip_z_c2c) then
+         outr = inr
+         return
+      end if
 
       ! Get the DTT config
       if (isign == DECOMP_2D_FFT_FORWARD) then
          plan = dtt_plan(3)
          ifirst = dtt(6)
+         ofirst = dtt(12)
       else
-         if (c_associated(dtt_plan(6))) then
-            plan = dtt_plan(6)
-         else
-            plan = dtt_plan(3)
-         end if
+         plan = dtt_plan(6)
          ifirst = dtt(12)
+         ofirst = dtt(6)
       end if
 
       ! Perform the DFT
       call wrapper_r2r(plan, &
-                       inr, 1 + size(inr, 1) * size(inr, 2) * (ifirst - 1), size(inr))
+                       inr(:, :, ifirst:), 1, size(inr, 1) * size(inr, 2) * (size(inr, 3) - ifirst + 1), &
+                       outr(:, :, ofirst:), 1, size(outr, 1) * size(outr, 2) * (size(outr, 3) - ofirst + 1))
 
    end subroutine r2r_1m_z
+
+   ! rr2r transform, x direction
+   subroutine rr2r_1m_x(inr, ini, outr)
+
+      implicit none
+
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr, ini
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr
+
+      ! Perform the DFT
+      call wrapper_rr2r(dtt_plan(4), &
+                        inr, ini, size(inr), &
+                        outr, size(outr))
+
+   end subroutine rr2r_1m_x
+
+   ! rr2r transform, y direction
+   subroutine rr2r_1m_y(inr, ini, outr)
+
+      implicit none
+
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr, ini
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr
+
+      integer :: k
+
+      ! Perform the DFT
+      do k = 1, size(inr, 3)
+         call wrapper_rr2r(dtt_plan(5), &
+                           inr(:, :, k:k), ini(:, :, k:k), size(inr, 1) * size(inr, 2), &
+                           outr(:, :, k:k), size(outr, 1) * size(outr, 2))
+      end do
+
+   end subroutine rr2r_1m_y
+
+   ! rr2r transform, z direction
+   subroutine rr2r_1m_z(inr, ini, outr)
+
+      implicit none
+
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr, ini
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr
+
+      ! Perform the DFT
+      call wrapper_rr2r(dtt_plan(6), &
+                        inr, ini, size(inr), &
+                        outr, size(outr))
+
+   end subroutine rr2r_1m_z
+
+   ! r2rr transform, x direction
+   subroutine r2rr_1m_x(inr, outr, outi)
+
+      implicit none
+
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr, outi
+
+      ! Perform the DFT
+      call wrapper_r2rr(dtt_plan(1), &
+                        inr, size(inr), &
+                        outr, outi, size(outr))
+
+   end subroutine r2rr_1m_x
+
+   ! r2rr transform, y direction
+   subroutine r2rr_1m_y(inr, outr, outi)
+
+      implicit none
+
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr, outi
+
+      integer :: k
+
+      ! Perform the DFT
+      do k = 1, size(inr, 3)
+         call wrapper_r2rr(dtt_plan(2), &
+                           inr(:, :, k:k), size(inr, 1) * size(inr, 2), &
+                           outr(:, :, k:k), outi(:, :, k:k), size(outr, 1) * size(outr, 2))
+      end do
+
+   end subroutine r2rr_1m_y
+
+   ! r2rr transform, z direction
+   subroutine r2rr_1m_z(inr, outr, outi)
+
+      implicit none
+
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: inr
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: outr, outi
+
+      ! Perform the DFT
+      call wrapper_r2rr(dtt_plan(3), &
+                        inr, size(inr), &
+                        outr, outi, size(outr))
+
+   end subroutine r2rr_1m_z
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    ! 3D FFT - complex to complex
@@ -1954,73 +2732,456 @@ contains
    end subroutine fft_3d_c2r
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   ! Forward 3D DTT - real to real
+   ! Forward 3D DTT - real to real/complex
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-   subroutine decomp_2d_dtt_3d_r2r(in, out_real, isign)
+   subroutine decomp_2d_dtt_3d_r2x(in, out_real, out_cplx)
 
       implicit none
 
       ! Arguments
       real(mytype), dimension(:, :, :), contiguous, target, intent(inout) :: in
-      real(mytype), dimension(:, :, :), contiguous, target, intent(out) :: out_real
-      integer, intent(in) :: isign
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out), optional :: out_real
+      complex(mytype), dimension(:, :, :), contiguous, target, intent(out), optional :: out_cplx
 
-      ! Local variable
-      real(mytype), dimension(:, :, :), contiguous, pointer :: wk2ra
+      ! Local variables
+      logical :: cplx
+      integer :: i, j, k
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk1ra, wk1ia, wk1a
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk1rb, wk1ib, wk1b
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk2ra, wk2ia, wk2a
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk2rb, wk2ib, wk2b
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk3ra, wk3ia, wk3a
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk3rb, wk3ib, wk3b
 
-      if (decomp_profiler_fft) call decomp_profiler_start("decomp_2d_dtt_3d_r2r")
+      if (decomp_profiler_fft) call decomp_profiler_start("decomp_2d_dtt_3d_r2x")
 
       ! Safety check
-      if (isign /= DECOMP_2D_FFT_FORWARD .and. isign /= DECOMP_2D_FFT_BACKWARD) then
-         call decomp_2d_abort(__FILE__, __LINE__, isign, "Invalid value")
+      if (.not. (present(out_real) .or. present(out_cplx))) then
+         call decomp_2d_abort(__FILE__, __LINE__, 1, "Invalid arguments")
       end if
 
-      ! Get a buffer for arrays in y-pencil
-      call decomp_pool_get(wk2ra, ph%ysz)
+      ! Get buffers
+      cplx = .false.
+      if (format == PHYSICAL_IN_X) then
+         ! xy buffers
+         nullify (wk1a)
+         nullify (wk1ra)
+         nullify (wk1ia)
+         if (dtt_x_dft) cplx = .true.
+         call get_buffer_rr(wk1b, wk1rb, wk1ib, dtt_decomp_xy%xsz, cplx)
+         call get_buffer_rr(wk2a, wk2ra, wk2ia, dtt_decomp_xy%ysz, cplx)
+         ! yz buffers
+         if (dtt_y_dft) cplx = .true.
+         call get_buffer_rr(wk2b, wk2rb, wk2ib, dtt_decomp_yz%ysz, cplx)
+         call get_buffer_rr(wk3a, wk3ra, wk3ia, dtt_decomp_yz%zsz, cplx)
+         ! z output buffers
+         if (dtt_z_dft) cplx = .true.
+         if (cplx) then
+            call get_buffer_rr(wk3b, wk3rb, wk3ib, dtt_decomp_sp%zsz, cplx)
+         else
+            nullify (wk3b)
+            nullify (wk3rb)
+            nullify (wk3ib)
+         end if
+      else
+         ! zy buffers
+         nullify (wk3b)
+         nullify (wk3rb)
+         nullify (wk3ib)
+         if (dtt_z_dft) cplx = .true.
+         call get_buffer_rr(wk3a, wk3ra, wk3ia, dtt_decomp_yz%zsz, cplx)
+         call get_buffer_rr(wk2b, wk2rb, wk2ib, dtt_decomp_yz%ysz, cplx)
+         ! yz buffer(s)
+         if (dtt_y_dft) cplx = .true.
+         call get_buffer_rr(wk2a, wk2ra, wk2ia, dtt_decomp_xy%ysz, cplx)
+         call get_buffer_rr(wk1b, wk1rb, wk1ib, dtt_decomp_xy%xsz, cplx)
+         ! x output buffers
+         if (dtt_x_dft) cplx = .true.
+         if (cplx) then
+            call get_buffer_rr(wk1a, wk1ra, wk1ia, dtt_decomp_sp%xsz, cplx)
+         else
+            nullify (wk1a)
+            nullify (wk1ra)
+            nullify (wk1ia)
+         end if
+      end if
+
+      ! Init
+      cplx = .false.
 
       ! Perform the 3D DTT
-      if ((format == PHYSICAL_IN_X .and. isign == DECOMP_2D_FFT_FORWARD) .or. &
-          (format == PHYSICAL_IN_Z .and. isign == DECOMP_2D_FFT_BACKWARD)) then
+      if (format == PHYSICAL_IN_X) then
 
-         ! DCT / DST in x
-         call r2r_1m_x(in, isign)
+         ! DFT / DTT in x
+         if (dtt_x_dft) then
+            call r2rr_1m_x(in, wk1rb, wk1ib)
+            cplx = .true.
+         else
+            call r2r_1m_x(in, wk1rb, DECOMP_2D_FFT_FORWARD)
+         end if
 
          ! Transpose x => y
-         call transpose_x_to_y(in, wk2ra, ph)
+         call transpose_x_to_y(wk1rb, wk2ra, dtt_decomp_xy)
+         if (cplx) then
+            call transpose_x_to_y(wk1ib, wk2ia, dtt_decomp_xy)
+         end if
 
-         ! DCT / DST in y
-         call r2r_1m_y(wk2ra, isign)
+         ! DFT / DTT in y
+         if (dtt_y_dft) then
+            if (cplx) then
+               call rr2rr_1m_y(wk2ra, wk2ia, wk2rb, wk2ib, DECOMP_2D_FFT_FORWARD)
+            else
+               call r2rr_1m_y(wk2ra, wk2rb, wk2ib)
+               cplx = .true.
+            end if
+         else
+            call r2r_1m_y(wk2ra, wk2rb, DECOMP_2D_FFT_FORWARD)
+            if (cplx) then
+               call r2r_1m_y(wk2ia, wk2ib, DECOMP_2D_FFT_FORWARD)
+            end if
+         end if
 
          ! Transpose y => z
-         call transpose_y_to_z(wk2ra, out_real, ph)
+         call transpose_y_to_z(wk2rb, wk3ra, dtt_decomp_yz)
+         if (cplx) then
+            call transpose_y_to_z(wk2ib, wk3ia, dtt_decomp_yz)
+         end if
 
-         ! DCT / DST in z
-         call r2r_1m_z(out_real, isign)
+         ! DFT / DTT in z
+         if (dtt_z_dft) then
+            if (cplx) then
+               call rr2rr_1m_z(wk3ra, wk3ia, wk3rb, wk3ib, DECOMP_2D_FFT_FORWARD)
+            else
+               call r2rr_1m_z(wk3ra, wk3rb, wk3ib)
+               cplx = .true.
+            end if
+         else
+            if (cplx) then
+               call r2r_1m_z(wk3ra, wk3rb, DECOMP_2D_FFT_FORWARD)
+               call r2r_1m_z(wk3ia, wk3ib, DECOMP_2D_FFT_FORWARD)
+            else
+               if (.not. present(out_real)) call decomp_2d_abort(__FILE__, __LINE__, 1, "Invalid arguments")
+               call r2r_1m_z(wk3ra, out_real, DECOMP_2D_FFT_FORWARD)
+            end if
+         end if
 
       else
 
-         ! DCT / DST in z
-         call r2r_1m_z(in, isign)
+         ! DFT / DTT in z
+         if (dtt_z_dft) then
+            call r2rr_1m_z(in, wk3ra, wk3ia)
+            cplx = .true.
+         else
+            call r2r_1m_z(in, wk3ra, DECOMP_2D_FFT_FORWARD)
+         end if
 
          ! Transpose z => y
-         call transpose_z_to_y(in, wk2ra, ph)
+         call transpose_z_to_y(wk3ra, wk2rb, dtt_decomp_yz)
+         if (cplx) then
+            call transpose_z_to_y(wk3ia, wk2ib, dtt_decomp_yz)
+         end if
 
-         ! DCT / DST in y
-         call r2r_1m_y(wk2ra, isign)
+         ! DFT / DTT in y
+         if (dtt_y_dft) then
+            if (cplx) then
+               call rr2rr_1m_y(wk2rb, wk2ib, wk2ra, wk2ia, DECOMP_2D_FFT_FORWARD)
+            else
+               call r2rr_1m_y(wk2rb, wk2ra, wk2ia)
+               cplx = .true.
+            end if
+         else
+            call r2r_1m_y(wk2rb, wk2ra, DECOMP_2D_FFT_FORWARD)
+            if (cplx) then
+               call r2r_1m_y(wk2ib, wk2ia, DECOMP_2D_FFT_FORWARD)
+            end if
+         end if
 
          ! Transpose y => x
-         call transpose_y_to_x(wk2ra, out_real, ph)
+         call transpose_y_to_x(wk2ra, wk1rb, dtt_decomp_xy)
+         if (cplx) then
+            call transpose_y_to_x(wk2ia, wk1ib, dtt_decomp_xy)
+         end if
 
-         ! DCT / DST in x
-         call r2r_1m_x(out_real, isign)
+         ! DFT / DTT in x
+         if (dtt_x_dft) then
+            if (cplx) then
+               call rr2rr_1m_x(wk1rb, wk1ib, wk1ra, wk1ia, DECOMP_2D_FFT_FORWARD)
+            else
+               call r2rr_1m_x(wk1rb, wk1ra, wk1ia)
+               cplx = .true.
+            end if
+         else
+            if (cplx) then
+               call r2r_1m_x(wk1rb, wk1ra, DECOMP_2D_FFT_FORWARD)
+               call r2r_1m_x(wk1ib, wk1ia, DECOMP_2D_FFT_FORWARD)
+            else
+               if (.not. present(out_real)) call decomp_2d_abort(__FILE__, __LINE__, 1, "Invalid arguments")
+               call r2r_1m_x(wk1rb, out_real, DECOMP_2D_FFT_FORWARD)
+            end if
+         end if
 
       end if
 
-      call decomp_pool_free(wk2ra)
+      ! Safety check
+      if (cplx .and. (.not. present(out_cplx))) then
+         call decomp_2d_abort(__FILE__, __LINE__, 1, "Invalid arguments")
+      end if
 
-      if (decomp_profiler_fft) call decomp_profiler_end("decomp_2d_dtt_3d_r2r")
+      ! Recombine the real and imag parts if needed
+      if (cplx .and. format == PHYSICAL_IN_X) then
+         do k = 1, dtt_decomp_sp%zsz(3)
+            do j = 1, dtt_decomp_sp%zsz(2)
+               do i = 1, dtt_decomp_sp%zsz(1)
+                  out_cplx(i, j, k) = cmplx(wk3rb(i, j, k), wk3ib(i, j, k), kind=mytype)
+               end do
+            end do
+         end do
+      else if (cplx) then
+         do k = 1, dtt_decomp_sp%xsz(3)
+            do j = 1, dtt_decomp_sp%xsz(2)
+               do i = 1, dtt_decomp_sp%xsz(1)
+                  out_cplx(i, j, k) = cmplx(wk1ra(i, j, k), wk1ia(i, j, k), kind=mytype)
+               end do
+            end do
+         end do
+      end if
 
-   end subroutine decomp_2d_dtt_3d_r2r
+      ! Release the buffers
+      call free_buffer_rr(wk1a, wk1ra, wk1ia)
+      call free_buffer_rr(wk1b, wk1rb, wk1ib)
+      call free_buffer_rr(wk2a, wk2ra, wk2ia)
+      call free_buffer_rr(wk2b, wk2rb, wk2ib)
+      call free_buffer_rr(wk3a, wk3ra, wk3ia)
+      call free_buffer_rr(wk3b, wk3rb, wk3ib)
+
+      if (decomp_profiler_fft) call decomp_profiler_end("decomp_2d_dtt_3d_r2x")
+
+   end subroutine decomp_2d_dtt_3d_r2x
+
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   ! Backward 3D DTT - real/complex to real
+   !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   subroutine decomp_2d_dtt_3d_x2r(in_real, in_cplx, out)
+
+      implicit none
+
+      ! Arguments
+      real(mytype), dimension(:, :, :), contiguous, target, intent(inout), optional :: in_real
+      complex(mytype), dimension(:, :, :), contiguous, target, intent(inout), optional :: in_cplx
+      real(mytype), dimension(:, :, :), contiguous, target, intent(out), optional :: out
+
+      ! Local variables
+      logical :: cplx
+      integer :: i, j, k
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk1ra, wk1ia, wk1a
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk1rb, wk1ib, wk1b
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk2ra, wk2ia, wk2a
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk2rb, wk2ib, wk2b
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk3ra, wk3ia, wk3a
+      real(mytype), dimension(:, :, :), contiguous, pointer :: wk3rb, wk3ib, wk3b
+
+      if (decomp_profiler_fft) call decomp_profiler_start("decomp_2d_dtt_3d_x2r")
+
+      ! Get buffers
+      if (dtt_x_dft .or. dtt_y_dft .or. dtt_z_dft) then
+         cplx = .true.
+      else
+         cplx = .false.
+      end if
+      if (format == PHYSICAL_IN_X) then
+         ! zy buffers
+         if (cplx) then
+            call get_buffer_rr(wk3b, wk3rb, wk3ib, dtt_decomp_sp%zsz, cplx)
+         else
+            nullify (wk3b)
+            nullify (wk3rb)
+            nullify (wk3ib)
+         end if
+         if (.not. (dtt_y_dft .or. dtt_x_dft)) cplx = .false.
+         call get_buffer_rr(wk3a, wk3ra, wk3ia, dtt_decomp_yz%zsz, cplx)
+         call get_buffer_rr(wk2b, wk2rb, wk2ib, dtt_decomp_yz%ysz, cplx)
+         ! yx buffers
+         if (.not. dtt_x_dft) cplx = .false.
+         call get_buffer_rr(wk2a, wk2ra, wk2ia, dtt_decomp_xy%ysz, cplx)
+         call get_buffer_rr(wk1b, wk1rb, wk1ib, dtt_decomp_xy%xsz, cplx)
+         nullify (wk1a)
+         nullify (wk1ra)
+         nullify (wk1ia)
+      else
+         ! xy buffers
+         if (cplx) then
+            call get_buffer_rr(wk1a, wk1ra, wk1ia, dtt_decomp_sp%xsz, cplx)
+         else
+            nullify (wk1a)
+            nullify (wk1ra)
+            nullify (wk1ia)
+         end if
+         if (.not. (dtt_y_dft .or. dtt_z_dft)) cplx = .false.
+         call get_buffer_rr(wk1b, wk1rb, wk1ib, dtt_decomp_xy%xsz, cplx)
+         call get_buffer_rr(wk2a, wk2ra, wk2ia, dtt_decomp_xy%ysz, cplx)
+         ! yz buffers
+         if (.not. dtt_z_dft) cplx = .false.
+         call get_buffer_rr(wk2b, wk2rb, wk2ib, dtt_decomp_yz%ysz, cplx)
+         call get_buffer_rr(wk3a, wk3ra, wk3ia, dtt_decomp_yz%zsz, cplx)
+         nullify (wk3b)
+         nullify (wk3rb)
+         nullify (wk3ib)
+      end if
+
+      ! Init
+      if (dtt_x_dft .or. dtt_y_dft .or. dtt_z_dft) then
+         cplx = .true.
+      else
+         cplx = .false.
+      end if
+
+      ! Safety check
+      if (cplx) then
+         if (.not. present(in_cplx)) call decomp_2d_abort(__FILE__, __LINE__, 1, "Invalid arguments")
+      else
+         if (.not. present(in_real)) call decomp_2d_abort(__FILE__, __LINE__, 1, "Invalid arguments")
+      end if
+      if (.not. present(out)) call decomp_2d_abort(__FILE__, __LINE__, 1, "Invalid arguments")
+
+      ! Split real and imag parts if needed
+      if (cplx) then
+         if (format == PHYSICAL_IN_X) then
+            do k = 1, dtt_decomp_sp%zsz(3)
+               do j = 1, dtt_decomp_sp%zsz(2)
+                  do i = 1, dtt_decomp_sp%zsz(1)
+                     wk3rb(i, j, k) = real(in_cplx(i, j, k), kind=mytype)
+                     wk3ib(i, j, k) = aimag(in_cplx(i, j, k))
+                  end do
+               end do
+            end do
+         else
+            do k = 1, dtt_decomp_sp%xsz(3)
+               do j = 1, dtt_decomp_sp%xsz(2)
+                  do i = 1, dtt_decomp_sp%xsz(1)
+                     wk1ra(i, j, k) = real(in_cplx(i, j, k), kind=mytype)
+                     wk1ia(i, j, k) = aimag(in_cplx(i, j, k))
+                  end do
+               end do
+            end do
+         end if
+      end if
+
+      ! Perform the 3D DTT
+      if (format == PHYSICAL_IN_Z) then
+
+         ! DFT / DTT in x
+         if (dtt_x_dft) then
+            if (dtt_y_dft .or. dtt_z_dft) then
+               call rr2rr_1m_x(wk1ra, wk1ia, wk1rb, wk1ib, DECOMP_2D_FFT_BACKWARD)
+            else
+               call rr2r_1m_x(wk1ra, wk1ia, wk1rb)
+               cplx = .false.
+            end if
+         else
+            if (cplx) then
+               call r2r_1m_x(wk1ra, wk1rb, DECOMP_2D_FFT_BACKWARD)
+               call r2r_1m_x(wk1ia, wk1ib, DECOMP_2D_FFT_BACKWARD)
+            else
+               call r2r_1m_x(in_real, wk1rb, DECOMP_2D_FFT_BACKWARD)
+            end if
+         end if
+
+         ! Transpose x => y
+         call transpose_x_to_y(wk1rb, wk2ra, dtt_decomp_xy)
+         if (cplx) then
+            call transpose_x_to_y(wk1ib, wk2ia, dtt_decomp_xy)
+         end if
+
+         ! DFT / DTT in y
+         if (dtt_y_dft) then
+            if (dtt_z_dft) then
+               call rr2rr_1m_y(wk2ra, wk2ia, wk2rb, wk2ib, DECOMP_2D_FFT_BACKWARD)
+            else
+               call rr2r_1m_y(wk2ra, wk2ia, wk2rb)
+               cplx = .false.
+            end if
+         else
+            call r2r_1m_y(wk2ra, wk2rb, DECOMP_2D_FFT_BACKWARD)
+            if (cplx) call r2r_1m_y(wk2ia, wk2ib, DECOMP_2D_FFT_BACKWARD)
+         end if
+
+         ! Transpose y => z
+         call transpose_y_to_z(wk2rb, wk3ra, dtt_decomp_yz)
+         if (cplx) then
+            call transpose_y_to_z(wk2ib, wk3ia, dtt_decomp_yz)
+         end if
+
+         ! DFT / DTT in z
+         if (cplx) then
+            call rr2r_1m_z(wk3ra, wk3ia, out)
+         else
+            call r2r_1m_z(wk3ra, out, DECOMP_2D_FFT_BACKWARD)
+         end if
+
+      else
+
+         ! DFT / DTT in z
+         if (dtt_z_dft) then
+            if (dtt_y_dft .or. dtt_x_dft) then
+               call rr2rr_1m_z(wk3rb, wk3ib, wk3ra, wk3ia, DECOMP_2D_FFT_BACKWARD)
+            else
+               call rr2r_1m_z(wk3rb, wk3ib, wk3ra)
+               cplx = .false.
+            end if
+         else
+            if (cplx) then
+               call r2r_1m_z(wk3rb, wk3ra, DECOMP_2D_FFT_BACKWARD)
+               call r2r_1m_z(wk3ib, wk3ia, DECOMP_2D_FFT_BACKWARD)
+            else
+               call r2r_1m_z(in_real, wk3ra, DECOMP_2D_FFT_BACKWARD)
+            end if
+         end if
+
+         ! Transpose z => y
+         call transpose_z_to_y(wk3ra, wk2rb, dtt_decomp_yz)
+         if (cplx) then
+            call transpose_z_to_y(wk3ia, wk2ib, dtt_decomp_yz)
+         end if
+
+         ! DFT / DTT in y
+         if (dtt_y_dft) then
+            if (dtt_x_dft) then
+               call rr2rr_1m_y(wk2rb, wk2ib, wk2ra, wk2ia, DECOMP_2D_FFT_BACKWARD)
+            else
+               call rr2r_1m_y(wk2rb, wk2ib, wk2ra)
+               cplx = .false.
+            end if
+         else
+            call r2r_1m_y(wk2rb, wk2ra, DECOMP_2D_FFT_BACKWARD)
+            if (cplx) call r2r_1m_y(wk2ib, wk2ia, DECOMP_2D_FFT_BACKWARD)
+         end if
+
+         ! Transpose y => x
+         call transpose_y_to_x(wk2ra, wk1rb, dtt_decomp_xy)
+         if (cplx) then
+            call transpose_y_to_x(wk2ia, wk1ib, dtt_decomp_xy)
+         end if
+
+         ! DFT / DTT in x
+         if (cplx) then
+            call rr2r_1m_x(wk1rb, wk1ib, out)
+         else
+            call r2r_1m_x(wk1rb, out, DECOMP_2D_FFT_BACKWARD)
+         end if
+
+      end if
+
+      ! Release the buffers
+      call free_buffer_rr(wk1a, wk1ra, wk1ia)
+      call free_buffer_rr(wk1b, wk1rb, wk1ib)
+      call free_buffer_rr(wk2a, wk2ra, wk2ia)
+      call free_buffer_rr(wk2b, wk2rb, wk2ib)
+      call free_buffer_rr(wk3a, wk3ra, wk3ia)
+      call free_buffer_rr(wk3b, wk3rb, wk3ib)
+
+      if (decomp_profiler_fft) call decomp_profiler_end("decomp_2d_dtt_3d_x2r")
+
+   end subroutine decomp_2d_dtt_3d_x2r
 
    !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    ! Wrappers for calling 3D FFT directly using the engine object
@@ -2068,33 +3229,227 @@ contains
    !
    ! Wrappers are needed for skipping points
    !
+   subroutine wrapper_rr2rr(plan, &
+                            inr, &
+                            ini, &
+                            isz, &
+                            outr, &
+                            outi, &
+                            osz)
+
+      implicit none
+
+      ! Arguments
+      type(c_ptr), intent(in) :: plan
+      real(mytype), dimension(:, :, :), target, contiguous, intent(inout) :: inr, ini
+      real(mytype), dimension(:, :, :), target, contiguous, intent(inout) :: outr, outi
+      integer, intent(in) :: isz, osz
+
+      ! Local variables
+      real(mytype), dimension(:), contiguous, pointer :: inr2, ini2, outr2, outi2
+
+      ! Create 1D pointers starting at the ifirst / ofirst location
+      call c_f_pointer(c_loc(inr), inr2, (/isz/))
+      call c_f_pointer(c_loc(ini), ini2, (/isz/))
+      call c_f_pointer(c_loc(outr), outr2, (/osz/))
+      call c_f_pointer(c_loc(outi), outi2, (/osz/))
+
+      ! Perform DFT
+#ifdef DOUBLE_PREC
+      call fftw_execute_split_dft(plan, inr2, ini2, outr2, outi2)
+#else
+      call fftwf_execute_split_dft(plan, inr2, ini2, outr2, outi2)
+#endif
+
+      ! Release pointers
+      nullify (inr2)
+      nullify (ini2)
+      nullify (outr2)
+      nullify (outi2)
+
+   end subroutine wrapper_rr2rr
+   !
    subroutine wrapper_r2r(plan, &
                           inr, &
-                          ii, isz)
+                          ii, isz, &
+                          outr, &
+                          oi, osz)
 
       implicit none
 
       ! Arguments
       type(c_ptr), intent(in) :: plan
       real(mytype), dimension(:, :, :), target, contiguous, intent(inout) :: inr
-      integer, intent(in) :: ii, isz
+      real(mytype), dimension(:, :, :), target, contiguous, intent(out) :: outr
+      integer, intent(in) :: ii, isz, oi, osz
 
-      ! Local variable
-      real(mytype), dimension(:), contiguous, pointer :: inr2
+      ! Local variables
+      real(mytype), dimension(:), contiguous, pointer :: inr2, outr2
 
       ! Create 1D pointers mapping the provided 3D array
-      call c_f_pointer(c_loc(inr), inr2, (/isz/))
+      call c_f_pointer(c_loc(inr), inr2, (/isz + ii - 1/))
+      call c_f_pointer(c_loc(outr), outr2, (/osz + oi - 1/))
 
-      ! Perform DFT starting at the ifirst location
+      ! Perform DFT starting at the ifirst / ofirst location
 #ifdef DOUBLE_PREC
-      call fftw_execute_r2r(plan, inr2(ii:), inr2(ii:))
+      call fftw_execute_r2r(plan, inr2(ii:), outr2(oi:))
 #else
-      call fftwf_execute_r2r(plan, inr2(ii:), inr2(ii:))
+      call fftwf_execute_r2r(plan, inr2(ii:), outr2(oi:))
 #endif
 
       ! Release pointers
       nullify (inr2)
+      nullify (outr2)
 
    end subroutine wrapper_r2r
+   !
+   subroutine wrapper_rr2r(plan, &
+                           inr, &
+                           ini, &
+                           isz, &
+                           outr, &
+                           osz)
+
+      implicit none
+
+      ! Arguments
+      type(c_ptr), intent(in) :: plan
+      real(mytype), dimension(:, :, :), target, contiguous, intent(inout) :: inr, ini
+      real(mytype), dimension(:, :, :), target, contiguous, intent(out) :: outr
+      integer, intent(in) :: isz, osz
+
+      ! Local variables
+      real(mytype), dimension(:), contiguous, pointer :: inr2, ini2, outr2
+
+      ! Create 1D pointers starting at the ifirst / ofirst location
+      call c_f_pointer(c_loc(inr), inr2, (/isz/))
+      call c_f_pointer(c_loc(ini), ini2, (/isz/))
+      call c_f_pointer(c_loc(outr), outr2, (/osz/))
+
+      ! Perform DFT
+#ifdef DOUBLE_PREC
+      call fftw_execute_split_dft_c2r(plan, inr2, ini2, outr2)
+#else
+      call fftwf_execute_split_dft_c2r(plan, inr2, ini2, outr2)
+#endif
+
+      ! Release pointers
+      nullify (inr2)
+      nullify (ini2)
+      nullify (outr2)
+
+   end subroutine wrapper_rr2r
+   !
+   subroutine wrapper_r2rr(plan, &
+                           inr, &
+                           isz, &
+                           outr, &
+                           outi, &
+                           osz)
+
+      implicit none
+
+      ! Arguments
+      type(c_ptr), intent(in) :: plan
+      real(mytype), dimension(:, :, :), target, contiguous, intent(inout) :: inr
+      real(mytype), dimension(:, :, :), target, contiguous, intent(out) :: outr, outi
+      integer, intent(in) :: isz, osz
+
+      ! Local variables
+      real(mytype), dimension(:), contiguous, pointer :: inr2, outr2, outi2
+
+      ! Create 1D pointers starting at the ifirst / ofirst location
+      call c_f_pointer(c_loc(inr), inr2, (/isz/))
+      call c_f_pointer(c_loc(outr), outr2, (/osz/))
+      call c_f_pointer(c_loc(outi), outi2, (/osz/))
+
+      ! Perform DFT
+#ifdef DOUBLE_PREC
+      call fftw_execute_split_dft_r2c(plan, inr2, outr2, outi2)
+#else
+      call fftwf_execute_split_dft_r2c(plan, inr2, outr2, outi2)
+#endif
+
+      ! Release pointers
+      nullify (inr2)
+      nullify (outr2)
+      nullify (outi2)
+
+   end subroutine wrapper_r2rr
+
+   !
+   ! 3D pointers buf1 and buf2 are at the beginning and at the end of var
+   !
+   ! The caller must release the memory block
+   !
+   ! The subroutine free_buffer_rr can be used to release the block
+   !
+   subroutine get_buffer_rr(var, buf1, buf2, shp, cplx)
+
+      implicit none
+
+      ! Arguments
+      real(mytype), dimension(:, :, :), pointer, contiguous, intent(inout) :: var
+      real(mytype), dimension(:, :, :), pointer, contiguous, intent(inout) :: buf1
+      real(mytype), dimension(:, :, :), pointer, contiguous, intent(inout) :: buf2
+      integer, dimension(3), intent(in) :: shp
+      logical, intent(in) :: cplx
+
+      ! If cplx flag, get two consecutive memory blocks
+      ! Otherwise, get only one memory block
+
+      if (cplx) then
+
+         ! Get a large memory block
+         call decomp_pool_get(var, (/shp(1), shp(2), shp(3) * 2/))
+
+         ! Set to zero
+         var = 0._mytype
+
+         ! Associate pointers
+         buf1(1:shp(1), 1:shp(2), 1:shp(3)) => var(:, :, 1:shp(3))
+         buf2(1:shp(1), 1:shp(2), 1:shp(3)) => var(:, :, shp(3) + 1:2 * shp(3))
+
+      else
+
+         ! Get a block
+         call decomp_pool_get(buf1, shp)
+
+         ! Set to zero
+         buf1 = 0._mytype
+
+         ! Pointers to null
+         nullify (var)
+         nullify (buf2)
+
+      end if
+
+   end subroutine get_buffer_rr
+   !
+   subroutine free_buffer_rr(var, buf1, buf2)
+
+      implicit none
+
+      ! Arguments
+      real(mytype), dimension(:, :, :), pointer, contiguous, intent(inout) :: var
+      real(mytype), dimension(:, :, :), pointer, contiguous, intent(inout) :: buf1
+      real(mytype), dimension(:, :, :), pointer, contiguous, intent(inout) :: buf2
+
+      if (associated(var)) then
+
+         ! Release a large memory block
+         call decomp_pool_free(var)
+
+         ! Pointers to null
+         nullify (buf1)
+         nullify (buf2)
+
+      else if (associated(buf1)) then
+
+         call decomp_pool_free(buf1)
+
+      end if
+
+   end subroutine free_buffer_rr
 
 end module decomp_2d_fft
