@@ -11,25 +11,26 @@ module eq_energy_mod
   public  :: Solve_energy_eq
 contains
 !==========================================================================================================
-  subroutine Calculate_drhodt(fl, dm, opt_tm)
+  subroutine Calculate_drhodt(fl, dm, opt_isub, opt_tm)
     use parameters_constant_mod
     use udf_type_mod
     use find_max_min_ave_mod
     implicit none
     type(t_domain), intent(in) :: dm
+    integer, intent(in), optional :: opt_isub
     type(t_thermo), intent(in), optional :: opt_tm
     type(t_flow), intent(inout) :: fl
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(in)  :: dens, densm1
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(out) :: drhodt
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div0
-    real(WP) :: maxdrhodt
+    real(WP) :: maxdrhodt!, d1_bulk, d0_bulk
+    logical :: do_projection
 
     if( .not. dm%is_thermo) return
     ! thermal field is half time step ahead of the velocity field
     ! -----*-----$-----*-----$-----*-----$-----*-----$-----*-----$-----*
     !           d_(i-1)     d_i   u_i    d_(i+1)
-
     ! select case (dm%iTimeScheme)
     !   case (ITIME_EULER) ! 1st order
     !     fl%drhodt = fl%dDens - fl%dDens0
@@ -44,25 +45,33 @@ contains
     !     fl%drhodt = fl%dDens - fl%dDens0
     !     fl%drhodt = fl%drhodt / dm%dt
     ! end select
-
-    if(is_drhodt_chain) then
-      ! drho/dt = d(rhoh)/dt/(drhoh/drho) in energy equation
-      if(.not. present(opt_tm)) call Print_error_msg('opt_tm should be provided.')
-      fl%drhodt = opt_tm%ene_rhs / dm%dt / opt_tm%drhoh_drho
-    else 
+    !------------------------------------------------------------
+    ! Compute drho/dt
+    !------------------------------------------------------------
+    ! Default value
+    fl%drhodt = ZERO
+    ! Check whether this RK sub-step should perform the projection
+    do_projection = (.not. is_single_RK_projection) .or. (opt_isub == ITIME_RK3)
+    if (.not. do_projection) return
+    if (is_drhodt_chain) then
+      !----------------------------------------------------------
+      ! Chain-rule form:
+      !   drho/dt = (d(rho h)/dt) / (drhoh/drho)
+      !----------------------------------------------------------
+      if (.not. present(opt_tm)) then
+        call Print_error_msg('opt_tm should be provided.')
+      end if
+      fl%drhodt = opt_tm%ene_rhs / opt_tm%drhoh_drho
+    else
+      !----------------------------------------------------------
+      ! Finite-difference form:
+      !   drho/dt = (rho - rho0) / dt
+      !----------------------------------------------------------
       fl%drhodt = fl%dDens - fl%dDens0
-      fl%drhodt = fl%drhodt / dm%dt
     end if
-!#ifdef DEBUG_STEPS
-    !write(*,*) 'rho   ', fl%ddens  (1, :, 1)
-    !write(*,*) 'rhom1 ', fl%dDens0(1, :, 1)
-    !write(*,*) 'rhom2 ', fl%ddensm2(:, :, :)
-    !write(*,*) 'drhodt', fl%drhodt (:, :, :)
-    !write(*,*) 'drhodt', fl%drhodt(1, :, 1)
-    !call Find_max_min_3d(fl%drhodt, opt_calc='MAXI', opt_name='drho_dt')
-!#endif
-
-
+    ! Apply time scaling (common to both formulations)
+    fl%drhodt = fl%drhodt / dm%dt
+    
     return
   end subroutine Calculate_drhodt
 !==========================================================================================================
@@ -516,6 +525,7 @@ contains
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: gx, ux
     real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: gy, uy
     real(WP), dimension( dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3) ) :: gz, uz
+    logical :: do_backup_density, do_backup_viscosity
     !
     ! set up flow info based on different time stepping
     if(is_strong_coupling) then
@@ -531,12 +541,14 @@ contains
       call convert_primary_conservative (dm, fl%dDens, IG2Q, IBLK, ux, uy, uz, gx, gy, gz)
     end if
     ! backup density and viscosity 
-    if (.not. is_drhodt_chain) then
-      if (is_strong_coupling .or. isub == 1) then
-        fl%dDens0 = fl%dDens
-        fl%mVisc0 = fl%mVisc
-      end if
-    end if
+    do_backup_density = &
+           ( .not. is_strong_coupling .and. isub == 1 )        &        ! weak coupling: once per time step
+      .or. ( is_strong_coupling .and. is_single_RK_projection  &
+             .and. isub == 1 )                                 &        ! strong + single projection: once at RK1
+      .or. ( is_strong_coupling .and. (.not. is_single_RK_projection) ) ! strong + multi projection: every RK sub-step
+    do_backup_viscosity = ( .not. is_strong_coupling .and. isub == 1 )  ! weak coupling: once per time step
+    if (do_backup_density)   fl%dDens0 = fl%dDens
+    if (do_backup_viscosity) fl%mVisc0 = fl%mVisc
     ! compute b.c. info from convective b.c. if specified.
     if (dm%is_conv_outlet(1)) call update_fbcx_convective_outlet_thermo(ux, tm, dm, isub)
     if (dm%is_conv_outlet(3)) call update_fbcz_convective_outlet_thermo(uz, tm, dm, isub)
@@ -550,7 +562,7 @@ contains
 
     ! calculate drho/dt
     !if(isub==3) &
-    call Calculate_drhodt(fl, dm, opt_tm=tm)
+    !call Calculate_drhodt(fl, dm, opt_tm=tm)
 
   return
   end subroutine

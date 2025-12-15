@@ -184,7 +184,7 @@ contains
       nzm = dm%np_geo(3) - 1
     end if
 !----------------------------------------------------------------------------------------------------------
-    !write(*,*) 'nx, ny, nz, nxm, nym, nzm:(var)', nx, ny, nz, nxm, nym, nzm
+    if(nrank==0) write(*,*) 'FFT: nx, ny, nz, nxm, nym, nzm:(var)', nx, ny, nz, nxm, nym, nzm
 
     dx = dm%h(1)
     dy = dm%h(2)!(dm%lyt - dm%lyb) / real(dm%nc(2), WP) !dm%h(2) ! check, computational or physical grid spacing (yes))?

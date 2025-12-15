@@ -9,7 +9,7 @@ module eq_momentum_mod
   private :: Calculate_momentum_fractional_step
   private :: Compute_momentum_rhs
   private :: Correct_massflux
-  private :: solve_poisson
+  private :: solve_pressure_poisson
   private :: gravity_decomposition_to_rz
   !private :: solve_poisson_x2z
   
@@ -2083,7 +2083,7 @@ contains
   end subroutine Correct_massflux
 
 !==========================================================================================================
-  subroutine solve_poisson(fl, dm, isub)
+  subroutine solve_pressure_poisson(fl, dm, isub)
     use udf_type_mod
     use parameters_constant_mod
     use poisson_interface_mod
@@ -2093,81 +2093,119 @@ contains
     use typeconvert_mod
     use io_visualisation_mod
     implicit none
-    type(t_domain), intent( in    ) :: dm
-    type(t_flow),   intent( inout ) :: fl                  
-    integer,        intent( in    ) :: isub
-
-    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div, drhodt
-    real(WP) :: coeff!, offset(2)
-    integer :: i, j, k
-
-#ifdef DEBUG_STEPS  
-    if(nrank == 0) &
-    call Print_debug_inline_msg("Calculating the RHS of Poisson Equation ...")
+    !------------------------------------------------------------------
+    ! Arguments
+    !------------------------------------------------------------------
+    type(t_domain), intent(in)    :: dm
+    type(t_flow),   intent(inout) :: fl
+    integer,        intent(in)    :: isub
+    !------------------------------------------------------------------
+    ! Local variables
+    !------------------------------------------------------------------
+    real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: &
+        drhodt, div
+    real(WP) :: coeff, pres_bulk
+    logical :: do_split
+#ifdef DEBUG_STEPS
+    if (nrank == 0) then
+      call Print_debug_inline_msg("Calculating the RHS of Poisson equation ...")
+    end if
 #endif
-
-!==========================================================================================================
-! RHS of Poisson Eq.
-! RHS = r^2 * d(\rho)/dt + r^2 * du/dx + r * dv/dy + dw/dz
-!==========================================================================================================
-!----------------------------------------------------------------------------------------------------------
-! $d\rho / dt$ at cell centre
-!----------------------------------------------------------------------------------------------------------
+    !==================================================================
+    ! 1. Build RHS components of Poisson equation
+    !==================================================================
+    ! RHS = d(rho)/dt + div(rho u)
+    ! For cylindrical coordinate:
+    ! Poisson eq is: r^2 * d2/dx2 + r * d(r * d/dy)/dy + d2/dz2  = &
+    !                r^2 * div + r^2 * d(rho)/dt
+    !==================================================================
+    !------------------------------------------------------------------
+    ! 1.1 Static component: d(rho)/dt at cell centres
+    !------------------------------------------------------------------
     if (dm%is_thermo) then
       drhodt = fl%drhodt
     else
       drhodt = ZERO
     end if
-!----------------------------------------------------------------------------------------------------------
-! $d(\rho u_i)) / dx_i $ at cell centre
-!----------------------------------------------------------------------------------------------------------
-    div  = ZERO
+    !------------------------------------------------------------------
+    ! 1.2 Dynamic component: div(rho u)
+    !------------------------------------------------------------------
+    div = ZERO
     call Get_divergence_flow(fl, div, dm)
-    fl%pcor = drhodt + div
-
-!#ifdef DEBUG_STEPS
-    ! call Find_max_min_3d(drhodt/div, opt_name='drhodt/div')
-    !call write_visu_any3darray(drhodt, 'drhodt', 'debug'//trim(int2str(isub)), dm%dccc, dm, fl%iteration)
-    !call write_visu_any3darray(div, 'div', 'debug'//trim(int2str(isub)), dm%dccc, dm, fl%iteration)
-    !call write_visu_any3darray(drhodt/div, 'drhodt-div', 'debug'//trim(int2str(isub)), dm%dccc, dm, fl%iteration)
-    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
-    !write(*,*) 'input', fl%pcor(:, 2, 2)
-    !fl%pcor = fl%pcor - coeff
-    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pcor, coeff, SPACE_AVERAGE)
-    !write(*,*) 'corrected drhodt+div', coeff
-    ! write(*,*) 'RHS(phi)_no_drhodt', div(1, 1:4, 1)
-    ! write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
-!#endif
-!----------------------------------------------------------------------------------------------------------
-! For cylindrical coordinate:
-! Poisson eq is r^2 * d2/dx2 + r * d(r * d/dy)/dy + d2/dz2  = r^2 * div
-!----------------------------------------------------------------------------------------------------------
-    if(dm%icoordinate == ICYLINDRICAL) &
-    call multiple_cylindrical_rn(fl%pcor, dm%dccc, dm%rc, 2, IPENCIL(1)) ! important
+    !------------------------------------------------------------------
+    ! 1.3 Scaling coefficient
+    !------------------------------------------------------------------
     coeff = ONE / (dm%tAlpha(isub) * dm%sigma2p * dm%dt)
-    fl%pcor = fl%pcor * coeff
-
-#ifdef DEBUG_STEPS
-    call wrt_3d_pt_debug (fl%pcor, dm%dccc, fl%iteration, isub, 'PhiRHS@RHS phi') ! debug_ww
-    !call wrt_3d_all_debug(fl%pcor, dm%dccc,   fl%iteration, 'PhiRHS@RHS phi') ! debug_ww
-
-    !write(*,*) 'RHS(phi)_w_drhodt', fl%pcor(1, 1:4, 1)
-#endif
-!----------------------------------------------------------------------------------------------------------
-!   solve Poisson
-!----------------------------------------------------------------------------------------------------------
-    call solve_fft_poisson(fl%pcor, dm)
-
-    !call Find_max_min_3d(fl%pcor, opt_calc='MINI', opt_work=offset)
-    !fl%pcor = fl%pcor - offset(1)
-
+    !==================================================================
+    ! 2. Solve Poisson equation
+    !==================================================================
+    is_two_potential_splitting = dm%is_thermo .and. & 
+              ( (.not. is_single_RK_projection) .or. (isub == ITIME_RK3) )
+    !
 !#ifdef DEBUG_STEPS
-    !call wrt_3d_pt_debug (fl%pcor, dm%dccc,   fl%iteration, isub, 'phi@sol phi') ! debug_ww
-    !call wrt_3d_all_debug(fl%pcor, dm%dccc,   fl%iteration, 'phi@sol phi') ! debug_ww
-    !write(*,*) 'solved_phi', fl%pcor(:, 2, 2)
+    if (nrank == 0) then
+      if (is_two_potential_splitting) then
+        call Print_debug_inline_msg(" Using two-potential splitting for pressure Poisson equation.")
+      else
+        call Print_debug_inline_msg(" Using single-potential formulation for pressure Poisson equation.")
+      end if
+    end if
 !#endif
+    !
+    if (is_two_potential_splitting) then
+      !--------------------------------------------------------------
+      ! Two-potential splitting:
+      !   - drhodt : static potential (thermodynamic)
+      !   - div    : dynamic pressure potential
+      !--------------------------------------------------------------
+      if (dm%icoordinate == ICYLINDRICAL) then
+        call multiple_cylindrical_rn(drhodt, dm%dccc, dm%rc, 2, IPENCIL(1))
+        call multiple_cylindrical_rn(div,    dm%dccc, dm%rc, 2, IPENCIL(1))
+      end if
+      drhodt = drhodt * coeff
+      div    = div    * coeff
+      call solve_fft_poisson(drhodt, dm)
+      call solve_fft_poisson(div,    dm)
+      fl%pcor = drhodt + div
+    else
+      !--------------------------------------------------------------
+      ! Single-potential formulation
+      !--------------------------------------------------------------
+      fl%pcor = drhodt + div
+      if (dm%icoordinate == ICYLINDRICAL) then
+        call multiple_cylindrical_rn(fl%pcor, dm%dccc, dm%rc, 2, IPENCIL(1))
+      end if
+      fl%pcor = fl%pcor * coeff
+      call solve_fft_poisson(fl%pcor, dm)
+    end if
+    !==================================================================
+    ! 3. Pressure correction
+    !==================================================================
+#ifdef DEBUG_STEPS
+    if (nrank == 0) then
+      call Print_debug_inline_msg("Correcting the pressure field ...")
+      write(*,*) 'original pressure:', fl%pres(1, 1:4, 1)
+      write(*,*) 'phi_static       :', drhodt(1, 1:4, 1)
+      write(*,*) 'phi_dynamic      :', div(1, 1:4, 1)
+    end if
+#endif
+    if (is_two_potential_splitting) then
+      fl%pres = fl%pres + div
+    else
+      fl%pres = fl%pres + fl%pcor
+    end if
+    !------------------------------------------------------------------
+    ! Remove pressure drift (zero-mean constraint)
+    !------------------------------------------------------------------
+    call Get_volumetric_average_3d_for_var_xcx( &
+        dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
+    fl%pres = fl%pres - pres_bulk
+#ifdef DEBUG_STEPS
+    call wrt_3d_pt_debug(fl%pres, dm%dccc, fl%iteration, isub, 'pr_updated')
+    write(*,*) 'solved_phi:', fl%pcor(:, 2, 2)
+#endif
     return
-  end subroutine
+  end subroutine solve_pressure_poisson
 ! !==========================================================================================================
 !   subroutine solve_poisson_x2z(fl, dm, isub)
 !     use udf_type_mod
@@ -2288,12 +2326,12 @@ contains
           fl%gx0 = fl%gx
           fl%gy0 = fl%gy
           fl%gz0 = fl%gz
-          call Calculate_drhodt(fl, dm, opt_tm)
+          call Calculate_drhodt(fl, dm, opt_isub=isub, opt_tm=opt_tm)
         end if
       else
         dens = fl%dDens
         visc = fl%mVisc
-        call Calculate_drhodt(fl, dm, opt_tm)
+        call Calculate_drhodt(fl, dm, opt_isub=isub, opt_tm=opt_tm)
       end if
     end if
     ! to set up convective outlet b.c. assume x direction
@@ -2325,25 +2363,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
     !if(nrank == 0) call Print_debug_inline_msg("  Solving Poisson Equation ...") 
     !call solve_poisson_x2z(fl, dm, isub) !
-    call solve_poisson(fl, dm, isub) ! test show above two methods gave the same results. 
-!----------------------------------------------------------------------------------------------------------
-! to update pressure
-!----------------------------------------------------------------------------------------------------------
-#ifdef DEBUG_STEPS  
-    if(nrank == 0) &
-    call Print_debug_inline_msg("Correcting the pressure term ...")
-#endif
-!write(*,*) 'pres', fl%pres(1, 1:4, 1)
-!write(*,*) 'pcor', fl%pcor(1, 1:4, 1)
-    fl%pres = fl%pres + fl%pcor
-    !call Find_max_min_3d(fl%pres, opt_calc='MINI', opt_work=offset)
-    !fl%pres = fl%pres - offset(1)
-    ! correct pressure drift
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
-    fl%pres = fl%pres - pres_bulk
-#ifdef DEBUG_STEPS
-    call wrt_3d_pt_debug(fl%pres, dm%dccc,   fl%iteration, isub, 'pr_updated') ! debug_ww
-#endif
+    call solve_pressure_poisson(fl, dm, isub) ! test show above two methods gave the same results. 
 !----------------------------------------------------------------------------------------------------------
 ! to update velocity/massflux correction
 !----------------------------------------------------------------------------------------------------------
@@ -2363,6 +2383,7 @@ contains
     end if
     call Check_element_mass_conservation(fl, dm, isub) 
 #endif
+!call Check_element_mass_conservation(fl, dm, isub)
 !----------------------------------------------------------------------------------------------------------
 ! to update velocity from gx gy gz 
 !----------------------------------------------------------------------------------------------------------
@@ -2372,7 +2393,7 @@ contains
 
   ! if(dm%is_thermo .and.isub == dm%nsubitr) then
   !   do i = 1, 100
-  !     call solve_poisson(fl, dm, 0)
+  !     call solve_pressure_poisson(fl, dm, 0)
   !     fl%pres = fl%pres + fl%pcor
   !     call Correct_massflux(fl, fl%pcor, dm, isub)
   !     call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)

@@ -291,13 +291,8 @@ contains
     if(nrank == 0) then
       call Print_debug_start_msg("CHAPSim2.0 Starts ...")
       write (*, wrtfmt1i) 'The precision is REAL * ', WP
-      write (*, wrtfmt1l) 'is_strong_coupling : ', is_strong_coupling
-      write (*, wrtfmt1l) 'is_drhodt_chain : ', is_drhodt_chain
-      if((.not.is_strong_coupling) .and. is_drhodt_chain) call Print_warning_msg("For a loose coupling, an Euler drho/dt is recommended.")
-      if(is_strong_coupling .and. (.not.is_drhodt_chain)) call Print_warning_msg("For a strong coupling, a drho/dt chain calc is recommended.")
     end if
     is_any_energyeq = .false.
-
     !----------------------------------------------------------------------------------------------------------
     ! open file
     !----------------------------------------------------------------------------------------------------------
@@ -632,6 +627,7 @@ contains
             write (*, wrtfmt1i) 'mesh cell number - y :', domain(i)%nc(2)
             write (*, wrtfmt1i) 'mesh cell number - z :', domain(i)%nc(3)
             write (*, wrtfmt2s) 'FFT lib :', get_name_fft(domain(i)%ifft_lib)
+            write (*, wrtfmt3l) 'FFT skiping any direction? ', domain(i)%fft_skip_c2c(:)
             write (*, wrtfmt3l) 'is mesh stretching in xyz :', domain(i)%is_stretching(1:3)
             write (*, wrtfmt2s) 'mesh y-stretching type :', get_name_mesh(domain(i)%istret)
             if(domain(i)%istret /= ISTRET_NO) then
@@ -682,6 +678,7 @@ contains
             write (*, wrtfmt1i) 'time marching scheme :', domain(i)%iTimeScheme
             write (*, wrtfmt2s) 'current spatial accuracy scheme :', get_name_iacc(domain(i)%iAccuracy)
             write (*, wrtfmt1i) 'viscous term treatment  :', domain(i)%iviscous
+            write (*, wrtfmt1l) 'is_single_RK_projection : ', is_single_RK_projection
           end do
         end if
       !----------------------------------------------------------------------------------------------------------
@@ -707,8 +704,7 @@ contains
           end if
         end do
 
-        
-        
+        is_single_RK_projection = .false.
 
         if( nrank == 0) then
           do i = 1, nxdomain
@@ -750,7 +746,13 @@ contains
         read(inputUnit, *, iostat = ioerr) varname, rtmpx(1: nxdomain)
         if(is_any_energyeq) thermo(1 : nxdomain)%init_T0 = rtmpx(1: nxdomain)
         
+        is_single_RK_projection = .true. 
+
         if(is_any_energyeq .and. nrank == 0) then
+          write (*, wrtfmt1l) 'is_strong_coupling : ', is_strong_coupling
+          write (*, wrtfmt1l) 'is_drhodt_chain : ', is_drhodt_chain
+          if((.not.is_strong_coupling) .and. is_drhodt_chain) call Print_warning_msg("For a loose coupling, an Euler drho/dt is recommended.")
+    
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
             write (*, wrtfmt1l) 'is thermal field solved ?', domain(i)%is_thermo

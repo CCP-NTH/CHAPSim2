@@ -147,7 +147,7 @@ contains
     real(WP), allocatable :: id(:, :, :)
 #endif
 
-    call decomp_2d_init(domain(1)%np_geo(1), domain(1)%np_geo(2), domain(1)%np_geo(3), p_row, p_col)
+    call decomp_2d_init(domain(1)%np(1), domain(1)%np(2), domain(1)%np(3), p_row, p_col)
     do i = 1, nxdomain
       call initialise_domain_decomposition(domain(i))
       call initialise_decomp_io(domain(i))
