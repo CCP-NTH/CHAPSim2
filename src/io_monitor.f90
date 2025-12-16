@@ -394,7 +394,7 @@ contains
     !
     ! global pressure drop
     call Get_area_average_2d_for_fbcx(dm, dm%dccc, fl%pres, bulk_fbcx, SPACE_INTEGRAL, 'varx')
-    pressure_drop = bulk_fbcx(2) - bulk_fbcx(1)
+    pressure_drop = bulk_fbcx(1) - bulk_fbcx(2)
     !
     ! bulk streamwise velocity
     call Get_volumetric_average_3d(dm, dm%dpcc, fl%qx, bulk_q(1), SPACE_AVERAGE, 'qx')
