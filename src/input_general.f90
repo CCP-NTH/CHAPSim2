@@ -649,7 +649,7 @@ contains
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%iviscous
         domain(:)%iviscous = domain(1)%iviscous
         ! some schemes are still testing, check >>>
-        if(domain(1)%icase == ICASE_PIPE) then
+        if(domain(1)%icoordinate == ICYLINDRICAL) then
           domain(1)%iAccuracy = IACCU_CD2
         end if ! 
 

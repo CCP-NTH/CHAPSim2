@@ -286,6 +286,7 @@ contains
     use find_max_min_ave_mod
     use cylindrical_rn_mod
     use regression_test_mod
+    use bc_dirichlet_mod
     implicit none 
 
     type(t_domain),  intent(in) :: dm
@@ -313,7 +314,10 @@ contains
     real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil, qy_ypencil
     real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3) ) :: accp_ypencil
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil, qz_zpencil
-
+    real(WP), dimension(4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) :: fbcx
+    real(WP), dimension(dm%dccc%ysz(1), 4, dm%dccc%ysz(3)) :: fbcy
+    real(WP), dimension(dm%dccc%zsz(1), dm%dccc%zsz(2), 4) :: fbcz
+    real(WP), dimension(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) :: fbcy_c4c
     real(WP) :: dMKEdt
 
 !----------------------------------------------------------------------------------------------------------
@@ -351,35 +355,40 @@ contains
       bulk_m = ZERO
     end if
     !area averaged mass flux - x - boundary: rho*uy
-    if(dm%is_thermo) then
-      apcc_xpencil = fl%gx
+    if(dm%ibcx_qx(1)/=IBC_PERIODIC)then
+      if(dm%is_thermo) then
+        fbcx = dm%fbcx_gx
+      else
+        fbcx = dm%fbcx_qx
+      end if
+      call Get_area_average_2d_for_fbcx(dm, dm%dpcc, fbcx, bulk_fbcx, SPACE_INTEGRAL, 'fbcx')
     else
-      apcc_xpencil = fl%qx
+      bulk_fbcx = ZERO
     end if
-    call Get_area_average_2d_for_fbcx(dm, dm%dpcc, apcc_xpencil, bulk_fbcx, SPACE_INTEGRAL, 'varx')
     !area averaged mass flux - y - boundary: rho*uy
-    if(dm%is_thermo) then
-      call transpose_x_to_y(fl%gy, acpc_ypencil, dm%dcpc)
+    if(dm%ibcy_qy(1)/=IBC_PERIODIC)then
+      if(dm%is_thermo) then
+          call transpose_x_to_y(fl%gy, acpc_ypencil, dm%dcpc)
+          call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
+          fbcy = fbcy_c4c
+        else
+          fbcy = dm%fbcy_qyr
+        end if
+      call Get_area_average_2d_for_fbcy(dm, dm%dcpc, fbcy, bulk_fbcy, SPACE_INTEGRAL, 'fbcy', rdxdz=1)
     else
-      call transpose_x_to_y(fl%qy, acpc_ypencil, dm%dcpc)
+      bulk_fbcy = ZERO
     end if
-    if(dm%icoordinate == ICYLINDRICAL) then
-      call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2))
-      call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(2), is_reversed = .true.)
-    end if
-    call Get_area_average_2d_for_fbcy(dm, dm%dcpc, acpc_ypencil, bulk_fbcy, SPACE_INTEGRAL, 'vary', rdxdz=1)
     !area averaged mass flux - z - boundary: rho*uz
-    if(dm%is_thermo) then
-      call transpose_x_to_y(fl%gz,        accp_ypencil, dm%dccp)
-      call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
+    if(dm%ibcz_qz(1)/=IBC_PERIODIC)then
+      if(dm%is_thermo) then
+          fbcz = dm%fbcy_gz
+        else
+          fbcz = dm%fbcy_qz
+        end if
+      call Get_area_average_2d_for_fbcz(dm, dm%dccp, fbcz, bulk_fbcz, SPACE_INTEGRAL, 'fbcz')
     else
-      call transpose_x_to_y(fl%qz,        accp_ypencil, dm%dccp)
-      call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
+      bulk_fbcz = ZERO
     end if
-    ! if(dm%icoordinate == ICYLINDRICAL) then
-    !   call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
-    ! end if
-    call Get_area_average_2d_for_fbcz(dm, dm%dccp, accp_zpencil, bulk_fbcz, SPACE_INTEGRAL, 'varz')
     ! mass change rate, kg/s
     fl%tt_mass_change = bulk_m + &
                         bulk_fbcx(1) - bulk_fbcx(2) + &
@@ -397,16 +406,28 @@ contains
     pressure_drop = bulk_fbcx(1) - bulk_fbcx(2)
     !
     ! bulk streamwise velocity
-    call Get_volumetric_average_3d(dm, dm%dpcc, fl%qx, bulk_q(1), SPACE_AVERAGE, 'qx')
-    call Get_volumetric_average_3d(dm, dm%dcpc, fl%qy, bulk_q(2), SPACE_AVERAGE, 'qy')
-    call Get_volumetric_average_3d(dm, dm%dccp, fl%qz, bulk_q(3), SPACE_AVERAGE, 'qz')
+    if(dm%icoordinate == ICYLINDRICAL) then
+      acpc = fl%qy
+      call multiple_cylindrical_rn(acpc, dm%dcpc, dm%rpi, 1, IPENCIL(1))
+    else
+      acpc = fl%qy
+    end if
+    call Get_volumetric_average_3d(dm, dm%dcpc, acpc,  bulk_q(2), SPACE_AVERAGE, 'uy')
+    call Get_volumetric_average_3d(dm, dm%dpcc, fl%qx, bulk_q(1), SPACE_AVERAGE, 'ux')
+    call Get_volumetric_average_3d(dm, dm%dccp, fl%qz, bulk_q(3), SPACE_AVERAGE, 'uz')
     !
     ! thermal flow quantities
     if(dm%is_thermo .and. present(tm)) then
       ! bulk momentum
-      call Get_volumetric_average_3d(dm, dm%dpcc, fl%gx, bulk_g(1), SPACE_AVERAGE, 'gx')
-      call Get_volumetric_average_3d(dm, dm%dcpc, fl%gy, bulk_g(2), SPACE_AVERAGE, 'gy')
-      call Get_volumetric_average_3d(dm, dm%dccp, fl%gz, bulk_g(3), SPACE_AVERAGE, 'gz')
+      if(dm%icoordinate == ICYLINDRICAL) then
+        acpc = fl%gy
+        call multiple_cylindrical_rn(acpc, dm%dcpc, dm%rpi, 1, IPENCIL(1))
+      else
+        acpc = fl%gy
+      end if
+      call Get_volumetric_average_3d(dm, dm%dcpc, acpc,  bulk_q(2), SPACE_AVERAGE, 'rho*uy')
+      call Get_volumetric_average_3d(dm, dm%dpcc, fl%gx, bulk_q(1), SPACE_AVERAGE, 'rho*ux')
+      call Get_volumetric_average_3d(dm, dm%dccp, fl%gz, bulk_q(3), SPACE_AVERAGE, 'rho*uz')
       !
       ! bulk temperature
       call Get_volumetric_average_3d(dm, dm%dccc, tm%tTemp, bulk_T,  SPACE_AVERAGE, 'T')

@@ -432,6 +432,7 @@ contains
     call Get_y_midp_C2P_3D(apcc_ypencil, qxiy_ppc_ypencil, dm, dm%iAccuracy, dm%ibcy_qx, dm%fbcy_qx) ! for x-mom
     !call axis_estimating_radial_xpx(qxiy_ppc_ypencil, dm%dppc, IPENCIL(2), dm, IDIM(1))
 #ifdef DEBUG_STEPS  
+    ! serial only
     if(dm%icase == ICASE_PIPE) then
       write(*,*) 'qxiy_ppc_ypencil', qxiy_ppc_ypencil(4, 1, 4),  qxiy_ppc_ypencil(4, 1, dm%knc_sym(4)) , &
                   qxiy_ppc_ypencil(4, 1, 4)-qxiy_ppc_ypencil(4, 1, dm%knc_sym(4))
@@ -2176,8 +2177,11 @@ contains
         call multiple_cylindrical_rn(fl%pcor, dm%dccc, dm%rc, 2, IPENCIL(1))
       end if
       fl%pcor = fl%pcor * coeff
+      write(*,*) 'rhs of Poisson:', fl%pcor(4, 1:4, 4)
       call solve_fft_poisson(fl%pcor, dm)
     end if
+    call Get_volumetric_average_3d(dm, dm%dccc, fl%pcor, pres_bulk, SPACE_AVERAGE, "phi")
+    fl%pcor = fl%pcor - pres_bulk
     !==================================================================
     ! 3. Pressure correction
     !==================================================================
@@ -2197,12 +2201,11 @@ contains
     !------------------------------------------------------------------
     ! Remove pressure drift (zero-mean constraint)
     !------------------------------------------------------------------
-    call Get_volumetric_average_3d( &
-        dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
+    call Get_volumetric_average_3d(dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
     fl%pres = fl%pres - pres_bulk
 #ifdef DEBUG_STEPS
-    call wrt_3d_pt_debug(fl%pres, dm%dccc, fl%iteration, isub, 'pr_updated')
-    write(*,*) 'solved_phi:', fl%pcor(:, 2, 2)
+    ! call wrt_3d_pt_debug(fl%pres, dm%dccc, fl%iteration, isub, 'pr_updated')
+    write(*,*) 'solved_phi:', fl%pcor(2, 1:4, 2)
 #endif
     return
   end subroutine solve_pressure_poisson

@@ -104,7 +104,7 @@ contains
     use operations
     implicit none
     type(t_domain), intent(in) :: dm
-    integer :: j
+    integer :: j, iaccu
 
     !real(WP) :: alcai, aci, bci
     
@@ -201,18 +201,20 @@ contains
     !   aci = SIXTYTHREE / SIXTYTWO
     !   bci = SEVENTEEN / SIXTYTWO / THREE
     ! end if
-    
-    alcaix6 = d1fC2P(3, 1, IBC_PERIODIC, dm%iAccuracy)
-    acix6   = d1rC2P(3, 1, IBC_PERIODIC, dm%iAccuracy) / dx
-    bcix6   = d1rC2P(3, 2, IBC_PERIODIC, dm%iAccuracy) / dx
+    iaccu = dm%iAccuracy
+    if(dm%icoordinate==ICYLINDRICAL) iaccu = IACCU_CD2
+    !
+    alcaix6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu)
+    acix6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu) / dx
+    bcix6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu) / dx
 
-    alcaiy6 = d1fC2P(3, 1, IBC_PERIODIC, dm%iAccuracy)
-    aciy6   = d1rC2P(3, 1, IBC_PERIODIC, dm%iAccuracy) / dy
-    bciy6   = d1rC2P(3, 2, IBC_PERIODIC, dm%iAccuracy) / dy
+    alcaiy6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu)
+    aciy6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu) / dy
+    bciy6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu) / dy
 
-    alcaiz6 = d1fC2P(3, 1, IBC_PERIODIC, dm%iAccuracy)
-    aciz6   = d1rC2P(3, 1, IBC_PERIODIC, dm%iAccuracy) / dz
-    bciz6   = d1rC2P(3, 2, IBC_PERIODIC, dm%iAccuracy) / dz
+    alcaiz6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu)
+    aciz6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu) / dz
+    bciz6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu) / dz
 
     ! ! only IBC_PERIODIC is necessary, as all non-period data are converted to periodic data.
     ! if(dm%ibcx(1, 1) == IBC_PERIODIC ) then
@@ -276,9 +278,9 @@ contains
     !   dicix6 = ZERO
     ! end if
 
-    ailcaix6 = m1fC2P(3, 1, IBC_PERIODIC, dm%iAccuracy)
-    aicix6   = m1rC2P(3, 1, IBC_PERIODIC, dm%iAccuracy)
-    bicix6   = m1rC2P(3, 2, IBC_PERIODIC, dm%iAccuracy)
+    ailcaix6 = m1fC2P(3, 1, IBC_PERIODIC, iaccu)
+    aicix6   = m1rC2P(3, 1, IBC_PERIODIC, iaccu)
+    bicix6   = m1rC2P(3, 2, IBC_PERIODIC, iaccu)
     cicix6   = zero
     dicix6   = zero
 
