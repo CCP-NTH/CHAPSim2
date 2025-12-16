@@ -1682,15 +1682,17 @@ contains
         jj = dtmp%xst(2) + j - 1 !(j, dtmp)
         if(dtmp%ysz(2)==dm%nc(2)) then
           ymapping = dm%yMappingcc(jj, 1)
+          if(dm%icoordinate == ICYLINDRICAL) &
+          dz = dm%h(3) * dm%rc(jj)
         else if (dtmp%ysz(2)==dm%np(2)) then
           ymapping = dm%yMappingpt(jj, 1)
+          if(dm%icoordinate == ICYLINDRICAL) &
+          dz = dm%h(3) * dm%rp(jj)
         else
         end if
         !dy = dm%yp(jj+1) - dm%yp(jj)
         if(dm%is_stretching(2)) &
         dy = dm%h(2) / ymapping
-        if(dm%icoordinate == ICYLINDRICAL) &
-        dz = dm%h(3) * dm%rc(jj)
         do k = 1, dtmp%xsz(3)
           do i = 1, dtmp%xsz(1)
             fo = fo + var(i, j, k) * dy * dx * dz

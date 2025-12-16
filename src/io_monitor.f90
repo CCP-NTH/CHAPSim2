@@ -402,8 +402,12 @@ contains
     call Get_volumetric_average_3d(dm, dm%dccc, accc1, mean_dpdx,  SPACE_AVERAGE, 'dpdx')
     !
     ! global pressure drop
+    if(dm%ibcx_pr(1)/=IBC_PERIODIC) then
     call Get_area_average_2d_for_fbcx(dm, dm%dccc, fl%pres, bulk_fbcx, SPACE_INTEGRAL, 'varx')
     pressure_drop = bulk_fbcx(1) - bulk_fbcx(2)
+    else 
+    pressure_drop = ZERO
+    end if
     !
     ! bulk streamwise velocity
     if(dm%icoordinate == ICYLINDRICAL) then

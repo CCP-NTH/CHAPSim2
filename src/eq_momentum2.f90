@@ -2177,7 +2177,6 @@ contains
         call multiple_cylindrical_rn(fl%pcor, dm%dccc, dm%rc, 2, IPENCIL(1))
       end if
       fl%pcor = fl%pcor * coeff
-      write(*,*) 'rhs of Poisson:', fl%pcor(4, 1:4, 4)
       call solve_fft_poisson(fl%pcor, dm)
     end if
     call Get_volumetric_average_3d(dm, dm%dccc, fl%pcor, pres_bulk, SPACE_AVERAGE, "phi")
