@@ -389,7 +389,7 @@ contains
 !   Bulk quantities
 !----------------------------------------------------------------------------------------------------------
     ! mean dp/dx pressure gradient
-    call Get_x_midp_P2C_3D(fl%pres, accc1, dm, dm%iAccuracy, dm%ibcx_pr(:), dm%fbcx_pr)
+    call Get_x_1der_C2C_3D(fl%pres, accc1, dm, dm%iAccuracy, dm%ibcx_pr(:), dm%fbcx_pr)
     call Get_volumetric_average_3d(dm, dm%dccc, accc1, mean_dpdx,  SPACE_AVERAGE, 'dpdx')
     !
     ! global pressure drop
