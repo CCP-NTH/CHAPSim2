@@ -472,7 +472,8 @@ contains
       if (iter == 0) then
         niter = dm%ndbfre
       else
-        niter = (iter + dm%ndbfre)/dm%ndbfre * dm%ndbfre
+        niter = iter + dm%ndbstart - 1
+        niter = niter + dm%ndbfre
       end if
 
       !if(niter > dm%ndbend) niter = dm%ndbstart + dm%ndbfre - 1
@@ -485,6 +486,9 @@ contains
       call read_one_3d_array(dm%fbcx_qy_inl2, 'outlet2_qy', dm%idom, niter, dm%dxpc)
       call read_one_3d_array(dm%fbcx_qz_inl1, 'outlet1_qz', dm%idom, niter, dm%dxcp)
       call read_one_3d_array(dm%fbcx_qz_inl2, 'outlet2_qz', dm%idom, niter, dm%dxcp)
+
+      dm%is_x_inlet_initialised = .true.
+
       !call read_one_3d_array(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%dxcc)
       !call read_one_3d_array(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%dxcc)
 ! #ifdef DEBUG_STEPS
@@ -497,6 +501,10 @@ contains
       !   dm%fbcx_qx_inl1(niter, j, 1:64)
       ! end do
 ! #endif
+    end if
+
+    if (.not. dm%is_x_inlet_initialised) then
+      call Print_error_msg("Inlet not initialised, start iteration must be multiple of ndbfreq")
     end if
 
     call assign_instantaneous_xinlet(fl, dm) ! every iteration

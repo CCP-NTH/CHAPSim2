@@ -190,9 +190,9 @@ $(DIR_BIN)/$(PROGRAM): $(OBJS1) $(OBJS2)
 # Rule to compile Fortran 90 files
 $(DIR_OBJ)/%.o: $(DIR_SRC)/%.f90
 	@mkdir -p $(@D) # Ensure the object directory exists
-	@mkdir -p $(DIR_BLD) # Ensure the build directory exists for .mod files
+# @mkdir -p $(DIR_BLD) # Ensure the build directory exists for .mod files
 	$(call progress)
-	@$(FC) $(INCLUDE) -J$(DIR_BLD) $(FOPTS) $(FFLGS) $(FDEBG) -c -o $@ $<
+	@$(FC) $(INCLUDE) $(FOPTS) $(FFLGS) $(FDEBG) -c -o $@ $<
 
 # Rule to compile Fortran 77 files
 $(DIR_OBJ)/%.o: $(DIR_LIB)/%.f
