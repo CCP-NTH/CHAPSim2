@@ -324,15 +324,15 @@ contains
     div = ZERO
     call Get_divergence_flow(fl, div, dm)
     div = div + drhodt
-
-
+    !
 #ifdef DEBUG_STEPS
     if(MOD(iter, dm%visu_nfre) == 0) &
     call write_visu_any3darray(div, 'divU', 'debug'//trim(str), dm%dccc, dm, fl%iteration)
 #endif
-
+    !
     n = dm%dccc%xsz(1)
     fl%mcon = ZERO
+    !
     if(dm%is_periodic(1)) then
       nlayer = 0
     else
@@ -344,8 +344,7 @@ contains
     end if
     call Find_max_min_3d(div(nlayer+1  : n-nlayer, :, :), opt_calc='MAXI', opt_work=mm, opt_name="Mass Consv. (bulk    ) =")
     fl%mcon(1) = mm(2)
-    
-
+    !
     if(nrank == 0) then
       if(fl%mcon(1) > 1.0_WP .and. fl%iteration > 10000 ) &
       call Print_error_msg("Mass conservation is not strictly satisfied at the machine precision level.")

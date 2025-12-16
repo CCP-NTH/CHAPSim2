@@ -248,7 +248,7 @@ module bc_convective_outlet_mod
 
     if(dm%is_thermo) then
       drhodt = fl%drhodt
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccc, drhodt, bulkm, SPACE_INTEGRAL, 'drhodt')
+      call Get_volumetric_average_3d(dm, dm%dccc, drhodt, bulkm, SPACE_INTEGRAL, 'drhodt')
     else
       bulkm = ZERO
     end if

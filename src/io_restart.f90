@@ -108,7 +108,7 @@ contains
     
 
     !call Get_volumetric_average_3d(.false., dm%ibcy_qx(:), dm%fbcy_qx(:, :, :), dm, dm%dpcc, fl%qx, ubulk, "ux")
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, fl%qx, ubulk, SPACE_AVERAGE, "ux")
+    call Get_volumetric_average_3d(dm, dm%dpcc, fl%qx, ubulk, SPACE_AVERAGE, "ux")
     if(nrank == 0) then
         call Print_debug_inline_msg("The restarted mass flux is:")
         write (*, wrtfmt1e) ' average[u(x,y,z)]_[x,y,z]: ', ubulk

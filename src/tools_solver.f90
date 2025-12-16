@@ -297,7 +297,7 @@ contains
 !----------------------------------------------------------------------------------------------------------
 !> \param[inout]         
 !==========================================================================================================
-  subroutine Check_cfl_convection(u, v, w, dm)
+  subroutine Check_cfl_convection(u, v, w, dm, opt_cfl)
     use parameters_constant_mod
     use udf_type_mod
     use operations
@@ -306,7 +306,8 @@ contains
     use find_max_min_ave_mod
     implicit none
 
-    type(t_domain),               intent(inout) :: dm
+    type(t_domain), intent(inout) :: dm
+    real(WP), intent(out), optional :: opt_cfl
     real(WP), dimension(dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3)), intent(in) :: u
     real(WP), dimension(dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3)), intent(in) :: v
     real(WP), dimension(dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3)), intent(in) :: w
@@ -390,7 +391,7 @@ contains
 ! Z-pencil : Find the maximum 
 !----------------------------------------------------------------------------------------------------------
     call Find_max_min_3d(var_zpencil, opt_calc='MAXI', opt_work=cfl, opt_name='CFL (convection) :')
-
+    if(present(opt_cfl)) opt_cfl = cfl(2)
     if(cfl(2) > TWO) then 
       dm%dt = dm%dt / REAL(ceiling(cfl(2)/ 5.0_WP) * 5, WP)
       if(nrank == 0) then

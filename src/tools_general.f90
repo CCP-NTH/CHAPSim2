@@ -1349,7 +1349,7 @@ end module cylindrical_rn_mod
 module find_max_min_ave_mod
   use print_msg_mod
   use wtformat_mod
-  public  :: Get_volumetric_average_3d_for_var_xcx
+  public  :: Get_volumetric_average_3d
   public  :: Find_maximum_absvar3d_loc
   public  :: Find_max_min_3d
   !public  :: Find_max_min_absvar3d
@@ -1646,7 +1646,7 @@ contains
 !     return
 !   end subroutine
 !==========================================================================================================
-  subroutine Get_volumetric_average_3d_for_var_xcx(dm, dtmp, var, fo_work, itype, str)
+  subroutine Get_volumetric_average_3d(dm, dtmp, var, fo_work, itype, str)
     use mpi_mod
     use udf_type_mod
     use parameters_constant_mod
@@ -1666,7 +1666,7 @@ contains
     real(WP) :: vol_real
 #endif
     integer :: i, j, k, jj
-    real(WP) :: dx, dy, dz
+    real(WP) :: dx, dy, dz, ymapping
 
     !----------------------------------------------------------------------------------------------------------
     ! default: x-pencil
@@ -1680,9 +1680,15 @@ contains
       dz = dm%h(3)
       do j = 1, dtmp%xsz(2)
         jj = dtmp%xst(2) + j - 1 !(j, dtmp)
+        if(dtmp%ysz(2)==dm%nc(2)) then
+          ymapping = dm%yMappingcc(jj, 1)
+        else if (dtmp%ysz(2)==dm%np(2)) then
+          ymapping = dm%yMappingpt(jj, 1)
+        else
+        end if
         !dy = dm%yp(jj+1) - dm%yp(jj)
         if(dm%is_stretching(2)) &
-        dy = dm%h(2) / dm%yMappingcc(jj, 1)
+        dy = dm%h(2) / ymapping
         if(dm%icoordinate == ICYLINDRICAL) &
         dz = dm%h(3) * dm%rc(jj)
         do k = 1, dtmp%xsz(3)

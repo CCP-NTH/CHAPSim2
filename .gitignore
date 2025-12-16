@@ -8,7 +8,8 @@ build/*.mod
 .obsolete/
 .tmp/
 .history/
-test_*/
+tests/*.bin
+tests/*.xdmf
 *.dat
 *.log
 *.png

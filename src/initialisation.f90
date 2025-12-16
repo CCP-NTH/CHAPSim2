@@ -426,7 +426,7 @@ contains
         uz = fl%qz
         str = 'qz'
       end if
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, uz, ubulk, SPACE_AVERAGE, str)
+      call Get_volumetric_average_3d(dm, dm%dccp, uz, ubulk, SPACE_AVERAGE, str)
       if(nrank == 0) &
       write(*, wrtfmt1e) "The initial, [original] bulk "//str//" = ", ubulk
       uz = uz / ubulk
@@ -436,7 +436,7 @@ contains
       else
         fl%qz = uz
       end if
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, uz, ubulk, SPACE_AVERAGE, str)
+      call Get_volumetric_average_3d(dm, dm%dccp, uz, ubulk, SPACE_AVERAGE, str)
       if(nrank == 0) &
       write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     else
@@ -457,7 +457,7 @@ contains
         ux = fl%qx
         str = 'qx'
       end if
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
+      call Get_volumetric_average_3d(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
       if(nrank == 0) &
       write(*, wrtfmt1e) "The initial, [original] bulk "//str//" = ", ubulk
       ux = ux / ubulk
@@ -467,7 +467,7 @@ contains
       else
         fl%qx = ux
       end if
-      call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
+      call Get_volumetric_average_3d(dm, dm%dpcc, ux, ubulk, SPACE_AVERAGE, str)
       if(nrank == 0) &
       write(*, wrtfmt1e) "The initial, [scaled] bulk "//str//" = ", ubulk
     end if
