@@ -443,12 +443,13 @@ contains
   subroutine read_instantaneous_xinlet(fl, dm)
     use typeconvert_mod
     use io_tools_mod
+    use parameters_constant_mod
     implicit none 
     type(t_flow), intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
     
     character(64):: data_flname_path
-    integer :: idom, iter, niter, j, nmax
+    integer :: idom, iter, niter, j, nmax, iter0
 
 
     if(.not. dm%is_read_xinlet) return
@@ -461,22 +462,20 @@ contains
     !    file name: 10, 20, 45 ...
 
     iter = fl%iteration
-    nmax = ((dm%ndbend - dm%ndbstart + 1) / dm%ndbfre) * dm%ndbfre
-    if(iter > nmax) then
+    iter0 = fl%iterfrom
+    nmax = dm%ndbend - dm%ndbstart
+
+    if (fl%inittype == INIT_RESTART) then
+      iter = iter - iter0
+    end if
+
+    if(iter > nmax) then  
       iter = mod(iter, nmax) ! database recycle
     end if
 
-    if(mod(iter, dm%ndbfre) == 1 .or. &
-       iter == 0) then
+    if(mod(iter, dm%ndbfre) == 1) then
 
-      if (iter == 0) then
-        niter = dm%ndbfre
-      else
-        niter = iter + dm%ndbstart - 1
-        niter = niter + dm%ndbfre
-      end if
-
-      !if(niter > dm%ndbend) niter = dm%ndbstart + dm%ndbfre - 1
+      niter = iter + dm%ndbfre + dm%ndbstart - 2
 
       if(nrank == 0) call Print_debug_mid_msg("Read inlet database at iteration "&
         //trim(int2str(iter))//'/'//trim(int2str(niter)))
@@ -504,7 +503,7 @@ contains
     end if
 
     if (.not. dm%is_x_inlet_initialised) then
-      call Print_error_msg("Inlet not initialised, start iteration must be multiple of ndbfreq")
+      if (nrank == 0) call Print_error_msg("Inlet not initialised, start iteration must be multiple of ndbfreq")
     end if
 
     call assign_instantaneous_xinlet(fl, dm) ! every iteration
@@ -589,7 +588,8 @@ module io_field_interpolation_mod
         read(inputUnit, *, iostat = ioerr) varname, dm%nc(3)
         read(inputUnit, *, iostat = ioerr) varname, dm%istret
         read(inputUnit, *, iostat = ioerr) varname, dm%mstret, dm%rstret
-        read(inputUnit, *, iostat = ioerr) varname, dm%ifft_lib
+        !read(inputUnit, *, iostat = ioerr) varname, dm%ifft_lib
+        dm%ifft_lib = FFT_2DECOMP_3DFFT
       else
         exit
       end if
