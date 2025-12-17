@@ -368,7 +368,7 @@ subroutine Solve_eqs_iteration
           end if
         end if
       end if
-      if(domain(i)%is_thermo .and. is_thermo(i)) then
+      if(domain(i)%is_thermo .and. is_flow(i)) then
         if (iter > domain(i)%stat_istart) then
           call update_stats_thermo(thermo(i), domain(i))
         end if
