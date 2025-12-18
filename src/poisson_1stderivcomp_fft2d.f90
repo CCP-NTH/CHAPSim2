@@ -386,11 +386,25 @@ contains
       end do
       bb = -(aa + cc)
       if(.not. dm%is_periodic(2)) then
+        !if(dm%ibcy_pr(1)/=IBC_NEUMANN) &
+        !call Print_warning_msg('The assumption of bcy(1) TDMA coeff. is broken.')
+        ! assume dphi/dn = 0 on b.c., Neumann B.C
         ! here apply the second order ghost cell configuration
         bb(1) = bb(1) + aa(1)
         aa(1) = 0.0_WP
+        ! for pipe centre
+        if(dm%icase == ICASE_PIPE) then
+          aa(1) = ZERO
+          bb(1) = -(aa(1) + cc(1))
+        end if
+        !
+        ! assume dphi/dn = 0 on b.c., Neumann B.C
+        ! here apply the second order ghost cell configuration
+        if(dm%ibcy_pr(2)/=IBC_NEUMANN) &
+        call Print_warning_msg('The assumption of bcy(2) TDMA coeff. is broken.')
         bb(dm%nc(2)) = bb(dm%nc(2)) + cc(dm%nc(2))
         cc(dm%nc(2)) = 0.0_WP
+        !
       end if
     ! write(*,*) 'a', aa
     ! write(*,*) 'b', bb
