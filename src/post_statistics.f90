@@ -457,7 +457,7 @@ contains
       ncl_stat(3, dm%idom) = dm%dccc%xsz(3) ! default skip is 1.  
     end if
     !
-    if(nrank == 0) call Print_debug_start_msg("Initialise thermo statistics ...")
+    if(nrank == 0) call Print_debug_start_msg("Initialise mhd statistics ...")
     !
     allocate( mh%tavg_e (ncl_stat(1, dm%idom), ncl_stat(2, dm%idom), ncl_stat(3, dm%idom)) )
     allocate( mh%tavg_j (ncl_stat(1, dm%idom), ncl_stat(2, dm%idom), ncl_stat(3, dm%idom), 3))
@@ -471,7 +471,7 @@ contains
     if(mh%iterfrom > dm%stat_istart) then
       call run_stats_loops1(STATS_READ, mh%tavg_e,  't_avg_e',  iter, dm)
       call run_stats_loops3(STATS_READ, mh%tavg_j,  't_avg_j',  iter, dm)
-      call run_stats_loops6(STATS_READ, mh%tavg_ej, 't_avg_ej', iter, dm)
+      call run_stats_loops3(STATS_READ, mh%tavg_ej, 't_avg_ej', iter, dm)
       call run_stats_loops6(STATS_READ, mh%tavg_jj, 't_avg_jj', iter, dm)
     end if
     !
@@ -793,7 +793,7 @@ contains
     iter = mh%iteration
     call run_stats_loops1(STATS_WRITE, mh%tavg_e,  't_avg_e',  iter, dm)
     call run_stats_loops3(STATS_WRITE, mh%tavg_j,  't_avg_j',  iter, dm)
-    call run_stats_loops6(STATS_WRITE, mh%tavg_ej, 't_avg_ej', iter, dm)
+    call run_stats_loops3(STATS_WRITE, mh%tavg_ej, 't_avg_ej', iter, dm)
     call run_stats_loops6(STATS_WRITE, mh%tavg_jj, 't_avg_jj', iter, dm)
     !
     if(nrank == 0) call Print_debug_end_msg()
@@ -950,7 +950,7 @@ contains
     ! write data
     call run_stats_loops1(STATS_VISU3, mh%tavg_e,  't_avg_e',  iter, dm, opt_visnm=trim(visuname))
     call run_stats_loops3(STATS_VISU3, mh%tavg_j,  't_avg_j',  iter, dm, opt_visnm=trim(visuname))
-    call run_stats_loops6(STATS_VISU3, mh%tavg_ej, 't_avg_ej', iter, dm, opt_visnm=trim(visuname))
+    call run_stats_loops3(STATS_VISU3, mh%tavg_ej, 't_avg_ej', iter, dm, opt_visnm=trim(visuname))
     call run_stats_loops6(STATS_VISU3, mh%tavg_jj, 't_avg_jj', iter, dm, opt_visnm=trim(visuname))
     ! write xdmf footer
     if(nrank == 0) &
@@ -966,7 +966,7 @@ contains
       ! write data
       call run_stats_loops1(STATS_VISU1, mh%tavg_e,  't_avg_e',  iter, dm, opt_visnm=trim(visuname))
       call run_stats_loops3(STATS_VISU1, mh%tavg_j,  't_avg_j',  iter, dm, opt_visnm=trim(visuname))
-      call run_stats_loops6(STATS_VISU1, mh%tavg_ej, 't_avg_ej', iter, dm, opt_visnm=trim(visuname))
+      call run_stats_loops3(STATS_VISU1, mh%tavg_ej, 't_avg_ej', iter, dm, opt_visnm=trim(visuname))
       call run_stats_loops6(STATS_VISU1, mh%tavg_jj, 't_avg_jj', iter, dm, opt_visnm=trim(visuname))
 
       ! write xdmf footer
