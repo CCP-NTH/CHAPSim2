@@ -2132,16 +2132,17 @@ contains
     call Get_divergence_flow(fl, div, dm)
     ! final RHS
     fl%pcor = drhodt + div
-!
-#ifdef DEBUG_STEPS
-    call check_global_mass_balance(mass_imbalance, fl%drhodt, dm)
-    write(*,*) 'mass_imbalance before fft1', mass_imbalance
-    ! for open-bc, a global mass inbalance correction is carried out
-    fl%pcor = fl%pcor - mass_imbalance(8)/dm%vol
-    call check_global_mass_balance(mass_imbalance, fl%drhodt- mass_imbalance(8)/dm%vol, dm)
-    write(*,*) 'mass_imbalance before fftX', mass_imbalance
-#endif
-!
+    !
+    
+    !write(*,*) 'mass_imbalance before fft1', mass_imbalance
+    if(is_global_mass_correction) then
+      call check_global_mass_balance(mass_imbalance, fl%drhodt, dm)
+      fl%pcor = fl%pcor - mass_imbalance(8)/dm%vol
+      !write(*,*) 'mass_imbalance before fft', mass_imbalance
+    end if
+    !call check_global_mass_balance(mass_imbalance, fl%drhodt- mass_imbalance(8)/dm%vol, dm)
+    !write(*,*) 'mass_imbalance before fftX', mass_imbalance
+    !
     if (dm%icoordinate == ICYLINDRICAL) then
       call multiple_cylindrical_rn(fl%pcor, dm%dccc, dm%rc, 2, IPENCIL(1))
     end if
@@ -2248,7 +2249,7 @@ contains
 !> \param[inout]  dm            domain
 !> \param[in]     isub         RK sub-iteration
 !==========================================================================================================
-  subroutine Solve_momentum_eq(fl, dm, isub, opt_tm)
+  subroutine Solve_momentum_eq(fl, dm, isub)
     use bc_convective_outlet_mod
     use boundary_conditions_mod
     use continuity_eq_mod
@@ -2270,7 +2271,6 @@ contains
     ! arguments
     type(t_flow),   intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
-    type(t_thermo), intent(in), optional :: opt_tm
     integer,        intent(in)    :: isub
     ! local variables
     logical :: flg_bc_conv
@@ -2283,7 +2283,7 @@ contains
     if(dm%is_thermo) then
       dens = fl%dDens
       visc = fl%mVisc
-      call Calculate_drhodt(fl, dm, opt_isub=isub, opt_tm=opt_tm)
+      call Calculate_drhodt(fl, dm, isub)
     end if
     ! to set up convective outlet b.c.
     call update_convective_outlet_flow(fl, dm, isub)
@@ -2308,61 +2308,48 @@ contains
       call Print_error_msg("Error in velocity updating")
     end if
     if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
-!----------------------------------------------------------------------------------------------------------
-! to solve Poisson equation
-!----------------------------------------------------------------------------------------------------------
-    !if(nrank == 0) call Print_debug_inline_msg("  Solving Poisson Equation ...") 
-    !call solve_poisson_x2z(fl, dm, isub) !
-    call solve_pressure_poisson(fl, dm, isub) ! test show above two methods gave the same results. 
-!----------------------------------------------------------------------------------------------------------
-! to update velocity/massflux correction
-!----------------------------------------------------------------------------------------------------------
-    !if(nrank == 0) call Print_debug_inline_msg("  Updating velocity/mass flux ...")
-    call Correct_massflux(fl, fl%pcor, dm, isub)
-    if ( .not. dm%is_thermo) then
-      call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
-    else
-      call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
-    end if
-    if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
+    !----------------------------------------------------------------
+    ! Poisson eq and velocity correction
+    !----------------------------------------------------------------
+    if(is_RK_proj(isub)) then
+      ! to solve Poisson equation
+      !if(nrank == 0) call Print_debug_inline_msg("  Solving Poisson Equation ...") 
+      !call solve_poisson_x2z(fl, dm, isub) !   
+      call solve_pressure_poisson(fl, dm, isub) ! test show above two methods gave the same results. 
+      !
+      ! to update velocity/massflux correction
+      !if(nrank == 0) call Print_debug_inline_msg("  Updating velocity/mass flux ...")
+      call Correct_massflux(fl, fl%pcor, dm, isub)
+      if ( .not. dm%is_thermo) then
+        call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
+      else
+        call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
+      end if
+      if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
 #ifdef DEBUG_STEPS
-    call check_global_mass_balance(mass_imbalance, fl%drhodt, dm)
-    write(*,*) 'mass_imbalance after correction', mass_imbalance
+      call check_global_mass_balance(mass_imbalance, fl%drhodt, dm)
+      write(*,*) 'mass_imbalance after correction', mass_imbalance
 #endif
 #ifdef DEBUG_STEPS
+      if(dm%is_thermo) then
+      call wrt_3d_pt_debug(fl%gx, dm%dpcc,   fl%iteration, isub, 'gx_updated') ! debug_ww
+      call wrt_3d_pt_debug(fl%gy, dm%dcpc,   fl%iteration, isub, 'gy_updated') ! debug_ww
+      call wrt_3d_pt_debug(fl%gz, dm%dccp,   fl%iteration, isub, 'gz_updated') ! debug_ww
+      end if
+      call Check_element_mass_conservation(fl, dm, opt_isub=isub) 
+#endif
+    end if
+    !----------------------------------------------------------------
+    ! to update velocity from gx gy gz 
+    !----------------------------------------------------------------
     if(dm%is_thermo) then
-    call wrt_3d_pt_debug(fl%gx, dm%dpcc,   fl%iteration, isub, 'gx_updated') ! debug_ww
-    call wrt_3d_pt_debug(fl%gy, dm%dcpc,   fl%iteration, isub, 'gy_updated') ! debug_ww
-    call wrt_3d_pt_debug(fl%gz, dm%dccp,   fl%iteration, isub, 'gz_updated') ! debug_ww
+      call convert_primary_conservative(dm, fl%dDens, IG2Q, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
     end if
-    call Check_element_mass_conservation(fl, dm, opt_isub=isub) 
-#endif
-!call Check_element_mass_conservation(fl, dm, opt_isub=isub) 
-!----------------------------------------------------------------------------------------------------------
-! to update velocity from gx gy gz 
-!----------------------------------------------------------------------------------------------------------
-  if(dm%is_thermo) then
-    call convert_primary_conservative(dm, fl%dDens, IG2Q, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
-  end if
-
-  ! if(dm%is_thermo .and.isub == dm%nsubitr) then
-  !   do i = 1, 100
-  !     call solve_pressure_poisson(fl, dm, 0)
-  !     fl%pres = fl%pres + fl%pcor
-  !     call Correct_massflux(fl, fl%pcor, dm, isub)
-  !     call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
-  !     if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
-  !     call convert_primary_conservative(fl%dDens, dm, IG2Q)
-  !     call Check_element_mass_conservation(fl, dm, isub) 
-  !   end do
-  ! end if
 
 #ifdef DEBUG_STEPS
   call wrt_3d_pt_debug(fl%qx, dm%dpcc,   fl%iteration, isub, 'qx_updated') ! debug_ww
   call wrt_3d_pt_debug(fl%qy, dm%dcpc,   fl%iteration, isub, 'qy_updated') ! debug_ww
   call wrt_3d_pt_debug(fl%qz, dm%dccp,   fl%iteration, isub, 'qz_updated') ! debug_ww
-
-
   if(nrank == 0) then
     call Print_debug_inline_msg("Conservative parameters have been updated.")
     ! write(*,*) 'updated qx', fl%qx(1:4, 1, 1)

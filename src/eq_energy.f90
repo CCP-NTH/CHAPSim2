@@ -11,15 +11,14 @@ module eq_energy_mod
   public  :: Solve_energy_eq
 contains
 !==========================================================================================================
-  subroutine Calculate_drhodt(fl, dm, opt_isub, opt_tm)
+  subroutine Calculate_drhodt(fl, dm, isub)
     use parameters_constant_mod
     use udf_type_mod
     use find_max_min_ave_mod
     use solver_tools_mod
     implicit none
     type(t_domain), intent(in) :: dm
-    integer, intent(in), optional :: opt_isub
-    type(t_thermo), intent(in), optional :: opt_tm
+    integer, intent(in) :: isub
     type(t_flow), intent(inout) :: fl
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(in)  :: dens, densm1
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(out) :: drhodt
@@ -31,6 +30,7 @@ contains
     ! Default value
     fl%drhodt = ZERO
     if( .not. dm%is_thermo) return
+    if (.not. is_RK_proj(isub)) return
     ! thermal field is half time step ahead of the velocity field
     ! -----*-----$-----*-----$-----*-----$-----*-----$-----*-----$-----*
     !           d_(i-1)     d_i   u_i    d_(i+1)
@@ -51,9 +51,6 @@ contains
     !------------------------------------------------------------
     ! Compute drho/dt
     !------------------------------------------------------------
-    ! Check whether this RK sub-step should perform the projection
-    do_projection = (.not. is_single_RK_projection) .or. (opt_isub == ITIME_RK3)
-    if (.not. do_projection) return
     !----------------------------------------------------------
     ! Finite-difference form:
     !   drho/dt = (rho - rho0) / dt
@@ -535,10 +532,6 @@ contains
     !  update other properties from rho * h for domain + b.c.
     call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm)
     if (dm%icase == ICASE_PIPE) call update_fbcy_cc_thermo_halo(tm, dm)
-
-    ! calculate drho/dt
-    !if(isub==3) &
-    !call Calculate_drhodt(fl, dm, opt_tm=tm)
 
   return
   end subroutine

@@ -292,9 +292,11 @@ contains
 
     character(32) :: str
     integer :: n, nlayer, isub
-    real(WP) :: mm(2)
+    real(WP) :: mm(2), mm0
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div, drhodt
-
+    !----------------------------------------------------------------
+    ! safe-proof
+    !----------------------------------------------------------------
     if(present(opt_str)) then
       str = trim(opt_str)//'_iter_'//int2str(fl%iteration)
     else
@@ -306,20 +308,17 @@ contains
     else
       isub = 0
     end if
-
-    !fl%pcor = ZERO
-    div(:, :, :)  = ZERO
-!----------------------------------------------------------------------------------------------------------
-! $d\rho / dt$ at cell centre
-!----------------------------------------------------------------------------------------------------------
+    !----------------------------------------------------------------
+    ! Calculate mass conservation residual  
+    !----------------------------------------------------------------
+    ! $d\rho / dt$ at cell centre
     if (dm%is_thermo) then
       drhodt = fl%drhodt
     else
       drhodt = ZERO
     end if
-!----------------------------------------------------------------------------------------------------------
-! $d(\rho u_i)) / dx_i $ at cell centre
-!----------------------------------------------------------------------------------------------------------
+    !
+    ! $d(\rho u_i)) / dx_i $ at cell centre
     div = ZERO
     call Get_divergence_flow(fl, div, dm)
     div = div + drhodt
@@ -328,29 +327,60 @@ contains
     if(MOD(fl%iteration, dm%visu_nfre) == 0) &
     call write_visu_any3darray(div, 'divU', 'debug'//trim(str), dm%dccc, dm, fl%iteration)
 #endif
-    !
+    !----------------------------------------------------------------
+    ! Find Max. mass conservation residual
+    !----------------------------------------------------------------
     n = dm%dccc%xsz(1)
+    mm0 = fl%mcon(1)
     fl%mcon = ZERO
     !
     if(dm%is_periodic(1)) then
       nlayer = 0
     else
       nlayer = 4
-      call Find_max_min_3d(div(1         : nlayer,   :, :), opt_calc='MAXI', opt_work=mm, opt_name="Mass Consv. (inlet  4) =")
+      call Find_max_min_3d(div(1:nlayer, :, :), opt_calc='MAXI', &
+            opt_work=mm, opt_name="Mass Consv. (inlet  4) =")
       fl%mcon(2) = mm(2)
-      call Find_max_min_3d(div(n-nlayer+1: n,        :, :), opt_calc='MAXI', opt_work=mm, opt_name="Mass Consv. (outlet 4) =")
+      call Find_max_min_3d(div(n-nlayer+1:n, :, :), opt_calc='MAXI', &
+            opt_work=mm, opt_name="Mass Consv. (outlet 4) =")
       fl%mcon(3) = mm(2)
     end if
-    call Find_max_min_3d(div(nlayer+1  : n-nlayer, :, :), opt_calc='MAXI', opt_work=mm, opt_name="Mass Consv. (bulk    ) =")
+    call Find_max_min_3d(div(nlayer+1:n-nlayer, :, :), opt_calc='MAXI', &
+        opt_work=mm, opt_name="Mass Consv. (bulk    ) =")
     fl%mcon(1) = mm(2)
-    !
+    fl%mcon(4) = safe_divide(fl%mcon(1)-mm0, mm0)
+    if(nrank==0) write(*, '(A,1F9.2,A)') ' ', fl%mcon(4)*100.0_WP, '%'
+    ! terminate code once too large
     if(nrank == 0) then
       if(fl%mcon(1) > 1.0_WP .and. fl%iteration > 10000 ) &
       call Print_error_msg("Mass conservation is not strictly satisfied at the machine precision level.")
     end if
+    !----------------------------------------------------------------
+    ! turn on numerical tricks based on mass conservation residual
+    !----------------------------------------------------------------
+    if(fl%iteration >= 1) then
+      if(dm%is_conv_outlet(1) .or. dm%is_conv_outlet(3)) then 
+        if(.not. is_damping_drhodt) then
+          if(fl%mcon(1) > 1.0e-1_WP) then
+            is_damping_drhodt = .true.
+            if(nrank==0) call Print_warning_msg('drho/dt damping function is on.')
+          end if
+        end if
+      else
+        if(.not. is_global_mass_correction) then
+          if(fl%mcon(1) > 1.0e-5_WP) then
+            is_global_mass_correction = .true. ! scaled convective b.c. has already met this.
+            if(nrank==0) call Print_warning_msg('Global mass balance is on for RHS of Pression Poisson Eq.')
+          end if
+        end if
+      end if
+    end if
+    if(fl%mcon(4) > ONE) then 
+      if(nrank==0) call Print_warning_msg('Mass conservation residual increased by 100%!')
+    end if
 #ifdef DEBUG_STEPS
     if(nrank == 0) then
-      write (*, *) "  Check Mass Conservation:", fl%iteration, isub, fl%mcon(1:3) 
+      write (*, *) "  Check Mass Conservation:", fl%iteration, isub, fl%mcon(1:4) 
     end if
 #endif
     return

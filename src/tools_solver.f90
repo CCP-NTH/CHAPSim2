@@ -13,6 +13,7 @@ module solver_tools_mod
   public  :: get_fbcx_ftp_4pc
   !
   public :: check_global_mass_balance
+  public :: is_RK_proj
   !public :: check_global_energy_balance
 
   public :: damping_drhodt
@@ -734,5 +735,14 @@ contains
     end if
     return
   end subroutine
+
+!==========================================================================================================
+  pure function is_RK_proj ( isub ) result(d)
+    use parameters_constant_mod, only: is_single_RK_projection, ITIME_RK3
+    implicit none
+    integer, intent(in) :: isub
+    logical :: d
+    d = (.not. is_single_RK_projection) .or. (isub == ITIME_RK3) 
+  end function
   !
 end module

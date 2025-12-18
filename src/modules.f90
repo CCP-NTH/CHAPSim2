@@ -84,6 +84,7 @@ module parameters_constant_mod
   !logical :: is_two_potential_splitting ! true = stable solver but twice fft 
   logical :: is_single_RK_projection ! true = projection only at last RK sub-step, time (o(dt^3)),
   logical :: is_damping_drhodt
+  logical :: is_global_mass_correction
 !----------------------------------------------------------------------------------------------------------
 ! constants
 !----------------------------------------------------------------------------------------------------------  
@@ -644,7 +645,7 @@ module udf_type_mod
     real(WP) :: fgravity(NDIM)
 
     real(wp) :: noiselevel
-    real(wp) :: mcon(3)
+    real(wp) :: mcon(4)
     real(wp) :: tt_mass_change
     real(wp) :: tt_kinetic_energy
 

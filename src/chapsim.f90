@@ -315,7 +315,7 @@ subroutine Solve_eqs_iteration
         if(is_flow(i) .and. (.not. is_thermo(i)))  then
           call Solve_momentum_eq(flow(i), domain(i), isub)
         else if (is_flow(i) .and. is_thermo(i)) then
-          call Solve_momentum_eq(flow(i), domain(i), isub, opt_tm = thermo(i))
+          call Solve_momentum_eq(flow(i), domain(i), isub)
         end if
       end do
     end do

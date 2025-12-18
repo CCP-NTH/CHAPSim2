@@ -332,10 +332,6 @@ contains
     call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm)
     if (dm%icase == ICASE_PIPE) call update_fbcy_cc_thermo_halo(tm, dm)
 
-    ! calculate drho/dt
-    !if(isub==3) &
-    !call Calculate_drhodt(fl, dm, opt_tm=tm)
-
   return
   end subroutine
 

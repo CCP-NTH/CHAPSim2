@@ -393,7 +393,7 @@ contains
     if(fl%iteration == fl%nIterFlowEnd) then
       ! universal matrics
       metrics%mass_balance     = fl%tt_mass_change
-      metrics%mass_residual(:) = fl%mcon(:) !
+      metrics%mass_residual(1:3) = fl%mcon(1:3) !
       metrics%kinetic_energy   = fl%tt_kinetic_energy
       metrics%bulk_velocity(:) = bulk_q(:)
       metrics%pressure_drop    = pressure_drop
@@ -417,7 +417,7 @@ contains
       if(ioerr /= 0) then
         call Print_error_msg('Problem openning conservation file')
       end if 
-      write(myunit, '(7ES16.8)') fl%time, fl%mcon(:), fl%tt_mass_change, dMKEdt
+      write(myunit, '(7ES16.8)') fl%time, fl%mcon(1:4), fl%tt_mass_change, dMKEdt
       close(myunit)
       ! write out history of bulk variables
       call generate_pathfile_name(flname, dm%idom, trim(fl_bulk), dir_moni, 'log')

@@ -296,6 +296,7 @@ contains
     is_any_energyeq = .false.
     is_single_RK_projection = .false.
     is_damping_drhodt = .false.
+    is_global_mass_correction = .false.
     !----------------------------------------------------------------------------------------------------------
     ! open file
     !----------------------------------------------------------------------------------------------------------
@@ -919,19 +920,22 @@ contains
     end if
     if (.not. domain(1)%fft_skip_c2c(2)) domain(:)%mstret = MSTRET_3FMD
     if(is_any_energyeq) then
-      if(domain(1)%ibcx_nominal(2,1)==IBC_CONVECTIVE) then
-        is_single_RK_projection = .false.
-        is_damping_drhodt = .true.
-      end if
+    !   if(domain(1)%ibcx_nominal(2,1)==IBC_CONVECTIVE) then
+         is_single_RK_projection = .false.
+         if(is_single_RK_projection) &
+         call Print_warning_msg('is_single_RK_projection on could introduce very high pressure.')
+    !     !is_damping_drhodt = .true.
+    !   end if
     end if
     if( nrank == 0) then
       do i = 1, nxdomain
         write (*, *) '  ----- FFT Solver -----'
         write (*, wrtfmt2s) 'FFT lib :', get_name_fft(domain(i)%ifft_lib)
         write (*, wrtfmt3l) '3-D FFT skiping any direction? ', domain(i)%fft_skip_c2c(:)
-        write (*, *) '  ----- Numerical treatments (optional) -----'
+        write (*, *) '  ----- Numerical treatments (optional, could change once in sim.) -----'
         write (*, wrtfmt1l) 'is_single_RK_projection ?', is_single_RK_projection
         write (*, wrtfmt1l) 'is_damping_drhodt ?', is_damping_drhodt
+        write (*, wrtfmt1l) 'is_global_mass_correction ?', is_global_mass_correction
       end do
     end if
 

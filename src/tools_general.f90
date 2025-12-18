@@ -13,7 +13,7 @@ contains
     implicit none
     character(len=*), intent(IN) :: msg
     
-    write (*, *) 'ERROR: ' // msg
+    write (*, *) '>> !ERROR! <<' // msg
 
     error stop  'Execution terminated unexpectedly due to an error.'
 
@@ -25,7 +25,7 @@ contains
     implicit none
     character(len=*), intent(IN) :: msg
     
-    write (*, *) '>>>> WARNNING <<<< ' // msg
+    write (*, *) '>> !WARNNING! << ' // msg
 
     return
   end subroutine Print_warning_msg
@@ -1549,7 +1549,11 @@ contains
         write (*, wrtfmt2ae) 'maximum'//trim(abs)//opt_name, varmax_work, &
                              'minimum'//trim(abs)//opt_name, varmin_work
       else if(imax) then
-        write (*, wrtfmt1el) 'maximum'//trim(abs)//opt_name, varmax_work
+        if(opt_name == 'Mass Consv. (bulk    ) =') then
+          write (*, wrtfmt1el, advance='no') 'maximum'//trim(abs)//opt_name, varmax_work
+        else
+          write (*, wrtfmt1el) 'maximum'//trim(abs)//opt_name, varmax_work
+        end if
       else if(imin) then
         write (*, wrtfmt1el) 'minimum'//trim(abs)//opt_name, varmin_work
       else
