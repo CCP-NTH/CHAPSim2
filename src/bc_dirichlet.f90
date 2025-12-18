@@ -562,7 +562,7 @@ contains
       end if
       call transpose_y_to_x(acpc_ypencil, uy, dm%dcpc)
     end if
-    if(dm%icase == ICASE_PIPE) then ! necessary
+    if(dm%icase == ICASE_PIPE) then ! due to qr=ur * r, when r=0, qr=0
       call transpose_x_to_y(uy, acpc_ypencil, dm%dcpc)
       acpc_ypencil(:, 1, :) = ZERO
       call transpose_y_to_x(acpc_ypencil, uy, dm%dcpc)

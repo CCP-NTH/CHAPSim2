@@ -417,7 +417,7 @@ end function
       if(is_qr_qrdr == 1) then
         fbcy(:, 1, :) = ZERO
       else if (is_qr_qrdr == 2) then
-        fbcy(:, 1, :) = (var_ypencil1(:, 2, :) + var_ypencil(:, 2, :)) * HALF
+        fbcy(:, 1, :) = (var_ypencil1(:, 2, :) + var_ypencil(:, 2, :)) * HALF ! multiple values
       else
       end if
     end if
@@ -448,11 +448,12 @@ end function
     if(dm%ibcy_qx(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qx for the centre of the pipe.')
     call axis_mirroring_interior_fbcy(fl%qx, dm%fbcy_qx, dm%knc_sym, dm%dpcc)
 !----------------------------------------------------------------------------------------------------------
-!   ! Update qy and qy/r boundary conditions in y-direction (on nodes)
+!   ! Update qy boundary conditions in y-direction (on nodes)
 !----------------------------------------------------------------------------------------------------------
     if(dm%ibcy_qy(1) /= IBC_INTERIOR) call Print_error_msg('Error in ibcy_qy for the centre of the pipe.')
     call axis_mirroring_interior_fbcy(fl%qy, dm%fbcy_qy, dm%knc_sym, dm%dcpc, &
             is_qr_qrdr = 1, is_reversed = .true.)
+    ! Update qy/r boundary conditions in y-direction (on nodes)
     acpc_xpencil = fl%qy
     call multiple_cylindrical_rn(acpc_xpencil, dm%dcpc, dm%rpi, 1, IPENCIL(1)) ! qr/r
     call axis_mirroring_interior_fbcy(acpc_xpencil, dm%fbcy_qyr, dm%knc_sym, dm%dcpc, &

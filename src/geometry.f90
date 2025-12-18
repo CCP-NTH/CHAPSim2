@@ -579,7 +579,7 @@ contains
       end do
     end do
     ! method 2
-    select case(dm%icas)
+    select case(dm%icase)
     case (ICASE_CHANNEL)
       ddy = dm%lxx * (dm%lyt - dm%lyb) * dm%lzz
     case (ICASE_PIPE)
