@@ -1,0 +1,1336 @@
+ ==========================================================================================================
+ CHAPSim2.0 Starts ...
+                  The precision is REAL *        8
+ ==========================================================================================================
+ Reading General Parameters from input_chapsim.ini  ...
+   ------ Reading [process] ------
+                               is_prerun :   F
+                          is_postprocess :   F
+   ------ Reading [decomposition] ------
+   [NOTE] if p_row = p_col = 0, the system will employ a default, automatic domain decomposition strategy.
+         x-dir domain number             :       1
+         y-dir domain number (mpi Row)   :       0
+         z-dir domain number (mpi Column):       0
+   ------ Reading [domain] ------
+                        current icase id : Channel flow                                                           
+              current coordinates system : Cartesian coordinate system                                            
+            scaled length in x-direction :     6.2831860
+            scaled length in y-direction :     2.0000000
+            scaled length in z-direction :     3.1415930
+   ------ Reading [flow] ------
+   [NOTE] The Reynolds number is based on half channel hight or radius of a pipe.
+                       flow initial type : Initialised from a poiseuille flow                                     
+                 iteration starting from :       0
+       Initial velocity influction level :     0.2500000
+                    Initial Reynolds No. :  2800.0000000
+       Iteration for initial Reynolds No.:   10000
+                    flow Reynolds number :  2800.0000000
+   ------ Reading [thermo] ------
+                     is_strong_coupling :    T
+                        is_drhodt_chain :    F
+                 is thermal field solved ?   T
+                           is CHT solved ?   F
+                        gravity direction        0
+                            fluid medium : Supercritical water                                                    
+                    reference length (m) :     0.0015000
+               reference temperature (K) :   645.1500000
+               thermo field initial type :       7
+                 iteration starting from :       0
+                 initial temperature (K) :   645.1500000
+   ------ Reading [mesh] ------
+                    mesh cell number - x :      64
+                    mesh cell number - y :      80
+                    mesh cell number - z :      64
+                                 FFT lib : 3-D FFT using 2DECOMP&FFT                                              
+               FFT skiping any direction?    F   T   F
+               is mesh stretching in xyz :   F   T   F
+                  mesh y-stretching type : Mesh clusted towards two sides of y-domain                             
+                mesh y-stretching factor :     0.1000000
+                mesh y-stretching method : Stretched mesh has only 3 Fourier modes. Suitable for 3-D FFT.         
+   ------ Reading [bc] ------
+                  flow driven force type : constant mass flux driven in x-direction                               
+   ------ Reading [scheme] ------
+   physical time step(dt, unit = second) :  1.00000000E-05
+                    time marching scheme :       3
+         current spatial accuracy scheme : 2nd order Centrail Difference                                          
+                 viscous term treatment  :       1
+                is_single_RK_projection :    F
+   ------ Reading [simcontrol] ------
+           flow simulation starting from :       1
+           flow simulation ending   at   :      50
+        thermal simulation starting from :       1
+        thermal simulation ending   at   :      50
+   ------ Reading [io] ------
+                     data check freqency :    1000
+                    visu data dimensions :       0
+              visu data written freqency :    2000
+                  visu data skips in xyz :       1       1       1
+                 statistics written from :    3000
+                 statistics skips in xyz :       1       1       1
+                 recording outlet plane? :   F
+                    reading inlet plane? :   F
+        reading/recording plane freqency :       0
+  reading/recording plane period (start-en       0      -1
+   ------ Reading [probe] ------
+                   probed points x, y, z :     3.1415930     0.0000000     1.5707965
+ ==========================================================================================================
+ Norminal and calculated boundary conditions
+       is periodic in xyz?  T F T
+       BC in the X direction: norminal BC Left, calc BC Left, norminal BC Right, calc BC Right
+      u-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+      v-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+      w-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+      p-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+      T-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+                                       BC in the Y direction: norminal BC, calc BC
+      u-bc : || IBC_DIRICHLET=>  IBC_DIRICHLET || IBC_DIRICHLET=>  IBC_DIRICHLET       0.0000       0.0000
+      v-bc : || IBC_DIRICHLET=>  IBC_DIRICHLET || IBC_DIRICHLET=>  IBC_DIRICHLET       0.0000       0.0000
+      w-bc : || IBC_DIRICHLET=>  IBC_DIRICHLET || IBC_DIRICHLET=>  IBC_DIRICHLET       0.0000       0.0000
+      p-bc : || IBC_NEUMANN  =>  IBC_NEUMANN   || IBC_NEUMANN  =>  IBC_NEUMANN         0.0000       0.0000
+      T-bc : || IBC_DIRICHLET=>  IBC_DIRICHLET || IBC_DIRICHLET=>  IBC_DIRICHLET     640.1500     652.1500
+                                       BC in the Z direction: norminal BC, calc BC
+      u-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+      v-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+      w-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+      p-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+      T-bc : || IBC_PERIODIC =>  IBC_PERIODIC  || IBC_PERIODIC =>  IBC_PERIODIC        0.0000       0.0000
+           The bc for x-mom x-convection :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for x-mom y-convection :  IBC_DIRICHLET  IBC_DIRICHLET
+           The bc for x-mom z-convection :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for x-mom x-diffusion  :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for x-mom y-diffusion  :  IBC_DIRICHLET  IBC_DIRICHLET
+           The bc for x-mom z-diffusion  :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for y-mom x-convection :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for y-mom y-convection :  IBC_DIRICHLET  IBC_DIRICHLET
+           The bc for y-mom z-convection :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for y-mom x-diffusion  :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for y-mom y-diffusion  :  IBC_DIRICHLET  IBC_DIRICHLET
+           The bc for y-mom z-diffusion  :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for z-mom x-convection :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for z-mom y-convection :  IBC_DIRICHLET  IBC_DIRICHLET
+           The bc for z-mom z-convection :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for z-mom x-diffusion  :  IBC_PERIODIC   IBC_PERIODIC 
+           The bc for z-mom y-diffusion  :  IBC_DIRICHLET  IBC_DIRICHLET
+           The bc for z-mom z-diffusion  :  IBC_PERIODIC   IBC_PERIODIC 
+          The bc for energy x-convection :  IBC_PERIODIC   IBC_PERIODIC 
+          The bc for energy y-convection :  IBC_DIRICHLET  IBC_DIRICHLET
+          The bc for energy z-convection :  IBC_PERIODIC   IBC_PERIODIC 
+          The bc for energy x-diffusion  :  IBC_PERIODIC   IBC_PERIODIC 
+          The bc for energy y-diffusion  :  IBC_DIRICHLET  IBC_DIRICHLET
+          The bc for energy z-diffusion  :  IBC_PERIODIC   IBC_PERIODIC 
+         ... done.
+ ==========================================================================================================
+ Initialising domain geometric ...
+     Buildup_grid_mapping_1D_3fmd for nd
+     Buildup_grid_mapping_1D_3fmd for cl
+                      is periodic in xyz :   T   F   T
+     geometry number of nodes     in xyz :      65      81      65
+     calculation number of cells  in xyz :      64      80      64
+     calculation number of points in xyz :      64      81      64
+                    grid spacing in x, z:      0.0981748     0.0490874
+  grid spacing in y(geometric     uniform)  2.50000000E-02
+  grid spacing in y(computational uniform)  1.25000000E-02
+         ... done.
+ ==========================================================================================================
+ Assigning coefficient matrix for the compact schemes ...
+         ... done.
+ In auto-tuning mode......
+ factors:            1           2           4
+ p_row x p_col           2           2
+  pt global id =1, at nrank =2, location xyz= 3.14 0.00 1.57, local id =     32     1    32
+ ==========================================================================================================
+ Initialising decomp_info_init for domain decomposition
+         ... done.
+ ==========================================================================================================
+ Writing monitor initial files ...
+       Probed points for monitoring ...
+         ... done.
+ ==========================================================================================================
+ Writing visu initial files ...
+         ... done.
+ ==========================================================================================================
+ Initialise flow statistics ...
+         ... done.
+ ==========================================================================================================
+ Initialise thermo statistics ...
+         ... done.
+ ==========================================================================================================
+ Initialising the Poisson solver ...
+   ------ Building up the interface for the poisson solver ... ------
+ fft 2decomp_interface: skip c2c fft in direction            2
+ FFT: nx, ny, nz, nxm, nym, nzm:(var)          64          80          64          64          80          64
+         ... done.
+ poisson_010_yskip is used.
+         ... done.
+ ==========================================================================================================
+ Initialising thermal mapping relations ...
+     Initialising thermal parameters ...
+ >>>> WARNNING <<<< The relation (rho * h) = FUNCTION (T) is not monotonicity.
+                  This occurs from T(K) =    668.4700000
+ >>>> WARNNING <<<< If this temperature locates in-between your interested range, please try to increase your reference temeprature.
+ >>>> WARNNING <<<< The relation (rho * h) = FUNCTION (H) is not monotonicity.
+               This occurs from H(J/KG) =   2.61365107E+06
+ >>>> WARNNING <<<< If this H locates in-between your interested range, please try to increase your reference temeprature.
+   ------ The range of the property table (undim) ------
+                           rho*h(Kg J/m3): -7.84960991E-02  2.44548423E-02
+   ------ The reference thermal properties (dimensional) are ------
+                           Temperature(K):   645.1500000
+                           Density(Kg/m3):   505.1160446
+                  Dynamic Viscosity(Pa-s):  5.81002573E-05
+              Thermal Conductivity(W/m-K):     0.4123101
+                               Cp(J/Kg/K): 14622.9721368
+                             Enthalphy(J):  1.83720353E+06
+                   mass enthaphy(Kg J/m3):  9.28000983E+08
+                thermal diffusivity(m2/s):  5.58209436E-08
+                           Prandtl Number:  2.06058113E+00
+   ------ The initial thermal properties (dimensional) are ------
+                           Temperature(K):   645.1500000
+                           Density(Kg/m3):   505.1160446
+                  Dynamic Viscosity(Pa-s):  5.81002573E-05
+              Thermal Conductivity(W/m-K):     0.4123101
+                               Cp(J/Kg/K): 14622.9721368
+                             Enthalphy(J):  1.83720353E+06
+                   mass enthaphy(Kg J/m3):  9.28000983E+08
+                thermal diffusivity(m2/s):  5.58209436E-08
+                           Prandtl Number:  2.06058113E+00
+         ... done.
+ ==========================================================================================================
+ Initialising boundary conditions ...
+         ... done.
+ ==========================================================================================================
+ Allocating flow variables ...
+         ... done.
+ ==========================================================================================================
+ Allocating thermal variables ...
+         ... done.
+ ==========================================================================================================
+ Initialise thermo fields ...
+ ==========================================================================================================
+ Initialise thermal variables ...
+   ------ The initial thermal properties (undim) are ------
+                              Temperature:     1.0000000
+                                  Density:     1.0000000
+                        Dynamic Viscosity:     1.0000000
+                     Thermal Conductivity:     1.0000000
+                                       Cp:     1.0000000
+                                Enthalphy:     0.0000000
+                            mass enthaphy:     0.0000000
+         ... done.
+ 1_data/domain1_Temp_0.bin                                       
+ 1_data/domain1_Dens_0.bin                                       
+ 1_data/domain1_Visc_0.bin                                       
+ 1_data/domain1_Cond_0.bin                                       
+ 1_data/domain1_Enth_0.bin                                       
+ 1_data/domain1_dddt_0.bin                                       
+     Write out visualisation for thermal field.
+         ... done.
+ ==========================================================================================================
+ Initialise flow fields ...
+     Generating random field ...
+     Max/min velocity for generated random velocities:
+       maximum-qx  2.499996554562036E-01     minimum-qx -2.499986320581243E-01
+       maximum-qy  1.249998277281018E-01     minimum-qy -1.249993160290621E-01
+       maximum-qz  1.249998277281018E-01     minimum-qz -1.249993160290621E-01
+ ==========================================================================================================
+ Initialising Poiseuille flow field ...
+     Generate poiseuille flow profile ...
+        The initial, [original] bulk gx =   9.69023376E-01
+          The initial, [scaled] bulk gx =   1.00000000E+00
+     Max/Min [velocity] for real initial flow field:
+       maximum-qx  1.802895327610969E+00     minimum-qx -2.466969386472058E-01
+       maximum-qy  1.249998277281018E-01     minimum-qy -1.249993160290621E-01
+       maximum-qz  1.249998277281018E-01     minimum-qz -1.249993160290621E-01
+     Max/Min [mass flux] for real initial flow field:
+       maximum-gx  1.777625768247894E+00     minimum-gx -2.649119144519509E-01
+       maximum-gy  1.341960254202447E-01     minimum-gy -1.342030558742967E-01
+       maximum-gz  1.341672175247162E-01     minimum-gz -1.341418948676864E-01
+          maximum-Mass Consv. (bulk    ) =  4.163648015951252E+01
+ 1_data/domain1_pr_0.bin                                         
+ 1_data/domain1_phi_0.bin                                        
+ 1_data/domain1_qx_ccc_0.bin                                     
+ 1_data/domain1_qy_ccc_0.bin                                     
+ 1_data/domain1_qz_ccc_0.bin                                     
+ 1_data/domain1_gx_ccc_0.bin                                     
+ 1_data/domain1_gy_ccc_0.bin                                     
+ 1_data/domain1_gz_ccc_0.bin                                     
+     Flow field visualization data written successfully.
+         ... done.
+          maximum-Mass Consv. (bulk    ) =  4.163648015951252E+01
+ 1_data/domain1_pr_0.bin                                         
+ 1_data/domain1_phi_0.bin                                        
+ 1_data/domain1_qx_ccc_0.bin                                     
+ 1_data/domain1_qy_ccc_0.bin                                     
+ 1_data/domain1_qz_ccc_0.bin                                     
+ 1_data/domain1_gx_ccc_0.bin                                     
+ 1_data/domain1_gy_ccc_0.bin                                     
+ 1_data/domain1_gz_ccc_0.bin                                     
+     Flow field visualization data written successfully.
+ 1_data/domain1_Temp_0.bin                                       
+ 1_data/domain1_Dens_0.bin                                       
+ 1_data/domain1_Visc_0.bin                                       
+ 1_data/domain1_Cond_0.bin                                       
+ 1_data/domain1_Enth_0.bin                                       
+ 1_data/domain1_dddt_0.bin                                       
+     Write out visualisation for thermal field.
+                        Diffusion number :  1.412078369568749E-04
+   ------ Code Performance Info ------
+         Time for code preparation : 0.6310 s
+ ==========================================================================================================
+ Solving the governing equations ...
+ ==========================================================================================================
+ Time Step = 1/50
+  thermal field physical time (undim) =    0.0000000000000000     
+  flow    field physical time (undim) =    0.0000000000000000     
+                maximum-CFL (convection) :  2.153908156587927E-04
+                        Diffusion number :  1.412078369568749E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  2.858269176897466E-13
+      maximum-T :  1.010816974865881E+00    minimum-T :  9.922829035647223E-01
+     maximum-qx :  1.845943318652414E+00   minimum-qx : -2.789748071975586E-01
+     maximum-qy :  2.281669869225004E-01   minimum-qy : -2.258170369598640E-01
+     maximum-qz :  2.429713957394515E-01   minimum-qz : -2.330437656528546E-01
+     maximum-pr :  9.081395514425981E+01   minimum-pr : -8.071904038798300E+01
+     maximum-ph :  6.589884119721485E+02   minimum-ph : -6.094491835083752E+02
+   ------ Code Performance Info ------
+         Time for this time step : 0.5527 s
+         Elaspsed Wallclock Time : 0 h 0 m 0.5527 s 
+         Remaning Wallclock Time : 0 h 0 m 27.0824 s 
+         Moving averaged time per iteration  : 0.5527 s
+ ==========================================================================================================
+ Time Step = 2/50
+  thermal field physical time (undim) =    1.0000000000000001E-005
+  flow    field physical time (undim) =    1.0000000000000001E-005
+                maximum-CFL (convection) :  2.144788712908227E-04
+                        Diffusion number :  1.412078437450460E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  5.776629175002768E-15
+      maximum-T :  1.010816996232772E+00    minimum-T :  9.922829013107398E-01
+     maximum-qx :  1.845952778182594E+00   minimum-qx : -2.788960754611119E-01
+     maximum-qy :  2.281334875274616E-01   minimum-qy : -2.257826573842893E-01
+     maximum-qz :  2.427922422318190E-01   minimum-qz : -2.326816615952174E-01
+     maximum-pr :  9.915963607304384E+00   minimum-pr : -8.638875845275201E+00
+     maximum-ph :  4.595253303522453E+01   minimum-ph : -5.579819949631662E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5490 s
+         Elaspsed Wallclock Time : 0 h 0 m 1.1032 s 
+         Remaning Wallclock Time : 0 h 0 m 26.4766 s 
+         Moving averaged time per iteration  : 0.5516 s
+ ==========================================================================================================
+ Time Step = 3/50
+  thermal field physical time (undim) =    2.0000000000000002E-005
+  flow    field physical time (undim) =    2.0000000000000002E-005
+                maximum-CFL (convection) :  2.144778774509964E-04
+                        Diffusion number :  1.412078437786510E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.884981308350689E-15
+      maximum-T :  1.010816999933414E+00    minimum-T :  9.922828999850556E-01
+     maximum-qx :  1.845963274836872E+00   minimum-qx : -2.788391284318893E-01
+     maximum-qy :  2.281383149406718E-01   minimum-qy : -2.257780952874668E-01
+     maximum-qz :  2.427867924554355E-01   minimum-qz : -2.326813252208727E-01
+     maximum-pr :  9.188846361905917E+00   minimum-pr : -7.726409468483730E+00
+     maximum-ph :  4.578895946677743E+01   minimum-ph : -5.443196177148226E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5511 s
+         Elaspsed Wallclock Time : 0 h 0 m 1.6449 s 
+         Remaning Wallclock Time : 0 h 0 m 25.7703 s 
+         Moving averaged time per iteration  : 0.5483 s
+ ==========================================================================================================
+ Time Step = 4/50
+  thermal field physical time (undim) =    3.0000000000000004E-005
+  flow    field physical time (undim) =    3.0000000000000004E-005
+                maximum-CFL (convection) :  2.144776278114056E-04
+                        Diffusion number :  1.412078437984225E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440905651027782E-15
+      maximum-T :  1.010817002734479E+00    minimum-T :  9.922828986608152E-01
+     maximum-qx :  1.845973750794565E+00   minimum-qx : -2.787822053824108E-01
+     maximum-qy :  2.281432462577541E-01   minimum-qy : -2.257735288793636E-01
+     maximum-qz :  2.427817896875757E-01   minimum-qz : -2.326830137447445E-01
+     maximum-pr :  9.167495844403875E+00   minimum-pr : -7.733147321525478E+00
+     maximum-ph :  4.579755742408786E+01   minimum-ph : -5.440416982705521E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5532 s
+         Elaspsed Wallclock Time : 0 h 0 m 2.1943 s 
+         Remaning Wallclock Time : 0 h 0 m 25.2350 s 
+         Moving averaged time per iteration  : 0.5486 s
+ ==========================================================================================================
+ Time Step = 5/50
+  thermal field physical time (undim) =    4.0000000000000003E-005
+  flow    field physical time (undim) =    4.0000000000000003E-005
+                maximum-CFL (convection) :  2.144773758691327E-04
+                        Diffusion number :  1.412078438181726E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  5.329070518200751E-15
+      maximum-T :  1.010817005805130E+00    minimum-T :  9.922828973369631E-01
+     maximum-qx :  1.845984218832840E+00   minimum-qx : -2.787252942901199E-01
+     maximum-qy :  2.281481859083008E-01   minimum-qy : -2.257689598559645E-01
+     maximum-qz :  2.427767969824343E-01   minimum-qz : -2.326846987507555E-01
+     maximum-pr :  9.166514085150288E+00   minimum-pr : -7.732659153993150E+00
+     maximum-ph :  4.579134209255079E+01   minimum-ph : -5.440614663028125E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5320 s
+         Elaspsed Wallclock Time : 0 h 0 m 2.7190 s 
+         Remaning Wallclock Time : 0 h 0 m 24.4714 s 
+         Moving averaged time per iteration  : 0.5438 s
+ ==========================================================================================================
+ Time Step = 6/50
+  thermal field physical time (undim) =    5.0000000000000002E-005
+  flow    field physical time (undim) =    5.0000000000000002E-005
+                maximum-CFL (convection) :  2.144771232332936E-04
+                        Diffusion number :  1.412078438379172E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440783678283378E-15
+      maximum-T :  1.010817009082758E+00    minimum-T :  9.922828960134980E-01
+     maximum-qx :  1.845994687895947E+00   minimum-qx : -2.786683959889361E-01
+     maximum-qy :  2.281531270707780E-01   minimum-qy : -2.257643893327101E-01
+     maximum-qz :  2.427718030989721E-01   minimum-qz : -2.326863815284703E-01
+     maximum-pr :  9.167012018173624E+00   minimum-pr : -7.731699347104252E+00
+     maximum-ph :  4.578306316921900E+01   minimum-ph : -5.441229283095752E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5407 s
+         Elaspsed Wallclock Time : 0 h 0 m 3.2588 s 
+         Remaning Wallclock Time : 0 h 0 m 23.8979 s 
+         Moving averaged time per iteration  : 0.5431 s
+ ==========================================================================================================
+ Time Step = 7/50
+  thermal field physical time (undim) =    6.0000000000000002E-005
+  flow    field physical time (undim) =    6.0000000000000002E-005
+                maximum-CFL (convection) :  2.144768700976045E-04
+                        Diffusion number :  1.412078438576562E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552930519234998E-15
+      maximum-T :  1.010817012359233E+00    minimum-T :  9.922828946904195E-01
+     maximum-qx :  1.846005156528457E+00   minimum-qx : -2.786115103561809E-01
+     maximum-qy :  2.281580640151340E-01   minimum-qy : -2.257598176946539E-01
+     maximum-qz :  2.427668070356377E-01   minimum-qz : -2.326880629712638E-01
+     maximum-pr :  9.167610037807876E+00   minimum-pr : -7.730733224834034E+00
+     maximum-ph :  4.577485425381505E+01   minimum-ph : -5.441933986915360E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5171 s
+         Elaspsed Wallclock Time : 0 h 0 m 3.7731 s 
+         Remaning Wallclock Time : 0 h 0 m 23.1777 s 
+         Moving averaged time per iteration  : 0.5390 s
+ ==========================================================================================================
+ Time Step = 8/50
+  thermal field physical time (undim) =    7.0000000000000007E-005
+  flow    field physical time (undim) =    7.0000000000000007E-005
+                maximum-CFL (convection) :  2.144766159951531E-04
+                        Diffusion number :  1.412078438773897E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552727231327657E-15
+      maximum-T :  1.010817015634666E+00    minimum-T :  9.922828933677279E-01
+     maximum-qx :  1.846015622698822E+00   minimum-qx : -2.785546374120033E-01
+     maximum-qy :  2.281629997353417E-01   minimum-qy : -2.257552443541095E-01
+     maximum-qz :  2.427618083224262E-01   minimum-qz : -2.326897423789377E-01
+     maximum-pr :  9.168214352966205E+00   minimum-pr : -7.729769841193037E+00
+     maximum-ph :  4.576651613565110E+01   minimum-ph : -5.442602081677163E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5422 s
+         Elaspsed Wallclock Time : 0 h 0 m 4.3067 s 
+         Remaning Wallclock Time : 0 h 0 m 22.6101 s 
+         Moving averaged time per iteration  : 0.5383 s
+ ==========================================================================================================
+ Time Step = 9/50
+  thermal field physical time (undim) =    8.0000000000000007E-005
+  flow    field physical time (undim) =    8.0000000000000007E-005
+                maximum-CFL (convection) :  2.144763612722774E-04
+                        Diffusion number :  1.412078438971176E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440946308609250E-15
+      maximum-T :  1.010817018909061E+00    minimum-T :  9.922828920454230E-01
+     maximum-qx :  1.846026088731728E+00   minimum-qx : -2.784977775220284E-01
+     maximum-qy :  2.281679297772558E-01   minimum-qy : -2.257506699324824E-01
+     maximum-qz :  2.427568069680745E-01   minimum-qz : -2.326914212419467E-01
+     maximum-pr :  9.168679648099324E+00   minimum-pr : -7.728913653728564E+00
+     maximum-ph :  4.575902397706197E+01   minimum-ph : -5.443180112603322E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5456 s
+         Elaspsed Wallclock Time : 0 h 0 m 4.8386 s 
+         Remaning Wallclock Time : 0 h 0 m 22.0426 s 
+         Moving averaged time per iteration  : 0.5376 s
+ ==========================================================================================================
+ Time Step = 10/50
+  thermal field physical time (undim) =    9.0000000000000006E-005
+  flow    field physical time (undim) =    9.0000000000000006E-005
+                maximum-CFL (convection) :  2.144761052026535E-04
+                        Diffusion number :  1.412078439168399E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.441000518717875E-15
+      maximum-T :  1.010817022182414E+00    minimum-T :  9.922828907235044E-01
+     maximum-qx :  1.846036550942932E+00   minimum-qx : -2.784409304686176E-01
+     maximum-qy :  2.281728582632373E-01   minimum-qy : -2.257460944517082E-01
+     maximum-qz :  2.427518032393086E-01   minimum-qz : -2.326930986778292E-01
+     maximum-pr :  9.169109278055554E+00   minimum-pr : -7.728084161087740E+00
+     maximum-ph :  4.575176075287109E+01   minimum-ph : -5.443636513156098E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5394 s
+         Elaspsed Wallclock Time : 0 h 0 m 5.3745 s 
+         Remaning Wallclock Time : 0 h 0 m 21.4979 s 
+         Moving averaged time per iteration  : 0.5374 s
+ ==========================================================================================================
+ Time Step = 11/50
+  thermal field physical time (undim) =    1.0000000000000000E-004
+  flow    field physical time (undim) =    1.0000000000000000E-004
+                maximum-CFL (convection) :  2.144758482303223E-04
+                        Diffusion number :  1.412078439365567E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.996802888650564E-15
+      maximum-T :  1.010817025454718E+00    minimum-T :  9.922828894019721E-01
+     maximum-qx :  1.846047012174381E+00   minimum-qx : -2.783840961876115E-01
+     maximum-qy :  2.281777826657552E-01   minimum-qy : -2.257415176850812E-01
+     maximum-qz :  2.427467968480235E-01   minimum-qz : -2.326947748121416E-01
+     maximum-pr :  9.169469098231540E+00   minimum-pr : -7.727224843093003E+00
+     maximum-ph :  4.574580456808022E+01   minimum-ph : -5.444042916020022E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5719 s
+         Elaspsed Wallclock Time : 0 h 0 m 5.9467 s 
+         Remaning Wallclock Time : 0 h 0 m 21.0836 s 
+         Moving averaged time per iteration  : 0.5406 s
+ ==========================================================================================================
+ Time Step = 12/50
+  thermal field physical time (undim) =    1.1000000000000000E-004
+  flow    field physical time (undim) =    1.1000000000000000E-004
+                maximum-CFL (convection) :  2.144755903016378E-04
+                        Diffusion number :  1.412078439562679E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440946308609250E-15
+      maximum-T :  1.010817028725974E+00    minimum-T :  9.922828880808261E-01
+     maximum-qx :  1.846057476235445E+00   minimum-qx : -2.783272746398444E-01
+     maximum-qy :  2.281827039178719E-01   minimum-qy : -2.257369393378888E-01
+     maximum-qz :  2.427417876861957E-01   minimum-qz : -2.326964499591023E-01
+     maximum-pr :  9.169797179746968E+00   minimum-pr : -7.726547832079522E+00
+     maximum-ph :  4.574010185513527E+01   minimum-ph : -5.444433326062778E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5406 s
+         Elaspsed Wallclock Time : 0 h 0 m 6.4865 s 
+         Remaning Wallclock Time : 0 h 0 m 20.5406 s 
+         Moving averaged time per iteration  : 0.5405 s
+ ==========================================================================================================
+ Time Step = 13/50
+  thermal field physical time (undim) =    1.2000000000000000E-004
+  flow    field physical time (undim) =    1.2000000000000000E-004
+                maximum-CFL (convection) :  2.144753315234274E-04
+                        Diffusion number :  1.412078439759735E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.553581040538489E-15
+      maximum-T :  1.010817031996179E+00    minimum-T :  9.922828867600664E-01
+     maximum-qx :  1.846067935858709E+00   minimum-qx : -2.782704660094128E-01
+     maximum-qy :  2.281876218992208E-01   minimum-qy : -2.257323597461884E-01
+     maximum-qz :  2.427367759926038E-01   minimum-qz : -2.326981236645033E-01
+     maximum-pr :  9.170098484194135E+00   minimum-pr : -7.725818755161121E+00
+     maximum-ph :  4.573489348673561E+01   minimum-ph : -5.444748872346059E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5531 s
+         Elaspsed Wallclock Time : 0 h 0 m 7.0201 s 
+         Remaning Wallclock Time : 0 h 0 m 19.9802 s 
+         Moving averaged time per iteration  : 0.5400 s
+ ==========================================================================================================
+ Time Step = 14/50
+  thermal field physical time (undim) =    1.3000000000000002E-004
+  flow    field physical time (undim) =    1.3000000000000002E-004
+                maximum-CFL (convection) :  2.144750718624343E-04
+                        Diffusion number :  1.412078439956736E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.996748678541939E-15
+      maximum-T :  1.010817035265331E+00    minimum-T :  9.922828854396925E-01
+     maximum-qx :  1.846078395354059E+00   minimum-qx : -2.782136698713563E-01
+     maximum-qy :  2.281925375131438E-01   minimum-qy : -2.257277788578606E-01
+     maximum-qz :  2.427317617316620E-01   minimum-qz : -2.326997963024341E-01
+     maximum-pr :  9.170398723674456E+00   minimum-pr : -7.725196564033962E+00
+     maximum-ph :  4.573027470237569E+01   minimum-ph : -5.445053201865768E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5547 s
+         Elaspsed Wallclock Time : 0 h 0 m 7.5752 s 
+         Remaning Wallclock Time : 0 h 0 m 19.4790 s 
+         Moving averaged time per iteration  : 0.5411 s
+ ==========================================================================================================
+ Time Step = 15/50
+  thermal field physical time (undim) =    1.4000000000000001E-004
+  flow    field physical time (undim) =    1.4000000000000001E-004
+                maximum-CFL (convection) :  2.144748112847339E-04
+                        Diffusion number :  1.412078440153682E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.441000518717875E-15
+      maximum-T :  1.010817038697570E+00    minimum-T :  9.922828841197046E-01
+     maximum-qx :  1.846088851538959E+00   minimum-qx : -2.781568867463915E-01
+     maximum-qy :  2.281974500825015E-01   minimum-qy : -2.257231966848007E-01
+     maximum-qz :  2.427267448685339E-01   minimum-qz : -2.327014676579760E-01
+     maximum-pr :  9.170634021133930E+00   minimum-pr : -7.724558834183338E+00
+     maximum-ph :  4.572578098510300E+01   minimum-ph : -5.445330168249941E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.6241 s
+         Elaspsed Wallclock Time : 0 h 0 m 8.1999 s 
+         Remaning Wallclock Time : 0 h 0 m 19.1332 s 
+         Moving averaged time per iteration  : 0.5467 s
+ ==========================================================================================================
+ Time Step = 16/50
+  thermal field physical time (undim) =    1.5000000000000001E-004
+  flow    field physical time (undim) =    1.5000000000000001E-004
+                maximum-CFL (convection) :  2.144745499244677E-04
+                        Diffusion number :  1.412078440350572E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440892098500626E-15
+      maximum-T :  1.010817042500733E+00    minimum-T :  9.922828828001024E-01
+     maximum-qx :  1.846099306743454E+00   minimum-qx : -2.781001161823063E-01
+     maximum-qy :  2.282023605797803E-01   minimum-qy : -2.257186131641212E-01
+     maximum-qz :  2.427217254602564E-01   minimum-qz : -2.327031376495764E-01
+     maximum-pr :  9.170794296075202E+00   minimum-pr : -7.723962989835469E+00
+     maximum-ph :  4.572153761987260E+01   minimum-ph : -5.445563604798912E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5562 s
+         Elaspsed Wallclock Time : 0 h 0 m 8.7494 s 
+         Remaning Wallclock Time : 0 h 0 m 18.5926 s 
+         Moving averaged time per iteration  : 0.5468 s
+ ==========================================================================================================
+ Time Step = 17/50
+  thermal field physical time (undim) =    1.6000000000000001E-004
+  flow    field physical time (undim) =    1.6000000000000001E-004
+                maximum-CFL (convection) :  2.144742876851590E-04
+                        Diffusion number :  1.412078440547406E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440892098500626E-15
+      maximum-T :  1.010817046302638E+00    minimum-T :  9.922828814808858E-01
+     maximum-qx :  1.846109760098180E+00   minimum-qx : -2.780433584030491E-01
+     maximum-qy :  2.282072690230867E-01   minimum-qy : -2.257140283427923E-01
+     maximum-qz :  2.427167036198439E-01   minimum-qz : -2.327048065200956E-01
+     maximum-pr :  9.170979111378104E+00   minimum-pr : -7.723407691105790E+00
+     maximum-ph :  4.571754702077079E+01   minimum-ph : -5.445786136185060E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5387 s
+         Elaspsed Wallclock Time : 0 h 0 m 9.2880 s 
+         Remaning Wallclock Time : 0 h 0 m 18.0297 s 
+         Moving averaged time per iteration  : 0.5464 s
+ ==========================================================================================================
+ Time Step = 18/50
+  thermal field physical time (undim) =    1.7000000000000001E-004
+  flow    field physical time (undim) =    1.7000000000000001E-004
+                maximum-CFL (convection) :  2.144740246348770E-04
+                        Diffusion number :  1.412078440744185E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.441000518717875E-15
+      maximum-T :  1.010817050103285E+00    minimum-T :  9.922828801620549E-01
+     maximum-qx :  1.846120211541486E+00   minimum-qx : -2.779866134304166E-01
+     maximum-qy :  2.282121743029591E-01   minimum-qy : -2.257094422685631E-01
+     maximum-qz :  2.427116791471081E-01   minimum-qz : -2.327064739607828E-01
+     maximum-pr :  9.171169422234057E+00   minimum-pr : -7.722871209885961E+00
+     maximum-ph :  4.571380748328325E+01   minimum-ph : -5.446001055584465E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5297 s
+         Elaspsed Wallclock Time : 0 h 0 m 9.8160 s 
+         Remaning Wallclock Time : 0 h 0 m 17.4507 s 
+         Moving averaged time per iteration  : 0.5453 s
+ ==========================================================================================================
+ Time Step = 19/50
+  thermal field physical time (undim) =    1.8000000000000001E-004
+  flow    field physical time (undim) =    1.8000000000000001E-004
+                maximum-CFL (convection) :  2.144737606755763E-04
+                        Diffusion number :  1.412078440940909E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.996694468433315E-15
+      maximum-T :  1.010817053902674E+00    minimum-T :  9.922828788436093E-01
+     maximum-qx :  1.846130662256769E+00   minimum-qx : -2.779298811336879E-01
+     maximum-qy :  2.282170768359316E-01   minimum-qy : -2.257048548601299E-01
+     maximum-qz :  2.427066522677326E-01   minimum-qz : -2.327081401851637E-01
+     maximum-pr :  9.171373388675592E+00   minimum-pr : -7.722341061692062E+00
+     maximum-ph :  4.571026063884653E+01   minimum-ph : -5.446204353207779E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.6800 s
+         Elaspsed Wallclock Time : 0 h 0 m 10.4595 s 
+         Remaning Wallclock Time : 0 h 0 m 17.0656 s 
+         Moving averaged time per iteration  : 0.5505 s
+ ==========================================================================================================
+ Time Step = 20/50
+  thermal field physical time (undim) =    1.9000000000000001E-004
+  flow    field physical time (undim) =    1.9000000000000001E-004
+                maximum-CFL (convection) :  2.144734959117815E-04
+                        Diffusion number :  1.412078441137577E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440837888392002E-15
+      maximum-T :  1.010817057700802E+00    minimum-T :  9.922828775255491E-01
+     maximum-qx :  1.846141111027323E+00   minimum-qx : -2.778731616320218E-01
+     maximum-qy :  2.282219767421922E-01   minimum-qy : -2.257002661826082E-01
+     maximum-qz :  2.427016228123771E-01   minimum-qz : -2.327098053319718E-01
+     maximum-pr :  9.171496319248741E+00   minimum-pr : -7.721901349175174E+00
+     maximum-ph :  4.570706137576122E+01   minimum-ph : -5.446368307920768E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.6229 s
+         Elaspsed Wallclock Time : 0 h 0 m 11.0493 s 
+         Remaning Wallclock Time : 0 h 0 m 16.5740 s 
+         Moving averaged time per iteration  : 0.5525 s
+ ==========================================================================================================
+ Time Step = 21/50
+  thermal field physical time (undim) =    2.0000000000000001E-004
+  flow    field physical time (undim) =    2.0000000000000001E-004
+                maximum-CFL (convection) :  2.144732303601648E-04
+                        Diffusion number :  1.412078441334190E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552822099017749E-15
+      maximum-T :  1.010817061497672E+00    minimum-T :  9.922828762078741E-01
+     maximum-qx :  1.846151558286110E+00   minimum-qx : -2.778164549112699E-01
+     maximum-qy :  2.282268743451159E-01   minimum-qy : -2.256956761986958E-01
+     maximum-qz :  2.426965907829123E-01   minimum-qz : -2.327114692459077E-01
+     maximum-pr :  9.171631074015092E+00   minimum-pr : -7.721383828696428E+00
+     maximum-ph :  4.570358622004314E+01   minimum-ph : -5.446535726627466E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5226 s
+         Elaspsed Wallclock Time : 0 h 0 m 11.5713 s 
+         Remaning Wallclock Time : 0 h 0 m 15.9795 s 
+         Moving averaged time per iteration  : 0.5510 s
+ ==========================================================================================================
+ Time Step = 22/50
+  thermal field physical time (undim) =    2.1000000000000001E-004
+  flow    field physical time (undim) =    2.1000000000000001E-004
+                maximum-CFL (convection) :  2.144729639057105E-04
+                        Diffusion number :  1.412078441530747E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552715372866395E-15
+      maximum-T :  1.010817065293282E+00    minimum-T :  9.922828748905842E-01
+     maximum-qx :  1.846162003742166E+00   minimum-qx : -2.777597609696509E-01
+     maximum-qy :  2.282317692493509E-01   minimum-qy : -2.256910849124930E-01
+     maximum-qz :  2.426915561258693E-01   minimum-qz : -2.327131320475444E-01
+     maximum-pr :  9.171759543340038E+00   minimum-pr : -7.720907109821134E+00
+     maximum-ph :  4.570034907702765E+01   minimum-ph : -5.446690195728021E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5575 s
+         Elaspsed Wallclock Time : 0 h 0 m 12.1281 s 
+         Remaning Wallclock Time : 0 h 0 m 15.4357 s 
+         Moving averaged time per iteration  : 0.5513 s
+ ==========================================================================================================
+ Time Step = 23/50
+  thermal field physical time (undim) =    2.2000000000000001E-004
+  flow    field physical time (undim) =    2.2000000000000001E-004
+                maximum-CFL (convection) :  2.144726965403834E-04
+                        Diffusion number :  1.412078441727249E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.441000518717875E-15
+      maximum-T :  1.010817069087632E+00    minimum-T :  9.922828735736793E-01
+     maximum-qx :  1.846172447999622E+00   minimum-qx : -2.777030797328594E-01
+     maximum-qy :  2.282366617228041E-01   minimum-qy : -2.256864923070444E-01
+     maximum-qz :  2.426865188253820E-01   minimum-qz : -2.327147935792331E-01
+     maximum-pr :  9.171972619934010E+00   minimum-pr : -7.720424023283832E+00
+     maximum-ph :  4.569721006723185E+01   minimum-ph : -5.446860749677247E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5726 s
+         Elaspsed Wallclock Time : 0 h 0 m 12.6916 s 
+         Remaning Wallclock Time : 0 h 0 m 14.8989 s 
+         Moving averaged time per iteration  : 0.5518 s
+ ==========================================================================================================
+ Time Step = 24/50
+  thermal field physical time (undim) =    2.3000000000000001E-004
+  flow    field physical time (undim) =    2.3000000000000001E-004
+                maximum-CFL (convection) :  2.144724282960361E-04
+                        Diffusion number :  1.412078441923696E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440946308609250E-15
+      maximum-T :  1.010817072880724E+00    minimum-T :  9.922828722571591E-01
+     maximum-qx :  1.846182890554135E+00   minimum-qx : -2.776464112558067E-01
+     maximum-qy :  2.282415518136276E-01   minimum-qy : -2.256818984058255E-01
+     maximum-qz :  2.426814789653316E-01   minimum-qz : -2.327164538443905E-01
+     maximum-pr :  9.172130902464302E+00   minimum-pr : -7.719948994674868E+00
+     maximum-ph :  4.569409272877824E+01   minimum-ph : -5.447029515667999E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.6167 s
+         Elaspsed Wallclock Time : 0 h 0 m 13.2988 s 
+         Remaning Wallclock Time : 0 h 0 m 14.4071 s 
+         Moving averaged time per iteration  : 0.5541 s
+ ==========================================================================================================
+ Time Step = 25/50
+  thermal field physical time (undim) =    2.4000000000000001E-004
+  flow    field physical time (undim) =    2.4000000000000001E-004
+                maximum-CFL (convection) :  2.144721592134753E-04
+                        Diffusion number :  1.412078442120088E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440946308609250E-15
+      maximum-T :  1.010817076672558E+00    minimum-T :  9.922828709410236E-01
+     maximum-qx :  1.846193331732855E+00   minimum-qx : -2.775897554718829E-01
+     maximum-qy :  2.282464393610883E-01   minimum-qy : -2.256773031961439E-01
+     maximum-qz :  2.426764365386115E-01   minimum-qz : -2.327181129679520E-01
+     maximum-pr :  9.172388942795269E+00   minimum-pr : -7.719510189434250E+00
+     maximum-ph :  4.569105311032921E+01   minimum-ph : -5.447228757969281E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5602 s
+         Elaspsed Wallclock Time : 0 h 0 m 13.8387 s 
+         Remaning Wallclock Time : 0 h 0 m 13.8387 s 
+         Moving averaged time per iteration  : 0.5535 s
+ ==========================================================================================================
+ Time Step = 26/50
+  thermal field physical time (undim) =    2.5000000000000001E-004
+  flow    field physical time (undim) =    2.5000000000000001E-004
+                maximum-CFL (convection) :  2.144718893448234E-04
+                        Diffusion number :  1.412078442316423E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440892098500626E-15
+      maximum-T :  1.010817080463134E+00    minimum-T :  9.922828696252728E-01
+     maximum-qx :  1.846203771322528E+00   minimum-qx : -2.775331124769694E-01
+     maximum-qy :  2.282513243720684E-01   minimum-qy : -2.256727066607326E-01
+     maximum-qz :  2.426713914489705E-01   minimum-qz : -2.327197713433404E-01
+     maximum-pr :  9.172487203189471E+00   minimum-pr : -7.719026340742429E+00
+     maximum-ph :  4.568801029452460E+01   minimum-ph : -5.447376074064419E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5729 s
+         Elaspsed Wallclock Time : 0 h 0 m 14.3859 s 
+         Remaning Wallclock Time : 0 h 0 m 13.2793 s 
+         Moving averaged time per iteration  : 0.5533 s
+ ==========================================================================================================
+ Time Step = 27/50
+  thermal field physical time (undim) =    2.6000000000000003E-004
+  flow    field physical time (undim) =    2.6000000000000003E-004
+                maximum-CFL (convection) :  2.144716186281403E-04
+                        Diffusion number :  1.412078442512704E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552822099017749E-15
+      maximum-T :  1.010817084252450E+00    minimum-T :  9.922828683099065E-01
+     maximum-qx :  1.846214209245061E+00   minimum-qx : -2.774764822580031E-01
+     maximum-qy :  2.282562068811088E-01   minimum-qy : -2.256681088613035E-01
+     maximum-qz :  2.426663438218773E-01   minimum-qz : -2.327214285514543E-01
+     maximum-pr :  9.172671622920868E+00   minimum-pr : -7.718572654022060E+00
+     maximum-ph :  4.568497928262737E+01   minimum-ph : -5.447524120122210E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5545 s
+         Elaspsed Wallclock Time : 0 h 0 m 14.9410 s 
+         Remaning Wallclock Time : 0 h 0 m 12.7276 s 
+         Moving averaged time per iteration  : 0.5534 s
+ ==========================================================================================================
+ Time Step = 28/50
+  thermal field physical time (undim) =    2.7000000000000006E-004
+  flow    field physical time (undim) =    2.7000000000000006E-004
+                maximum-CFL (convection) :  2.144713471047536E-04
+                        Diffusion number :  1.412078442708930E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440892098500626E-15
+      maximum-T :  1.010817088040509E+00    minimum-T :  9.922828669949245E-01
+     maximum-qx :  1.846224645815287E+00   minimum-qx : -2.774198647589036E-01
+     maximum-qy :  2.282610869570610E-01   minimum-qy : -2.256635097821084E-01
+     maximum-qz :  2.426612936333650E-01   minimum-qz : -2.327230840507076E-01
+     maximum-pr :  9.172889911413058E+00   minimum-pr : -7.718110544042509E+00
+     maximum-ph :  4.568187422910761E+01   minimum-ph : -5.447698355249336E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5395 s
+         Elaspsed Wallclock Time : 0 h 0 m 15.4719 s 
+         Remaning Wallclock Time : 0 h 0 m 12.1565 s 
+         Moving averaged time per iteration  : 0.5526 s
+ ==========================================================================================================
+ Time Step = 29/50
+  thermal field physical time (undim) =    2.8000000000000008E-004
+  flow    field physical time (undim) =    2.8000000000000008E-004
+                maximum-CFL (convection) :  2.144710747175843E-04
+                        Diffusion number :  1.412078442905100E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  5.329178938418000E-15
+      maximum-T :  1.010817091827308E+00    minimum-T :  9.922828656803270E-01
+     maximum-qx :  1.846235080355259E+00   minimum-qx : -2.773632600438140E-01
+     maximum-qy :  2.282659645831801E-01   minimum-qy : -2.256589094298963E-01
+     maximum-qz :  2.426562407884182E-01   minimum-qz : -2.327247384867893E-01
+     maximum-pr :  9.173105666556978E+00   minimum-pr : -7.717631976416876E+00
+     maximum-ph :  4.567892323533020E+01   minimum-ph : -5.447864623895555E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5413 s
+         Elaspsed Wallclock Time : 0 h 0 m 16.0136 s 
+         Remaning Wallclock Time : 0 h 0 m 11.5961 s 
+         Moving averaged time per iteration  : 0.5522 s
+ ==========================================================================================================
+ Time Step = 30/50
+  thermal field physical time (undim) =    2.9000000000000011E-004
+  flow    field physical time (undim) =    2.9000000000000011E-004
+                maximum-CFL (convection) :  2.144708014304667E-04
+                        Diffusion number :  1.412078443101214E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.441000518717875E-15
+      maximum-T :  1.010817095612850E+00    minimum-T :  9.922828643661135E-01
+     maximum-qx :  1.846245513491945E+00   minimum-qx : -2.773066681262223E-01
+     maximum-qy :  2.282708399381824E-01   minimum-qy : -2.256543077685717E-01
+     maximum-qz :  2.426511856274048E-01   minimum-qz : -2.327263912227053E-01
+     maximum-pr :  9.173258560129078E+00   minimum-pr : -7.717043781787857E+00
+     maximum-ph :  4.567547042769723E+01   minimum-ph : -5.448047196255797E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5417 s
+         Elaspsed Wallclock Time : 0 h 0 m 16.5557 s 
+         Remaning Wallclock Time : 0 h 0 m 11.0371 s 
+         Moving averaged time per iteration  : 0.5519 s
+ ==========================================================================================================
+ Time Step = 31/50
+  thermal field physical time (undim) =    3.0000000000000014E-004
+  flow    field physical time (undim) =    3.0000000000000014E-004
+                maximum-CFL (convection) :  2.144705273150544E-04
+                        Diffusion number :  1.412078443297274E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440892098500626E-15
+      maximum-T :  1.010817099397134E+00    minimum-T :  9.922828630522839E-01
+     maximum-qx :  1.846255945277457E+00   minimum-qx : -2.772500888209226E-01
+     maximum-qy :  2.282757126704949E-01   minimum-qy : -2.256497047393601E-01
+     maximum-qz :  2.426461278061383E-01   minimum-qz : -2.327280428999919E-01
+     maximum-pr :  9.173398222928297E+00   minimum-pr : -7.716567532508024E+00
+     maximum-ph :  4.567220465411360E+01   minimum-ph : -5.448175353153800E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5262 s
+         Elaspsed Wallclock Time : 0 h 0 m 17.0818 s 
+         Remaning Wallclock Time : 0 h 0 m 10.4695 s 
+         Moving averaged time per iteration  : 0.5510 s
+ ==========================================================================================================
+ Time Step = 32/50
+  thermal field physical time (undim) =    3.1000000000000016E-004
+  flow    field physical time (undim) =    3.1000000000000016E-004
+                maximum-CFL (convection) :  2.144702523782235E-04
+                        Diffusion number :  1.412078443493278E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.996775783596251E-15
+      maximum-T :  1.010817103180161E+00    minimum-T :  9.922828617388383E-01
+     maximum-qx :  1.846266375433153E+00   minimum-qx : -2.771935221691337E-01
+     maximum-qy :  2.282805828354366E-01   minimum-qy : -2.256451004494364E-01
+     maximum-qz :  2.426410673858105E-01   minimum-qz : -2.327296933693097E-01
+     maximum-pr :  9.173584235764045E+00   minimum-pr : -7.716141567841377E+00
+     maximum-ph :  4.566927053404437E+01   minimum-ph : -5.448343600058862E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5402 s
+         Elaspsed Wallclock Time : 0 h 0 m 17.6221 s 
+         Remaning Wallclock Time : 0 h 0 m 9.9124 s 
+         Moving averaged time per iteration  : 0.5507 s
+ ==========================================================================================================
+ Time Step = 33/50
+  thermal field physical time (undim) =    3.2000000000000019E-004
+  flow    field physical time (undim) =    3.2000000000000019E-004
+                maximum-CFL (convection) :  2.144699765991731E-04
+                        Diffusion number :  1.412078443726437E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552767888909125E-15
+      maximum-T :  1.010817106961932E+00    minimum-T :  9.922828604257765E-01
+     maximum-qx :  1.846276804205898E+00   minimum-qx : -2.771369683395437E-01
+     maximum-qy :  2.282854506110389E-01   minimum-qy : -2.256404948889051E-01
+     maximum-qz :  2.426360043196530E-01   minimum-qz : -2.327313425711992E-01
+     maximum-pr :  9.173726362657696E+00   minimum-pr : -7.715704630439411E+00
+     maximum-ph :  4.566642742099724E+01   minimum-ph : -5.448485087411286E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5809 s
+         Elaspsed Wallclock Time : 0 h 0 m 18.1713 s 
+         Remaning Wallclock Time : 0 h 0 m 9.3610 s 
+         Moving averaged time per iteration  : 0.5506 s
+ ==========================================================================================================
+ Time Step = 34/50
+  thermal field physical time (undim) =    3.3000000000000022E-004
+  flow    field physical time (undim) =    3.3000000000000022E-004
+                maximum-CFL (convection) :  2.144696999821424E-04
+                        Diffusion number :  1.412078443988365E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.996694468433315E-15
+      maximum-T :  1.010817110742445E+00    minimum-T :  9.922828591130984E-01
+     maximum-qx :  1.846287231349175E+00   minimum-qx : -2.770804272458903E-01
+     maximum-qy :  2.282903161233206E-01   minimum-qy : -2.256358880276490E-01
+     maximum-qz :  2.426309387622829E-01   minimum-qz : -2.327329905266208E-01
+     maximum-pr :  9.173851190686788E+00   minimum-pr : -7.715210811381719E+00
+     maximum-ph :  4.566336364673712E+01   minimum-ph : -5.448617633352260E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5621 s
+         Elaspsed Wallclock Time : 0 h 0 m 18.7039 s 
+         Remaning Wallclock Time : 0 h 0 m 8.8018 s 
+         Moving averaged time per iteration  : 0.5501 s
+ ==========================================================================================================
+ Time Step = 35/50
+  thermal field physical time (undim) =    3.4000000000000024E-004
+  flow    field physical time (undim) =    3.4000000000000024E-004
+                maximum-CFL (convection) :  2.144694224954371E-04
+                        Diffusion number :  1.412078444250224E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.996802888650564E-15
+      maximum-T :  1.010817114521703E+00    minimum-T :  9.922828578008039E-01
+     maximum-qx :  1.846297657067702E+00   minimum-qx : -2.770238988452429E-01
+     maximum-qy :  2.282951791584331E-01   minimum-qy : -2.256312798774899E-01
+     maximum-qz :  2.426258706539161E-01   minimum-qz : -2.327346374731195E-01
+     maximum-pr :  9.173980283658253E+00   minimum-pr : -7.714769303899175E+00
+     maximum-ph :  4.566042158437288E+01   minimum-ph : -5.448750022895934E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5509 s
+         Elaspsed Wallclock Time : 0 h 0 m 19.2483 s 
+         Remaning Wallclock Time : 0 h 0 m 8.2493 s 
+         Moving averaged time per iteration  : 0.5500 s
+ ==========================================================================================================
+ Time Step = 36/50
+  thermal field physical time (undim) =    3.5000000000000027E-004
+  flow    field physical time (undim) =    3.5000000000000027E-004
+                maximum-CFL (convection) :  2.144691441533248E-04
+                        Diffusion number :  1.412078444512011E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.996857098759188E-15
+      maximum-T :  1.010817118299704E+00    minimum-T :  9.922828564888929E-01
+     maximum-qx :  1.846308081333740E+00   minimum-qx : -2.769673831727464E-01
+     maximum-qy :  2.283000395549019E-01   minimum-qy : -2.256266704021929E-01
+     maximum-qz :  2.426208001279550E-01   minimum-qz : -2.327362831540370E-01
+     maximum-pr :  9.174108559716785E+00   minimum-pr : -7.714321481967040E+00
+     maximum-ph :  4.565754784580939E+01   minimum-ph : -5.448895446591474E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5724 s
+         Elaspsed Wallclock Time : 0 h 0 m 19.8048 s 
+         Remaning Wallclock Time : 0 h 0 m 7.7019 s 
+         Moving averaged time per iteration  : 0.5501 s
+ ==========================================================================================================
+ Time Step = 37/50
+  thermal field physical time (undim) =    3.6000000000000029E-004
+  flow    field physical time (undim) =    3.6000000000000029E-004
+                maximum-CFL (convection) :  2.144688650610423E-04
+                        Diffusion number :  1.412078444773729E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552822099017749E-15
+      maximum-T :  1.010817122076449E+00    minimum-T :  9.922828551773651E-01
+     maximum-qx :  1.846318503909544E+00   minimum-qx : -2.769108801753009E-01
+     maximum-qy :  2.283048975391972E-01   minimum-qy : -2.256220596245869E-01
+     maximum-qz :  2.426157271851911E-01   minimum-qz : -2.327379273994372E-01
+     maximum-pr :  9.174284195341764E+00   minimum-pr : -7.713865424187508E+00
+     maximum-ph :  4.565463109191405E+01   minimum-ph : -5.449045775023629E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5531 s
+         Elaspsed Wallclock Time : 0 h 0 m 20.3562 s 
+         Remaning Wallclock Time : 0 h 0 m 7.1522 s 
+         Moving averaged time per iteration  : 0.5502 s
+ ==========================================================================================================
+ Time Step = 38/50
+  thermal field physical time (undim) =    3.7000000000000032E-004
+  flow    field physical time (undim) =    3.7000000000000032E-004
+                maximum-CFL (convection) :  2.144685850572943E-04
+                        Diffusion number :  1.412078445035376E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.554448402276478E-15
+      maximum-T :  1.010817125851942E+00    minimum-T :  9.922828538662206E-01
+     maximum-qx :  1.846328924894443E+00   minimum-qx : -2.768543898620852E-01
+     maximum-qy :  2.283097530899147E-01   minimum-qy : -2.256174475335887E-01
+     maximum-qz :  2.426106513137326E-01   minimum-qz : -2.327395708658612E-01
+     maximum-pr :  9.174326303325643E+00   minimum-pr : -7.713386920261456E+00
+     maximum-ph :  4.565163507476764E+01   minimum-ph : -5.449147439024079E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5793 s
+         Elaspsed Wallclock Time : 0 h 0 m 20.9157 s 
+         Remaning Wallclock Time : 0 h 0 m 6.6050 s 
+         Moving averaged time per iteration  : 0.5504 s
+ ==========================================================================================================
+ Time Step = 39/50
+  thermal field physical time (undim) =    3.8000000000000035E-004
+  flow    field physical time (undim) =    3.8000000000000035E-004
+                maximum-CFL (convection) :  2.144683041883415E-04
+                        Diffusion number :  1.412078445296953E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  5.328962097983503E-15
+      maximum-T :  1.010817129626179E+00    minimum-T :  9.922828525554592E-01
+     maximum-qx :  1.846339344188504E+00   minimum-qx : -2.767979121486042E-01
+     maximum-qy :  2.283146060073988E-01   minimum-qy : -2.256128341377014E-01
+     maximum-qz :  2.426055738061732E-01   minimum-qz : -2.327412126688957E-01
+     maximum-pr :  9.174335321379154E+00   minimum-pr : -7.713017272769981E+00
+     maximum-ph :  4.564904283144514E+01   minimum-ph : -5.449232517424589E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5480 s
+         Elaspsed Wallclock Time : 0 h 0 m 21.4648 s 
+         Remaning Wallclock Time : 0 h 0 m 6.0542 s 
+         Moving averaged time per iteration  : 0.5504 s
+ ==========================================================================================================
+ Time Step = 40/50
+  thermal field physical time (undim) =    3.9000000000000037E-004
+  flow    field physical time (undim) =    3.9000000000000037E-004
+                maximum-CFL (convection) :  2.144680224515397E-04
+                        Diffusion number :  1.412078445558460E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440783678283378E-15
+      maximum-T :  1.010817133399162E+00    minimum-T :  9.922828512450808E-01
+     maximum-qx :  1.846349762162211E+00   minimum-qx : -2.767414472129628E-01
+     maximum-qy :  2.283194566022660E-01   minimum-qy : -2.256082194547223E-01
+     maximum-qz :  2.426004933657024E-01   minimum-qz : -2.327428532860444E-01
+     maximum-pr :  9.174446394938148E+00   minimum-pr : -7.712588496281623E+00
+     maximum-ph :  4.564626283039424E+01   minimum-ph : -5.449350653828061E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5538 s
+         Elaspsed Wallclock Time : 0 h 0 m 22.0186 s 
+         Remaning Wallclock Time : 0 h 0 m 5.5047 s 
+         Moving averaged time per iteration  : 0.5505 s
+ ==========================================================================================================
+ Time Step = 41/50
+  thermal field physical time (undim) =    4.0000000000000040E-004
+  flow    field physical time (undim) =    4.0000000000000040E-004
+                maximum-CFL (convection) :  2.144677398946658E-04
+                        Diffusion number :  1.412078445819896E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440946308609250E-15
+      maximum-T :  1.010817137170891E+00    minimum-T :  9.922828499350852E-01
+     maximum-qx :  1.846360178768282E+00   minimum-qx : -2.766849949666335E-01
+     maximum-qy :  2.283243046989697E-01   minimum-qy : -2.256036034938045E-01
+     maximum-qz :  2.425954101555627E-01   minimum-qz : -2.327444925457508E-01
+     maximum-pr :  9.174532052873097E+00   minimum-pr : -7.712180073043491E+00
+     maximum-ph :  4.564353742869640E+01   minimum-ph : -5.449460948292034E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5441 s
+         Elaspsed Wallclock Time : 0 h 0 m 22.5629 s 
+         Remaning Wallclock Time : 0 h 0 m 4.9528 s 
+         Moving averaged time per iteration  : 0.5503 s
+ ==========================================================================================================
+ Time Step = 42/50
+  thermal field physical time (undim) =    4.1000000000000042E-004
+  flow    field physical time (undim) =    4.1000000000000042E-004
+                maximum-CFL (convection) :  2.144674564958895E-04
+                        Diffusion number :  1.412078446081262E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.995935526912575E-15
+      maximum-T :  1.010817140941367E+00    minimum-T :  9.922828486254723E-01
+     maximum-qx :  1.846370593820391E+00   minimum-qx : -2.766285554524918E-01
+     maximum-qy :  2.283291504059923E-01   minimum-qy : -2.255989862166884E-01
+     maximum-qz :  2.425903242069024E-01   minimum-qz : -2.327461306387792E-01
+     maximum-pr :  9.174637941186413E+00   minimum-pr : -7.711727583170329E+00
+     maximum-ph :  4.564070471230420E+01   minimum-ph : -5.449589536898398E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5385 s
+         Elaspsed Wallclock Time : 0 h 0 m 23.1014 s 
+         Remaning Wallclock Time : 0 h 0 m 4.4003 s 
+         Moving averaged time per iteration  : 0.5500 s
+ ==========================================================================================================
+ Time Step = 43/50
+  thermal field physical time (undim) =    4.2000000000000045E-004
+  flow    field physical time (undim) =    4.2000000000000045E-004
+                maximum-CFL (convection) :  2.144671722366244E-04
+                        Diffusion number :  1.412078446342558E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.441108938935123E-15
+      maximum-T :  1.010817144710591E+00    minimum-T :  9.922828473162423E-01
+     maximum-qx :  1.846381007601125E+00   minimum-qx : -2.765721285814551E-01
+     maximum-qy :  2.283339935725168E-01   minimum-qy : -2.255943676446425E-01
+     maximum-qz :  2.425852357640852E-01   minimum-qz : -2.327477678416533E-01
+     maximum-pr :  9.174737896417918E+00   minimum-pr : -7.711196909333700E+00
+     maximum-ph :  4.563740202319112E+01   minimum-ph : -5.449716614059508E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5238 s
+         Elaspsed Wallclock Time : 0 h 0 m 23.6255 s 
+         Remaning Wallclock Time : 0 h 0 m 3.8460 s 
+         Moving averaged time per iteration  : 0.5494 s
+ ==========================================================================================================
+ Time Step = 44/50
+  thermal field physical time (undim) =    4.3000000000000048E-004
+  flow    field physical time (undim) =    4.3000000000000048E-004
+                maximum-CFL (convection) :  2.144668871559286E-04
+                        Diffusion number :  1.412078446603784E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.440864993446314E-15
+      maximum-T :  1.010817148478562E+00    minimum-T :  9.922828460073946E-01
+     maximum-qx :  1.846391419567128E+00   minimum-qx : -2.765157144371394E-01
+     maximum-qy :  2.283388344016862E-01   minimum-qy : -2.255897477586506E-01
+     maximum-qz :  2.425801446783407E-01   minimum-qz : -2.327494038880669E-01
+     maximum-pr :  9.174962853696249E+00   minimum-pr : -7.710727199310214E+00
+     maximum-ph :  4.563449166832716E+01   minimum-ph : -5.449871984251075E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5431 s
+         Elaspsed Wallclock Time : 0 h 0 m 24.1687 s 
+         Remaning Wallclock Time : 0 h 0 m 3.2957 s 
+         Moving averaged time per iteration  : 0.5493 s
+ ==========================================================================================================
+ Time Step = 45/50
+  thermal field physical time (undim) =    4.4000000000000050E-004
+  flow    field physical time (undim) =    4.4000000000000050E-004
+                maximum-CFL (convection) :  2.144666012275750E-04
+                        Diffusion number :  1.412078446864939E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552930519234998E-15
+      maximum-T :  1.010817152245281E+00    minimum-T :  9.922828446989294E-01
+     maximum-qx :  1.846401830030395E+00   minimum-qx : -2.764593129757353E-01
+     maximum-qy :  2.283436729140540E-01   minimum-qy : -2.255851266407395E-01
+     maximum-qz :  2.425750512506606E-01   minimum-qz : -2.327510380820830E-01
+     maximum-pr :  9.175046624644324E+00   minimum-pr : -7.710303358308736E+00
+     maximum-ph :  4.563163503003113E+01   minimum-ph : -5.450005658220396E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5694 s
+         Elaspsed Wallclock Time : 0 h 0 m 24.7380 s 
+         Remaning Wallclock Time : 0 h 0 m 2.7487 s 
+         Moving averaged time per iteration  : 0.5497 s
+ ==========================================================================================================
+ Time Step = 46/50
+  thermal field physical time (undim) =    4.5000000000000053E-004
+  flow    field physical time (undim) =    4.5000000000000053E-004
+                maximum-CFL (convection) :  2.144663144375533E-04
+                        Diffusion number :  1.412078447126024E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552715372866395E-15
+      maximum-T :  1.010817156010748E+00    minimum-T :  9.922828433908464E-01
+     maximum-qx :  1.846412238855714E+00   minimum-qx : -2.764029242633104E-01
+     maximum-qy :  2.283485091417630E-01   minimum-qy : -2.255805041899598E-01
+     maximum-qz :  2.425699549561976E-01   minimum-qz : -2.327526714112604E-01
+     maximum-pr :  9.175089094726662E+00   minimum-pr : -7.709780424483046E+00
+     maximum-ph :  4.562846593463069E+01   minimum-ph : -5.450095399472644E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5540 s
+         Elaspsed Wallclock Time : 0 h 0 m 25.2837 s 
+         Remaning Wallclock Time : 0 h 0 m 2.1986 s 
+         Moving averaged time per iteration  : 0.5496 s
+ ==========================================================================================================
+ Time Step = 47/50
+  thermal field physical time (undim) =    4.6000000000000056E-004
+  flow    field physical time (undim) =    4.6000000000000056E-004
+                maximum-CFL (convection) :  2.144660268163542E-04
+                        Diffusion number :  1.412078447387039E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  4.884927098242065E-15
+      maximum-T :  1.010817159774964E+00    minimum-T :  9.922828420831457E-01
+     maximum-qx :  1.846422646158200E+00   minimum-qx : -2.763465481761503E-01
+     maximum-qy :  2.283533428537108E-01   minimum-qy : -2.255758804392863E-01
+     maximum-qz :  2.425648563440893E-01   minimum-qz : -2.327543033522410E-01
+     maximum-pr :  9.175217471771862E+00   minimum-pr : -7.709180039949236E+00
+     maximum-ph :  4.562493247996034E+01   minimum-ph : -5.450203311757148E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5699 s
+         Elaspsed Wallclock Time : 0 h 0 m 25.8248 s 
+         Remaning Wallclock Time : 0 h 0 m 1.6484 s 
+         Moving averaged time per iteration  : 0.5495 s
+ ==========================================================================================================
+ Time Step = 48/50
+  thermal field physical time (undim) =    4.7000000000000058E-004
+  flow    field physical time (undim) =    4.7000000000000058E-004
+                maximum-CFL (convection) :  2.144657383379572E-04
+                        Diffusion number :  1.412078447647984E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552720455064079E-15
+      maximum-T :  1.010817163537929E+00    minimum-T :  9.922828407758271E-01
+     maximum-qx :  1.846433051947556E+00   minimum-qx : -2.762901847143453E-01
+     maximum-qy :  2.283581739925841E-01   minimum-qy : -2.255712553746771E-01
+     maximum-qz :  2.425597552548870E-01   minimum-qz : -2.327559342137765E-01
+     maximum-pr :  9.175267207446966E+00   minimum-pr : -7.708779133797342E+00
+     maximum-ph :  4.562217237280028E+01   minimum-ph : -5.450323376397651E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5343 s
+         Elaspsed Wallclock Time : 0 h 0 m 26.3547 s 
+         Remaning Wallclock Time : 0 h 0 m 1.0981 s 
+         Moving averaged time per iteration  : 0.5491 s
+ ==========================================================================================================
+ Time Step = 49/50
+  thermal field physical time (undim) =    4.8000000000000061E-004
+  flow    field physical time (undim) =    4.8000000000000061E-004
+                maximum-CFL (convection) :  2.144654490019771E-04
+                        Diffusion number :  1.412078447908859E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552713678800501E-15
+      maximum-T :  1.010817167299642E+00    minimum-T :  9.922828394688903E-01
+     maximum-qx :  1.846443456409578E+00   minimum-qx : -2.762338338048314E-01
+     maximum-qy :  2.283630024102647E-01   minimum-qy : -2.255666289472749E-01
+     maximum-qz :  2.425546516653825E-01   minimum-qz : -2.327575638404686E-01
+     maximum-pr :  9.175344344507625E+00   minimum-pr : -7.708411197801841E+00
+     maximum-ph :  4.561956695738634E+01   minimum-ph : -5.450434765616703E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5571 s
+         Elaspsed Wallclock Time : 0 h 0 m 26.9060 s 
+         Remaning Wallclock Time : 0 h 0 m 0.5491 s 
+         Moving averaged time per iteration  : 0.5491 s
+ ==========================================================================================================
+ Time Step = 50/50
+  thermal field physical time (undim) =    4.9000000000000063E-004
+  flow    field physical time (undim) =    4.9000000000000063E-004
+                maximum-CFL (convection) :  2.144651588245570E-04
+                        Diffusion number :  1.412078448169663E-04
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+      Using two-potential splitting for pressure Poisson equation.
+          maximum-Mass Consv. (bulk    ) =  3.552822099017749E-15
+      maximum-T :  1.010817171060105E+00    minimum-T :  9.922828381623353E-01
+     maximum-qx :  1.846453859020767E+00   minimum-qx : -2.761774957103758E-01
+     maximum-qy :  2.283678288123836E-01   minimum-qy : -2.255620012687548E-01
+     maximum-qz :  2.425495453724932E-01   minimum-qz : -2.327591922913382E-01
+     maximum-pr :  9.175413557604218E+00   minimum-pr : -7.707977660547810E+00
+     maximum-ph :  4.561689454127765E+01   minimum-ph : -5.450547338238943E+01
+   ------ Code Performance Info ------
+         Time for this time step : 0.5520 s
+         Elaspsed Wallclock Time : 0 h 0 m 27.4477 s 
+         Remaning Wallclock Time : 0 h 0 m 0.0000 s 
+         Moving averaged time per iteration  : 0.5490 s
+   ------ Code Performance Info ------
+         Averaged time per iteration  : 0.5490 s
+         Wallclock time of all iterations : 0 h 0 m 27.4483 s 
+   ------ Code Performance Info ------
+         Wallclock time for postprocessing : 0.0000 s
+         Total wallclock time of this run : 0 h 0 m 28.0734 s 
+     CHAPSim Simulation is finished successfully.
