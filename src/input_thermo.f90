@@ -259,7 +259,6 @@ contains
       this%h = w1 * ftplist(i1)%h + w2 * ftplist(i2)%h
       this%b = w1 * ftplist(i1)%b + w2 * ftplist(i2)%b
       this%cp = w1 * ftplist(i1)%cp + w2 * ftplist(i2)%cp
-      this%drhoh_drho = w1 * ftplist(i1)%drhoh_drho + w2 * ftplist(i2)%drhoh_drho
 
     else if(fluidparam%ipropertyState == IPROPERTY_FUNCS) then 
       
@@ -332,8 +331,6 @@ contains
           dummy = EXP( CoM_Na(-1) / t1 + CoM_Na(0) + CoM_Na(1) * LOG(t1) )
       end select
       this%m = dummy / ftp0ref%m
-      ! d(rho*h)/drho = h + rho * dh/drho
-      this%drhoh_drho = this%h + this%d * dh_dt / drho_dt
     else
       this%t  = ONE
       this%d  = ONE
@@ -342,7 +339,6 @@ contains
       this%cp = ONE
       this%b  = ONE
       this%h  = ZERO
-      this%drhoh_drho = ONE
     end if
 
     this%rhoh = this%d * this%h
@@ -437,7 +433,6 @@ contains
     this%t  = w1 * ftplist(i1)%t  + w2 * ftplist(i2)%t
     this%b  = w1 * ftplist(i1)%b  + w2 * ftplist(i2)%b
     this%cp = w1 * ftplist(i1)%cp + w2 * ftplist(i2)%cp
-    this%drhoh_drho = w1 * ftplist(i1)%drhoh_drho + w2 * ftplist(i2)%drhoh_drho
 
     this%rhoh = this%d * this%h
     this%alpha = this%k / this%d / this%cp
@@ -781,9 +776,6 @@ contains
 
     is_ftplist_dim = .false.
 
-    if(is_drhodt_chain) &
-    call compute_dfdx_central2(fluidparam%nlist, ftplist(:)%rhoh, ftplist(:)%d, ftplist(:)%drhoh_drho)
-
     return
   end subroutine buildup_property_relations_from_table
 !==========================================================================================================
@@ -819,7 +811,7 @@ contains
     use math_mod
     implicit none
     integer :: i
-    real(WP) :: rhoh(N_FUNC2TABLE), d(N_FUNC2TABLE), drhoh_drho(N_FUNC2TABLE)
+    real(WP) :: rhoh(N_FUNC2TABLE), d(N_FUNC2TABLE)
 
     call ftp_get_thermal_properties_dimensional_from_T(fluidparam%ftp0ref)
     call ftp_get_thermal_properties_dimensional_from_T(fluidparam%ftpini)
@@ -840,12 +832,6 @@ contains
     fluidparam%dhmax = ftplist(i)%rhoh
 
     is_ftplist_dim = .false.
-    if(is_drhodt_chain) then
-      rhoh = ftplist(:)%rhoh
-      d = ftplist(:)%d
-      call compute_dfdx_central2(fluidparam%nlist, rhoh, d, drhoh_drho)
-      ftplist(:)%drhoh_drho = drhoh_drho
-    end if
 
     return
   end subroutine buildup_property_relations_from_function
@@ -901,13 +887,13 @@ contains
     ! end if
     
     open (newunit = ftp_unit1, file = trim(dir_chkp)//'/check_ftplist_undim.dat')
-    write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h, drhoh_drho'
+    write(ftp_unit1, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
     open (newunit = ftp_unit2, file = trim(dir_chkp)//'/check_ftplist_dim.dat')
     write(ftp_unit2, *) '# Enthalpy H, Temperature T, Density D, DViscosity M, Tconductivity K, Cp, Texpansion B, rho*h'
 
     do i = 1, fluidparam%nlist
-      write(ftp_unit1, '(9ES13.5)') ftplist(i)%h, ftplist(i)%t, ftplist(i)%d, ftplist(i)%m, &
-        ftplist(i)%k, ftplist(i)%cp, ftplist(i)%b, ftplist(i)%rhoh, ftplist(i)%drhoh_drho
+      write(ftp_unit1, '(8ES13.5)') ftplist(i)%h, ftplist(i)%t, ftplist(i)%d, ftplist(i)%m, &
+        ftplist(i)%k, ftplist(i)%cp, ftplist(i)%b, ftplist(i)%rhoh
       call ftp_convert_undim_to_dim(ftplist(i), ftp_dim)  
       write(ftp_unit2, '(8ES13.5)') ftp_dim%h, ftp_dim%t, ftp_dim%d, ftp_dim%m, ftp_dim%k, ftp_dim%cp, ftp_dim%b, ftp_dim%rhoh
     end do

@@ -312,24 +312,14 @@ contains
     real(WP), dimension( dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3) ) :: gz, uz
     !
     ! set up flow info based on different time stepping
-    if(is_strong_coupling) then
-      gx = fl%gx
-      gy = fl%gy
-      gz = fl%gz
-      if (dm%is_conv_outlet(1)) ux = fl%qx
-      if (dm%is_conv_outlet(3)) uz = fl%qz
-    else
-      gx = (fl%gx0 + fl%gx) * HALF
-      gy = (fl%gy0 + fl%gy) * HALF
-      gz = (fl%gz0 + fl%gz) * HALF
-      call convert_primary_conservative (dm, fl%dDens, IG2Q, IBLK, ux, uy, uz, gx, gy, gz)
-    end if
+    gx = fl%gx
+    gy = fl%gy
+    gz = fl%gz
+    if (dm%is_conv_outlet(1)) ux = fl%qx
+    if (dm%is_conv_outlet(3)) uz = fl%qz
     ! backup density and viscosity 
-    if (.not. is_drhodt_chain) then
-      if (is_strong_coupling .or. isub == 1) then
-        fl%dDens0 = fl%dDens
-        fl%mVisc0 = fl%mVisc
-      end if
+    if (isub == 1) then
+      fl%dDens0 = fl%dDens
     end if
     ! compute b.c. info from convective b.c. if specified.
     if (dm%is_conv_outlet(1)) call update_fbcx_convective_outlet_thermo(ux, tm, dm, isub)
@@ -344,7 +334,7 @@ contains
 
     ! calculate drho/dt
     !if(isub==3) &
-    call Calculate_drhodt(fl, dm, opt_tm=tm)
+    !call Calculate_drhodt(fl, dm, opt_tm=tm)
 
   return
   end subroutine

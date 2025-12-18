@@ -69,12 +69,6 @@ contains
     call alloc_x(fl%qx,      dm%dpcc) ; fl%qx = ZERO
     call alloc_x(fl%qy,      dm%dcpc) ; fl%qy = ZERO
     call alloc_x(fl%qz,      dm%dccp) ; fl%qz = ZERO
-    if(.not. is_strong_coupling) then
-      call alloc_x(fl%qx0, dm%dpcc) ; fl%qx0 = ZERO
-      call alloc_x(fl%qy0, dm%dcpc) ; fl%qy0 = ZERO
-      call alloc_x(fl%qz0, dm%dccp) ; fl%qz0 = ZERO
-    end if
-
 
     call alloc_x(fl%pres,    dm%dccc) ; fl%pres = ZERO
     call alloc_x(fl%pcor,    dm%dccc) ; fl%pcor = ZERO
@@ -87,6 +81,7 @@ contains
     call alloc_x(fl%mx_rhs0, dm%dpcc) ; fl%mx_rhs0 = ZERO
     call alloc_x(fl%my_rhs0, dm%dcpc) ; fl%my_rhs0 = ZERO
     call alloc_x(fl%mz_rhs0, dm%dccp) ; fl%mz_rhs0 = ZERO
+    call alloc_x(fl%drhodt,  dm%dccc) ; fl%drhodt  = ZERO
 
     if(dm%is_conv_outlet(1)) then 
       allocate (fl%fbcx_a0cc_rhs0(dm%dpcc%xsz(2), dm%dpcc%xsz(3))); fl%fbcx_a0cc_rhs0 = ZERO
@@ -105,18 +100,7 @@ contains
       call alloc_x(fl%gz,      dm%dccp) ; fl%gz = ZERO
       call alloc_x(fl%dDens,   dm%dccc) ; fl%dDens = ONE
       call alloc_x(fl%mVisc,   dm%dccc) ; fl%mVisc = ONE
-      call alloc_x(fl%drhodt,  dm%dccc) ; fl%drhodt = ZERO
-      if(.not. is_strong_coupling) then
-        call alloc_x(fl%gx0,      dm%dpcc) ; fl%gx0 = ZERO
-        call alloc_x(fl%gy0,      dm%dcpc) ; fl%gy0 = ZERO
-        call alloc_x(fl%gz0,      dm%dccp) ; fl%gz0 = ZERO
-        call alloc_x(fl%dDens0, dm%dccc) ; fl%dDens0 = ONE
-        call alloc_x(fl%mVisc0, dm%dccc) ; fl%mVisc0 = ONE
-      end if
-      if(.not. is_drhodt_chain) then
-        if(.not. allocated(fl%dDens0)) &
-        call alloc_x(fl%dDens0, dm%dccc) ; fl%dDens0 = ONE
-      end if
+      call alloc_x(fl%dDens0, dm%dccc)  ; fl%dDens0 = ONE
     end if
 
     if(nrank == 0) call Print_debug_end_msg()
@@ -146,7 +130,6 @@ contains
     call alloc_x(tm%tTemp,    dm%dccc) ; tm%tTemp = ONE
     call alloc_x(tm%ene_rhs,  dm%dccc) ; tm%ene_rhs = ZERO
     call alloc_x(tm%ene_rhs0, dm%dccc) ; tm%ene_rhs0 = ZERO
-    call alloc_x(tm%drhoh_drho, dm%dccc); tm%drhoh_drho = ONE
 
     if(dm%is_conv_outlet(1)) then 
       allocate (tm%fbcx_rhoh_rhs0(dm%dccc%xsz(2), dm%dccc%xsz(3))); tm%fbcx_rhoh_rhs0 = ZERO
@@ -688,7 +671,7 @@ contains
 #endif 
   
     !call update_dyn_fbcx_from_flow(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcx_qy, dm%fbcx_qz)
-    !call enforce_domain_mass_balance_dyn_fbc(fl, dm)
+    !call enforce_domain_mass_balance_dyn_fbc(fl%drhodt, dm)
 !----------------------------------------------------------------------------------------------------------
 ! to initialise pressure correction term
 !----------------------------------------------------------------------------------------------------------
@@ -751,14 +734,7 @@ contains
       fl%iteration = 0
     end if
 
-    if(.not. is_strong_coupling) then
-      fl%dDens0(:, :, :) = fl%dDens(:, :, :)
-      fl%mVisc0(:, :, :) = fl%mVisc(:, :, :)
-    end if
-    if(.not. is_drhodt_chain) then
-      fl%dDens0(:, :, :) = fl%dDens(:, :, :)
-    end if
-
+    fl%dDens0(:, :, :) = fl%dDens(:, :, :)
 
     if (dm%icase == ICASE_PIPE) call update_fbcy_cc_thermo_halo(tm, dm)
  

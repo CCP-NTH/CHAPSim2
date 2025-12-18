@@ -1961,7 +1961,6 @@ contains
 !==========================================================================================================
     if (fl%idriven == IDRVF_X_MASSFLUX) then
       call Get_volumetric_average_3d(dm, dm%dpcc, fl%mx_rhs, rhsx_bulk, SPACE_AVERAGE, "mx_rhs")
-      !call Get_volumetric_average_3d(.false., dm%ibcy(:, 1), dm%fbcy_var(:, :, :, 1), dm, dm%dpcc, fl%mx_rhs, rhsx_bulk, "mx_rhs")
       fl%mx_rhs = fl%mx_rhs - rhsx_bulk
     else if (fl%idriven == IDRVF_X_DPDX) then
       rhsx_bulk = - HALF * fl%drvfc * dm%tAlpha(isub) * dm%dt
@@ -1971,7 +1970,6 @@ contains
       if(nrank == 0) call Print_error_msg('Function to be added soon.')
     else if (fl%idriven == IDRVF_Z_MASSFLUX) then
       call Get_volumetric_average_3d(dm, dm%dccp, fl%mz_rhs, rhsz_bulk, SPACE_AVERAGE, "mz_rhs")
-      !call Get_volumetric_average_3d(.false., dm%ibcy(:, 3), dm%fbcy_var(:, :, :, 3), dm, dm%dccp, fl%mz_rhs, rhsz_bulk, "mz_rhs")
       fl%mz_rhs = fl%mz_rhs - rhsz_bulk
     else if (fl%idriven == IDRVF_Z_DPDZ) then
       rhsz_bulk = - HALF * fl%drvfc * dm%tAlpha(isub) * dm%dt
@@ -2093,6 +2091,7 @@ contains
     use find_max_min_ave_mod
     use typeconvert_mod
     use io_visualisation_mod
+    use solver_tools_mod
     implicit none
     !------------------------------------------------------------------
     ! Arguments
@@ -2105,103 +2104,65 @@ contains
     !------------------------------------------------------------------
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: &
         drhodt, div
-    real(WP) :: coeff, pres_bulk
-    logical :: do_split
+    real(WP) :: coeff, pres_bulk, mass_imbalance(8)
+    !
 #ifdef DEBUG_STEPS
     if (nrank == 0) then
       call Print_debug_inline_msg("Calculating the RHS of Poisson equation ...")
     end if
 #endif
-    !==================================================================
+    !------------------------------------------------------------------
     ! 1. Build RHS components of Poisson equation
-    !==================================================================
+    !------------------------------------------------------------------
     ! RHS = d(rho)/dt + div(rho u)
     ! For cylindrical coordinate:
     ! Poisson eq is: r^2 * d2/dx2 + r * d(r * d/dy)/dy + d2/dz2  = &
     !                r^2 * div + r^2 * d(rho)/dt
-    !==================================================================
     !------------------------------------------------------------------
-    ! 1.1 Static component: d(rho)/dt at cell centres
-    !------------------------------------------------------------------
+    ! time scaling coefficient
+    coeff = ONE / (dm%tAlpha(isub) * dm%sigma2p * dm%dt)
+    ! RHS-part1
     if (dm%is_thermo) then
       drhodt = fl%drhodt
     else
       drhodt = ZERO
     end if
-    !------------------------------------------------------------------
-    ! 1.2 Dynamic component: div(rho u)
-    !------------------------------------------------------------------
+    ! RHS-part2
     div = ZERO
     call Get_divergence_flow(fl, div, dm)
-    !------------------------------------------------------------------
-    ! 1.3 Scaling coefficient
-    !------------------------------------------------------------------
-    coeff = ONE / (dm%tAlpha(isub) * dm%sigma2p * dm%dt)
-    !==================================================================
-    ! 2. Solve Poisson equation
-    !==================================================================
-    is_two_potential_splitting = dm%is_thermo .and. & 
-              ( (.not. is_single_RK_projection) .or. (isub == ITIME_RK3) )
-    !
-!#ifdef DEBUG_STEPS
-    if (nrank == 0) then
-      if (is_two_potential_splitting) then
-        call Print_debug_inline_msg(" Using two-potential splitting for pressure Poisson equation.")
-      else
-        call Print_debug_inline_msg(" Using single-potential formulation for pressure Poisson equation.")
-      end if
-    end if
-!#endif
-    !
-    if (is_two_potential_splitting) then
-      !--------------------------------------------------------------
-      ! Two-potential splitting:
-      !   - drhodt : static potential (thermodynamic)
-      !   - div    : dynamic pressure potential
-      !--------------------------------------------------------------
-      if (dm%icoordinate == ICYLINDRICAL) then
-        call multiple_cylindrical_rn(drhodt, dm%dccc, dm%rc, 2, IPENCIL(1))
-        call multiple_cylindrical_rn(div,    dm%dccc, dm%rc, 2, IPENCIL(1))
-      end if
-      drhodt = drhodt * coeff
-      div    = div    * coeff
-      call solve_fft_poisson(drhodt, dm)
-      call solve_fft_poisson(div,    dm)
-      fl%pcor = drhodt + div
-    else
-      !--------------------------------------------------------------
-      ! Single-potential formulation
-      !--------------------------------------------------------------
-      fl%pcor = drhodt + div
-      if (dm%icoordinate == ICYLINDRICAL) then
-        call multiple_cylindrical_rn(fl%pcor, dm%dccc, dm%rc, 2, IPENCIL(1))
-      end if
-      fl%pcor = fl%pcor * coeff
-      call solve_fft_poisson(fl%pcor, dm)
-    end if
-    call Get_volumetric_average_3d(dm, dm%dccc, fl%pcor, pres_bulk, SPACE_AVERAGE, "phi")
-    fl%pcor = fl%pcor - pres_bulk
-    !==================================================================
-    ! 3. Pressure correction
-    !==================================================================
+    ! final RHS
+    fl%pcor = drhodt + div
+!
 #ifdef DEBUG_STEPS
-    if (nrank == 0) then
-      call Print_debug_inline_msg("Correcting the pressure field ...")
-      write(*,*) 'original pressure:', fl%pres(1, 1:4, 1)
-      write(*,*) 'phi_static       :', drhodt(1, 1:4, 1)
-      write(*,*) 'phi_dynamic      :', div(1, 1:4, 1)
-    end if
+    call check_global_mass_balance(mass_imbalance, fl%drhodt, dm)
+    write(*,*) 'mass_imbalance before fft1', mass_imbalance
+    ! for open-bc, a global mass inbalance correction is carried out
+    fl%pcor = fl%pcor - mass_imbalance(8)/dm%vol
+    call check_global_mass_balance(mass_imbalance, fl%drhodt- mass_imbalance(8)/dm%vol, dm)
+    write(*,*) 'mass_imbalance before fftX', mass_imbalance
 #endif
-    if (is_two_potential_splitting) then
-      fl%pres = fl%pres + div
-    else
-      fl%pres = fl%pres + fl%pcor
+!
+    if (dm%icoordinate == ICYLINDRICAL) then
+      call multiple_cylindrical_rn(fl%pcor, dm%dccc, dm%rc, 2, IPENCIL(1))
     end if
+    fl%pcor = fl%pcor * coeff
     !------------------------------------------------------------------
+    ! 2. Solve Poisson equation
+    !------------------------------------------------------------------
+    call solve_fft_poisson(fl%pcor, dm)
+    ! remove drift
+    call Get_volumetric_average_3d(dm, dm%dccc, fl%pcor, pres_bulk, SPACE_AVERAGE, "phi")
+    !if(nrank==0) write(*,*) 'shifted phi:', pres_bulk
+    fl%pcor = fl%pcor - pres_bulk
+    !------------------------------------------------------------------
+    ! 3. Pressure correction
+    !------------------------------------------------------------------
+    fl%pres = fl%pres + fl%pcor
     ! Remove pressure drift (zero-mean constraint)
-    !------------------------------------------------------------------
     call Get_volumetric_average_3d(dm, dm%dccc, fl%pres, pres_bulk, SPACE_AVERAGE, "pressure")
+    !if(nrank==0) write(*,*) 'shifted pres:', pres_bulk
     fl%pres = fl%pres - pres_bulk
+    !
 #ifdef DEBUG_STEPS
     ! call wrt_3d_pt_debug(fl%pres, dm%dccc, fl%iteration, isub, 'pr_updated')
     write(*,*) 'solved_phi:', fl%pcor(2, 1:4, 2)
@@ -2314,31 +2275,18 @@ contains
     ! local variables
     logical :: flg_bc_conv
     integer :: i
-    real(WP) :: pres_bulk
+    real(WP) :: pres_bulk, mass_imbalance(8)
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: dens, visc
-
+    !
     ! set up thermo info based on different time stepping
+    ! drho/dt is updated here as it is used in balancing mass in convective outlet
     if(dm%is_thermo) then
-      if(.not. is_strong_coupling) then
-        dens = (fl%dDens + fl%dDens0) * HALF
-        visc = (fl%mVisc + fl%mVisc0) * HALF
-        if(isub == 1) then
-          if (dm%is_conv_outlet(1)) fl%qx0 = fl%qx
-          if (dm%is_conv_outlet(3)) fl%qz0 = fl%qz
-          fl%gx0 = fl%gx
-          fl%gy0 = fl%gy
-          fl%gz0 = fl%gz
-          call Calculate_drhodt(fl, dm, opt_isub=isub, opt_tm=opt_tm)
-        end if
-      else
-        dens = fl%dDens
-        visc = fl%mVisc
-        call Calculate_drhodt(fl, dm, opt_isub=isub, opt_tm=opt_tm)
-      end if
+      dens = fl%dDens
+      visc = fl%mVisc
+      call Calculate_drhodt(fl, dm, opt_isub=isub, opt_tm=opt_tm)
     end if
-    ! to set up convective outlet b.c. assume x direction
-    if(dm%is_conv_outlet(1)) call update_fbcx_convective_outlet_flow(fl, dm, isub)
-    if(dm%is_conv_outlet(3)) call update_fbcz_convective_outlet_flow(fl, dm, isub)
+    ! to set up convective outlet b.c.
+    call update_convective_outlet_flow(fl, dm, isub)
     ! Main Momentum RHS
     if ( .not. dm%is_thermo) then 
       ! to calculate the rhs of the momenturn equation in stepping method
@@ -2378,14 +2326,18 @@ contains
     end if
     if(dm%icase == ICASE_PIPE) call update_fbcy_cc_flow_halo(fl, dm)
 #ifdef DEBUG_STEPS
+    call check_global_mass_balance(mass_imbalance, fl%drhodt, dm)
+    write(*,*) 'mass_imbalance after correction', mass_imbalance
+#endif
+#ifdef DEBUG_STEPS
     if(dm%is_thermo) then
     call wrt_3d_pt_debug(fl%gx, dm%dpcc,   fl%iteration, isub, 'gx_updated') ! debug_ww
     call wrt_3d_pt_debug(fl%gy, dm%dcpc,   fl%iteration, isub, 'gy_updated') ! debug_ww
     call wrt_3d_pt_debug(fl%gz, dm%dccp,   fl%iteration, isub, 'gz_updated') ! debug_ww
     end if
-    call Check_element_mass_conservation(fl, dm, isub) 
+    call Check_element_mass_conservation(fl, dm, opt_isub=isub) 
 #endif
-!call Check_element_mass_conservation(fl, dm, isub)
+!call Check_element_mass_conservation(fl, dm, opt_isub=isub) 
 !----------------------------------------------------------------------------------------------------------
 ! to update velocity from gx gy gz 
 !----------------------------------------------------------------------------------------------------------

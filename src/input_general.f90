@@ -292,7 +292,10 @@ contains
       call Print_debug_start_msg("CHAPSim2.0 Starts ...")
       write (*, wrtfmt1i) 'The precision is REAL * ', WP
     end if
+    ! default 
     is_any_energyeq = .false.
+    is_single_RK_projection = .false.
+    is_damping_drhodt = .false.
     !----------------------------------------------------------------------------------------------------------
     ! open file
     !----------------------------------------------------------------------------------------------------------
@@ -417,7 +420,6 @@ contains
           else 
             ! do nothing...
           end if
-
           !----------------------------------------------------------------------------------------------------------
           ! coordinates type
           !----------------------------------------------------------------------------------------------------------
@@ -428,9 +430,8 @@ contains
           else 
             domain(i)%icoordinate = ICARTESIAN
           end if
-
+          domain(i)%fft_skip_c2c(:) = .false.
         end do
-
         
         if(nrank == 0) then
 
@@ -577,12 +578,9 @@ contains
 
 
         do i = 1, nxdomain
-          domain(i)%fft_skip_c2c(:) = .false.
           if(domain(i)%icoordinate == ICYLINDRICAL) then
             if (.not. is_even(domain(i)%nc(3))) domain(i)%nc(3) = domain(i)%nc(3) + 1
-            domain(i)%fft_skip_c2c(2) = .true.
           end if
-          if (.not. domain(i)%fft_skip_c2c(2)) domain(i)%mstret = MSTRET_3FMD
           !----------------------------------------------------------------------------------------------------------
           !     stretching
           !----------------------------------------------------------------------------------------------------------
@@ -616,8 +614,6 @@ contains
           else 
             ! do nothing...
           end if
-          !
-          if(.not. domain(i)%fft_skip_c2c(2)) domain(i)%mstret   = MSTRET_3FMD
         end do
 
         if(nrank == 0) then
@@ -626,8 +622,6 @@ contains
             write (*, wrtfmt1i) 'mesh cell number - x :', domain(i)%nc(1)
             write (*, wrtfmt1i) 'mesh cell number - y :', domain(i)%nc(2)
             write (*, wrtfmt1i) 'mesh cell number - z :', domain(i)%nc(3)
-            write (*, wrtfmt2s) 'FFT lib :', get_name_fft(domain(i)%ifft_lib)
-            write (*, wrtfmt3l) 'FFT skiping any direction? ', domain(i)%fft_skip_c2c(:)
             write (*, wrtfmt3l) 'is mesh stretching in xyz :', domain(i)%is_stretching(1:3)
             write (*, wrtfmt2s) 'mesh y-stretching type :', get_name_mesh(domain(i)%istret)
             if(domain(i)%istret /= ISTRET_NO) then
@@ -678,7 +672,6 @@ contains
             write (*, wrtfmt1i) 'time marching scheme :', domain(i)%iTimeScheme
             write (*, wrtfmt2s) 'current spatial accuracy scheme :', get_name_iacc(domain(i)%iAccuracy)
             write (*, wrtfmt1i) 'viscous term treatment  :', domain(i)%iviscous
-            write (*, wrtfmt1l) 'is_single_RK_projection : ', is_single_RK_projection
           end do
         end if
       !----------------------------------------------------------------------------------------------------------
@@ -703,8 +696,6 @@ contains
             flow(i)%reninit = flow(i)%ren
           end if
         end do
-
-        is_single_RK_projection = .false.
 
         if( nrank == 0) then
           do i = 1, nxdomain
@@ -745,20 +736,14 @@ contains
         if(is_any_energyeq) thermo(1 : nxdomain)%iterfrom = itmp
         read(inputUnit, *, iostat = ioerr) varname, rtmpx(1: nxdomain)
         if(is_any_energyeq) thermo(1 : nxdomain)%init_T0 = rtmpx(1: nxdomain)
-        
-        is_single_RK_projection = .true. 
 
         if(is_any_energyeq .and. nrank == 0) then
-          write (*, wrtfmt1l) 'is_strong_coupling : ', is_strong_coupling
-          write (*, wrtfmt1l) 'is_drhodt_chain : ', is_drhodt_chain
-          if((.not.is_strong_coupling) .and. is_drhodt_chain) call Print_warning_msg("For a loose coupling, an Euler drho/dt is recommended.")
-    
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
             write (*, wrtfmt1l) 'is thermal field solved ?', domain(i)%is_thermo
             write (*, wrtfmt1l) 'is CHT solved ?', domain(i)%icht
-            write (*, wrtfmt1i) 'gravity direction ', flow(i)%igravity
-            write (*, wrtfmt2s) 'fluid medium :' , get_name_fluid(thermo(i)%ifluid)
+            write (*, wrtfmt1i) 'gravity direction :', flow(i)%igravity
+            write (*, wrtfmt2s) 'fluid medium :', get_name_fluid(thermo(i)%ifluid)
             write (*, wrtfmt1r) 'reference length (m) :', thermo(i)%ref_l0
             write (*, wrtfmt1r) 'reference temperature (K) :', thermo(i)%ref_T0
             write (*, wrtfmt1i) 'thermo field initial type :', thermo(i)%inittype
@@ -923,7 +908,34 @@ contains
     'in Subroutine: '// "Read_general_input")
 
     close(inputUnit)
+    !----------------------------------------------------------------------------------------------------------
+    ! cross session conditions
+    !----------------------------------------------------------------------------------------------------------
+    if((.not. domain(1)%is_periodic(2)) .and. is_any_energyeq) then
+      domain(:)%fft_skip_c2c(2) = .true.
+    end if
+    if(domain(1)%icoordinate == ICYLINDRICAL) then
+      domain(:)%fft_skip_c2c(2) = .true.
+    end if
+    if (.not. domain(1)%fft_skip_c2c(2)) domain(:)%mstret = MSTRET_3FMD
+    if(is_any_energyeq) then
+      if(domain(1)%ibcx_nominal(2,1)==IBC_CONVECTIVE) then
+        is_single_RK_projection = .false.
+        is_damping_drhodt = .true.
+      end if
+    end if
+    if( nrank == 0) then
+      do i = 1, nxdomain
+        write (*, *) '  ----- FFT Solver -----'
+        write (*, wrtfmt2s) 'FFT lib :', get_name_fft(domain(i)%ifft_lib)
+        write (*, wrtfmt3l) '3-D FFT skiping any direction? ', domain(i)%fft_skip_c2c(:)
+        write (*, *) '  ----- Numerical treatments (optional) -----'
+        write (*, wrtfmt1l) 'is_single_RK_projection ?', is_single_RK_projection
+        write (*, wrtfmt1l) 'is_damping_drhodt ?', is_damping_drhodt
+      end do
+    end if
 
+    !----------------------------------------------------------------------------------------------------------
     if(allocated(itmpx)) deallocate(itmpx)
     if(allocated(rtmpx)) deallocate(rtmpx)
     !----------------------------------------------------------------------------------------------------------

@@ -1,20 +1,21 @@
 module solver_tools_mod
-
+  implicit none
   ! procedure
   private
-
- 
   public  :: Check_cfl_convection
   public  :: Check_cfl_diffusion
-
+  !
   public  :: Update_Re
   public  :: Update_PrGr
   public  :: Calculate_xz_mean_yprofile
   public  :: Adjust_to_xzmean_zero
   !public  :: Get_volumetric_average_3d ! not used anymore
   public  :: get_fbcx_ftp_4pc
-  
+  !
+  public :: check_global_mass_balance
+  !public :: check_global_energy_balance
 
+  public :: damping_drhodt
 contains
 !==========================================================================================================
 !> \brief The main code for initialising flow variables
@@ -635,7 +636,103 @@ contains
   end subroutine
 
   !==========================================================================================================
-  !==========================================================================================================
+  subroutine check_global_mass_balance(mass_imbalance, drhodt, dm)
+    use udf_type_mod
+    use parameters_constant_mod
+    use find_max_min_ave_mod
+    implicit none
+    real(WP), dimension(:,:,:), intent(in) :: drhodt
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(out) :: mass_imbalance(8)
+    !
+    real(WP), dimension(4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) :: fbcx
+    real(WP), dimension(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) :: fbcy
+    real(WP), dimension(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) :: fbcz
+    real(WP) :: intg_m, intg_fbcx(2), intg_fbcy(2), intg_fbcz(2)
+    !-----------------------------------------------------------------
+    ! mass balance = density change + net mass flux through boundaries
+    !-----------------------------------------------------------------
+    ! density change introduced mass change = integral_volume(drho/dt) unit = kg/m3/s m3 = kg/s
+    if(dm%is_thermo) then
+      call Get_volumetric_average_3d(dm, dm%dccc, drhodt, intg_m, SPACE_INTEGRAL, 'drhodt')
+    else
+      intg_m = ZERO
+    end if
+    !-----------------------------------------------------------------
+    ! mass flux through b.c. = integral_surface (mass flux), unit = kg/m3 m/s m2 = kg/s
+    !-----------------------------------------------------------------
+    ! x-bc
+    if(dm%ibcx_qx(1)/=IBC_PERIODIC)then
+      if(dm%is_thermo) then
+        fbcx = dm%fbcx_gx
+      else
+        fbcx = dm%fbcx_qx
+      end if
+      call Get_area_average_2d_for_fbcx(dm, dm%dpcc, fbcx, intg_fbcx, SPACE_INTEGRAL, 'fbcx')
+    else
+      intg_fbcx = ZERO
+    end if
+    ! y-bc
+    if(dm%ibcy_qy(1)/=IBC_PERIODIC)then
+      if(dm%is_thermo) then
+        fbcy = dm%fbcy_gy
+      else
+        fbcy = dm%fbcy_qy
+      end if
+      call Get_area_average_2d_for_fbcy(dm, dm%dcpc, fbcy, intg_fbcy, SPACE_INTEGRAL, 'fbcy', is_rf=.true.)
+    else
+      intg_fbcy = ZERO
+    end if
+    ! z-bc
+    if(dm%ibcz_qz(1)/=IBC_PERIODIC)then
+      if(dm%is_thermo) then
+        fbcz = dm%fbcz_gz
+      else
+        fbcz = dm%fbcz_qz
+      end if
+      call Get_area_average_2d_for_fbcz(dm, dm%dccp, fbcz, intg_fbcz, SPACE_INTEGRAL, 'fbcz')
+    else
+      intg_fbcz = ZERO
+    end if
+    ! mass change rate, kg/s
+    mass_imbalance(1:2) = intg_fbcx(1:2)
+    mass_imbalance(3:4) = intg_fbcy(1:2)
+    mass_imbalance(5:6) = intg_fbcz(1:2)
+    mass_imbalance(7)   = intg_m
+    mass_imbalance(8)   = intg_m + &
+                          intg_fbcx(1) - intg_fbcx(2) + &
+                          intg_fbcy(1) - intg_fbcy(2) + &
+                          intg_fbcz(1) - intg_fbcz(2) 
+    return
+  end subroutine 
 
-
+ !==========================================================================================================
+  subroutine damping_drhodt(accc_xpencil, dm)
+    use udf_type_mod
+    use transpose_extended_mod
+    use parameters_constant_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(inout) :: accc_xpencil(:, :, :)
+    integer :: i, k
+    real(WP), dimension(dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3)) :: accc_zpencil
+    !
+    if(.not. dm%is_thermo) return
+    if(.not. is_damping_drhodt) return
+    !
+    if(dm%is_conv_outlet(1)) then
+      do i = 1, dm%dccc%xsz(1)
+          accc_xpencil(i,:,:) = accc_xpencil(i,:,:) * (ONE - dm%xdamping(i))
+      end do
+    end if
+    !
+    if(dm%is_conv_outlet(3)) then
+      call transpose_to_z_pencil(accc_xpencil, accc_zpencil, dm%dccc, IPENCIL(1))
+      do i = 1, dm%dccc%zsz(3)
+        accc_zpencil(:,:,k) = accc_zpencil(:,:,k) * (ONE - dm%zdamping(k) )
+      end do
+    end if
+    return
+  end subroutine
+  !
 end module

@@ -271,7 +271,7 @@ contains
 !> \param[out]    div          div(u) or div(g)
 !> \param[in]     d            domain
 !_______________________________________________________________________________
-  subroutine Check_element_mass_conservation(fl, dm, iter, opt_isub, opt_str)
+  subroutine Check_element_mass_conservation(fl, dm, opt_isub, opt_str)
     use precision_mod
     use udf_type_mod
     use input_general_mod    
@@ -287,7 +287,6 @@ contains
 
     type(t_domain), intent( in) :: dm
     type(t_flow),   intent( inout) :: fl  
-    integer, intent(in) :: iter
     integer, intent(in), optional :: opt_isub
     character(*), intent(in), optional :: opt_str                
 
@@ -297,9 +296,9 @@ contains
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div, drhodt
 
     if(present(opt_str)) then
-      str = trim(opt_str)//'_iter_'//int2str(iter)
+      str = trim(opt_str)//'_iter_'//int2str(fl%iteration)
     else
-      str = 'at iter = '//int2str(iter)
+      str = 'at iter = '//int2str(fl%iteration)
     end if
 
     if(present(opt_isub)) then
@@ -326,7 +325,7 @@ contains
     div = div + drhodt
     !
 #ifdef DEBUG_STEPS
-    if(MOD(iter, dm%visu_nfre) == 0) &
+    if(MOD(fl%iteration, dm%visu_nfre) == 0) &
     call write_visu_any3darray(div, 'divU', 'debug'//trim(str), dm%dccc, dm, fl%iteration)
 #endif
     !
@@ -349,11 +348,11 @@ contains
       if(fl%mcon(1) > 1.0_WP .and. fl%iteration > 10000 ) &
       call Print_error_msg("Mass conservation is not strictly satisfied at the machine precision level.")
     end if
-
-    ! if(nrank == 0) then
-    !   write (*, wrtfmt1e) "  Check Mass Conservation:", divmax
-    ! end if
-
+#ifdef DEBUG_STEPS
+    if(nrank == 0) then
+      write (*, *) "  Check Mass Conservation:", fl%iteration, isub, fl%mcon(1:3) 
+    end if
+#endif
     return
   end subroutine Check_element_mass_conservation 
 

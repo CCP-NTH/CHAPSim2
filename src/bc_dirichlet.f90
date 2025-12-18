@@ -540,17 +540,29 @@ contains
     end if
 
     ! -mx_rhs-
-    if(dm%ibcx_qx(1) == IBC_DIRICHLET) ux(1,              :, :) = fbcx(1, :, :)
-    if(dm%ibcx_qx(2) == IBC_DIRICHLET) ux(dm%dpcc%xsz(1), :, :) = fbcx(2, :, :)
+    if(dm%ibcx_qx(1) == IBC_DIRICHLET) then
+      ux(1, :, :) = fbcx(1, :, :)
+      fbcx(3, :, :) = TWO*fbcx(1, :, :) - ux(2, :, :)
+    end if
+    if(dm%ibcx_qx(2) == IBC_DIRICHLET) then
+      ux(dm%dpcc%xsz(1), :, :) = fbcx(2, :, :)
+      fbcx(4, :, :) = TWO*fbcx(2, :, :) - ux(dm%dpcc%xsz(1)-1, :, :)
+    end if
     !-my_rhs-
     if(dm%ibcy_qy(1) == IBC_DIRICHLET .or. &
        dm%ibcy_qy(2) == IBC_DIRICHLET) then
       call transpose_x_to_y(uy, acpc_ypencil, dm%dcpc)
-      if(dm%ibcy_qy(1) == IBC_DIRICHLET) acpc_ypencil(:, 1,              :) = fbcy(:, 1, :)
-      if(dm%ibcy_qy(2) == IBC_DIRICHLET) acpc_ypencil(:, dm%dcpc%ysz(2), :) = fbcy(:, 2, :)
+      if(dm%ibcy_qy(1) == IBC_DIRICHLET) then
+        acpc_ypencil(:, 1, :) = fbcy(:, 1, :)
+        fbcy(:, 3, :) = TWO*fbcy(:, 1, :) - acpc_ypencil(:, 2, :)
+      end if
+      if(dm%ibcy_qy(2) == IBC_DIRICHLET) then
+        acpc_ypencil(:, dm%dcpc%ysz(2), :) = fbcy(:, 2, :)
+        fbcy(:, 4, :) = TWO*fbcy(:, 2, :) - acpc_ypencil(:, dm%dcpc%ysz(2)-1, :)
+      end if
       call transpose_y_to_x(acpc_ypencil, uy, dm%dcpc)
     end if
-    if(dm%icase == ICASE_PIPE) then
+    if(dm%icase == ICASE_PIPE) then ! necessary
       call transpose_x_to_y(uy, acpc_ypencil, dm%dcpc)
       acpc_ypencil(:, 1, :) = ZERO
       call transpose_y_to_x(acpc_ypencil, uy, dm%dcpc)
@@ -560,8 +572,14 @@ contains
        dm%ibcz_qz(2)  == IBC_DIRICHLET) then
       call transpose_x_to_y(uz, accp_ypencil, dm%dccp)
       call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
-      if(dm%ibcz_qz(1) == IBC_DIRICHLET) accp_zpencil(:, :, 1             ) = fbcz(:, :, 1)
-      if(dm%ibcz_qz(2) == IBC_DIRICHLET) accp_zpencil(:, :, dm%dccp%zsz(3)) = fbcz(:, :, 2)
+      if(dm%ibcz_qz(1) == IBC_DIRICHLET) then
+        accp_zpencil(:, :, 1) = fbcz(:, :, 1)
+        fbcz(:, :, 3) = TWO * fbcz(:, :, 1) - accp_zpencil(:, :, 2)
+      end if
+      if(dm%ibcz_qz(2) == IBC_DIRICHLET) then 
+        accp_zpencil(:, :, dm%dccp%zsz(3)) = fbcz(:, :, 2)
+        fbcz(:, :, 4) = TWO * fbcz(:, :, 2) - accp_zpencil(:, :, dm%dccp%zsz(3)-1)
+      end if
       call transpose_z_to_y(accp_zpencil, accp_ypencil, dm%dccp)
       call transpose_y_to_x(accp_ypencil, uz, dm%dccp)
     end if

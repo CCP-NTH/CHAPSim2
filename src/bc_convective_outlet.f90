@@ -9,16 +9,14 @@ module bc_convective_outlet_mod
   private :: calculate_fbcx_convective_outlet
   private :: calculate_fbcz_convective_outlet
   !public  :: update_flow_from_dyn_fbcx
-
   private  :: enforce_domain_mass_balance_dyn_fbc
   !private :: enforce_domain_energy_balance_dyn_fbc
-
-
-  public :: update_fbcx_convective_outlet_flow
-  public :: update_fbcz_convective_outlet_flow
-
-  public :: update_fbcx_convective_outlet_thermo
-  public :: update_fbcz_convective_outlet_thermo
+  private :: update_fbcx_convective_outlet_flow
+  private :: update_fbcz_convective_outlet_flow
+  private :: update_fbcx_convective_outlet_thermo
+  private :: update_fbcz_convective_outlet_thermo
+  public  :: update_convective_outlet_thermo
+  public  :: update_convective_outlet_flow
 
   contains
 
@@ -222,146 +220,76 @@ module bc_convective_outlet_mod
   !   return
   ! end subroutine
   !==========================================================================================================
-  subroutine enforce_domain_mass_balance_dyn_fbc(fl, dm)
+  subroutine enforce_domain_mass_balance_dyn_fbc(drhodt, dm)
     use wtformat_mod
     use bc_dirichlet_mod
     use find_max_min_ave_mod
     use cylindrical_rn_mod
+    use solver_tools_mod
     implicit none
-    type(t_flow),   intent(inout) :: fl
+    real(WP), dimension(:,:,:), intent(in) :: drhodt
     type(t_domain), intent(inout) :: dm
     type(DECOMP_INFO) :: dtmp
-    real(WP), dimension(4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) :: fbcx
-    real(WP), dimension(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) :: fbcy
-    real(WP), dimension(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) :: fbcz
-    real(WP) :: scale
-    real(WP) :: fbcm_x(2), fbcm_y(2), fbcm_z(2)
-    real(WP) :: bulkm
-    real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc_xpencil
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
-
-    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: drhodt
-    
+    real(WP) :: scale, mass_imbalance(8)
+    REAL(WP) :: rsign(3)
+    !
     ! only 1 direction could be convective outlet
     if(.not. dm%is_conv_outlet(1) .and. &
        .not. dm%is_conv_outlet(3)) return
-
-    if(dm%is_thermo) then
-      drhodt = fl%drhodt
-      call Get_volumetric_average_3d(dm, dm%dccc, drhodt, bulkm, SPACE_INTEGRAL, 'drhodt')
-    else
-      bulkm = ZERO
-    end if
-
-    fbcm_x = ZERO
-    fbcm_y = ZERO
-    fbcm_z = ZERO
-!----------------------------------------------------------------------------------------------------------
-! x - inlet/outlet, ux = qx
-!----------------------------------------------------------------------------------------------------------
-    if(dm%is_conv_outlet(1)) then
-      if(dm%is_thermo) then
-        fbcx = dm%fbcx_gx
-      else
-        fbcx = dm%fbcx_qx
-      end if
-      call Get_area_average_2d_for_fbcx(dm, dm%dpcc, fbcx, fbcm_x, SPACE_INTEGRAL, 'fbcx')
-    else if(dm%is_conv_outlet(2)) then
-!----------------------------------------------------------------------------------------------------------
-! y - inlet/outlet - uy = qr / r
-!----------------------------------------------------------------------------------------------------------
-      ! if(dm%icase == ICASE_PIPE) then
-      !   if(dm%is_thermo) then
-      !     acpc_xpencil = fl%gy
-      !   else
-      !     acpc_xpencil = fl%qy
-      !   end if
-      !   call transpose_x_to_y(acpc_xpencil, acpc_ypencil, dm%dcpc)
-      !   call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2)) ! qr/r
-      !   call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(2), is_reversed = .true.)
-      !   call extract_dirichlet_fbcy(fbcy, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
-      ! else 
-      !   if(dm%is_thermo) then
-      !     fbcy = dm%fbcy_gy
-      !   else
-      !     fbcy = dm%fbcy_qy
-      !   end if
-      !   if(dm%icoordinate == ICYLINDRICAL) then
-      !     call multiple_cylindrical_rn_x4x(fbcy, dm%dcpc, dm%rpi, 1, IPENCIL(2))
-      !   end if
-      ! end if
-      if(dm%is_thermo) then
-        fbcy = dm%fbcy_gy
-      else
-        fbcy = dm%fbcy_qy
-      end if
-      call Get_area_average_2d_for_fbcy(dm, dm%dcpc, fbcy, fbcm_y, SPACE_INTEGRAL, 'fbcy', rdxdz=1)
-    else if (dm%is_conv_outlet(3)) then
-!----------------------------------------------------------------------------------------------------------
-! z - inlet/outlet - qz = u_theta
-!----------------------------------------------------------------------------------------------------------
-      if(dm%is_thermo) then
-        fbcz = dm%fbcz_gz
-      else
-        fbcz = dm%fbcz_qz
-      end if
-      ! if(dm%icoordinate == ICYLINDRICAL) then
-      !   call multiple_cylindrical_rn_xx4(fbcz, dm%dccp, dm%rci, 1, IPENCIL(3))
-      ! end if
-      call Get_area_average_2d_for_fbcz(dm, dm%dccp, fbcz, fbcm_z, SPACE_INTEGRAL, 'fbcz')
-    end if
-!----------------------------------------------------------------------------------------------------------
-! scaling factor for a mass conservation
-! fbcm_x(1) - scaling * fbcm_x(2) + bulkm = 0
-! scale the dynamic bc
-!----------------------------------------------------------------------------------------------------------
-    if(dm%is_conv_outlet(1)) then
-      scale = ( fbcm_x(1) + bulkm ) / fbcm_x(2)
-      fbcx(2, :, :) = fbcx(2, :, :) * scale
-      fbcx(4, :, :) = fbcx(2, :, :)
-    else if(dm%is_conv_outlet(2)) then
-      scale = ( fbcm_y(1) + bulkm ) / fbcm_y(2)
-      fbcy(:, 2, :) = fbcy(:, 2, :) * scale
-      fbcy(:, 4, :) = fbcy(:, 2, :)
-    else if(dm%is_conv_outlet(3)) then
-      scale = ( fbcm_z(1) + bulkm ) / fbcm_z(2)
-      fbcz(:, :, 2) = fbcz(:, :, 2) * scale
-      fbcz(:, :, 4) = fbcz(:, :, 2)
-    else
-    end if
-!----------------------------------------------------------------------------------------------------------
-! back to real fbc
-!----------------------------------------------------------------------------------------------------------
-    if(dm%is_thermo) then
-      if( dm%is_conv_outlet(1)) then
-        dm%fbcx_gx(2, :, :) = fbcx(2, :, :) 
-        dm%fbcx_qx(2, :, :) = dm%fbcx_gx(2, :, :) / dm%fbcx_ftp(2, :, :)%d
-      else if( dm%is_conv_outlet(2)) then
-        dm%fbcy_gy(2, :, :) = fbcy(2, :, :) 
-        dm%fbcy_qy(2, :, :) = dm%fbcy_gy(2, :, :) / dm%fbcy_ftp(2, :, :)%d
-      else if( dm%is_conv_outlet(3)) then
-        dm%fbcz_gz(2, :, :) = fbcz(2, :, :) 
-        dm%fbcz_qz(2, :, :) = dm%fbcz_gz(2, :, :) / dm%fbcz_ftp(2, :, :)%d
-      else
-      end if
-      !call update_flow_from_dyn_fbcx(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcx_gy, dm%fbcx_gz)
-    else
-      if( dm%is_conv_outlet(1)) dm%fbcx_qx(2, :, :) = fbcx(2, :, :)
-      if( dm%is_conv_outlet(2)) dm%fbcy_qy(2, :, :) = fbcy(2, :, :)
-      if( dm%is_conv_outlet(3)) dm%fbcz_qz(2, :, :) = fbcz(2, :, :)
-    end if
-    !call update_flow_from_dyn_fbcx(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcx_qy, dm%fbcx_qz)
-#ifdef DEBUG_STEPS 
-    if(nrank == 0) then 
-      write(*, *) "m_in, m_out, m_bulk, m_net, scale"
-      if(dm%is_conv_outlet(1)) &
-      write (*, '(10X, A, 4ES13.5, 1F16.11)') 'x: ', fbcm_x(1), fbcm_x(2), bulkm, fbcm_x(1)-fbcm_x(2)+bulkm, scale
-      if(dm%is_conv_outlet(2)) &
-      write (*, '(10X, A, 4ES13.5, 1F16.11)') 'y: ', fbcm_y(1), fbcm_y(2), bulkm, fbcm_y(1)-fbcm_y(2)+bulkm, scale
-      if(dm%is_conv_outlet(3)) &
-      write (*, '(10X, A, 4ES13.5, 1F16.11)') 'z: ', fbcm_z(1), fbcm_z(2), bulkm, fbcm_z(1)-fbcm_z(2)+bulkm, scale
+    if(dm%is_conv_outlet(2)) call Print_warning_msg('is_conv_outlet=y is not supported')
+    ! check mass im-balance
+    call check_global_mass_balance(mass_imbalance, drhodt, dm)
+    
+    !
+    ! vsum(rho) + sum(rhou_xi * Syz) -   sum(rhou_xo * Syz) + 
+    !             sum(rhou_yi * Sxz) -   sum(rhou_yo * Sxz) + 
+    !             sum(rhou_zi * Sxy) -   sum(rhou_zo * Sxy) = R
+    ! vsum(rho) + sum(rhou_xi * Syz) - A*sum(rhou_xo * Syz) + 
+    !             sum(rhou_yi * Sxz) - A*sum(rhou_yo * Sxz) + 
+    !             sum(rhou_zi * Sxy) - A*sum(rhou_zo * Sxy) = 0
+    ! A = 1+R/(Foux'+Fouy'+Fouz')
+    rsign(:) = ZERO
+    if(dm%is_conv_outlet(1)) rsign(1) = ONE
+    if(dm%is_conv_outlet(2)) rsign(2) = ONE
+    if(dm%is_conv_outlet(3)) rsign(3) = ONE
+    scale = ONE + mass_imbalance(8)/ &
+            (mass_imbalance(2)*rsign(1) + &
+             mass_imbalance(4)*rsign(2) + &
+             mass_imbalance(6)*rsign(3))
+#ifdef DEBUG_STEPS
+    if(nrank == 0) then
+      write(*,*) 'global mass imbalance before correction', mass_imbalance(8)
+      write(*,'(9ES18.9)') scale, mass_imbalance(1:8)
     end if
 #endif
+    ! scale qx/gx convective b.c. 
+    if(dm%is_conv_outlet(1)) then
+      if(dm%is_thermo) then
+        dm%fbcx_gx(2, :, :) = dm%fbcx_gx(2, :, :) * scale
+        dm%fbcx_qx(2, :, :) = dm%fbcx_gx(2, :, :) / dm%fbcx_ftp(2, :, :)%d
+      else
+        dm%fbcx_qx(2, :, :) = dm%fbcx_qx(2, :, :) * scale
+      end if
+    end if
+    !
+    ! scale qz/gz convective b.c. 
+    if(dm%is_conv_outlet(3)) then
+      if(dm%is_thermo) then
+        dm%fbcz_gz(:, :, 2) = dm%fbcz_gz(:, :, 2) * scale
+        dm%fbcz_qz(:, :, 2) = dm%fbcz_gz(:, :, 2) / dm%fbcz_ftp(:, :, 2)%d
+      else
+        dm%fbcz_qz(:, :, 2) = dm%fbcz_qz(:, :, 2) * scale
+      end if
+    end if
+    ! double check
+#ifdef DEBUG_STEPS
+    call check_global_mass_balance(mass_imbalance, drhodt, dm)
+    if(nrank == 0) then
+      write(*,*) 'global mass imbalance after correction', mass_imbalance(8)
+      write(*,'(9ES18.9)') scale, mass_imbalance(1:8)
+    end if
+#endif
+    
     return
   end subroutine enforce_domain_mass_balance_dyn_fbc
 
@@ -393,9 +321,9 @@ module bc_convective_outlet_mod
     if(.not. dm%is_conv_outlet(1)) return
     ! assign proper variables to calculate convective bc.
     if ( .not. dm%is_thermo) then
-      a0cc = fl%qx(dm%dpcc%xsz(1)-1, :, :)
-      a0pc = fl%qy(dm%dcpc%xsz(1),   :, :)
-      a0cp = fl%qz(dm%dccp%xsz(1),   :, :)
+      a0cc = fl%qx(dm%dpcc%xsz(1)-1, :, :) ! qx at np-1
+      a0pc = fl%qy(dm%dcpc%xsz(1),   :, :) ! qy at nc
+      a0cp = fl%qz(dm%dccp%xsz(1),   :, :) ! qz at nc
       a4cc = dm%fbcx_qx
       a4pc = dm%fbcx_qy
       a4cp = dm%fbcx_qz
@@ -424,16 +352,6 @@ module bc_convective_outlet_mod
       dm%fbcx_gy = a4pc
       dm%fbcx_gz = a4cp
       fl%gx(dm%dpcc%xsz(1), :, :) = dm%fbcx_gx(2, :, :)
-    end if
-    call enforce_domain_mass_balance_dyn_fbc(fl, dm)
-
-    if ( .not. dm%is_thermo) then
-      call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
-    else
-      ! todo-check , whether it is better to use qx = gx / density ?
-      !call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
-      call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
-      call convert_primary_conservative(dm, fl%dDens, IG2Q, IBND)
     end if
 
     return
@@ -496,25 +414,53 @@ module bc_convective_outlet_mod
     call calculate_fbcz_convective_outlet(apc4, uzdz,     fl%fbcz_apc0_rhs0, apc0, dm, isub)
     call calculate_fbcz_convective_outlet(acp4, uzdz,     fl%fbcz_acp0_rhs0, acp0, dm, isub)
     call calculate_fbcz_convective_outlet(acc4, uzdz*TWO, fl%fbcz_acc0_rhs0, acc0, dm, isub)
-    call enforce_domain_mass_balance_dyn_fbc(fl, dm)
-
+    ! fbc data back
     if ( .not. dm%is_thermo) then
-      call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
+      dm%fbcz_qx = apc4
+      dm%fbcz_qy = acp4
+      dm%fbcz_qz = acc4
+      accp_zpencil(:, :, 1) = dm%fbcz_qz(:, :, 2)
+      call transpose_from_z_pencil(accp_zpencil, fl%qz, dm%dccp, IPENCIL(1))
     else
-      ! todo-check , whether it is better to use qx = gx / density ?
-      !call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
-      call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
-      call convert_primary_conservative(dm, fl%dDens, IG2Q, IBND)
+      dm%fbcx_gx = a4cc
+      dm%fbcx_gy = a4pc
+      dm%fbcx_gz = a4cp
+      accp_zpencil(:, :, dm%dccp%zsz(3)) = dm%fbcz_gz(:, :, 2)
+      call transpose_from_z_pencil(accp_zpencil, fl%gz, dm%dccp, IPENCIL(1))
     end if
-
     return
   end subroutine
 !==========================================================================================================
-  subroutine update_fbcx_convective_outlet_thermo(ux, tm, dm, isub)
+  subroutine update_convective_outlet_flow(fl, dm, isub)
+    use convert_primary_conservative_mod
+    use bc_dirichlet_mod
+    implicit none
+    ! arguments
+    type(t_flow),   intent(inout) :: fl
+    type(t_domain), intent(inout) :: dm
+    integer,        intent(in)    :: isub
+    !
+    if(.not. dm%is_conv_outlet(1) .and. &
+      .not. dm%is_conv_outlet(3)) return
+    !
+    if(dm%is_conv_outlet(1)) call update_fbcx_convective_outlet_flow(fl, dm, isub)
+    if(dm%is_conv_outlet(3)) call update_fbcz_convective_outlet_flow(fl, dm, isub)
+    !
+    call enforce_domain_mass_balance_dyn_fbc(fl%drhodt, dm)
+    !
+    if ( .not. dm%is_thermo) then
+      call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
+    else
+      call enforce_velo_from_fbc(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcy_gy, dm%fbcz_gz)
+      call convert_primary_conservative(dm, fl%dDens, IG2Q, IBND)
+    end if
+    return
+  end subroutine
+!==========================================================================================================
+  subroutine update_fbcx_convective_outlet_thermo(tm, dm, isub)
     use thermo_info_mod
     implicit none
     ! arguments
-    real(WP), intent(in) :: ux(:, :, :)
     type(t_thermo), intent(inout) :: tm
     type(t_domain), intent(inout) :: dm
     integer,        intent(in)    :: isub
@@ -547,12 +493,11 @@ module bc_convective_outlet_mod
   end subroutine
 
   !==========================================================================================================
-  subroutine update_fbcz_convective_outlet_thermo(uz, tm, dm, isub)
+  subroutine update_fbcz_convective_outlet_thermo(tm, dm, isub)
     use thermo_info_mod
     use transpose_extended_mod
     implicit none
     ! arguments
-    real(WP), intent(in) :: uz(:, :, :)
     type(t_thermo), intent(inout) :: tm
     type(t_domain), intent(inout) :: dm
     integer,        intent(in)    :: isub
@@ -582,6 +527,28 @@ module bc_convective_outlet_mod
         call ftp_refresh_thermal_properties_from_DH(dm%fbcz_ftp(i, j, 4))
       end do
     end do
+    
+    return
+  end subroutine
+
+  !==========================================================================================================
+  subroutine update_convective_outlet_thermo(tm, dm, isub)
+    use udf_type_mod
+    implicit none
+    ! arguments
+    type(t_thermo), intent(inout) :: tm
+    type(t_domain), intent(inout) :: dm
+    integer,        intent(in)    :: isub
+    !
+    if(.not. dm%is_conv_outlet(1) .and. &
+       .not. dm%is_conv_outlet(3)) return
+    !
+    if (dm%is_conv_outlet(1)) then 
+      call update_fbcx_convective_outlet_thermo(tm, dm, isub)
+    end if
+    if (dm%is_conv_outlet(3)) then 
+      call update_fbcz_convective_outlet_thermo(tm, dm, isub)
+    end if
     
     return
   end subroutine

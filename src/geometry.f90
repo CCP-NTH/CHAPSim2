@@ -29,8 +29,10 @@ module geometry_mod
   use precision_mod
   use print_msg_mod
   implicit none
+
+  integer, parameter :: NDAMP_DEFAULT=8
   
-  !private
+  private :: build_cosine_damping
   private :: Buildup_grid_mapping_1D_3fmd
   private :: Buildup_grid_mapping_1D_tanh
   private :: Buildup_grid_mapping_1D_powerlaw
@@ -407,6 +409,37 @@ contains
     return
   end subroutine Buildup_grid_mapping_1D_3fmd
 !==========================================================================================================
+  subroutine build_cosine_damping(damping, ncell, ndamping)
+    use math_mod
+    implicit none
+    !
+    integer,  intent(in)  :: ncell
+    integer,  intent(in)  :: ndamping
+    real(WP), intent(out) :: damping(:)
+    !
+    integer :: i, nd
+    real(WP) :: xi
+    !
+    damping(:) = ZERO
+    !
+    ! Safety checks
+    nd = min(ndamping, ncell/2)
+    if (nd <= 1) return   ! no damping possible
+    ! Build cosine sponge
+    do i = 1, ncell
+      if (i <= nd) then
+        xi = real(i-1, WP) / real(nd-1, WP)
+        damping(i) = HALF * (ONE + cos_wp(PI * xi))
+      else if (i >= ncell - nd + 1) then
+        xi = real(ncell-i, WP) / real(nd-1, WP)
+        damping(i) = HALF * (ONE + cos_wp(PI * xi))
+      else
+        damping(i) = ZERO
+      end if
+    end do
+    return
+  end subroutine build_cosine_damping
+!==========================================================================================================
   subroutine Buildup_geometry_mesh_info (dm)
     use mpi_mod
     use math_mod
@@ -422,10 +455,10 @@ contains
     type(t_domain), intent(inout) :: dm
     
 
-    integer  :: j
+    integer  :: i, j, k
     integer  :: wrt_unit
-    real(WP) :: dyp, dyn, ddy
-    real(WP) :: dy(dm%nc(2))
+    real(WP) :: dyp, dyn, ddy, dx, dy, dz
+    !real(WP) :: dy(dm%nc(2))
     if(nrank == 0) call Print_debug_start_msg("Initialising domain geometric ...")
 
     !----------------------------------------------------------------------------------------------------------
@@ -528,6 +561,58 @@ contains
       end do
     end if
 !----------------------------------------------------------------------------------------------------------
+! volume, check methods
+!----------------------------------------------------------------------------------------------------------
+    dx = dm%h(1)
+    dy = dm%h(2)
+    dz = dm%h(3)
+    dm%vol = ZERO
+    do j = 1, dm%nc(2)
+      if(dm%icoordinate == ICYLINDRICAL) &
+      dz = dm%h(3) * dm%rc(j)
+      if(dm%is_stretching(2)) &
+      dy = dm%h(2) / dm%yMappingcc(j, 1)
+      do k = 1, dm%nc(3)
+        do i = 1, dm%nc(1)
+          dm%vol = dm%vol + dy * dx * dz
+        end do
+      end do
+    end do
+    ! method 2
+    select case(dm%icas)
+    case (ICASE_CHANNEL)
+      ddy = dm%lxx * (dm%lyt - dm%lyb) * dm%lzz
+    case (ICASE_PIPE)
+      ddy = PI * dm%lyt * dm%lyt * dm%lxx
+    case (ICASE_ANNULAR)
+      ddy = PI * (dm%lyt * dm%lyt - dm%lyb * dm%lyb) * dm%lxx
+    case default
+      ddy = ZERO
+    end select
+    if(nrank==0) then
+      write(*,*) 'domain volume (intg, geoo)', dm%vol, ddy
+      if(dabs(dm%vol-ddy)>1.0e-10_wp) call Print_warning_msg(' check domain volume.')
+    end if
+!----------------------------------------------------------------------------------------------------------
+!   building up damping function
+!----------------------------------------------------------------------------------------------------------
+    if(dm%is_thermo) then
+      if(dm%ibcx_nominal(2, 1)==IBC_CONVECTIVE) then 
+        allocate(dm%xdamping(dm%nc(1)))
+        call build_cosine_damping( &
+              damping  = dm%xdamping, &
+              ncell    = dm%nc(1), &
+              ndamping = NDAMP_DEFAULT )
+      end if 
+      if(dm%ibcz_nominal(2, 1)==IBC_CONVECTIVE) then
+        allocate(dm%zdamping(dm%nc(3)))
+        call build_cosine_damping( &
+              damping  = dm%zdamping, &
+              ncell    = dm%nc(3), &
+              ndamping = NDAMP_DEFAULT )
+      end if
+    end if
+!----------------------------------------------------------------------------------------------------------
 ! print out data 
 !----------------------------------------------------------------------------------------------------------
     if(nrank == 0) then
@@ -539,6 +624,7 @@ contains
       write (*, wrtfmt3r) 'grid spacing in x, z: ', dm%h(1), dm%h(3)
       write (*, wrtfmt1e) 'grid spacing in y(geometric     uniform) :', (dm%lyt - dm%lyb) / real(dm%nc(2), WP)
       write (*, wrtfmt1e) 'grid spacing in y(computational uniform) :', dm%h(2)
+      write (*, wrtfmt1e) 'volume of computational domain :', dm%vol
     end if
     !----------------------------------------------------------------------------------------------------------
     ! print out data for debugging
@@ -551,12 +637,12 @@ contains
       open(newunit = wrt_unit, file = trim(dir_chkp)//'/check_mesh_mapping.dat', action = "write", status = "replace")
       write(wrt_unit, *) 'index, dyn(numerical dy), dyp (physical dy), diff'
       dyn = dm%h(2)
-      dy = ZERO
+      !dy = ZERO
       do j = 2, dm%nc(2)
         if(dm%is_stretching(2)) &
         dyn = dm%h(2) / dm%yMappingcc(j, 1)
         dyp = dm%yp(j+1) - dm%yp(j)
-        dy(j) = dyp
+        !dy(j) = dyp
         ddy = dabs(dyn - dyp)
         write(wrt_unit, *) j, dyn, dyp, ddy
         !write(wrt_unit, *) j, dm%h(2) / dm%yMappingcc(j, 1), dm%yp(j+1) - dm%yp(j), dm%h(2) / dm%yMappingpt(j, 1), dm%yc(j) - dm%yc(j-1)
@@ -597,6 +683,5 @@ contains
     if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine  Buildup_geometry_mesh_info
-
 end module geometry_mod
 

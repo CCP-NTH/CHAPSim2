@@ -2327,6 +2327,8 @@ contains
 #endif
 
     ! the global operations in X
+    ! It is an even mirror extension of the x-direction field.
+    ! Assuming homogeneous Neumann symmetry.
     call transpose_y_to_x(rw2b,rw1,ph)
 
     do k = ph%xst(3), ph%xen(3)
@@ -3329,6 +3331,140 @@ contains
 
     return
   end subroutine poisson_11x_yskip
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  ! Solving 3D Poisson equation: Neumann in X, Y; Neumann/periodic in Z
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+  subroutine poisson_11x_xyskip(rhs)
+    use tridiagonal_matrix_algorithm
+    !use dbg_schemes, only: abs_prec
+    use math_mod, only: abs_prec
+    
+
+    implicit none
+
+    real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
+
+    complex(mytype) :: xyzk
+    real(mytype) :: tmp1, tmp2, tmp3, tmp4
+    real(mytype) :: xx1,xx2,xx3,xx4,xx5,xx6,xx7,xx8
+
+    !integer :: nx,ny,nz, 
+    integer :: i,j,k
+
+    complex(mytype) :: cx
+    real(mytype) :: rl, iy
+    external cx, rl, iy
+#ifdef DEBUG_FFT
+    real(mytype) avg_param
+#endif
+
+100 format(1x,a8,3I4,2F12.6)
+
+    if (bcz == 1) then  
+       do j = 1, ph%zsz(2)
+          do i = 1, ph%zsz(1)
+             do k = 1, nz/2
+                rw3(i,j,k) = rhs(i,j,2*(k-1)+1)
+             end do
+             do k = nz/2 + 1, nz
+                rw3(i,j,k) = rhs(i,j,2*nz-2*k+2)
+             end do
+          end do
+       end do
+       !call transpose_z_to_y(rw3,rw2,ph)
+    else if (bcz == 0) then
+       !call transpose_z_to_y(rhs,rw2,ph)
+    end if
+    ! init FFT
+    if (.not. fft_initialised) then
+       call decomp_2d_fft_init(PHYSICAL_IN_Z,nx,ny,nz,opt_skip_XYZ_c2c=skip_c2c)
+       fft_initialised = .true.
+    end if
+
+    ! compute r2c fft transform 
+    call decomp_2d_fft_3d(rhs,cw1)
+    if (.not. skip_c2c(1)) cw1 = cw1 / real(nx, kind=mytype)
+    if (.not. skip_c2c(2)) cw1 = cw1 / real(ny, kind=mytype)
+    if (.not. skip_c2c(3)) cw1 = cw1 / real(nz, kind=mytype)
+
+    ! post-processing in spectral space
+    ! POST PROCESSING IN Z ! WW: check why not seperate z=0 and z=1?
+    do k = sp%xst(3), sp%xen(3)
+       do j = sp%xst(2), sp%xen(2)
+          do i = sp%xst(1), sp%xen(1)
+             tmp1 = rl(cw1(i,j,k))
+             tmp2 = iy(cw1(i,j,k))
+             cw1(i,j,k) = cx(tmp1 * bz(k) + tmp2 * az(k), &
+                             tmp2 * bz(k) - tmp1 * az(k))
+          end do
+       end do
+    end do
+
+!-----------------------------------------------------------
+! Iterative ADI method
+!-----------------------------------------------------------
+    ! sweep TMDA in the Y direction (stretching grids direction)
+    call transpose_x_to_y(cw1,cw2,sp)
+    do i = sp%yst(1), sp%yen(1)
+      do k = sp%yst(3), sp%yen(3)
+        do j = sp%yst(2), sp%yen(2)
+          bbb_real(j) = bb(j) - (rl(xk2(i)) * rc2(j) + rl(zk2(k)))
+          bbb_imag(j) = bb(j) - (iy(xk2(i)) * rc2(j) + iy(zk2(k)))
+          ty_imag(j) = iy(cw2b(i, j, k))
+          ty_real(j) = rl(cw2b(i, j, k))
+          !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test31', ty(j), i, j, k
+        end do
+        !call TRID0(ph%ysz(2), ty)!a, bb, c, ty)
+        call Solve_TDMA_standard(sp%ysz(2), ty_real, aa, bbb_real, cc)
+        call Solve_TDMA_standard(sp%ysz(2), ty_imag, aa, bbb_imag, cc)
+        do j =sp%yst(2), sp%yen(2)
+          cw2b(i, j, k) = cmplx(ty_real(j), ty_imag(j), kind=mytype)
+          !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test32', ty(j), i, j, k
+        end do  
+      end do 
+    end do
+    call transpose_y_to_x(cw2b,cw1b,sp)
+    ! sweep TMDA in the x direction (stretching grids direction)
+    ! to do , to add
+    !
+!-----------------------------------------------------------
+! post-processing backward
+!-----------------------------------------------------------
+    ! POST PROCESSING IN Z
+    do k = sp%xst(3), sp%xen(3)
+       do j = sp%xst(2), sp%xen(2)
+          do i = sp%xst(1), sp%xen(1)
+             tmp1 = rl(cw1(i,j,k))
+             tmp2 = iy(cw1(i,j,k))
+             cw1(i,j,k) = cx(tmp1 * bz(k) - tmp2 * az(k), &
+                             tmp2 * bz(k) + tmp1 * az(k))
+          end do
+       end do
+    end do
+
+    ! compute c2r transform, back to physical space
+    call decomp_2d_fft_3d(cw1,rhs)
+
+    if (bcz == 1) then 
+       do j = 1, ph%zsz(2)
+          do i = 1, ph%zsz(1)
+             do k = 1, nz/2
+                rw3(i,j,2*k-1) = rhs(i,j,k)
+             end do
+             do k = 1, nz/2
+                rw3(i,j,2*k) = rhs(i,j,nz-k+1)
+             end do
+          end do
+       end do
+       !call transpose_z_to_y(rw3,rw2,ph)
+    else if (bcz == 0) then 
+       !call transpose_z_to_y(rhs,rw2,ph)   
+    end if
+
+    return
+  end subroutine poisson_11x_xyskip
+
 
   subroutine abxyz(ax,ay,az,bx,by,bz,nx,ny,nz,bcx,bcy,bcz)
 

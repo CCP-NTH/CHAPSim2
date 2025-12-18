@@ -15,6 +15,7 @@ contains
     use parameters_constant_mod
     use udf_type_mod
     use find_max_min_ave_mod
+    use solver_tools_mod
     implicit none
     type(t_domain), intent(in) :: dm
     integer, intent(in), optional :: opt_isub
@@ -26,7 +27,9 @@ contains
     !real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: div0
     real(WP) :: maxdrhodt!, d1_bulk, d0_bulk
     logical :: do_projection
-
+    !
+    ! Default value
+    fl%drhodt = ZERO
     if( .not. dm%is_thermo) return
     ! thermal field is half time step ahead of the velocity field
     ! -----*-----$-----*-----$-----*-----$-----*-----$-----*-----$-----*
@@ -48,29 +51,20 @@ contains
     !------------------------------------------------------------
     ! Compute drho/dt
     !------------------------------------------------------------
-    ! Default value
-    fl%drhodt = ZERO
     ! Check whether this RK sub-step should perform the projection
     do_projection = (.not. is_single_RK_projection) .or. (opt_isub == ITIME_RK3)
     if (.not. do_projection) return
-    if (is_drhodt_chain) then
-      !----------------------------------------------------------
-      ! Chain-rule form:
-      !   drho/dt = (d(rho h)/dt) / (drhoh/drho)
-      !----------------------------------------------------------
-      if (.not. present(opt_tm)) then
-        call Print_error_msg('opt_tm should be provided.')
-      end if
-      fl%drhodt = opt_tm%ene_rhs / opt_tm%drhoh_drho
-    else
-      !----------------------------------------------------------
-      ! Finite-difference form:
-      !   drho/dt = (rho - rho0) / dt
-      !----------------------------------------------------------
-      fl%drhodt = fl%dDens - fl%dDens0
-    end if
+    !----------------------------------------------------------
+    ! Finite-difference form:
+    !   drho/dt = (rho - rho0) / dt
+    !----------------------------------------------------------
+    fl%drhodt = fl%dDens - fl%dDens0
     ! Apply time scaling (common to both formulations)
     fl%drhodt = fl%drhodt / dm%dt
+    !------------------------------------------------------------
+    ! damp drho/dt near in/out b.c.
+    !------------------------------------------------------------
+    if(is_damping_drhodt) call damping_drhodt(fl%drhodt, dm)
     
     return
   end subroutine Calculate_drhodt
@@ -108,7 +102,6 @@ contains
           tm%kCond(i, j, k) = ftp%k
           dens(i, j, k) = ftp%d
           visc(i, j, k) = ftp%m
-          tm%drhoh_drho(i, j, k) = ftp%drhoh_drho
         end do
       end do
     end do
@@ -528,30 +521,13 @@ contains
     logical :: do_backup_density, do_backup_viscosity
     !
     ! set up flow info based on different time stepping
-    if(is_strong_coupling) then
-      gx = fl%gx
-      gy = fl%gy
-      gz = fl%gz
-      if (dm%is_conv_outlet(1)) ux = fl%qx
-      if (dm%is_conv_outlet(3)) uz = fl%qz
-    else
-      gx = (fl%gx0 + fl%gx) * HALF
-      gy = (fl%gy0 + fl%gy) * HALF
-      gz = (fl%gz0 + fl%gz) * HALF
-      call convert_primary_conservative (dm, fl%dDens, IG2Q, IBLK, ux, uy, uz, gx, gy, gz)
-    end if
-    ! backup density and viscosity 
-    do_backup_density = &
-           ( .not. is_strong_coupling .and. isub == 1 )        &        ! weak coupling: once per time step
-      .or. ( is_strong_coupling .and. is_single_RK_projection  &
-             .and. isub == 1 )                                 &        ! strong + single projection: once at RK1
-      .or. ( is_strong_coupling .and. (.not. is_single_RK_projection) ) ! strong + multi projection: every RK sub-step
-    do_backup_viscosity = ( .not. is_strong_coupling .and. isub == 1 )  ! weak coupling: once per time step
-    if (do_backup_density)   fl%dDens0 = fl%dDens
-    if (do_backup_viscosity) fl%mVisc0 = fl%mVisc
+    gx = fl%gx
+    gy = fl%gy
+    gz = fl%gz
+    ! backup density every RK stage
+    fl%dDens0 = fl%dDens
     ! compute b.c. info from convective b.c. if specified.
-    if (dm%is_conv_outlet(1)) call update_fbcx_convective_outlet_thermo(ux, tm, dm, isub)
-    if (dm%is_conv_outlet(3)) call update_fbcz_convective_outlet_thermo(uz, tm, dm, isub)
+    call update_convective_outlet_thermo(tm, dm, isub)
     ! calculate rhs of energy equation
     call Compute_energy_rhs(gx, gy, gz, tm, dm, isub)
     !  update rho * h

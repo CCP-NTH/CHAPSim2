@@ -79,10 +79,11 @@ module parameters_constant_mod
 ! user defined methods
 !----------------------------------------------------------------------------------------------------------
   logical, parameter :: is_IO_off = .false.         ! true for code performance evaluation without IO
-  logical, parameter :: is_strong_coupling = .true. ! true = RK(rhoh, g)); false = RK(rhoh) + RK(g)
-  logical, parameter :: is_drhodt_chain = .false.   ! false = (d1-d0)/dt; true = d(rhoh)/dt / (drhoh/drho)
-  logical :: is_two_potential_splitting ! true = stable solver but twice fft 
+  !logical, parameter :: is_strong_coupling = .true. ! true = RK(rhoh, g)); false = RK(rhoh) + RK(g)
+  !logical, parameter :: is_drhodt_chain = .false.   ! false = (d1-d0)/dt; true = d(rhoh)/dt / (drhoh/drho)
+  !logical :: is_two_potential_splitting ! true = stable solver but twice fft 
   logical :: is_single_RK_projection ! true = projection only at last RK sub-step, time (o(dt^3)),
+  logical :: is_damping_drhodt
 !----------------------------------------------------------------------------------------------------------
 ! constants
 !----------------------------------------------------------------------------------------------------------  
@@ -235,7 +236,7 @@ module parameters_constant_mod
                         IBC_NEUMANN     = 5, & ! basic and nominal, used in operations
                         IBC_INTRPL      = 6, & ! basic only, for all others, used in operations
                         IBC_CONVECTIVE  = 7, & ! nominal only, = IBC_DIRICHLET, dynamic fbc
-                        IBC_TURBGEN     = 8, & ! nominal only, = IBC_PERIODIC, bulk, 2 ghost layers, dynamic fbc
+                        !IBC_TURBGEN     = 8, & ! nominal only, = IBC_PERIODIC, bulk, 2 ghost layers, dynamic fbc
                         IBC_PROFILE1D   = 9, & ! nominal only, = IBC_DIRICHLET, 
                         IBC_DATABASE    = 10, &! nominal only, = IBC_PERIODIC, bulk, 2 ghost layers, dynamic fbc
                         IBC_POISEUILLE  = 11, &! nominal only, = IBC_DIRICHLET, 
@@ -416,7 +417,6 @@ module udf_type_mod
     real(WP) :: b  ! thermal expansion
     real(WP) :: alpha ! thermal diffusivity, alpha = k / (rho * cp)
     real(WP) :: Pr ! Pr = m / (rho * alpha) = m * cp / k
-    real(WP) :: drhoh_drho
   end type t_fluidThermoProperty
 !----------------------------------------------------------------------------------------------------------
 !  parameters to calculate the fluid thermal property 
@@ -508,6 +508,7 @@ module udf_type_mod
     real(wp) :: lyt
     real(wp) :: lyb
     real(wp) :: lzz
+    real(wp) :: vol
     real(WP) :: rstret
     real(wp) :: dt
 
@@ -534,7 +535,9 @@ module udf_type_mod
     type(DECOMP_INFO) :: dxcc
     type(DECOMP_INFO) :: dxpc
     type(DECOMP_INFO) :: dxcp
-
+    ! damping func.
+    real(wp), allocatable :: xdamping(:)
+    real(wp), allocatable :: zdamping(:)
     ! node location, mapping 
     real(wp), allocatable :: yMappingpt(:, :) ! j = 1, first coefficient in first deriviation. 1/h'
                                               ! j = 2, first coefficient in second deriviation 1/h'^2
@@ -746,7 +749,6 @@ module udf_type_mod
     real(WP), allocatable :: hEnth(:, :, :)
     real(WP), allocatable :: kCond(:, :, :)
     real(WP), allocatable :: tTemp(:, :, :)
-    real(WP), allocatable :: drhoh_drho(:, :, :)
     real(WP), allocatable :: ene_rhs(:, :, :)  ! current step rhs
     real(WP), allocatable :: ene_rhs0(:, :, :) ! last step rhs
     real(WP), allocatable :: fbcx_rhoh_rhs0(:, :)  !

@@ -80,8 +80,8 @@ function get_name_bc(ibc) result(str)
     str = 'IBC_INTRPL'
   case ( IBC_CONVECTIVE )
     str = 'IBC_CONVECTIVE'
-  case ( IBC_TURBGEN )
-    str = 'IBC_TURBGEN'
+  !case ( IBC_TURBGEN )
+    !str = 'IBC_TURBGEN'
   case ( IBC_PROFILE1D )
     str = 'IBC_PROFILE1D'
   case ( IBC_DATABASE )
@@ -112,18 +112,18 @@ end function
           case (IBC_POISEUILLE)
             ! Use Dirichlet BC for all variables
             ibc(n, m) = IBC_DIRICHLET
-          case (IBC_TURBGEN)
-            select case (m)
-              case (5)
-                ! Temperature: assume no incoming thermal flow (initialize temperature)
-                ibc(n, m) = IBC_DIRICHLET
-              case (4)
-                ! Pressure: use Neumann BC
-                ibc(n, m) = IBC_NEUMANN
-              case default
-                ! Velocity components: use Dirichlet BC
-                ibc(n, m) = IBC_DIRICHLET
-            end select
+          ! case (IBC_TURBGEN)
+          !   select case (m)
+          !     case (5)
+          !       ! Temperature: assume no incoming thermal flow (initialize temperature)
+          !       ibc(n, m) = IBC_DIRICHLET
+          !     case (4)
+          !       ! Pressure: use Neumann BC
+          !       ibc(n, m) = IBC_NEUMANN
+          !     case default
+          !       ! Velocity components: use Dirichlet BC
+          !       ibc(n, m) = IBC_DIRICHLET
+          !   end select
 
           case (IBC_DATABASE)
             select case (m)

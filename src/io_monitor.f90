@@ -52,7 +52,7 @@ contains
     ! momentum
     call write_json_real(unit, 'total kinetic energy',  metrics%kinetic_energy,   last=.false.)
     call write_json_real(unit, 'bulk velocity ux',      metrics%bulk_velocity(1), last=.false.)
-    call write_json_real(unit, 'bulk velocity uy',      metrics%bulk_velocity(2), last=.false.)
+    !call write_json_real(unit, 'bulk velocity uy',      metrics%bulk_velocity(2), last=.false.)
     call write_json_real(unit, 'bulk velocity uz',      metrics%bulk_velocity(3), last=.false.)
     !call write_json_real(unit, 'wall shear integral',  metrics%wall_shear_integral, last=.false.)
     call write_json_real(unit, 'mean dpdx',             metrics%mean_dpdx,        last=.false.)
@@ -64,7 +64,7 @@ contains
     if(is_thermo) then
       ! mass flux
       call write_json_real(unit, 'bulk massflux gx',      metrics%bulk_massflux(1), last=.false.)
-      call write_json_real(unit, 'bulk massflux gy',      metrics%bulk_massflux(2), last=.false.)
+      !call write_json_real(unit, 'bulk massflux gy',      metrics%bulk_massflux(2), last=.false.)
       call write_json_real(unit, 'bulk massflux gz',      metrics%bulk_massflux(3), last=.false.)
       call write_json_real(unit, 'bulk enthalpy',         metrics%bulk_enthalpy,    last=.false.)
       call write_json_real(unit, 'global energy balance', metrics%energy_balance,   last=.true.)
@@ -287,6 +287,7 @@ contains
     use cylindrical_rn_mod
     use regression_test_mod
     use bc_dirichlet_mod
+    use solver_tools_mod
     implicit none 
 
     type(t_domain),  intent(in) :: dm
@@ -300,7 +301,7 @@ contains
     integer :: ioerr, myunit
 
     real(WP) :: bulk_MKE, bulk_q(3), bulk_g(3), bulk_T, bulk_m, bulk_h, bulk_rhoh, mean_dpdx, pressure_drop, &
-                mass_balance
+                mass_balance(8)
     real(WP) :: bulk_fbcx(2), bulk_fbcy(2), bulk_fbcz(2)
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: apcc_xpencil
     real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc
@@ -348,52 +349,8 @@ contains
 !----------------------------------------------------------------------------------------------------------
 !   mass balance = density change + net mass flux through boundaries
 !----------------------------------------------------------------------------------------------------------
-    !density change introduced mass change 
-    if(dm%is_thermo) then
-      call Get_volumetric_average_3d(dm, dm%dccc, fl%drhodt, bulk_m, SPACE_INTEGRAL, 'drhodt')
-    else
-      bulk_m = ZERO
-    end if
-    !area averaged mass flux - x - boundary: rho*uy
-    if(dm%ibcx_qx(1)/=IBC_PERIODIC)then
-      if(dm%is_thermo) then
-        fbcx = dm%fbcx_gx
-      else
-        fbcx = dm%fbcx_qx
-      end if
-      call Get_area_average_2d_for_fbcx(dm, dm%dpcc, fbcx, bulk_fbcx, SPACE_INTEGRAL, 'fbcx')
-    else
-      bulk_fbcx = ZERO
-    end if
-    !area averaged mass flux - y - boundary: rho*uy
-    if(dm%ibcy_qy(1)/=IBC_PERIODIC)then
-      if(dm%is_thermo) then
-          call transpose_x_to_y(fl%gy, acpc_ypencil, dm%dcpc)
-          call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
-          fbcy = fbcy_c4c
-        else
-          fbcy = dm%fbcy_qyr
-        end if
-      call Get_area_average_2d_for_fbcy(dm, dm%dcpc, fbcy, bulk_fbcy, SPACE_INTEGRAL, 'fbcy', rdxdz=1)
-    else
-      bulk_fbcy = ZERO
-    end if
-    !area averaged mass flux - z - boundary: rho*uz
-    if(dm%ibcz_qz(1)/=IBC_PERIODIC)then
-      if(dm%is_thermo) then
-          fbcz = dm%fbcy_gz
-        else
-          fbcz = dm%fbcy_qz
-        end if
-      call Get_area_average_2d_for_fbcz(dm, dm%dccp, fbcz, bulk_fbcz, SPACE_INTEGRAL, 'fbcz')
-    else
-      bulk_fbcz = ZERO
-    end if
-    ! mass change rate, kg/s
-    fl%tt_mass_change = bulk_m + &
-                        bulk_fbcx(1) - bulk_fbcx(2) + &
-                        bulk_fbcy(1) - bulk_fbcy(2) +&
-                        bulk_fbcz(1) - bulk_fbcz(2)
+    call check_global_mass_balance(mass_balance, fl%drhodt, dm)
+    fl%tt_mass_change = mass_balance(8)
 !----------------------------------------------------------------------------------------------------------
 !   Bulk quantities
 !----------------------------------------------------------------------------------------------------------
@@ -410,28 +367,16 @@ contains
     end if
     !
     ! bulk streamwise velocity
-    if(dm%icoordinate == ICYLINDRICAL) then
-      acpc = fl%qy
-      call multiple_cylindrical_rn(acpc, dm%dcpc, dm%rpi, 1, IPENCIL(1))
-    else
-      acpc = fl%qy
-    end if
-    call Get_volumetric_average_3d(dm, dm%dcpc, acpc,  bulk_q(2), SPACE_AVERAGE, 'uy')
+    bulk_q = ZERO
     call Get_volumetric_average_3d(dm, dm%dpcc, fl%qx, bulk_q(1), SPACE_AVERAGE, 'ux')
     call Get_volumetric_average_3d(dm, dm%dccp, fl%qz, bulk_q(3), SPACE_AVERAGE, 'uz')
     !
     ! thermal flow quantities
     if(dm%is_thermo .and. present(tm)) then
       ! bulk momentum
-      if(dm%icoordinate == ICYLINDRICAL) then
-        acpc = fl%gy
-        call multiple_cylindrical_rn(acpc, dm%dcpc, dm%rpi, 1, IPENCIL(1))
-      else
-        acpc = fl%gy
-      end if
-      call Get_volumetric_average_3d(dm, dm%dcpc, acpc,  bulk_q(2), SPACE_AVERAGE, 'rho*uy')
-      call Get_volumetric_average_3d(dm, dm%dpcc, fl%gx, bulk_q(1), SPACE_AVERAGE, 'rho*ux')
-      call Get_volumetric_average_3d(dm, dm%dccp, fl%gz, bulk_q(3), SPACE_AVERAGE, 'rho*uz')
+      bulk_g = ZERO
+      call Get_volumetric_average_3d(dm, dm%dpcc, fl%gx, bulk_g(1), SPACE_AVERAGE, 'rho*ux')
+      call Get_volumetric_average_3d(dm, dm%dccp, fl%gz, bulk_g(3), SPACE_AVERAGE, 'rho*uz')
       !
       ! bulk temperature
       call Get_volumetric_average_3d(dm, dm%dccc, tm%tTemp, bulk_T,  SPACE_AVERAGE, 'T')
@@ -440,8 +385,7 @@ contains
       call Get_volumetric_average_3d(dm, dm%dccc, tm%hEnth, bulk_h,  SPACE_AVERAGE, 'h')
       !
       ! enthalpy balance
-      accc1 = tm%hEnth * fl%dDens
-      call Get_volumetric_average_3d(dm, dm%dccc, accc1, bulk_rhoh,  SPACE_AVERAGE, 'rhoh')
+      call Get_volumetric_average_3d(dm, dm%dccc, tm%rhoh, bulk_rhoh,  SPACE_AVERAGE, 'rhoh')
     end if
 !----------------------------------------------------------------------------------------------------------
 !   save regression test metrics at the end of flow simulation

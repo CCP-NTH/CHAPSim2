@@ -107,7 +107,6 @@ contains
     real(WP) :: ubulk
     
 
-    !call Get_volumetric_average_3d(.false., dm%ibcy_qx(:), dm%fbcy_qx(:, :, :), dm, dm%dpcc, fl%qx, ubulk, "ux")
     call Get_volumetric_average_3d(dm, dm%dpcc, fl%qx, ubulk, SPACE_AVERAGE, "ux")
     if(nrank == 0) then
         call Print_debug_inline_msg("The restarted mass flux is:")
@@ -168,13 +167,7 @@ contains
     call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm)
     call convert_primary_conservative (dm, fl%dDens, IQ2G, IALL, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
 
-    if(.not. is_strong_coupling) then
-      fl%dDens0(:, :, :) = fl%dDens(:, :, :)
-      fl%mVisc0(:, :, :) = fl%mVisc(:, :, :)
-    end if
-    if(.not. is_drhodt_chain) then
-      fl%dDens0(:, :, :) = fl%dDens(:, :, :)
-    end if
+    fl%dDens0(:, :, :) = fl%dDens(:, :, :)
 
     return
   end subroutine

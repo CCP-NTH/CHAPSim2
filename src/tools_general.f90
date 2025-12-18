@@ -1349,11 +1349,14 @@ end module cylindrical_rn_mod
 module find_max_min_ave_mod
   use print_msg_mod
   use wtformat_mod
-  public  :: Get_volumetric_average_3d
+  !
   public  :: Find_maximum_absvar3d_loc
   public  :: Find_max_min_3d
   !public  :: Find_max_min_absvar3d
-
+  public  :: Get_volumetric_average_3d
+  public  :: Get_area_average_2d_for_fbcx
+  public  :: Get_area_average_2d_for_fbcy
+  public  :: Get_area_average_2d_for_fbcz 
 contains
 !==========================================================================================================
   subroutine is_valid_number_3D(var, varname)
@@ -1673,6 +1676,10 @@ contains
     ! use the chain rule to get integral in the stretching function
     ! integral(f(y), dy) = integral(f(y(s)), dy(s)) = integral(f(y(s)) * dy/ds, ds)
     !----------------------------------------------------------------------------------------------------------
+      if (dtmp%ysz(2)==dm%np_geo(2)) then
+        call Print_error_msg('Get_volumetric_average_3d only supports input of dxcx')
+      end if
+
       vol = ZERO
       fo  = ZERO
       dx = dm%h(1)
@@ -1680,19 +1687,10 @@ contains
       dz = dm%h(3)
       do j = 1, dtmp%xsz(2)
         jj = dtmp%xst(2) + j - 1 !(j, dtmp)
-        if(dtmp%ysz(2)==dm%nc(2)) then
-          ymapping = dm%yMappingcc(jj, 1)
-          if(dm%icoordinate == ICYLINDRICAL) &
-          dz = dm%h(3) * dm%rc(jj)
-        else if (dtmp%ysz(2)==dm%np(2)) then
-          ymapping = dm%yMappingpt(jj, 1)
-          if(dm%icoordinate == ICYLINDRICAL) &
-          dz = dm%h(3) * dm%rp(jj)
-        else
-        end if
-        !dy = dm%yp(jj+1) - dm%yp(jj)
+        if(dm%icoordinate == ICYLINDRICAL) &
+        dz = dm%h(3) * dm%rc(jj)
         if(dm%is_stretching(2)) &
-        dy = dm%h(2) / ymapping
+        dy = dm%h(2) / dm%yMappingcc(jj, 1)
         do k = 1, dtmp%xsz(3)
           do i = 1, dtmp%xsz(1)
             fo = fo + var(i, j, k) * dy * dx * dz
@@ -1713,8 +1711,9 @@ contains
       else if(itype == SPACE_INTEGRAL) then
         ! do nothing
       end if
-
+!write(*,*) 'test_vol' , vol_work
 #ifdef DEBUG_STEPS  
+      if (dabs(vol_work - dm%vol) > 1.0e-12_WP) write (*, *) 'volume calc error: ', vol_work, dm%vol
       if(nrank == 0 .and. present(str)) then
         if(itype == SPACE_AVERAGE) then
           write (*, wrtfmt1e) " volumetric average of "//trim(str)//" = ", fo_work
@@ -1868,7 +1867,7 @@ contains
     return
   end subroutine
 !==========================================================================================================
-  subroutine Get_area_average_2d_for_fbcy(dm, dtmp, var, fo_work, itype, str, rdxdz)
+  subroutine Get_area_average_2d_for_fbcy(dm, dtmp, var, fo_work, itype, str, is_rf)
     use mpi_mod
     use udf_type_mod
     use parameters_constant_mod
@@ -1882,7 +1881,7 @@ contains
     real(WP),          intent(out):: fo_work(2)
     integer,           intent(in) :: itype
     character(4),      intent(in) :: str
-    integer,           intent(in) :: rdxdz
+    logical,           intent(in) :: is_rf
  
     real(WP) :: area(2), fo(2), area_work(2), array(4), array_work(4)
 #ifdef DEBUG_STEPS 
@@ -1914,7 +1913,7 @@ contains
       dx = dm%h(1)
       dz = dm%h(3)
       !! Note: qy = r*ur, integral r*ur * dtheta dx, therefore no extra r here.
-      if(rdxdz == 1) then
+      if(.not. is_rf) then
         dz1 = dm%h(3) * dm%rp(1)
         dzn = dm%h(3) * dm%rp(ny)
       else

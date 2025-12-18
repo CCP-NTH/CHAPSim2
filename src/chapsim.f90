@@ -121,7 +121,7 @@ subroutine initialise_chapsim
       call compute_Lorentz_force(flow(i), mhd(i), domain(i))
     end if
     !call Solve_momentum_eq(flow(i), domain(i), 0)
-    call Check_element_mass_conservation(flow(i), domain(i), 0, opt_str='init-div-free') 
+    call Check_element_mass_conservation(flow(i), domain(i), opt_isub=0, opt_str='init-div-free') 
     call write_visu_flow(flow(i), domain(i))
     if(domain(i)%is_mhd) call write_visu_mhd(mhd(i), flow(i), domain(i))
     if(domain(i)%is_thermo)call write_visu_thermo(thermo(i), flow(i), domain(i))
@@ -304,45 +304,21 @@ subroutine Solve_eqs_iteration
     !==========================================================================================================
     !  main solver, domain coupling in each sub-iteration (check)
     !==========================================================================================================
-    if(is_strong_coupling) then
-      do isub = 1, domain(1)%nsubitr
-        do i = 1, nxdomain - 1
-          if(is_flow(i))   call update_fbc_2dm_flow_halo  (domain(i), flow(i),   domain(i+1), flow(i+1))
-          if(is_thermo(i)) call update_fbc_2dm_thermo_halo(domain(i), thermo(i), domain(i+1), thermo(i+1))
-        end do
-        do i = 1, nxdomain
-          if(is_thermo(i)) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
-          if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
-          if(is_flow(i) .and. (.not. is_thermo(i)))  then
-            call Solve_momentum_eq(flow(i), domain(i), isub)
-          else if (is_flow(i) .and. is_thermo(i)) then
-            call Solve_momentum_eq(flow(i), domain(i), isub, opt_tm = thermo(i))
-          end if
-        end do
+    do isub = 1, domain(1)%nsubitr
+      do i = 1, nxdomain - 1
+        if(is_flow(i))   call update_fbc_2dm_flow_halo  (domain(i), flow(i),   domain(i+1), flow(i+1))
+        if(is_thermo(i)) call update_fbc_2dm_thermo_halo(domain(i), thermo(i), domain(i+1), thermo(i+1))
       end do
-    else
-      do isub = 1, domain(1)%nsubitr
-        do i = 1, nxdomain - 1
-          if(is_thermo(i)) call update_fbc_2dm_thermo_halo(domain(i), thermo(i), domain(i+1), thermo(i+1))
-        end do
-        do i = 1, nxdomain
-          if(is_thermo(i)) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
-        end do
+      do i = 1, nxdomain
+        if(is_thermo(i)) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
+        if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
+        if(is_flow(i) .and. (.not. is_thermo(i)))  then
+          call Solve_momentum_eq(flow(i), domain(i), isub)
+        else if (is_flow(i) .and. is_thermo(i)) then
+          call Solve_momentum_eq(flow(i), domain(i), isub, opt_tm = thermo(i))
+        end if
       end do
-      do isub = 1, domain(1)%nsubitr
-        do i = 1, nxdomain - 1
-          if(is_flow(i))   call update_fbc_2dm_flow_halo  (domain(i), flow(i),   domain(i+1), flow(i+1))
-        end do
-        do i = 1, nxdomain
-          if(domain(i)%is_mhd) call compute_Lorentz_force(flow(i), mhd(i), domain(i))
-          if(is_flow(i) .and. (.not. is_thermo(i)))  then
-            call Solve_momentum_eq(flow(i), domain(i), isub)
-          else if (is_flow(i) .and. is_thermo(i)) then
-            call Solve_momentum_eq(flow(i), domain(i), isub, opt_tm = thermo(i))
-          end if
-        end do
-      end do
-    end if
+    end do
 
     do i = 1, nxdomain - 1
       call update_fbc_2dm_flow_halo(domain(i), flow(i), domain(i+1), flow(i+1))
@@ -359,7 +335,7 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       !if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
       if(is_flow(i)) then
-        call Check_element_mass_conservation(flow(i), domain(i), iter) 
+        call Check_element_mass_conservation(flow(i), domain(i)) 
         if(is_thermo(i)) then
           call Find_max_min_3d(thermo(i)%tTemp, opt_name="T :")
           !call Find_max_min_3d(thermo(i)%rhoh,  opt_name="rhoh :")
@@ -413,7 +389,7 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       !  write out check point data for restart
       !----------------------------------------------------------------------------------------------------------
-      if (mod(iter, domain(i)%ckpt_nfre) == 0) then
+      if (mod(iter, domain(i)%ckpt_nfre) == 0 .or. iter==niter) then
         if(is_flow(i)) then
           call write_instantaneous_flow(flow(i), domain(i))
           if(iter > domain(i)%stat_istart) call write_stats_flow(flow(i), domain(i))
@@ -426,7 +402,7 @@ subroutine Solve_eqs_iteration
       !----------------------------------------------------------------------------------------------------------
       ! write data for visualisation
       !----------------------------------------------------------------------------------------------------------
-      if(MOD(iter, domain(i)%visu_nfre) == 0) then
+      if(MOD(iter, domain(i)%visu_nfre) == 0 .or. iter==niter) then
         if(is_flow(i)) call write_visu_flow(flow(i), domain(i))
         if(domain(i)%is_mhd) call write_visu_mhd(mhd(i), flow(i), domain(i))
         if(domain(i)%is_thermo .and. is_thermo(i)) then
