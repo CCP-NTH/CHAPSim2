@@ -9,6 +9,7 @@ build/*.mod
 .tmp/
 .history/
 tests/**/*.bin
+!tests/**/1_data/*outlet*.bin
 tests/**/*.xdmf
 tests/1_data/*outlet*.bin
 *.dat

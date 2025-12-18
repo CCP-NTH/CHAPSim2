@@ -823,6 +823,7 @@ contains
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ndbfre, domain(1)%ndbstart, domain(1)%ndbend
         
         do i = 1, nxdomain
+          if(domain(1)%ndbfre/=0) &
           domain(:)%ndbend = (domain(1)%ndbend - domain(1)%ndbstart + 1)/domain(1)%ndbfre * domain(1)%ndbfre + domain(1)%ndbstart - 1
           domain(i)%visu_nskip(1:3) = domain(1)%visu_nskip(1:3)
           domain(i)%stat_nskip(1:3) = domain(1)%stat_nskip(1:3) 

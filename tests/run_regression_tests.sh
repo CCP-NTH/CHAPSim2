@@ -66,8 +66,8 @@ for case in "${CASES[@]}"; do
   # Run solver
   # -----------------------------
   echo ">>> Running solver for ${case} ..."
-  if ! ./run.sh; then
-    echo "[FAIL ] ${case} (run.sh failed)"
+  if ! ./run_chapsim.sh; then
+    echo "[FAIL ] ${case} (run_chapsim.sh failed)"
     ((FAILED++))
     FAILED_CASES+=("${case}")
     popd > /dev/null
