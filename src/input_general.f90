@@ -24,6 +24,17 @@
 !> \author Wei Wang wei.wang@stfc.ac.uk
 !> \date 11-05-2022, checked.
 !==========================================================================================================
+module util_mod
+contains
+    function int_from_string(str, ioerr)
+        character(len=*), intent(in) :: str
+        integer, intent(out) :: ioerr
+        integer :: int_from_string
+
+        read(str, *, iostat=ioerr) int_from_string
+    end function int_from_string
+end module util_mod
+!==========================================================================================================
 module input_general_mod
   use print_msg_mod
   use parameters_constant_mod
@@ -271,6 +282,7 @@ contains
     use boundary_conditions_mod
     use code_performance_mod
     use EvenOdd_mod
+    use util_mod
     implicit none
     character(len = 18) :: flinput = 'input_chapsim.ini'
     integer, parameter :: IOMSG_LEN = 200
@@ -796,7 +808,19 @@ contains
         if(is_any_energyeq) thermo(1 : nxdomain)%nIterThermoStart = itmpx(1:nxdomain)
         read(inputUnit, *, iostat = ioerr) varname,   itmpx(1:nxdomain)
         if(is_any_energyeq) thermo(1 : nxdomain)%nIterThermoEnd = itmpx(1:nxdomain)
-
+        ! Runtime override via environment
+        call get_environment_variable("CHAPSIM_NITER", varname, status=ioerr)
+        if(ioerr == 0) then
+            itmp = int_from_string(trim(varname), ioerr)
+            if(ioerr == 0) then
+                flow(:)%nIterFlowEnd = itmp
+                if(is_any_energyeq) thermo(:)%nIterThermoEnd = itmp
+                ! optional: reset start iteration for smoke test
+                flow(:)%nIterFlowStart = 1
+                if(is_any_energyeq) thermo(:)%nIterThermoStart = 1
+            end if
+        end if
+        !
         if( nrank == 0) then
           do i = 1, nxdomain
             !write (*, wrtfmt1i) '------For the domain-x------ ', i
