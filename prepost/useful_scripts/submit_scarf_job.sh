@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 SLURM_FILE="sbatch_scarf_submit.slurm"
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -e
+set -euo pipefail
 # =============================================================================
 # CHAPSim2 Build System v1.0 (non-interactive version)
 # Automatically builds solver using default options
