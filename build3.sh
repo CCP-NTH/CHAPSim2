@@ -23,7 +23,7 @@ set -euo pipefail
 # =============================================================================
 
 # Configuration
-MAX_TIME=10  # Maximum wait time in seconds for user input
+MAX_TIME=5  # Maximum wait time in seconds for user input
 INTERACTIVE_MODE=""  # Will be set based on user choice
 
 # Define relative paths and repository URL
@@ -37,7 +37,7 @@ LIB_FILE="$REL_PATH_LIB/opt/lib/libdecomp2d.a"
 LIB_FILE_64="$REL_PATH_LIB/opt/lib64/libdecomp2d.a"
 
 # Ensure necessary directories exist (except for 2decomp-fft which will be handled by git)
-for dir in "$REL_PATH_BUILD" "$REL_PATH_BIN"; do
+for dir in "$REL_PATH_BUILD" "$REL_PATH_BIN" "$REL_PATH_LIB_ROOT"; do
     if [ ! -d "$dir" ]; then
         echo "Creating directory: $dir"
         mkdir -p "$dir" || { echo "Error: Failed to create $dir"; exit 1; }
@@ -58,96 +58,10 @@ PATH_LIB_ROOT=$(realpath "$REL_PATH_LIB_ROOT" 2>/dev/null || readlink -f "$REL_P
 PATH_BUILD=$(realpath "$REL_PATH_BUILD" 2>/dev/null || readlink -f "$REL_PATH_BUILD")
 PATH_BIN=$(realpath "$REL_PATH_BIN" 2>/dev/null || readlink -f "$REL_PATH_BIN")
 
-# -----------------------------------------------------------------------------
-# Function to read input with timeout
-# Returns: user input or default value if timeout
-# -----------------------------------------------------------------------------
-read_with_timeout() {
-    local prompt="$1"
-    local default="$2"
-    local timeout="$3"
-    local input=""
-    
-    if [[ "$INTERACTIVE_MODE" == "non-interactive" ]]; then
-        echo "$default"
-        return 0
-    fi
-    
-    # Display prompt
-    echo -n "$prompt [$default] (${timeout}s timeout): " >&2
-    
-    # Read with timeout
-    if read -t "$timeout" input 2>/dev/null; then
-        # User provided input
-        echo "${input:-$default}"
-    else
-        # Timeout occurred
-        echo "" >&2
-        echo "⏱ Timeout - using default: $default" >&2
-        echo "$default"
-    fi
-}
 
-# -----------------------------------------------------------------------------
-# Function to get yes/no input with timeout
-# -----------------------------------------------------------------------------
-get_yes_no_input() {
-    local prompt="$1"
-    local default="$2"
-    local input
-    
-    input=$(read_with_timeout "$prompt (y/n/only)" "$default" "$MAX_TIME")
-    input=$(echo "$input" | tr '[:upper:]' '[:lower:]')
-    
-    if [[ "$input" == "yes" || "$input" == "y" ]]; then
-        echo "yes"
-    elif [[ "$input" == "only" ]]; then
-        echo "only"
-    else
-        echo "no"
-    fi
-}
-
-# -----------------------------------------------------------------------------
-# Function to get a choice from the user with timeout
-# -----------------------------------------------------------------------------
-get_choice_input() {
-    local prompt_msg="$1"
-    local choices_str="$2"
-    local default="$3"
-    IFS=',' read -r -a valid_choices <<< "$choices_str"
-    local choice
-    
-    if [[ "$INTERACTIVE_MODE" == "non-interactive" ]]; then
-        echo "$default"
-        return 0
-    fi
-    
-    while true; do
-        choice=$(read_with_timeout "$prompt_msg ($choices_str)" "$default" "$MAX_TIME")
-        choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
-        
-        for valid_choice in "${valid_choices[@]}"; do
-            if [[ "$choice" == "$valid_choice" ]]; then
-                echo "$choice"
-                return 0
-            fi
-        done
-        
-        # In non-interactive mode or after timeout, use default
-        if [[ "$INTERACTIVE_MODE" == "non-interactive" ]] || [[ -z "$choice" ]]; then
-            echo "$default"
-            return 0
-        fi
-        
-        echo "Invalid choice. Please enter one of: $choices_str" >&2
-        echo "Please try again." >&2
-    done
-}
 
 # -----------------------------------------------------------------------------
 # Function to clone or refresh 2decomp-fft git repository
-# -----------------------------------------------------------------------------
 setup_2decomp_git() {
     local lib_parent_dir="$SCRIPT_DIR/lib"
     
@@ -177,11 +91,11 @@ setup_2decomp_git() {
         echo "Cloning: $DECOMP_GIT_URL"
         if git clone "$DECOMP_GIT_URL"; then
             echo "✅ Repository cloned successfully!"
-            cd - > /dev/null
+            cd - > /dev/null  # Return to original directory
             return 0
         else
             echo "❌ Error: Failed to clone repository"
-            cd - > /dev/null
+            cd - > /dev/null  # Return to original directory
             return 1
         fi
     fi
@@ -244,7 +158,6 @@ setup_2decomp_git() {
     
     if [ "$LOCAL_COMMIT" = "$REMOTE_COMMIT" ]; then
         echo "Repository is already up to date."
-        cd - > /dev/null
         return 0
     fi
     
@@ -254,7 +167,6 @@ setup_2decomp_git() {
         echo "❌ Error: Failed to pull latest changes"
         echo "You may need to resolve conflicts manually."
         echo "Run 'git status' in $PATH_LIB_ROOT to see the current state."
-        cd - > /dev/null
         return 1
     fi
     
@@ -270,8 +182,96 @@ setup_2decomp_git() {
     git log --oneline -5 "$OLD_COMMIT..$NEW_COMMIT" 2>/dev/null || echo "Unable to show recent changes"
     echo ""
     
-    cd - > /dev/null
     return 0
+}
+
+
+
+# -----------------------------------------------------------------------------
+# Function to read input with timeout
+# Returns: user input or default value if timeout
+# -----------------------------------------------------------------------------
+read_with_timeout() {
+    local prompt="$1"
+    local default="$2"
+    local timeout="$3"
+    local input=""
+    
+    if [[ "$INTERACTIVE_MODE" == "non-interactive" ]]; then
+        echo "$default"
+        return 0
+    fi
+    
+    # Display prompt
+    echo -n "$prompt [$default] (${timeout}s timeout): " >&2
+    
+    # Read with timeout
+    if read -t "$timeout" input 2>/dev/null; then
+        # User provided input
+        echo "${input:-$default}"
+    else
+        # Timeout occurred
+        echo "" >&2
+        echo "⏱ Timeout - using default: $default" >&2
+        echo "$default"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Function to get yes/no input with timeout
+# -----------------------------------------------------------------------------
+get_yes_no_input() {
+    local prompt="$1"
+    local default="$2"
+    local input
+    
+    input=$(read_with_timeout "$prompt (y/N)" "$default" "$MAX_TIME")
+    input=$(echo "$input" | tr '[:upper:]' '[:lower:]')
+    
+    if [[ "$input" == "yes" || "$input" == "y" ]]; then
+        echo "yes"
+    elif [[ "$input" == "clean" ]]; then
+        echo "clean"
+    else
+        echo "no"
+    fi
+}
+
+# -----------------------------------------------------------------------------
+# Function to get a choice from the user with timeout
+# -----------------------------------------------------------------------------
+get_choice_input() {
+    local prompt_msg="$1"
+    local choices_str="$2"
+    local default="$3"
+    IFS=',' read -r -a valid_choices <<< "$choices_str"
+    local choice
+    
+    if [[ "$INTERACTIVE_MODE" == "non-interactive" ]]; then
+        echo "$default"
+        return 0
+    fi
+    
+    while true; do
+        choice=$(read_with_timeout "$prompt_msg ($choices_str)" "$default" "$MAX_TIME")
+        choice=$(echo "$choice" | tr '[:upper:]' '[:lower:]')
+        
+        for valid_choice in "${valid_choices[@]}"; do
+            if [[ "$choice" == "$valid_choice" ]]; then
+                echo "$choice"
+                return 0
+            fi
+        done
+        
+        # In non-interactive mode or after timeout, use default
+        if [[ "$INTERACTIVE_MODE" == "non-interactive" ]] || [[ -z "$choice" ]]; then
+            echo "$default"
+            return 0
+        fi
+        
+        echo "Invalid choice. Please enter one of: $choices_str" >&2
+        echo "Please try again." >&2
+    done
 }
 
 # =============================================================================
@@ -287,17 +287,17 @@ echo ""
 # Determine Interactive vs Non-Interactive Mode
 # -----------------------------------------------------------------------------
 echo "Select build mode:"
-echo "  [I]nteractive - prompts with ${MAX_TIME}s timeout (default)"
-echo "  [N]on-interactive - uses all defaults"
+echo "  [I]nteractive - prompts with ${MAX_TIME}s timeout "
+echo "  [N]on-interactive - uses all defaults (default)"
 echo ""
 
 MODE_INPUT=""
-if read -t "$MAX_TIME" -p "Mode selection [I/n]: " MODE_INPUT 2>/dev/null; then
-    MODE_INPUT=$(echo "${MODE_INPUT:-i}" | tr '[:upper:]' '[:lower:]')
+if read -t "$MAX_TIME" -p "Mode selection [i/N]: " MODE_INPUT 2>/dev/null; then
+    MODE_INPUT=$(echo "${MODE_INPUT:-n}" | tr '[:upper:]' '[:lower:]')
 else
     echo ""
-    echo "⏱ Timeout - defaulting to interactive mode"
-    MODE_INPUT="i"
+    echo "⏱ Timeout - defaulting to non-interactive mode"
+    MODE_INPUT="n"
 fi
 
 if [[ "$MODE_INPUT" == "n" || "$MODE_INPUT" == "non-interactive" ]]; then
@@ -434,7 +434,7 @@ validate_library() {
 # -----------------------------------------------------------------------------
 # Step 1: Check and Build the Library
 # -----------------------------------------------------------------------------
-if [[ -f "$LIB_FILE" && "$LIB_REBUILD" != "yes" ]]; then
+if [[ -d "$PATH_LIB" && -f "$LIB_FILE" && "$LIB_REBUILD" != "yes" ]]; then
     # Validate existing library
     if validate_library "$LIB_FILE"; then
         LIB_REBUILD=$(get_yes_no_input "Rebuild 2decomp library?" "no")
@@ -449,7 +449,7 @@ if [[ -f "$LIB_FILE" && "$LIB_REBUILD" != "yes" ]]; then
         shopt -s extglob
         find . -maxdepth 1 -not -name 'build_cmake_2decomp.sh' -not -name '.' -exec rm -rv {} +
         echo "Building 2decomp library..."
-        ./build_cmake_2decomp.sh || { echo "Error: CMake build failed in $PATH_LIB"; exit 1; }
+        ./build_cmake_2decomp.sh || { echo "Error: CMake build failed in $PATH_LIB"; exfit 1; }
         cd - > /dev/null
         
         # Validate the newly built library
@@ -460,23 +460,17 @@ if [[ -f "$LIB_FILE" && "$LIB_REBUILD" != "yes" ]]; then
         fi
     fi
 else
-    echo "Library not found or rebuild forced. Running CMake in $PATH_LIB..."
+    echo "Library folder or file missing, or rebuild forced. Running CMake in $PATH_LIB..."
+    mkdir -p "$PATH_LIB"   # ensure build folder exists
     cd "$PATH_LIB" || { echo "Error: Cannot access $PATH_LIB"; exit 1; }
     ./build_cmake_2decomp.sh || { echo "Error: CMake build failed in $PATH_LIB"; exit 1; }
     cd - > /dev/null
-    
-    # Validate the newly built library
-    if ! validate_library "$LIB_FILE"; then
-        echo "❌ Error: Library build completed but validation failed."
-        echo "   Please check the build_cmake_2decomp.sh script and CMake configuration."
-        exit 1
-    fi
 fi
 
 # -----------------------------------------------------------------------------
 # Step 2: Prompt for Build Options
 # -----------------------------------------------------------------------------
-CLEAN_BUILD=$(get_yes_no_input "Perform a clean build first? (y/n/clean)" "no")
+CLEAN_BUILD=$(get_yes_no_input "Perform a clean build first? (clean) or " "no")
 
 if [[ "$CLEAN_BUILD" == "clean" || "$CLEAN_BUILD" == "only" ]]; then
     echo "Running 'make clean' in $PATH_BUILD..."
