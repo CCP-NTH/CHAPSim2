@@ -419,59 +419,6 @@ contains
 end module
 
 !==========================================================================================================
-! below functions and subroutines are from incompact3d.
-! please do not change them except "use xxx"
-!==========================================================================================================
-
-!##################################################################
-! function rl(complexnumber) from incompact3d
-!##################################################################
-pure function rl(complexnumber) result(res)
-
-  !use param
-  use decomp_2d_mpi, only: mytype
-
-  implicit none
-
-  real(mytype) :: res
-  complex(mytype), intent(in) :: complexnumber
-
-  res = real(complexnumber, kind=mytype)
-
-end function rl
-!##################################################################
-! function iy(complexnumber) from incompact3d
-!##################################################################
-pure function iy(complexnumber) result(res)
-
-  !use param
-  use decomp_2d_constants, only: mytype
-
-  implicit none
-
-  real(mytype) :: res
-  complex(mytype), intent(in) :: complexnumber
-
-  res = aimag(complexnumber)
-
-end function iy
-!##################################################################
-! function cx(realpart,imaginarypart) from incompact3d
-!##################################################################
-pure function cx(realpart,imaginarypart) result(res)
-
-  !use param
-  use decomp_2d_constants, only: mytype
-
-  implicit none
-
-  complex(mytype) :: res
-  real(mytype),intent(in) :: realpart, imaginarypart
-
-  res = cmplx(realpart, imaginarypart, kind=mytype)
-
-end function cx
-!==========================================================================================================
 !##################################################################
 !##################################################################
 subroutine inversion5_v1(aaa_in,eee,spI)
@@ -483,6 +430,7 @@ subroutine inversion5_v1(aaa_in,eee,spI)
   !use var
   !use mpi
   !use dbg_schemes, only: abs_prec
+  use math_mod, only: cx, rl, iy
   use fft2decomp_interface_mod
 
   implicit none
@@ -505,9 +453,9 @@ subroutine inversion5_v1(aaa_in,eee,spI)
 
   real(mytype) :: tmp1,tmp2,tmp3,tmp4
 
-  complex(mytype) :: cx
-  real(mytype) :: rl, iy
-  external cx, rl, iy
+  ! complex(mytype) :: cx
+  ! real(mytype) :: rl, iy
+  ! external cx, rl, iy
 
   aaa = aaa_in
 
@@ -627,6 +575,7 @@ subroutine inversion5_v2(aaa,eee,spI)
   !use var
   !use MPI
   !use dbg_schemes, only: abs_prec
+  use math_mod, only: cx, rl, iy
   use fft2decomp_interface_mod
 
   implicit none
@@ -649,9 +598,9 @@ subroutine inversion5_v2(aaa,eee,spI)
 
   real(mytype) :: tmp1,tmp2,tmp3,tmp4
 
-  complex(mytype) :: cx
-  real(mytype) :: rl, iy
-  external cx, rl, iy
+  ! complex(mytype) :: cx
+  ! real(mytype) :: rl, iy
+  ! external cx, rl, iy
 
   do i = 1, 2
      ja(i) = 4 - i
@@ -806,14 +755,23 @@ module decomp_2d_poisson
   ! underlying FFT library only needs to be initialised once
   logical, save :: fft_initialised = .false.
 
+  !---------------------------------------------------
+  ! Abstract interface for all Poisson routines
+  !---------------------------------------------------
   abstract interface
-     subroutine poisson_xxx(rhs)
-       use decomp_2d_constants, only : mytype
-       real(mytype), dimension(:,:,:), intent(inout) :: rhs
-     end subroutine poisson_xxx
+    subroutine poisson_base(rhs)
+      use decomp_2d_constants, only: mytype
+      use math_mod, only: cx, rl, iy
+      real(mytype), dimension(:,:,:), intent(inout) :: rhs
+    end subroutine poisson_base
   end interface
-  procedure (poisson_xxx), pointer :: poisson
-
+  !---------------------------------------------------
+  ! Generic pointer that can point to any variant
+  !---------------------------------------------------
+  procedure(poisson_base), pointer :: poisson           => null()
+  !---------------------------------------------------
+  ! define subs
+  !---------------------------------------------------
   public :: decomp_2d_poisson_init,decomp_2d_poisson_finalize,poisson
 contains
 
@@ -1077,7 +1035,8 @@ contains
   ! Solving 3D Poisson equation with periodic B.C in all 3 dimensions
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine poisson_000(rhs)
-
+    use math_mod, only: cx, rl, iy
+    implicit none
     !use derivX
     !use derivY
     !use derivZ
@@ -1099,9 +1058,9 @@ contains
     !integer :: nx,ny,nz, 
     integer :: i,j,k
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    ! complex(mytype) :: cx
+    ! real(mytype) :: rl, iy
+    ! external cx, rl, iy
 
     ! nx = nx_global
     ! ny = ny_global
@@ -1260,10 +1219,8 @@ contains
 
 
   subroutine poisson_100(rhs)
-
     !use dbg_schemes, only: abs_prec
-    use math_mod, only: abs_prec
-
+    use math_mod, only: cx, rl, iy!, only: abs_prec
     implicit none
 
     real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
@@ -1275,9 +1232,9 @@ contains
     !integer :: nx,ny,nz, 
     integer :: i,j,k, itmp
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    !complex(mytype) :: cx
+    !real(mytype) :: rl, iy
+    !external cx, rl, iy
 
 100 format(1x,a8,3I4,2F12.6)
 
@@ -1520,12 +1477,8 @@ contains
   ! Solving 3D Poisson equation: Neumann in Y; periodic in X & Z
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine poisson_010(rhs)
-
     !use dbg_schemes, only: abs_prec
-    use math_mod, only: abs_prec
-    
-    
-
+    use math_mod, only: cx, rl, iy!, only: abs_prec
     implicit none
 
     real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
@@ -1537,9 +1490,9 @@ contains
     !integer :: nx,ny,nz, 
     integer :: i,j,k
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    !complex(mytype) :: cx
+    !real(mytype) :: rl, iy
+    !external cx, rl, iy
 
     !real(mytype) :: avg_param
 
@@ -1887,10 +1840,7 @@ contains
   subroutine poisson_010_yskip(rhs)
     use tridiagonal_matrix_algorithm
     !use dbg_schemes, only: abs_prec
-    use math_mod, only: abs_prec
-    
-    
-
+    use math_mod, only: cx, rl, iy!, only: abs_prec
     implicit none
 
     real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
@@ -1902,9 +1852,9 @@ contains
     !integer :: nx,ny,nz, 
     integer :: i,j,k,ii,jj,kk
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    ! complex(mytype) :: cx
+    ! real(mytype) :: rl, iy
+    ! external cx, rl, iy
 
     !real(mytype) :: avg_param
 
@@ -2273,11 +2223,8 @@ contains
   ! Solving 3D Poisson equation: Neumann in X, Y; Neumann/periodic in Z
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   subroutine poisson_11x(rhs)
-
     !use dbg_schemes, only: abs_prec
-    use math_mod, only: abs_prec
-    
-
+    use math_mod, only: cx, rl, iy!, only: abs_prec
     implicit none
 
     real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
@@ -2289,9 +2236,9 @@ contains
     !integer :: nx,ny,nz, 
     integer :: i,j,k
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    ! complex(mytype) :: cx
+    ! real(mytype) :: rl, iy
+    ! external cx, rl, iy
 #ifdef DEBUG_FFT
     real(mytype) avg_param
 #endif
@@ -2800,9 +2747,7 @@ contains
   subroutine poisson_11x_yskip(rhs)
     use tridiagonal_matrix_algorithm
     !use dbg_schemes, only: abs_prec
-    use math_mod, only: abs_prec
-    
-
+    use math_mod, only: cx, rl, iy!, only: abs_prec
     implicit none
 
     real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
@@ -2814,9 +2759,9 @@ contains
     !integer :: nx,ny,nz, 
     integer :: i,j,k
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    ! complex(mytype) :: cx
+    ! real(mytype) :: rl, iy
+    ! external cx, rl, iy
 #ifdef DEBUG_FFT
     real(mytype) avg_param
 #endif
@@ -3352,9 +3297,7 @@ contains
   subroutine poisson_11x_xyskip(rhs)
     use tridiagonal_matrix_algorithm
     !use dbg_schemes, only: abs_prec
-    use math_mod, only: abs_prec
-    
-
+    use math_mod, only: cx, rl, iy!, only: abs_prec
     implicit none
 
     real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
@@ -3366,9 +3309,9 @@ contains
     !integer :: nx,ny,nz, 
     integer :: i,j,k
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    ! complex(mytype) :: cx
+    ! real(mytype) :: rl, iy
+    ! external cx, rl, iy
 #ifdef DEBUG_FFT
     real(mytype) avg_param
 #endif
@@ -3554,6 +3497,7 @@ contains
     !use variables
     use decomp_2d_fft
     !use dbg_schemes, only: sin_prec, cos_prec
+    use math_mod, only: cx, rl, iy
     use fft2decomp_interface_mod
 
     implicit none
@@ -3572,9 +3516,9 @@ contains
     real(mytype) :: ytt_rl,xtt_rl,ztt_rl,yt1_rl,xt1_rl,zt1_rl
     real(mytype) :: xtt1_rl,ytt1_rl,ztt1_rl
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    ! complex(mytype) :: cx
+    ! real(mytype) :: rl, iy
+    ! external cx, rl, iy
     logical :: ftr = .false.
 
     xkx = zero
@@ -3868,7 +3812,7 @@ contains
     !use derivY 
     !use derivZ 
     !use dbg_schemes, only: cos_prec
-
+    use math_mod, only: cx, rl, iy
     implicit none
 
     integer :: i,j,k
@@ -3881,14 +3825,14 @@ contains
     real(mytype),dimension(sp%yst(2):sp%yen(2)) :: transy_rl, transy_rl2
     real(mytype),dimension(sp%yst(3):sp%yen(3)) :: transz_rl, transz_iy, transz_rl2, transz_iy2
 
-    real(mytype) :: xa0,xa1 
+    real(mytype) :: xa0,xa1,rlx, rlz
     complex(mytype) :: ytt,xtt,ztt,yt1,xt1,yt2,xt2
     complex(mytype) :: xtt1,ytt1,ztt1,zt1,zt2,tmp1,tmp2,tmp3
     
 
-    complex(mytype) :: cx
-    real(mytype) :: rl, iy
-    external cx, rl, iy
+    ! complex(mytype) :: cx
+    ! real(mytype) :: rl, iy
+    ! external cx, rl, iy
 
     real(mytype) :: xtt_rl, xtt1_rl, xt1_rl
     real(mytype) :: rlexs
@@ -4183,7 +4127,9 @@ contains
        !not to have a singular matrice
        do k = sp%yst(3), sp%yen(3)
           do i = sp%yst(1), sp%yen(1)
-             if ((dabs(rl(xk2(i))) < MINP).and.(dabs(rl(zk2(k))) < MINP)) then
+            rlx = rl(xk2(i))
+            rlz = rl(zk2(k))
+             if ((dabs(rlx) < MINP).and.(dabs(rlz) < MINP)) then
                 a(i,1,k,3)=cx_one_one
                 a(i,1,k,4) = zero
                 a(i,1,k,5) = zero
