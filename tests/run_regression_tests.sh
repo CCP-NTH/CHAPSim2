@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -o pipefail
+set -euo pipefail
 
 CASES=(
   tgv_iso
@@ -31,8 +31,17 @@ FAILED_CASES=()
 # --------------------------------------------------
 # Ask whether to build solver
 # --------------------------------------------------
-read -p "Do you want to build the solver? [N/y]: " build_choice
-build_choice=${build_choice:-N}
+MAX_WAIT=10
+DEFAULT_CHOICE="n"
+if [[ "${CI:-false}" == "true" ]]; then
+    build_choice=$DEFAULT_CHOICE
+else
+    read -t $MAX_WAIT -p "Do you want to build the solver? [N/y]: " build_choice || true
+    build_choice=${build_choice:-n}
+fi
+
+# Use default if empty or timeout
+build_choice=${build_choice:-$DEFAULT_CHOICE}
 build_choice=$(echo "$build_choice" | tr '[:upper:]' '[:lower:]')
 
 if [[ "$build_choice" == "y" || "$build_choice" == "yes" ]]; then
@@ -65,6 +74,7 @@ for case in "${CASES[@]}"; do
   # -----------------------------
   # Run solver
   # -----------------------------
+  RUN_MODE=regression
   echo ">>> Running solver for ${case} ..."
   if ! ./run_chapsim.sh; then
     echo "[FAIL ] ${case} (run_chapsim.sh failed)"
