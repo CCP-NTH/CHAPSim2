@@ -1,11 +1,11 @@
 {
   "global mass balance":   0.00000000E+00,
-  "max. mass conservation (interior)":   1.95552125E-15,
+  "max. mass conservation (interior)":   2.07646400E-15,
   "max. mass conservation (inlet)":   0.00000000E+00,
   "max. mass conservation (outlet)":   0.00000000E+00,
-  "total kinetic energy":   1.24995312E-01,
-  "bulk velocity ux":  -9.48997544E-19,
-  "bulk velocity uz":   1.40179220E-21,
-  "mean dpdx":  -3.49430485E-18,
+  "total kinetic energy":   1.24976563E-01,
+  "bulk velocity ux":   7.85013274E-19,
+  "bulk velocity uz":   2.48203831E-19,
+  "mean dpdx":  -3.17668668E-18,
   "global pressure drop":   0.00000000E+00
 }

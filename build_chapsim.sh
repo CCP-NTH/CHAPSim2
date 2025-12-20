@@ -26,45 +26,42 @@ set -euo pipefail
 # -----------------------------------------------------------------------------
 MAX_TIME=10  # Maximum wait time in seconds for user input
 INTERACTIVE_MODE=""  # Will be set based on user choice
-# -----------------------------------------------------------------------------
-# Define relative paths and repository URL
-# -----------------------------------------------------------------------------
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 DECOMP_GIT_URL="https://github.com/2decomp-fft/2decomp-fft.git"
-REL_PATH_LIB="$SCRIPT_DIR/lib/2decomp-fft/build"
-REL_PATH_LIB_ROOT="$SCRIPT_DIR/lib/2decomp-fft"
+
+# Define relative paths and repository URL
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REL_PATH_BUILD="$SCRIPT_DIR/build"
 REL_PATH_BIN="$SCRIPT_DIR/bin"
-LIB_FILE="$REL_PATH_LIB/opt/lib/libdecomp2d.a"
-LIB_FILE_64="$REL_PATH_LIB/opt/lib64/libdecomp2d.a"
+REL_PATH_LIB_ROOT="$SCRIPT_DIR/lib/2decomp-fft"
+REL_PATH_LIB_BUILD="$REL_PATH_LIB_ROOT/build"
+LIB_FILE="$REL_PATH_LIB_BUILD/opt/lib/libdecomp2d.a"
+LIB_FILE_64="$REL_PATH_LIB_BUILD/opt/lib64/libdecomp2d.a"
 
-# Ensure necessary directories exist
-for dir in "$REL_PATH_BUILD" "$REL_PATH_BIN" "$REL_PATH_LIB_ROOT" "$REL_PATH_LIB"; do
-    if [ ! -d "$dir" ]; then
-        echo "Creating directory: $dir"
-        mkdir -p "$dir" || { echo "Error: Failed to create $dir"; exit 1; }
-    fi
-done
+# Initialize absolute paths (will be resolved after directories exist)
+PATH_LIB=""
+PATH_LIB_ROOT=""
+PATH_BUILD=""
+PATH_BIN=""
 
-# Resolve absolute paths
-PATH_LIB=$(realpath "$REL_PATH_LIB" 2>/dev/null || readlink -f "$REL_PATH_LIB")
-PATH_LIB_ROOT=$(realpath "$REL_PATH_LIB_ROOT" 2>/dev/null || readlink -f "$REL_PATH_LIB_ROOT")
-PATH_BUILD=$(realpath "$REL_PATH_BUILD" 2>/dev/null || readlink -f "$REL_PATH_BUILD")
-PATH_BIN=$(realpath "$REL_PATH_BIN" 2>/dev/null || readlink -f "$REL_PATH_BIN")
-# -----------------------------------------------------------------------------
-# Determine which library file to use
-# -----------------------------------------------------------------------------
-if [ -f "$LIB_FILE_64" ]; then
-    LIB_FILE="$LIB_FILE_64"
-    echo "Using lib64 version: $LIB_FILE"
-else
-    echo "Using lib version: $LIB_FILE"
+# Ensure lib directory exists
+LIB_PARENT_DIR="$SCRIPT_DIR/lib"
+if [ ! -d "$LIB_PARENT_DIR" ]; then
+    echo "Creating lib directory: $LIB_PARENT_DIR"
+    mkdir -p "$LIB_PARENT_DIR" || { echo "Error: Failed to create $LIB_PARENT_DIR"; exit 1; }
 fi
 
-# -----------------------------------------------------------------------------
+# Now resolve absolute paths after directories are created
+PATH_LIB=$(realpath "$REL_PATH_LIB_BUILD" 2>/dev/null || echo "$REL_PATH_LIB_BUILD")
+PATH_LIB_ROOT=$(realpath "$REL_PATH_LIB_ROOT" 2>/dev/null || echo "$REL_PATH_LIB_ROOT")
+PATH_BUILD=$(realpath "$REL_PATH_BUILD" 2>/dev/null || echo "$REL_PATH_BUILD")
+PATH_BIN=$(realpath "$REL_PATH_BIN" 2>/dev/null || echo "$REL_PATH_BIN")
+
+# =============================================================================
+# FUNCTION DEFINITIONS
+# =============================================================================
+
 # Function to read input with timeout
 # Returns: user input or default value if timeout
-# -----------------------------------------------------------------------------
 read_with_timeout() {
     local prompt="$1"
     local default="$2"
@@ -91,9 +88,7 @@ read_with_timeout() {
     fi
 }
 
-# -----------------------------------------------------------------------------
 # Function to get yes/no input with timeout
-# -----------------------------------------------------------------------------
 get_yes_no_input() {
     local prompt="$1"
     local default="$2"
@@ -104,7 +99,7 @@ get_yes_no_input() {
     
     if [[ "$input" == "yes" || "$input" == "y" ]]; then
         echo "yes"
-    elif [[ "$input" == "no" || "$input" == "n" ]];  then
+    elif [[ "$input" == "no" || "$input" == "n" ]]; then
         echo "no"
     elif [[ "$input" == "c" ]]; then
         echo "clean"
@@ -113,9 +108,7 @@ get_yes_no_input() {
     fi
 }
 
-# -----------------------------------------------------------------------------
 # Function to get a choice from the user with timeout
-# -----------------------------------------------------------------------------
 get_choice_input() {
     local prompt="$1"
     local choices="$2"
@@ -141,52 +134,62 @@ get_choice_input() {
         done
 
         echo "Invalid choice. Please enter one of: $choices" >&2
-        echo "Please try again." >&2
     done
 }
 
-# -----------------------------------------------------------------------------
-# Function to clone or refresh 2decomp-fft git repository
-# -----------------------------------------------------------------------------
-setup_2decomp_git() {
-    local lib_parent_dir="$SCRIPT_DIR/lib"
+# Function to check if 2decomp-fft repository exists
+check_2decomp_exists() {
+    if [ -d "$PATH_LIB_ROOT/.git" ]; then
+        return 0  # Repository exists (has .git directory)
+    else
+        return 1  # Repository does not exist
+    fi
+}
+
+# Function to clone 2decomp-fft git repository
+clone_2decomp_git() {
+    echo "2decomp-fft repository not found. Cloning from GitHub..."
+    echo "Cloning: $DECOMP_GIT_URL"
     
-    # Ensure lib directory exists
-    if [ ! -d "$lib_parent_dir" ]; then
-        echo "Creating lib directory: $lib_parent_dir"
-        mkdir -p "$lib_parent_dir" || { echo "Error: Failed to create $lib_parent_dir"; return 1; }
+    # Remove existing directory if it exists but is not a git repo
+    if [ -d "$PATH_LIB_ROOT" ] && [ ! -d "$PATH_LIB_ROOT/.git" ]; then
+        echo "⚠️  Found existing directory $PATH_LIB_ROOT but it's not a git repository."
+        echo "Removing and re-cloning..."
+        rm -rf "$PATH_LIB_ROOT" || { echo "Error: Failed to remove existing directory"; return 1; }
     fi
     
-    # Check if 2decomp-fft directory exists AND contains a git repository
-    if [ ! -d "$PATH_LIB_ROOT" ] || [ ! -d "$PATH_LIB_ROOT/.git" ]; then
-        if [ -d "$PATH_LIB_ROOT" ] && [ ! -d "$PATH_LIB_ROOT/.git" ]; then
-            echo "Found existing directory $PATH_LIB_ROOT but it's not a git repository."
-            REMOVE_EXISTING=$(get_yes_no_input "Remove existing directory and clone fresh?" "yes")
-            if [[ "$REMOVE_EXISTING" =~ ^(yes|y)$ ]]; then
-                echo "Removing existing directory..."
-                rm -rf "$PATH_LIB_ROOT" || { echo "Error: Failed to remove existing directory"; return 1; }
-            else
-                echo "Cannot proceed without a proper git repository."
-                return 1
-            fi
-        fi
-        
-        echo "2decomp-fft repository not found. Cloning from GitHub..."
-        cd "$lib_parent_dir" || { echo "Error: Cannot access $lib_parent_dir"; return 1; }
-        
-        echo "Cloning: $DECOMP_GIT_URL"
-        if git clone "$DECOMP_GIT_URL"; then
-            echo "✅ Repository cloned successfully!"
-            cd - > /dev/null  # Return to original directory
+    cd "$LIB_PARENT_DIR" || { echo "Error: Cannot access $LIB_PARENT_DIR"; return 1; }
+    
+    if git clone "$DECOMP_GIT_URL"; then
+        echo "✅ Repository cloned successfully!"
+        cd - > /dev/null
+        return 0
+    else
+        echo "❌ Error: Failed to clone repository"
+        cd - > /dev/null
+        return 1
+    fi
+}
+
+# Function to clone or refresh 2decomp-fft git repository
+setup_2decomp_git() {
+    # Check if directory exists but is not a git repo
+    if [ -d "$PATH_LIB_ROOT" ] && [ ! -d "$PATH_LIB_ROOT/.git" ]; then
+        echo "Found existing directory $PATH_LIB_ROOT but it's not a git repository."
+        REMOVE_EXISTING=$(get_yes_no_input "Remove existing directory and clone fresh?" "yes")
+        if [[ "$REMOVE_EXISTING" =~ ^(yes|y)$ ]]; then
+            echo "Removing existing directory..."
+            rm -rf "$PATH_LIB_ROOT" || { echo "Error: Failed to remove existing directory"; return 1; }
+            # Now clone
+            clone_2decomp_git || return 1
             return 0
         else
-            echo "❌ Error: Failed to clone repository"
-            cd - > /dev/null  # Return to original directory
+            echo "Cannot proceed without a proper git repository."
             return 1
         fi
     fi
     
-    # Repository exists, proceed with refresh
+    # Repository exists as a git repo, proceed with refresh
     echo "Refreshing existing 2decomp-fft git repository..."
     cd "$PATH_LIB_ROOT" || { echo "Error: Cannot access $PATH_LIB_ROOT"; return 1; }
     echo "Current directory: $(pwd)"
@@ -242,6 +245,7 @@ setup_2decomp_git() {
     
     if [ "$LOCAL_COMMIT" = "$REMOTE_COMMIT" ]; then
         echo "Repository is already up to date."
+        cd - > /dev/null
         return 0
     fi
     
@@ -251,6 +255,7 @@ setup_2decomp_git() {
         echo "❌ Error: Failed to pull latest changes"
         echo "You may need to resolve conflicts manually."
         echo "Run 'git status' in $PATH_LIB_ROOT to see the current state."
+        cd - > /dev/null
         return 1
     fi
     
@@ -266,11 +271,11 @@ setup_2decomp_git() {
     git log --oneline -5 "$OLD_COMMIT..$NEW_COMMIT" 2>/dev/null || echo "Unable to show recent changes"
     echo ""
     
+    cd - > /dev/null
     return 0
 }
-# -----------------------------------------------------------------------------
+
 # Function to validate library file
-# -----------------------------------------------------------------------------
 validate_library() {
     local lib_path="$1"
     
@@ -317,6 +322,7 @@ validate_library() {
     echo "✅ Library validated: $lib_path ($obj_count object files)"
     return 0
 }
+
 # =============================================================================
 # MAIN SCRIPT EXECUTION
 # =============================================================================
@@ -325,22 +331,43 @@ echo "  CHAPSim2 Build System v2.0"
 echo "========================================================================="
 echo ""
 
-# -----------------------------------------------------------------------------
 # Determine Interactive vs Non-Interactive Mode
-# -----------------------------------------------------------------------------
-echo "Select build mode:"
-echo "  [I]nteractive - prompts with ${MAX_TIME}s timeout"
-echo "  [N]on-interactive - uses all defaults"
-echo ""
+# Can be set via environment variable: export CHAPSIM_MODE=non-interactive or interactive
+CHAPSIM_MODE_ENV="${CHAPSIM_MODE:-}"  # Get env var or empty string
 
-MODE_INPUT=$(read_with_timeout "Mode selection [i/N]" "n" "$MAX_TIME")
-MODE_INPUT=$(echo "$MODE_INPUT" | tr '[:upper:]' '[:lower:]')
+if [[ -n "$CHAPSIM_MODE_ENV" ]]; then
+    # Environment variable is set, validate and use it
+    CHAPSIM_MODE_ENV=$(echo "$CHAPSIM_MODE_ENV" | tr '[:upper:]' '[:lower:]')
+    if [[ "$CHAPSIM_MODE_ENV" =~ ^(interactive|non-interactive)$ ]]; then
+        INTERACTIVE_MODE="$CHAPSIM_MODE_ENV"
+        echo "Using CHAPSIM_MODE from environment: $INTERACTIVE_MODE"
+    else
+        echo "⚠️  Warning: Invalid CHAPSIM_MODE='$CHAPSIM_MODE_ENV'. Must be 'interactive' or 'non-interactive'."
+        echo "Falling back to user input..."
+        CHAPSIM_MODE_ENV=""  # Reset to empty so we ask user below
+    fi
+fi
 
-if [[ "$MODE_INPUT" =~ ^(i|interactive)$ ]]; then
-    INTERACTIVE_MODE="interactive"
+# If CHAPSIM_MODE was not set or was invalid, ask user
+if [[ -z "$CHAPSIM_MODE_ENV" ]]; then
+    echo "Select build mode:"
+    echo "  [I]nteractive - prompts with ${MAX_TIME}s timeout"
+    echo "  [N]on-interactive - uses all defaults"
+    echo ""
+    
+    MODE_INPUT=$(read_with_timeout "Mode selection [i/N]" "n" "$MAX_TIME")
+    MODE_INPUT=$(echo "$MODE_INPUT" | tr '[:upper:]' '[:lower:]')
+    
+    if [[ "$MODE_INPUT" =~ ^(i|interactive)$ ]]; then
+        INTERACTIVE_MODE="interactive"
+    else
+        INTERACTIVE_MODE="non-interactive"
+    fi
+fi
+
+if [[ "$INTERACTIVE_MODE" == "interactive" ]]; then
     echo "Running in INTERACTIVE mode (${MAX_TIME}s timeout per prompt)"
 else
-    INTERACTIVE_MODE="non-interactive"
     echo "Running in NON-INTERACTIVE mode (using all defaults)"
 fi
 
@@ -348,22 +375,61 @@ echo ""
 echo "========================================================================="
 echo ""
 
-# -----------------------------------------------------------------------------
-# Step 0: Git Repository Setup/Refresh (Optional)
-# -----------------------------------------------------------------------------
-# Initialize library rebuild flag
+# Step 0: Git Repository Setup - Check if repository exists first
+# =============================================================================
+echo "Step 0: Checking 2decomp-fft library..."
+echo ""
+
+# Ensure necessary directories exist
+for dir in "$REL_PATH_BUILD" "$REL_PATH_BIN"; do
+    if [ ! -d "$dir" ]; then
+        echo "Creating directory: $dir"
+        mkdir -p "$dir" || { echo "Error: Failed to create $dir"; exit 1; }
+    fi
+done
+
+# Determine which library file to use
+if [ -f "$LIB_FILE_64" ]; then
+    LIB_FILE="$LIB_FILE_64"
+    echo "Using lib64 version: $LIB_FILE"
+else
+    echo "Using lib version: $LIB_FILE"
+fi
+
+echo ""
+
 REFRESH_GIT="no"
 LIB_REBUILD="no"
 
+# Check if library files exist
 if [[ ! -f "$LIB_FILE" && ! -f "$LIB_FILE_64" ]]; then
-    REFRESH_GIT="yes"
-    LIB_REBUILD="yes"
-else 
+    echo "⚠️  Library files not found."
+    
+    # Check if repository exists
+    if check_2decomp_exists; then
+        echo "   2decomp-fft repository found but library not built."
+        LIB_REBUILD="yes"
+    else
+        echo "   2decomp-fft repository not found."
+        echo "   Will clone repository and build library."
+        if clone_2decomp_git; then
+            LIB_REBUILD="yes"
+        else
+            echo "❌ Error: Failed to clone 2decomp-fft repository."
+            CONTINUE_ANYWAY=$(get_yes_no_input "Continue with build anyway?" "no")
+            if [[ ! "$CONTINUE_ANYWAY" =~ ^(yes|y)$ ]]; then
+                echo "Build aborted."
+                exit 1
+            fi
+        fi
+    fi
+else
+    echo "✅ Library files found."
     REFRESH_GIT=$(get_yes_no_input "Refresh 2decomp-fft git repository?" "no")
+    
     if [[ "$REFRESH_GIT" =~ ^(yes|y)$ ]]; then
         if setup_2decomp_git; then
             echo "Git repository setup/refresh completed successfully."
-            # Force rebuild after git refresh or clone
             LIB_REBUILD="yes"
         else
             echo "❌ Error: Git repository setup/refresh failed."
@@ -374,51 +440,71 @@ else
             fi
         fi
     else
-        LIB_REBUILD=$(get_yes_no_input "Rebuild 2decomp-fft git repository?" "no")
+        LIB_REBUILD=$(get_yes_no_input "Rebuild 2decomp-fft library?" "no")
     fi
 fi
 
-# Check if build_cmake_2decomp.sh exists in the library build directory
-BUILD_CMAKE_LIB="$REL_PATH_LIB/build_cmake_2decomp.sh"
+# Check if build_cmake_2decomp.sh exists
+BUILD_CMAKE_LIB="$REL_PATH_LIB_BUILD/build_cmake_2decomp.sh"
 BUILD_CMAKE_BUILD="$REL_PATH_BUILD/build_cmake_2decomp.sh"
-if [ ! -f "$BUILD_CMAKE_LIB" ]; then
-    echo "build_cmake_2decomp.sh not found in $REL_PATH_LIB"
-    if [ -f "$BUILD_CMAKE_BUILD" ]; then
-        echo "Found build_cmake_2decomp.sh in $REL_PATH_BUILD"
-        echo "Copying from $REL_PATH_BUILD to $REL_PATH_LIB"
-        cp "$BUILD_CMAKE_BUILD" "$BUILD_CMAKE_LIB" || { 
-            echo "Error: Failed to copy build_cmake_2decomp.sh"; exit 1; 
-        }
-        chmod +x "$BUILD_CMAKE_LIB" || { 
-            echo "Warning: Failed to make build_cmake_2decomp.sh executable"; 
-        }
-    else
-        echo "❌ Error: build_cmake_2decomp.sh not found in any expected location"
-        echo "  Checked:"
-        echo "    - $BUILD_CMAKE_LIB"
-        echo "    - $BUILD_CMAKE_BUILD"
-        exit 1
+
+if [[ "$LIB_REBUILD" =~ ^(yes|y)$ ]]; then
+    if [ ! -f "$BUILD_CMAKE_LIB" ]; then
+        echo "build_cmake_2decomp.sh not found in $REL_PATH_LIB_BUILD"
+        if [ -f "$BUILD_CMAKE_BUILD" ]; then
+            echo "Found build_cmake_2decomp.sh in $REL_PATH_BUILD"
+            
+            # Create build directory if it doesn't exist
+            if [ ! -d "$REL_PATH_LIB_BUILD" ]; then
+                echo "Creating build directory: $REL_PATH_LIB_BUILD"
+                mkdir -p "$REL_PATH_LIB_BUILD" || { 
+                    echo "Error: Failed to create $REL_PATH_LIB_BUILD"; exit 1; 
+                }
+            fi
+            
+            echo "Copying to $REL_PATH_LIB_BUILD"
+            cp "$BUILD_CMAKE_BUILD" "$BUILD_CMAKE_LIB" || { 
+                echo "Error: Failed to copy build_cmake_2decomp.sh"; exit 1; 
+            }
+            chmod +x "$BUILD_CMAKE_LIB" || { 
+                echo "Warning: Failed to make build_cmake_2decomp.sh executable"; 
+            }
+        else
+            echo "❌ Error: build_cmake_2decomp.sh not found in any expected location"
+            echo "  Checked:"
+            echo "    - $BUILD_CMAKE_LIB"
+            echo "    - $BUILD_CMAKE_BUILD"
+            exit 1
+        fi
     fi
 fi
-# -----------------------------------------------------------------------------
+
 # Step 1: Check and Build the Library
-# -----------------------------------------------------------------------------
+# =============================================================================
 if [[ "$LIB_REBUILD" =~ ^(yes|y)$ ]]; then
-    echo "🔨 Building / rebuilding 2decomp-fft library..."
+    echo ""
+    echo "========================================================================="
+    echo "Step 1: Building / rebuilding 2decomp-fft library..."
+    echo "========================================================================="
+    echo ""
+    
     cd "$PATH_LIB" || { echo "Error: Cannot access $PATH_LIB"; exit 1; }
+    
     if [[ -f "$LIB_FILE" || -f "$LIB_FILE_64" ]]; then
         echo "Cleaning previous build artifacts..."
-        shopt -s extglob
         find . -maxdepth 1 \
             -not -name 'build_cmake_2decomp.sh' \
             -not -name '.' \
             -exec rm -rf {} +
     fi
+    
     ./build_cmake_2decomp.sh || {
         echo "❌ Error: CMake build failed in $PATH_LIB"
         exit 1
     }
+    
     cd - > /dev/null
+    
     # Determine which library exists
     if [[ -f "$LIB_FILE_64" ]]; then
         ACTUAL_LIB="$LIB_FILE_64"
@@ -428,6 +514,7 @@ if [[ "$LIB_REBUILD" =~ ^(yes|y)$ ]]; then
         echo "❌ Error: No 2decomp-fft library found to validate"
         exit 1
     fi
+    
     # Always validate after build
     if ! validate_library "$ACTUAL_LIB"; then
         echo "❌ Error: Library build completed but validation failed:"
@@ -436,17 +523,22 @@ if [[ "$LIB_REBUILD" =~ ^(yes|y)$ ]]; then
         exit 1
     fi
 else
-    echo "✅ Using existing 2decomp-fft library (no rebuild needed)."
+    echo "✅ Skipping library build (using existing 2decomp-fft library)."
 fi
 
-# -----------------------------------------------------------------------------
+echo ""
+
 # Step 2: Prompt for Build Options
-# -----------------------------------------------------------------------------
-CLEAN_BUILD=$(get_yes_no_input "Perform a clean build of CHAPSim? (c for clean only) " "no")
+# =============================================================================
+echo "========================================================================="
+echo "Step 2: CHAPSim2 Build Configuration"
+echo "========================================================================="
+echo ""
+
+CLEAN_BUILD=$(get_yes_no_input "Perform a clean build of CHAPSim?" "no")
 
 if [[ "$CLEAN_BUILD" == "clean" ]]; then
     echo "Running 'make clean' in $PATH_BUILD..."
-
     cd "$PATH_BUILD" || {
         echo "Error: Cannot cd to $PATH_BUILD"
         exit 1
@@ -456,7 +548,9 @@ if [[ "$CLEAN_BUILD" == "clean" ]]; then
 fi
 
 # Prompt for build mode
-BUILD_MODE=$(get_choice_input "Select CHAPSim build mode: [a]default, [b]gnu-o3, [c]gnu-g, [d]gnu-debug, [e]intel, [f]cray" "a,b,c,d,e,f" "a")
+echo ""
+echo "CHAPSim build mode: a=default, b=gnu-o3, c=gnu-g, d=gnu-debug, e=intel, f=cray"
+BUILD_MODE=$(get_choice_input "Select CHAPSim build mode" "a,b,c,d,e,f" "a")
 
 # Determine make target based on selection
 case "$BUILD_MODE" in
@@ -477,10 +571,11 @@ if [[ "$CLEAN_BUILD" =~ ^(yes|y)$ ]]; then
     MAKE_TARGET="make clean && $MAKE_TARGET"
 fi
 
-# -----------------------------------------------------------------------------
 # Step 3: Run the Build
-# -----------------------------------------------------------------------------
+# =============================================================================
 echo ""
+echo "========================================================================="
+echo "Step 3: Compiling CHAPSim2"
 echo "========================================================================="
 echo "Executing: $MAKE_TARGET"
 echo "Directory: $PATH_BUILD"
@@ -490,15 +585,13 @@ echo ""
 cd "$PATH_BUILD" || { echo "Error: Cannot access $PATH_BUILD"; exit 1; }
 eval "$MAKE_TARGET" || { echo "Error: Build failed in $PATH_BUILD."; exit 1; }
 
-# -----------------------------------------------------------------------------
 # Completion Message
-# -----------------------------------------------------------------------------
+# =============================================================================
 echo ""
 echo "========================================================================="
 echo "✅ CHAPSim2 successfully compiled!"
 echo "========================================================================="
 echo ""
-echo "Build configuration: $BUILD_MODE"
-echo "Mode: $INTERACTIVE_MODE"
+echo "Build configuration: $MAKE_TARGET"
 echo "Binary location: $PATH_BIN"
 echo ""
