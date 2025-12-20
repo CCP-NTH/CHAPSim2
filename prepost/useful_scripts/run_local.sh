@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/usr/bin/env bash
+set -euo pipefail
 
 # =============================================================================
 # CHAPSim2 Runner Script with Input File Management

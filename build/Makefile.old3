@@ -1,0 +1,155 @@
+#################################################################################################
+# Makefile for CHAPSim2, by Wei Wang, July 2021                                                 #
+# Updated: Jan 2025 - Incremental compilation enabled                                           #
+# Usage:                                                                                        #
+#       make all         to make all files with -O3 optimization                                #
+#       make cfg=gnu     to debug for gfortran compiler (with debug_steps)                      #
+#       make cfg=gnu-nodebug to debug for gfortran compiler (without debug_steps)              #
+#       make cfg=intel   to debug for intel compiler                                            #
+#       make cfg=cray    to make for cray                                                       #
+#################################################################################################
+.SUFFIXES:
+
+# Program name and directories
+PROGRAM = CHAPSim
+DIR_SRC = ../src
+DIR_BIN = ../bin
+DIR_OBJ = ../obj
+DIR_BLD = ../build # This directory seems to be for .mod files, not used in object output directly
+DIR_LIB = ../lib/fishpack4.1
+
+# Default configuration if 'cfg' is not specified
+ifeq ($(cfg),)
+    cfg := default
+endif
+
+# Common Fortran Compiler Flags
+COMMON_FOPTS = -fallow-argument-mismatch -Wno-unused -Wno-unused-dummy-argument -Wno-maybe-uninitialized \
+               -fdiagnostics-color=always -Wuninitialized -finit-real=snan -finit-integer=-999999 \
+               -ffpe-trap=invalid,zero,overflow -Wall -Wextra -fbacktrace -fbounds-check -fimplicit-none \
+               -cpp -fopenmp -finit-local-zero -ffree-line-length-512 \
+               -DDOUBLE_PREC -fdefault-real-8 -fdefault-double-8
+FOPTS_WARNING = -Wunused-parameter -Wunused-dummy-argument # -Wunused-variable 
+
+# Compiler and flags based on configuration
+ifeq ($(cfg), gnu-g)
+  FC     = mpif90
+  FOPTS  = -g -O0 $(COMMON_FOPTS) $(FOPTS_WARNING)
+  FDEBG  = # No DEBUG_STEPS for this config
+else ifeq ($(cfg), gnu-debug)
+  FC     = mpif90
+  FOPTS  = -g -O0 $(COMMON_FOPTS) $(FOPTS_WARNING)
+  FDEBG  = -DDEBUG_STEPS
+else ifeq ($(cfg), intel)
+  FC     = mpiifort
+  FOPTS  = -g -assume ieee_fpe_flags -check all -check bounds -check uninit -debug all \
+           -fp-stack-check fpe0 -fpe3 -fpe-all=3 -ftrapuv -ftz -warn all,nounused -fpp \
+           -convert big_endian
+  FDEBG  = -DDEBUG_STEPS -DDEBUG_FFT
+else ifeq ($(cfg), cray)
+  FC     = ftn
+  FOPTS  = -cpp
+  FDEBG  = -DDEBUG_STEPS -DDEBUG_FFT
+else ifeq ($(cfg), gnu-o3)
+  FC     = mpif90
+  FOPTS  = -O3 $(COMMON_FOPTS)
+  FDEBG  = 
+else
+  FC     = mpif90
+  FOPTS  = -O3 $(COMMON_FOPTS)
+  FDEBG  = 
+endif
+
+# HDF5 paths (added)
+HDF5_INC = # -I/opt/homebrew/include
+HDF5_LIB = # -L/opt/homebrew/lib -lhdf5_fortran -lhdf5
+
+# FFT library and include paths
+INCLUDE = -I../lib/2decomp-fft/build/opt/include $(HDF5_INC)
+# Check if the lib64 directory exists, otherwise fall back to lib
+LIB_DIR = $(if $(wildcard ../lib/2decomp-fft/build/opt/lib64), ../lib/2decomp-fft/build/opt/lib64, ../lib/2decomp-fft/build/opt/lib)
+# Set the LIBS variable based on the determined library directory
+LIBS = -L$(LIB_DIR) -ldecomp2d $(HDF5_LIB)
+
+# Object file lists
+OBJS1 = $(addprefix $(DIR_OBJ)/, \
+      modules.o \
+      tools_general.o \
+      input_thermo.o \
+      bc_dirichlet.o \
+      bc_ndomain_interior.o \
+      bc_general.o \
+      input_general.o \
+      basics_algorithms.o \
+      basics_operations2.o \
+      tools_solver.o \
+      para_conversion.o \
+      geometry.o \
+      io_tools.o \
+      io_monitor.o \
+      io_visulisation.o \
+      post_statistics.o \
+      domain_decomposition.o \
+      poisson_fishpack.o \
+      poisson_1stderivcomp_fft2d.o \
+      poisson_interface.o \
+      bc_convective_outlet.o \
+      eq_continuity.o \
+      eq_energy.o \
+      eq_mhd.o \
+      io_restart.o \
+      eq_momentum2.o \
+      initialisation.o \
+      test_algrithms.o \
+      chapsim.o)
+
+OBJS2 = $(addprefix $(DIR_OBJ)/, fftpack.o)
+
+# Compilation flags for FFT library (Fortran 77 files)
+F77_OPTS = -O2 -w -fdefault-real-8 -fdefault-double-8 -fallow-argument-mismatch
+
+# Total number of object files for progress display
+TOTAL_OBJS := $(words $(OBJS1) $(OBJS2))
+COUNTER = 0
+
+# Function to display compilation progress
+define progress
+    $(eval COUNTER := $(shell expr $(COUNTER) + 1))
+    $(eval PERCENT := $(shell expr $(COUNTER) \* 100 / $(TOTAL_OBJS)))
+    @printf "(%2d/%2d) [%3d%%] Compiling %s\n" $(COUNTER) $(TOTAL_OBJS) $(PERCENT) $(notdir $<)
+endef
+
+# Default rule
+default: all
+
+# Main target for building the program
+$(DIR_BIN)/$(PROGRAM): $(OBJS1) $(OBJS2)
+	@echo -e "\nLinking $(PROGRAM)..."
+	@mkdir -p $(@D) ; # Ensure the binary directory exists
+	@$(FC) $(FOPTS) $(FDEBG) -o $@ $^ $(LIBS)
+	@echo -e "====== Successfully compiled $(PROGRAM) ======\n"
+
+# Rule to compile Fortran 90 files
+$(DIR_OBJ)/%.o: $(DIR_SRC)/%.f90
+	@mkdir -p $(@D) ; # Ensure the object directory exists
+	$(call progress)
+	@$(FC) $(INCLUDE) $(FOPTS) $(FDEBG) -c $< -o $@ 2>&1 | tee -a build.log
+
+# Rule to compile Fortran 77 files
+$(DIR_OBJ)/%.o: $(DIR_LIB)/%.f
+	@mkdir -p $(@D) ; # Ensure the object directory exists
+	$(call progress)
+	@$(FC) $(F77_OPTS) -c $< -o $@ 2>&1 | tee -a build.log
+
+# Default build target
+all:
+	@$(MAKE) $(DIR_BIN)/$(PROGRAM)
+
+# Clean target
+clean:
+	@echo "Cleaning built files and directories... \n"
+	@rm -rf $(DIR_OBJ) $(DIR_BIN)/$(PROGRAM) build.log
+	@find $(DIR_BLD) -name "*.mod" -delete -o -name "*.smod" -delete # More robust clean for module files
+
+# Phony targets
+.PHONY: all clean default

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -o pipefail
+set -euo pipefail
 
 REF_FILE="reference.json"
 NEW_FILE="regression_test_metrics.json"

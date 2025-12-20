@@ -1,5 +1,5 @@
-#!/bin/sh
-
+#!/usr/bin/env bash
+set -euo pipefail
 # Function to ask yes/no questions with default
 ask_yes_no() {
     local prompt="$1"
