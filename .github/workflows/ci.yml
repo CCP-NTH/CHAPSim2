@@ -1,0 +1,109 @@
+name: CHAPSim CI
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - feature/**
+  pull_request:
+    branches:
+      - main
+      - dev
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: "Which tests to run"
+        required: true
+        default: "regression"
+        type: choice
+        options:
+          - smoke
+          - regression
+
+env:
+  CI: true
+  CHAPSIM_MODE: non-interactive
+  RUN_MODE: regression
+
+jobs:
+  smoke-tests:
+    name: Smoke tests
+    runs-on: ubuntu-latest
+
+    # Run smoke tests on:
+    # - any push
+    # - any PR
+    # - manual dispatch (if smoke selected)
+    if: |
+      github.event_name != 'workflow_dispatch' ||
+      github.event.inputs.test_type == 'smoke'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gfortran \
+            mpich \
+            cmake \
+            make \
+            python3 \
+            python3-pip
+
+      - name: Build CHAPSim
+        run: |
+          chmod +x ./build_chapsim.sh
+          ./build_chapsim.sh
+
+      - name: Run smoke tests
+        working-directory: tests
+        run: |
+          chmod +x ./run_smoke.sh
+          ./run_smoke.sh
+
+  regression-tests:
+    name: Full regression tests
+    runs-on: ubuntu-latest
+    needs: smoke-tests
+
+    # Run regression tests only on:
+    # - main branch
+    # - manual dispatch with regression selected
+    if: |
+      github.ref == 'refs/heads/main' ||
+      github.event_name == 'workflow_dispatch' &&
+      github.event.inputs.test_type == 'regression'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            gfortran \
+            mpich \
+            cmake \
+            make \
+            python3 \
+            python3-pip
+
+      - name: Build CHAPSim
+        run: |
+          chmod +x ./build_chapsim.sh
+          ./build_chapsim.sh
+
+      - name: Run regression tests
+        working-directory: tests
+        run: |
+          chmod +x ./run_regression.sh
+          ./run_regression.sh

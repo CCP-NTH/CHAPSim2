@@ -1,29 +1,55 @@
-# folders
+# ------------------------
+# Build / Compilation
+# ------------------------
 bin/
 obj/
 mod/
+*.o
+*.mod
+*.a
 build/*.smod
 build/*.mod
+
+# ------------------------
+# Temporary / Obsolete files
+# ------------------------
 .input/
 .obsolete/
 .tmp/
 .history/
+*.log
+*.dat
+*.png
+
+# ------------------------
+# Tests folder
+# Ignore everything recursively in tests, except specific files
+# ------------------------
 tests/*/**
 !tests/*/*.sh
 !tests/*/*.ini
 !tests/*/*.DAT
 !tests/*/regression_test_metrics.json
 !tests/**/1_data/*outlet*.bin
-*.dat
-*.log
-*.png
-*.o
-*.mod
-*.a
+
+# ------------------------
+# Libraries
+# ------------------------
 lib/.DS_Store
-prepost/*.ini
+lib/**/.DS_Store
+
+# 2decomp-fft specific
 /lib/2decomp-fft/build/*
 !/lib/2decomp-fft/build/build_cmake.sh
 lib/2decomp-fft/build/CMakeCache.txt
+
+# ------------------------
+# Pre/post-processing
+# ------------------------
+prepost/*.ini
+
+# ------------------------
+# IDE / Editor
+# ------------------------
 .vscode/
 .DS_Store
