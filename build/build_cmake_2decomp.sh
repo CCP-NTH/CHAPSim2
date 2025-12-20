@@ -32,6 +32,9 @@ detect_architecture() {
             arch=$(uname -m)
             echo "Detected: macOS - $(uname -m)"
         fi
+        export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+        export AR=/usr/bin/ar
+        export RANLIB=/usr/bin/ranlib
     elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
         platform="Linux"
         arch=$(uname -m)

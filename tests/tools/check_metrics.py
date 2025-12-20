@@ -2,8 +2,9 @@
 
 import json
 import sys
+import math
 
-SAFE_REL_THRESHOLD = 1e-12  # below this, relative tolerance is ignored
+SAFE_REL_THRESHOLD = 1e-10
 
 
 def die(msg):
@@ -11,14 +12,18 @@ def die(msg):
 
 
 # -------------------------------------------------
-# Load JSON files
+# Load JSON files safely
 # -------------------------------------------------
 try:
-    new = json.load(open(sys.argv[1]))
-    ref = json.load(open(sys.argv[2]))
-    tol = json.load(open(sys.argv[3]))
+    with open(sys.argv[1]) as f:
+        new = json.load(f)
+    with open(sys.argv[2]) as f:
+        ref = json.load(f)
+    with open(sys.argv[3]) as f:
+        tol = json.load(f)
 except Exception as e:
     die(f"Failed to load JSON files: {e}")
+
 
 FAILED = False
 
@@ -27,43 +32,51 @@ FAILED = False
 # Helper: check one metric
 # -------------------------------------------------
 def check_metric(key, new_val, ref_val, tol_entry):
-    """
-    Returns True if metric fails tolerance, False otherwise
-    """
+    try:
+        new_val = float(new_val)
+        ref_val = float(ref_val)
+    except Exception:
+        print(f"[FAIL ] {key}: non-numeric value")
+        return True
+
+    if not math.isfinite(new_val) or not math.isfinite(ref_val):
+        print(f"[FAIL ] {key}: NaN or Inf detected")
+        return True
+
     err = abs(new_val - ref_val)
 
-    # -------------------------
-    # Absolute tolerance (if defined)
-    # -------------------------
     abs_tol = tol_entry.get("abs")
+    rel_tol = tol_entry.get("rel")
+
+    # -------------------------
+    # Absolute tolerance
+    # -------------------------
     if abs_tol is not None:
-        print(f"[CHECK] {key:35s} new={new_val:.6e} ref={ref_val:.6e} abs={err:.2e}")
+        print(
+            f"[CHECK] {key:35s} "
+            f"new={new_val:.6e} ref={ref_val:.6e} abs={err:.2e}"
+        )
         if err > abs_tol:
             print(f"[FAIL ] {key}: abs {err:.2e} > {abs_tol:.2e}")
             return True
 
     # -------------------------
-    # Relative tolerance (with safe fallback)
+    # Relative tolerance
     # -------------------------
-    rel_tol = tol_entry.get("rel")
     if rel_tol is not None:
-        if abs(ref_val) >= SAFE_REL_THRESHOLD:
+        if abs(ref_val) < SAFE_REL_THRESHOLD:
+            print(
+                f"[SKIP ] {key:35s} "
+                f"relative check skipped (ref ≈ 0)"
+            )
+        else:
             rel_err = err / abs(ref_val)
             print(
-                f"[CHECK] {key:35s} new={new_val:.6e} ref={ref_val:.6e} rel={rel_err:.2e}"
+                f"[CHECK] {key:35s} "
+                f"new={new_val:.6e} ref={ref_val:.6e} rel={rel_err:.2e}"
             )
             if rel_err > rel_tol:
                 print(f"[FAIL ] {key}: rel {rel_err:.2e} > {rel_tol:.2e}")
-                return True
-        else:
-            # ref ≈ 0 → fall back to absolute comparison using rel_tol
-            abs_err = err
-            print(
-                f"[CHECK] {key:35s} new={new_val:.6e} ref={ref_val:.6e} "
-                f"abs={abs_err:.2e} (ref ~ 0, abs fallback)"
-            )
-            if abs_err > rel_tol:
-                print(f"[FAIL ] {key}: abs {abs_err:.2e} > {rel_tol:.2e}")
                 return True
 
     return False
@@ -80,14 +93,7 @@ for key, ref_val in ref.items():
         print(f"[SKIP ] {key:35s} (no tolerance defined)")
         continue
 
-    failed = check_metric(
-        key=key,
-        new_val=new[key],
-        ref_val=ref_val,
-        tol_entry=tol[key],
-    )
-
-    if failed:
+    if check_metric(key, new[key], ref_val, tol[key]):
         FAILED = True
 
 

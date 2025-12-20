@@ -8,10 +8,12 @@ build/*.mod
 .obsolete/
 .tmp/
 .history/
-tests/**/*.bin
+tests/*/**
+!tests/*/*.sh
+!tests/*/*.ini
+!tests/*/*.DAT
+!tests/*/regression_test_metrics.json
 !tests/**/1_data/*outlet*.bin
-tests/**/*.xdmf
-tests/1_data/*outlet*.bin
 *.dat
 *.log
 *.png

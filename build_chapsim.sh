@@ -28,6 +28,12 @@ MAX_TIME=10  # Maximum wait time in seconds for user input
 INTERACTIVE_MODE=""  # Will be set based on user choice
 DECOMP_GIT_URL="https://github.com/2decomp-fft/2decomp-fft.git"
 
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  export PATH="/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+  export AR=/usr/bin/ar
+  export RANLIB=/usr/bin/ranlib
+fi
+
 # Define relative paths and repository URL
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REL_PATH_BUILD="$SCRIPT_DIR/build"
