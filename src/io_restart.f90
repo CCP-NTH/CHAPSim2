@@ -581,7 +581,6 @@ module io_field_interpolation_mod
         read(inputUnit, *, iostat = ioerr) varname, dm%nc(3)
         read(inputUnit, *, iostat = ioerr) varname, dm%istret
         read(inputUnit, *, iostat = ioerr) varname, dm%mstret, dm%rstret
-        read(inputUnit, *, iostat = ioerr) varname, dm%ifft_lib
       else
         exit
       end if

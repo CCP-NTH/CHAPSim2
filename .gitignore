@@ -29,7 +29,7 @@ tests/*/**
 !tests/*/*.sh
 !tests/*/*.ini
 !tests/*/*.DAT
-!tests/*/regression_test_metrics.json
+!tests/*/reference.json
 !tests/**/1_data/*outlet*.bin
 
 # ------------------------

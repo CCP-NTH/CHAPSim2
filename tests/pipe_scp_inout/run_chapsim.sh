@@ -12,7 +12,7 @@ rm -rf 2_*/ 3_*/ 4_*/
 # -------------------------------------------------
 RUN_MODE=${RUN_MODE:-regression}   # regression | smoke
 EXEC="../../bin/CHAPSim"
-NP=${NP:-4}   # allow override: NP=128 ./run.sh
+NP=${NP:-4}   # allow override: NP=128 ./run_chapsim.sh
 
 timestamp=$(date +'%Y-%m-%d_%H.%M')
 OUTPUT="output_chapsim2_${timestamp}.log"
