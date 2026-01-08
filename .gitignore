@@ -26,6 +26,7 @@ build/*.mod
 # Ignore everything recursively in tests, except specific files
 # ------------------------
 tests/*/**
+tests/*/regression_test_metrics.json
 !tests/*/*.sh
 !tests/*/*.ini
 !tests/*/*.DAT
