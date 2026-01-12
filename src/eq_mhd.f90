@@ -506,27 +506,26 @@ contains
   end subroutine
 
 !==========================================================================================================
-  subroutine check_current_conservation(mh, dm)
-    use find_max_min_ave_mod
-    use udf_type_mod
-    use decomp_2d
-    use wtformat_mod
-
-    implicit none
-    type(t_mhd),  intent(in) :: mh
-    type(t_domain), intent(in) :: dm
-    real(WP) :: net_jy, net_jx, net_jz
-
-    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, mh%jx, net_jx, SPACE_INTEGRAL, 'jx_current_density')
-    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, mh%jy, net_jy, SPACE_INTEGRAL, 'jy_current_density')
-    !call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, mh%jz, net_jz, SPACE_INTEGRAL, 'jz_current_density')
-
-    if (nrank == 0) then
-        !write (*, wrtfmt1el) 'electric current consv. (j_x) = ', net_jx
-        write (*, wrtfmt1el) 'electric current consv. (j_y) = ', net_jy
-        !write (*, wrtfmt1el) 'electric current consv. (j_z) = ', net_jz
-    end if
-
-  end subroutine
+!   use find_max_min_ave_mod
+!   use udf_type_mod
+!    use decomp_2d
+!    use wtformat_mod
+!
+!    implicit none
+!    type(t_mhd),  intent(in) :: mh
+!    type(t_domain), intent(in) :: dm
+!    real(WP) :: net_jy, net_jx, net_jz
+!
+!    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dpcc, mh%jx, net_jx, SPACE_INTEGRAL, 'jx_current_density')
+!    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, mh%jy, net_jy, SPACE_INTEGRAL, 'jy_current_density')
+!    call Get_volumetric_average_3d_for_var_xcx(dm, dm%dccp, mh%jz, net_jz, SPACE_INTEGRAL, 'jz_current_density')
+!
+!    if (nrank == 0) then
+!        write (*, wrtfmt1el) 'electric current consv. (j_x) = ', net_jx
+!        write (*, wrtfmt1el) 'electric current consv. (j_y) = ', net_jy
+!        write (*, wrtfmt1el) 'electric current consv. (j_z) = ', net_jz
+!    end if
+!
+! end subroutine
 
 end module
