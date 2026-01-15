@@ -209,6 +209,8 @@ contains
           dummy = EXP( CoM_Li(-1) + CoM_Li(0) * LOG(t1) + (CoM_Li(1) / t1) )
         case (ILIQUID_FLIBE)
           dummy = CoM_FLiBe(0) * EXP (CoM_FLiBe(-1) / t1)
+        case (ILIQUID_PBLI)
+          dummy = CoM_PbLi(0) + CoM_PbLi(1) * t1 + CoM_PbLi(2) * t1**2 + CoM_PbLi(3) * t1**3
         case default
           dummy = EXP( CoM_Na(-1) / t1 + &
                        CoM_Na(0) + &
@@ -331,6 +333,8 @@ contains
           dummy = EXP( CoM_Li(-1) + CoM_Li(0) * LOG(t1) + (CoM_Li(1) / t1) )
         case (ILIQUID_FLIBE)
           dummy = CoM_FLiBe(0) * EXP (CoM_FLiBe(-1) / t1)
+        case (ILIQUID_PBLI)
+          dummy = CoM_PbLi(0) + CoM_PbLi(1) * t1 + CoM_PbLi(2) * t1**2 + CoM_PbLi(3) * t1**3
         case default
           dummy = EXP( CoM_Na(-1) / t1 + CoM_Na(0) + CoM_Na(1) * LOG(t1) )
       end select
@@ -1071,6 +1075,19 @@ contains
       fluidparam%CoCp(-2:2) = CoCp_FLiBe(-2:2)
       fluidparam%CoH(-1:3) = CoH_FLiBe(-1:3)
       fluidparam%CoM(-1:1) = CoM_FLiBe(-1:1)
+
+      case (ILIQUID_PBLI)
+      fluidparam%nlist = N_FUNC2TABLE
+      fluidparam%ipropertyState = IPROPERTY_FUNCS
+      fluidparam%TM0 = TM0_PbLi
+      fluidparam%TB0 = TB0_PbLi
+      fluidparam%HM0 = HM0_PbLi
+      fluidparam%CoD(0:1) = CoD_PbLi(0:1)
+      fluidparam%CoK(0:2) = CoK_PbLi(0:2)
+      fluidparam%CoB = CoB_PbLi
+      fluidparam%CoCp(-2:2) = CoCp_PbLi(-2:2)
+      fluidparam%CoH(-1:3) = CoH_PbLi(-1:3)
+      fluidparam%CoM(0:3) = CoM_PbLi(0:3)
 
     case default
       fluidparam%nlist = N_FUNC2TABLE

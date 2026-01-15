@@ -229,6 +229,8 @@ contains
       str = 'Liquid Lithium'
     case ( ILIQUID_FLIBE)
       str = 'Liquid FLiBe (2:1 LiF:BeF2)'
+    case (ILIQUID_PBLI )
+      str = 'Liquid PbLi Eutectic'
     case default
       call Print_error_msg('The required flow medium is not supported.')
     end select

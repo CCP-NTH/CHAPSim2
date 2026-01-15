@@ -337,7 +337,7 @@ subroutine Solve_eqs_iteration
       if(is_flow(i)) then
         call Check_element_mass_conservation(flow(i), domain(i), iter)
         !if(domain(1)%is_mhd) then
-        !  call check_current_conservation(mhd(i), domain(i))
+          call check_current_conservation(mhd(i), domain(i))
         !end if
         if(is_thermo(i)) then
           call Find_max_min_3d(thermo(i)%tTemp, opt_name="T :")
