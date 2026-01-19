@@ -938,7 +938,7 @@ contains
     ! cross session conditions
     !----------------------------------------------------------------------------------------------------------
     if((.not. domain(1)%is_periodic(2)) .and. is_any_energyeq) then
-      domain(:)%fft_skip_c2c(2) = .true.
+      !domain(:)%fft_skip_c2c(2) = .true.
     end if
     if(domain(1)%icoordinate == ICYLINDRICAL) then
       domain(:)%fft_skip_c2c(2) = .true.
