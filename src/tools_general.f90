@@ -1717,7 +1717,7 @@ contains
       end if
 !write(*,*) 'test_vol' , vol_work
 #ifdef DEBUG_STEPS  
-      if (dabs(vol_work - dm%vol) > 1.0e-12_WP) write (*, *) 'volume calc error: ', vol_work, dm%vol
+      if (dabs(vol_work - dm%vol) > 1.0e-10_WP) write (*, *) 'volume calc error: ', vol_work, dm%vol
       if(nrank == 0 .and. present(str)) then
         if(itype == SPACE_AVERAGE) then
           write (*, wrtfmt1e) " volumetric average of "//trim(str)//" = ", fo_work

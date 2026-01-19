@@ -419,25 +419,25 @@ contains
     call transpose_x_to_y (fl%qx, apcc_ypencil, dm%dpcc) !apcc_ypencil = qx_ypencil
     call Get_y_1der_C2P_3D(apcc_ypencil, qxdy_ppc_ypencil, dm, dm%iAccuracy, dm%ibcy_qx, dm%fbcy_qx)
     !
-#ifdef DEBUG_STEPS  
-    ! serial only
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qxdy_ppc_ypencil', qxdy_ppc_ypencil(4, 1, 4),  qxdy_ppc_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qxdy_ppc_ypencil(4, 1, 4)+qxdy_ppc_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qxdy_ppc_ypencil', qxdy_ppc_ypencil(4, 1, 4),  qxdy_ppc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qxdy_ppc_ypencil(4, 1, 4)+qxdy_ppc_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
     !
     call transpose_y_to_x(qxdy_ppc_ypencil, qxdy_ppc_xpencil, dm%dppc)
     !
     call Get_y_midp_C2P_3D(apcc_ypencil, qxiy_ppc_ypencil, dm, dm%iAccuracy, dm%ibcy_qx, dm%fbcy_qx) ! for x-mom
     !call axis_estimating_radial_xpx(qxiy_ppc_ypencil, dm%dppc, IPENCIL(2), dm, IDIM(1))
-#ifdef DEBUG_STEPS  
-    ! serial only
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qxiy_ppc_ypencil', qxiy_ppc_ypencil(4, 1, 4),  qxiy_ppc_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qxiy_ppc_ypencil(4, 1, 4)-qxiy_ppc_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qxiy_ppc_ypencil', qxiy_ppc_ypencil(4, 1, 4),  qxiy_ppc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qxiy_ppc_ypencil(4, 1, 4)-qxiy_ppc_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
     !
     if(.not. dm%is_thermo) then
       call transpose_y_to_x (qxiy_ppc_ypencil, qxiy_ppc_xpencil, dm%dppc)
@@ -509,12 +509,13 @@ contains
     end if
     !
     call transpose_x_to_y (fl%qy, acpc_ypencil, dm%dcpc) !acpc_ypencil = qy_ypencil
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qy_ypencil', acpc_ypencil(4, 1, 4),  acpc_ypencil(4, 1, dm%knc_sym(4)) , &
-                  acpc_ypencil(4, 1, 4)-acpc_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qy_ypencil', acpc_ypencil(4, 1, 4),  acpc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   acpc_ypencil(4, 1, 4)-acpc_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
     call Get_y_1der_P2C_3D(acpc_ypencil, qydy_ccc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy, dm%fbcy_qy)
     !
     call Get_y_midp_P2C_3D(acpc_ypencil, qyiy_ccc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy, dm%fbcy_qy)
@@ -594,21 +595,23 @@ contains
     call transpose_x_to_y(fl%qz, accp_ypencil, dm%dccp) ! qz_ypencil
     call Get_y_midp_C2P_3D(accp_ypencil, qziy_cpp_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_qz) ! z-mom
     !call axis_estimating_radial_xpx(qziy_cpp_ypencil, dm%dcpp, IPENCIL(2), dm, IDIM(3))
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qziy_cpp_ypencil', qziy_cpp_ypencil(4, 1, 4),  qziy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qziy_cpp_ypencil(4, 1, 4)+qziy_cpp_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qziy_cpp_ypencil', qziy_cpp_ypencil(4, 1, 4),  qziy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qziy_cpp_ypencil(4, 1, 4)+qziy_cpp_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
     !
     call Get_y_1der_C2P_3D(accp_ypencil, qzdy_cpp_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_qz) ! check !
     !if(dm%icase == ICASE_PIPE) qzdy_cpp_ypencil(:, 1, :) = ZERO ! check , test
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qzdy_cpp_ypencil', qzdy_cpp_ypencil(4, 1, 4),  qzdy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qzdy_cpp_ypencil(4, 1, 4)-qzdy_cpp_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qzdy_cpp_ypencil', qzdy_cpp_ypencil(4, 1, 4),  qzdy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qzdy_cpp_ypencil(4, 1, 4)-qzdy_cpp_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
 !qzdy_cpp_ypencil(:, 1, :) = ZERO ! check , test
 !write(*,*) 'qzdy_cpp_ypencil', qzdy_cpp_ypencil(4, 1, 1), qzdy_cpp_ypencil(4, 1, dm%knc_sym(1)) ! correct, symmetric
     !
@@ -651,12 +654,13 @@ contains
       end if
       call Get_z_1der_P2C_3D(acpp_zpencil, acpc_zpencil, dm, dm%iAccuracy, dm%ibcz_qz, fbcz_cp4) !acpc_zpencil = qzdz
       call transpose_z_to_y(acpc_zpencil, qzdz_cpc_ypencil, dm%dcpc)
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qzdz_cpc_ypencil', qzdz_cpc_ypencil(4, 1, 4),  qzdz_cpc_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qzdz_cpc_ypencil(4, 1, 4)+qzdz_cpc_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qzdz_cpc_ypencil', qzdz_cpc_ypencil(4, 1, 4),  qzdz_cpc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qzdz_cpc_ypencil(4, 1, 4)+qzdz_cpc_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
     end if
 
     if(is_fbcz_velo_required) then
@@ -698,12 +702,13 @@ contains
       call transpose_x_to_y (fl%gx, apcc_ypencil, dm%dpcc) !gx_ypencil
       call Get_y_midp_C2P_3D(apcc_ypencil, appc_ypencil, dm, dm%iAccuracy, dm%ibcy_qx, dm%fbcy_gx)
       !call axis_estimating_radial_xpx(appc_ypencil, dm%dppc, IPENCIL(2), dm, IDIM(1))
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'gxiy_ppc_ypencil', appc_ypencil(4, 1, 4),  appc_ypencil(4, 1, dm%knc_sym(4)) , &
-                  appc_ypencil(4, 1, 4)-appc_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'gxiy_ppc_ypencil', appc_ypencil(4, 1, 4),  appc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   appc_ypencil(4, 1, 4)-appc_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
       call transpose_y_to_x (appc_ypencil, gxiy_ppc_xpencil, dm%dppc)
       !
       call transpose_y_to_z (apcc_ypencil, apcc_zpencil, dm%dpcc)!gx_zpencil
@@ -751,12 +756,13 @@ contains
       call transpose_x_to_y(fl%gz, accp_ypencil, dm%dccp) ! gz_ypencil
       call Get_y_midp_C2P_3D(accp_ypencil, gziy_cpp_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_gz)
       !call axis_estimating_radial_xpx(acpp_ypencil, dm%dcpp, IPENCIL(2), dm, IDIM(3))
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'gziy_cpp_ypencil', gziy_cpp_ypencil(4, 1, 4),  gziy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
-                  gziy_cpp_ypencil(4, 1, 4)-gziy_cpp_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS 
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'gziy_cpp_ypencil', gziy_cpp_ypencil(4, 1, 4),  gziy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   gziy_cpp_ypencil(4, 1, 4)-gziy_cpp_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
       call transpose_y_to_z(gziy_cpp_ypencil, gziy_cpp_zpencil, dm%dcpp)
       !
       call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp) ! gz_zpencil
@@ -803,12 +809,13 @@ contains
       !
       call Get_y_midp_C2P_3D(mu_ccc_ypencil, acpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp, fbcy_c4c)
       !call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(1))
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'mu_cpc_ypencil', acpc_ypencil(4, 1, 4),  acpc_ypencil(4, 1, dm%knc_sym(4)) , &
-                  acpc_ypencil(4, 1, 4)-acpc_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'mu_cpc_ypencil', acpc_ypencil(4, 1, 4),  acpc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   acpc_ypencil(4, 1, 4)-acpc_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
       call transpose_y_to_x(acpc_ypencil, acpc_xpencil, dm%dcpc) !acpc_xpencil = muiy_cpc_xpencil
       if(is_fbcx_velo_required) call get_fbcx_ftp_4pc(fbcx_4cc, fbcx_4pc, dm)
       call Get_x_midp_C2P_3D(acpc_xpencil, muixy_ppc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp, fbcx_4pc)
@@ -865,12 +872,13 @@ contains
       call transpose_x_to_y(acpc_xpencil, qyr_ypencil, dm%dcpc) ! acpc_ypencil = qyr_ypencil
       !qyr_ypencil(:, 1, :) = dm%fbcy_qyr(:, 1, :)
       call axis_estimating_radial_xpx(qyr_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(2), is_reversed = .true.)
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qyr_ypencil', qyr_ypencil(4, 1, 4),  qyr_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qyr_ypencil(4, 1, 4)-qyr_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qyr_ypencil', qyr_ypencil(4, 1, 4),  qyr_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qyr_ypencil(4, 1, 4)-qyr_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
       !
       call Get_y_midp_P2C_3D(qyr_ypencil, qyriy_ccc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy, dm%fbcy_qyr)
       !
@@ -892,12 +900,13 @@ contains
       call transpose_x_to_y(acpc_xpencil, qyr2_ypencil, dm%dcpc) ! acpc_ypencil = qr/r^2_ypencil
       call axis_estimating_radial_xpx(qyr2_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(2), is_reversed = .true.)
 !write(*,*) 'qyr2_ypencil', qyr2_ypencil(4, 1, 1:4)
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qyr2_ypencil', qyr2_ypencil(4, 1, 4),  qyr2_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qyr2_ypencil(4, 1, 4)+qyr2_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qyr2_ypencil', qyr2_ypencil(4, 1, 4),  qyr2_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qyr2_ypencil(4, 1, 4)+qyr2_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
       !
       call transpose_y_to_z(qyr2_ypencil, acpc_zpencil, dm%dcpc)
       call Get_z_1der_C2P_3D(acpc_zpencil, qyr2dz_cpp_zpencil, dm, dm%iAccuracy, dm%ibcz_qy, dm%fbcz_qyr) ! to check, this bc is not used for peridoic z
@@ -919,27 +928,28 @@ contains
        call transpose_x_to_y(accp_xpencil, accp_ypencil, dm%dccp)
        call Get_y_midp_C2P_3D(accp_ypencil, qzriy_cpp_ypencil, dm, dm%iAccuracy, dm%ibcy_qz, dm%fbcy_qzr)
        !call axis_estimating_radial_xpx(qzriy_cpp_ypencil, dm%dcpp, IPENCIL(2), dm, IDIM(0))
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qzriy_cpp_ypencil', qzriy_cpp_ypencil(4, 1, 4),  qzriy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qzriy_cpp_ypencil(4, 1, 4)+qzriy_cpp_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qzriy_cpp_ypencil', qzriy_cpp_ypencil(4, 1, 4),  qzriy_cpp_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qzriy_cpp_ypencil(4, 1, 4)+qzriy_cpp_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
        call transpose_y_to_z(qzriy_cpp_ypencil, qzriy_cpp_zpencil, dm%dcpp)
       !
       if(is_fbcy_velo_required) then
         call Get_z_1der_P2C_3D(qzriy_cpp_zpencil, acpc_zpencil, dm, dm%iAccuracy, dm%ibcz_qz) ! accc_zpencil = d(qz/r)/dz
         call transpose_z_to_y(acpc_zpencil, qzrdz_cpc_ypencil, dm%dcpc)
       end if
-#ifdef DEBUG_STEPS
- 
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) 'qzrdz_cpc_ypencil', qzrdz_cpc_ypencil(4, 1, 4),  qzrdz_cpc_ypencil(4, 1, dm%knc_sym(4)) , &
-                  qzrdz_cpc_ypencil(4, 1, 4)+qzrdz_cpc_ypencil(4, 1, dm%knc_sym(4))
-    end if
+! #ifdef DEBUG_STEPS
+!     ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) 'qzrdz_cpc_ypencil', qzrdz_cpc_ypencil(4, 1, 4),  qzrdz_cpc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   qzrdz_cpc_ypencil(4, 1, 4)+qzrdz_cpc_ypencil(4, 1, dm%knc_sym(4))
+!     end if
 
-      call Print_debug_mid_msg('qzr preparation ... done.')
-#endif
+!       call Print_debug_mid_msg('qzr preparation ... done.')
+! #endif
     end if
 !==========================================================================================================
 ! preparation of div
@@ -991,12 +1001,13 @@ contains
       if(dm%icoordinate == ICYLINDRICAL) &
       call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rpi, 1, IPENCIL(2)) ! (qydy)/r_cpc_ypencil
       call axis_estimating_radial_xpx(acpc_ypencil, dm%dcpc, IPENCIL(2), dm, IDIM(2), is_reversed = .true.)
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-      write(*,*) '(qydy)/r_cpc_ypencil', acpc_ypencil(4, 1, 4),  acpc_ypencil(4, 1, dm%knc_sym(4)) , &
-                  acpc_ypencil(4, 1, 4)+acpc_ypencil(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!       ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!       write(*,*) '(qydy)/r_cpc_ypencil', acpc_ypencil(4, 1, 4),  acpc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                   acpc_ypencil(4, 1, 4)+acpc_ypencil(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
       call extract_dirichlet_fbcy(fbcy_div_c4c1, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
       fbcy_div_c4c = fbcy_div_c4c + fbcy_div_c4c1
 
@@ -1354,14 +1365,15 @@ contains
         call Get_z_midp_P2C_3D(qziy_cpp_zpencil, acpc_zpencil, dm, dm%iAccuracy, dm%ibcz_qz)
         call transpose_z_to_y(acpc_zpencil, acpc_ypencil, dm%dcpc)
         call extract_dirichlet_fbcy(fbcy_c4c1, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.) !  check how to do this for interior b.c.
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-        write(*,*) 'qziz_cpc_ypencil', acpc_ypencil(4, 1, 4),  acpc_ypencil(4, 1, dm%knc_sym(4)) , &
-                    acpc_ypencil(4, 1, 4)+acpc_ypencil(4, 1, dm%knc_sym(4))
-        write(*,*) 'fbcy_c4c1', fbcy_c4c1(4, 1, 4),  fbcy_c4c1(4, 1, dm%knc_sym(4)) , &
-                    fbcy_c4c1(4, 1, 4)+fbcy_c4c1(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!         ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!         write(*,*) 'qziz_cpc_ypencil', acpc_ypencil(4, 1, 4),  acpc_ypencil(4, 1, dm%knc_sym(4)) , &
+!                     acpc_ypencil(4, 1, 4)+acpc_ypencil(4, 1, dm%knc_sym(4))
+!         write(*,*) 'fbcy_c4c1', fbcy_c4c1(4, 1, 4),  fbcy_c4c1(4, 1, dm%knc_sym(4)) , &
+!                     fbcy_c4c1(4, 1, 4)+fbcy_c4c1(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
         if ( .not. dm%is_thermo) then
           fbcy_c4c = fbcy_c4c1
         else
@@ -1374,12 +1386,13 @@ contains
       else 
         fbcy_c4c = MAXP
       end if
-#ifdef DEBUG_STEPS  
-    if(dm%icase == ICASE_PIPE) then
-        write(*,*) 'fbcy_c4c', fbcy_c4c(4, 1, 4),  fbcy_c4c(4, 1, dm%knc_sym(4)) , &
-                    fbcy_c4c(4, 1, 4)+fbcy_c4c(4, 1, dm%knc_sym(4))
-    end if
-#endif
+! #ifdef DEBUG_STEPS  
+!         ! serial only
+!     if(dm%icase == ICASE_PIPE) then
+!         write(*,*) 'fbcy_c4c', fbcy_c4c(4, 1, 4),  fbcy_c4c(4, 1, dm%knc_sym(4)) , &
+!                     fbcy_c4c(4, 1, 4)+fbcy_c4c(4, 1, dm%knc_sym(4))
+!     end if
+! #endif
       !------bulk-----
       if ( .not. dm%is_thermo) then
         accc_ypencil = qziz_ccc_ypencil
