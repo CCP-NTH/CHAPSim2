@@ -227,6 +227,10 @@ contains
       str = 'Liquid Water'
     case ( ILIQUID_LITHIUM)
       str = 'Liquid Lithium'
+    case ( ILIQUID_FLIBE)
+      str = 'Liquid FLiBe (2:1 LiF:BeF2)'
+    case (ILIQUID_PBLI )
+      str = 'Liquid PbLi Eutectic'
     case default
       call Print_error_msg('The required flow medium is not supported.')
     end select
@@ -938,7 +942,9 @@ contains
     ! cross session conditions
     !----------------------------------------------------------------------------------------------------------
     if((.not. domain(1)%is_periodic(2)) .and. is_any_energyeq) then
-      !domain(:)%fft_skip_c2c(2) = .true.
+      ! check!
+      if(domain(1)%is_periodic(1)) &
+      domain(:)%fft_skip_c2c(2) = .true.
     end if
     if(domain(1)%icoordinate == ICYLINDRICAL) then
       domain(:)%fft_skip_c2c(2) = .true.

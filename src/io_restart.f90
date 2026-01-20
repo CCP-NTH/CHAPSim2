@@ -187,10 +187,12 @@ contains
     if(.not. dm%is_record_xoutlet) return
     if(fl%iteration < dm%ndbstart) return
 
-    ! if dm%ndbfre = 10, and start from 16
+    ! if dm%ndbfre = 10, and start from 36 to 65
     ! store : 
-    !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
-    !        niter:  1,  2,  3,..., 0
+    !     To store: 36, 37, 38,...,44, 45 at file 10*(iter=0)
+    !     To store: 46, 47, 48,...,54, 55 at file 10*(iter=1)
+    !     To store: 56, 57, 58,...,64, 65 at file 10*(iter=2)
+    !        niter: 1,  2,  3, ..., 9, 0
     niter = mod(fl%iteration - dm%ndbstart + 1, dm%ndbfre) !
     if(niter == 1) then ! re-initialize at begin of each cycle
       dm%fbcx_qx_outl1 = MAXP
@@ -289,13 +291,12 @@ contains
 
     call append_instantaneous_xoutlet(fl, dm, niter)
 
-    ! if dm%ndbfre = 10, and start from 16
+    ! if dm%ndbfre = 10, and start from 36 to 65
     ! store : 
-    !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
-    !        niter:  1,  2,  3,..., 0->10
-    !     To store: 26, 27, 28,..., 35 (MOD: 1, 2, ..., 0)
-    !        niter:  1,  2,  3,..., 0->10
-    !    file name: 10, 20, ... 
+    !     To store: 36, 37, 38,...,44, 45 at file 10*(iter=0)
+    !     To store: 46, 47, 48,...,54, 55 at file 10*(iter=1)
+    !     To store: 56, 57, 58,...,64, 65 at file 10*(iter=2)
+    !        niter: 1,  2,  3, ..., 9, 0
     !write(*,*) 'iter, niter', fl%iteration, niter
     if(niter == dm%ndbfre) then
       if( mod(fl%iteration - dm%ndbstart + 1, dm%ndbfre) /= 0 .and. nrank == 0) &
@@ -328,6 +329,7 @@ contains
 !==========================================================================================================
   subroutine assign_instantaneous_xinlet(fl, dm)
     use convert_primary_conservative_mod
+    use typeconvert_mod
     implicit none 
     type(t_flow), intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
@@ -338,16 +340,10 @@ contains
     ! based on x pencil
     if(.not. dm%is_read_xinlet) return
 
-    if(fl%iteration > dm%ndbend) then
-      iter = mod(fl%iteration, dm%ndbend) ! database recycle
-    else if (fl%iteration == 0) then
-      iter = 1
-    else
-      iter = fl%iteration
-    end if
+    iter = max(1, fl%iteration)
+    iter = mod(iter-1, dm%ndbfre) + 1
 
-    iter = mod(iter, dm%ndbfre)
-    if(iter == 0) iter = dm%ndbfre
+    if (nrank == 0) call Print_debug_mid_msg("inlet at iteration " &
 
     if(dm%ibcx_nominal(1, 1) == IBC_DATABASE) then
       dtmp = dm%dpcc
@@ -448,36 +444,41 @@ contains
     type(t_domain), intent(inout) :: dm
     
     character(64):: data_flname_path
-    integer :: idom, iter, niter, j, nmax
+    integer :: iter, niter, nblock, nblocks
 
 
     if(.not. dm%is_read_xinlet) return
-
-
-    ! if dm%ndbfre = 10, and start from 16
+    ! ----------------------------------------------------------------------------
+    ! if dm%ndbfre = 10, and start from 36 to 65
     ! store : 
-    !     To store: 16, 17, 18,..., 25 (MOD: 1, 2, ..., 0)
-    !        niter:  1,  2,  3,..., 0
-    !    file name: 10, 20, 45 ...
-
+    !     To store: 36, 37, 38,...,44, 45 at file 10*1 at block = 1
+    !     To store: 46, 47, 48,...,54, 55 at file 10*2 at block = 2
+    !     To store: 56, 57, 58,...,64, 65 at file 10*3 at block = 3
+    !        niter: 1,  2,  3, ..., 9, 0
+    ! read: 
+    !     iter = 1, 2, 3, ...10, read file 10*1 at block = 1
+    !     iter = 11, 12, ...,20, read file 10*2 at block = 2
+    !     iter = 21, 22, ...,30, read file 10*3 at block = 3
+    !     iter = 31, 32, ...,40, read file 10*1 at block = 1
+    ! ----------------------------------------------------------------------------
     iter = fl%iteration
-    nmax = ((dm%ndbend - dm%ndbstart + 1) / dm%ndbfre) * dm%ndbfre
-    if(iter > nmax) then
-      iter = mod(iter, nmax) ! database recycle
-    end if
-
-    if(mod(iter, dm%ndbfre) == 1 .or. &
-       iter == 0) then
-
-      if (iter == 0) then
-        niter = dm%ndbfre
-      else
-        niter = (iter + dm%ndbfre)/dm%ndbfre * dm%ndbfre
-      end if
-
-      !if(niter > dm%ndbend) niter = dm%ndbstart + dm%ndbfre - 1
+    ! ----------------------------------------------------------------------------
+    ! Total number of blocks written
+    ! ----------------------------------------------------------------------------
+    nblocks = (dm%ndbend - dm%ndbstart + 1) / dm%ndbfre
+    if ((dm%ndbend - dm%ndbstart + 1) > nblocks*dm%ndbfre) nblocks = nblocks + 1
+    ! ----------------------------------------------------------------------------
+    ! Determine which block this iteration belongs to
+    ! ----------------------------------------------------------------------------
+    nblock = mod((iter - 1) / dm%ndbfre, nblocks)
+    ! ----------------------------------------------------------------------------
+    ! Only read if current iteration is the first of the block
+    ! ----------------------------------------------------------------------------
+    if (mod(iter-1, dm%ndbfre)==0 .or. iter == (fl%iterfrom+1)) then
+        niter = dm%ndbfre * (nblock + 1)
 
       if(nrank == 0) call Print_debug_mid_msg("Read inlet database at iteration "&
+            //trim(int2str(iter))//' mapped to file name ='//trim(int2str(niter)))
         //trim(int2str(iter))//'/'//trim(int2str(niter)))
       call read_one_3d_array(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, niter, dm%dxcc)
       call read_one_3d_array(dm%fbcx_qx_inl2, 'outlet2_qx', dm%idom, niter, dm%dxcc)
@@ -487,19 +488,12 @@ contains
       call read_one_3d_array(dm%fbcx_qz_inl2, 'outlet2_qz', dm%idom, niter, dm%dxcp)
       !call read_one_3d_array(dm%fbcx_pr_inl1, 'outlet1_pr', dm%idom, niter, dm%dxcc)
       !call read_one_3d_array(dm%fbcx_pr_inl2, 'outlet2_pr', dm%idom, niter, dm%dxcc)
-! #ifdef DEBUG_STEPS
-      !write(*,*) 'inlet bc1', niter, dm%fbcx_qx_inl1(:, 32, 1)
-      !write(*,*) 'inlet bc2', niter, dm%fbcx_qx_inl1(:, 32, 32)
-      ! write(*,*) 'inlet bc1-end', niter, dm%fbcx_qx_inl1(niter, :, 1)
-      ! write(*,*) 'inlet bc2-end', niter, dm%fbcx_qx_inl1(niter, :, 32)
-      ! do j = 1, dm%dpcc%xsz(2)
-      !   write(*,*) dm%dpcc%xst(2) + j - 1, &
-      !   dm%fbcx_qx_inl1(niter, j, 1:64)
-      ! end do
-! #endif
     end if
 
-    call assign_instantaneous_xinlet(fl, dm) ! every iteration
+    ! ----------------------------------------------------------------------------
+    ! Assign inlet data for every iteration (after reading block)
+    ! ----------------------------------------------------------------------------
+    call assign_instantaneous_xinlet(fl, dm)
 
     return
   end subroutine
@@ -581,6 +575,7 @@ module io_field_interpolation_mod
         read(inputUnit, *, iostat = ioerr) varname, dm%nc(3)
         read(inputUnit, *, iostat = ioerr) varname, dm%istret
         read(inputUnit, *, iostat = ioerr) varname, dm%mstret, dm%rstret
+        !read(inputUnit, *, iostat = ioerr) varname, dm%ifft_lib
       else
         exit
       end if

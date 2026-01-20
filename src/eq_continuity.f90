@@ -355,6 +355,9 @@ contains
       if(fl%mcon(1) > 1.0_WP .and. fl%iteration > 10000 ) &
       call Print_error_msg("Mass conservation is not strictly satisfied at the machine precision level.")
     end if
+    if (nrank == 0) then
+      write (*, wrtfmt1el) 'global mass flux imbalance = ', fl%tt_mass_change
+    end if
     !----------------------------------------------------------------
     ! turn on numerical tricks based on mass conservation residual
     !----------------------------------------------------------------

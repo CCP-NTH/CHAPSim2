@@ -293,7 +293,9 @@ module parameters_constant_mod
                         ILIQUID_BISMUTH = 5, &
                         ILIQUID_LBE     = 6, &
                         ILIQUID_WATER   = 7, & ! to be updated
-                        ILIQUID_LITHIUM = 8 
+                        ILIQUID_LITHIUM = 8, &
+                        ILIQUID_FLIBE   = 9, &
+                        ILIQUID_PBLI    = 10
 !----------------------------------------------------------------------------------------------------------
 ! physical property
 !---------------------------------------------------------------------------------------------------------- 
@@ -311,6 +313,8 @@ module parameters_constant_mod
   real(WP), parameter :: TM0_LBE = 398.0_WP  ! unit: K, melting temperature at 1 atm for LBE
   real(WP), parameter :: TM0_H2O = 273.15_WP ! unit: K, melting temperature at 1 atm for water
   real(WP), parameter :: TM0_Li  = 453.65_WP ! unit: K, melting temperature at 1 atm for Lithium
+  real(WP), parameter :: TM0_FLiBe = 732.1_WP ! unit: K, melting temperature at 1 atm for FLiBe
+  real(WP), parameter :: TM0_PbLi = 508.0_WP ! unit: K, melting temperature at 1 atm for PbLi-17
 
   real(WP), parameter :: TB0_Na  = 1155.0_WP ! unit: K, boling temperature at 1 atm for Na
   real(WP), parameter :: TB0_Pb  = 2021.0_WP ! unit: K, boling temperature at 1 atm for Lead
@@ -318,6 +322,8 @@ module parameters_constant_mod
   real(WP), parameter :: TB0_LBE = 1927.0_WP ! unit: K, boling temperature at 1 atm for LBE
   real(WP), parameter :: TB0_H2O = 373.15_WP ! unit: K, boling temperature at 1 atm for water
   real(WP), parameter :: TB0_Li  = 1615.0_WP ! unit: K, boling temperature at 1 atm for Lithium
+  real(WP), parameter :: TB0_FLiBe = 1703.0_WP ! unit: K, boling temperature at 1 atm for FLiBe
+  real(WP), parameter :: TB0_PbLi = 1943.0_WP ! unit: K, boling temperature at 1 atm for PbLi-17
 
   real(WP), parameter :: HM0_Na  = 113.0e3_WP ! unit: J / Kg, latent melting heat, enthalpy for Na
   real(WP), parameter :: HM0_Pb  = 23.07e3_WP ! unit: J / Kg, latent melting heat, enthalpy for Lead
@@ -325,6 +331,8 @@ module parameters_constant_mod
   real(WP), parameter :: HM0_LBE =  38.6e3_WP ! unit: J / Kg, latent melting heat, enthalpy for LBE
   real(WP), parameter :: HM0_H2O = 334.0e3_WP ! unit: J / Kg, latent melting heat, enthalpy for water
   real(WP), parameter :: HM0_Li  =  4.55e5_WP  ! unit: J / Kg, latent melting heat, enthalpy for Lithium
+  real(WP), parameter :: HM0_FLiBe = 17.47e5_WP ! integral(Cp(TM0))
+  real(WP), parameter :: HM0_PbLi = 33.9e3_WP ! unit: J / Kg, latent melting heat, enthalpy for PbLi-17
 
   ! D = CoD(0) + CoD(1) * T
   real(WP), parameter :: CoD_Na(0:1)  = (/ 1014.0_WP,  -0.235_WP /)
@@ -332,6 +340,8 @@ module parameters_constant_mod
   real(WP), parameter :: CoD_Bi(0:1)  = (/10725.0_WP,   -1.22_WP /)
   real(WP), parameter :: CoD_LBE(0:1) = (/11065.0_WP,   1.293_WP /)
   real(WP), parameter :: CoD_Li(0:4)  = (/278.5_WP,  -0.04657_WP, 274.6_WP, 3500.0_WP, 0.467_WP /) ! D = CoD(0) + CoD(1) * T + CoD(2) * (1 - T / CoD(3))^(CoD(4))
+  real(WP), parameter :: CoD_FLiBe(0:1) = (/ 2413.03_WP, -0.4884_WP /)
+  real(WP), parameter :: CoD_PbLi(0:1) = (/10520.4_WP, -1.1905_WP/)
 
   ! K = CoK(0) + CoK(1) * T + CoK(2) * T^2
   real(WP), parameter :: CoK_Na(0:2)  = (/104.0_WP,   -0.047_WP,       0.0_WP/)
@@ -339,6 +349,8 @@ module parameters_constant_mod
   real(WP), parameter :: CoK_Bi(0:2)  = (/ 7.34_WP,   9.5E-3_WP,       0.0_WP/)
   real(WP), parameter :: CoK_LBE(0:2) = (/3.284_WP, 1.617E-2_WP, -2.305E-6_WP/)
   real(WP), parameter :: CoK_Li(0:2)  = (/22.28_WP,   0.0500_WP, -1.243E-5_WP/)
+  real(WP), parameter :: CoK_FLiBe(0:2) = (/1.1_WP,      0.0_WP,       0.0_WP/)
+  real(WP), parameter :: CoK_PbLi(0:2) = (/9.148_WP, 1.963E-2_WP,      0.0_WP/)
 
   ! B = 1 / (CoB - T)
   real(WP), parameter :: CoB_Na = 4316.0_WP
@@ -346,6 +358,8 @@ module parameters_constant_mod
   real(WP), parameter :: CoB_BI = 8791.0_WP
   real(WP), parameter :: CoB_LBE= 8558.0_WP
   real(WP), parameter :: CoB_Li = 5620.0_WP
+  real(WP), parameter :: CoB_FLiBe = 4940.7_WP
+  real(WP), parameter :: CoB_PbLi = 8836.8_WP
 
   ! Cp = CoCp(-2) * T^(-2) + CoCp(-1) * T^(-1) + CoCp(0) + CoCp(1) * T + CoCp(2) * T^2
   real(WP), parameter :: CoCp_Na(-2:2) = (/-3.001e6_WP, 0.0_WP, 1658.0_WP,   -0.8479_WP, 4.454E-4_WP/)
@@ -353,6 +367,8 @@ module parameters_constant_mod
   real(WP), parameter :: CoCp_Bi(-2:2) = (/ 7.183e6_WP, 0.0_WP,  118.2_WP,  5.934E-3_WP,      0.0_WP/)
   real(WP), parameter :: CoCp_LBE(-2:2)= (/-4.56e5_WP, 0.0_WP,  164.8_WP, - 3.94E-2_WP,  1.25E-5_WP/)
   real(WP), parameter :: CoCp_Li(-2:2) = (/    0.0_WP, 0.0_WP, 4754.0_WP,  -9.25E-1_WP,  2.91E-4_WP/)
+  real(WP), parameter :: CoCp_FLiBe(-2:2) = (/ 0.0_WP, 0.0_WP, 2386.0_WP,       0.0_WP,      0.0_WP/)
+  real(WP), parameter :: CoCp_PbLi(-2:2) = (/  0.0_WP, 0.0_WP,  195.0_WP, -9.116E-3_WP,      0.0_WP/)
 
   ! H = HM0 + CoH(-1) * (1 / T - 1 / TM0) + CoH(0) + CoH(1) * (T - TM0) +  CoH(2) * (T^2 - TM0^2) +  CoH(3) * (T^3- TM0^3)
   real(WP), parameter :: CoH_Na(-1:3)  = (/  4.56e5_WP, 0.0_WP, 164.8_WP,   -1.97E-2_WP, 4.167E-4_WP/)
@@ -360,6 +376,8 @@ module parameters_constant_mod
   real(WP), parameter :: CoH_Bi(-1:3)  = (/-7.183e6_WP, 0.0_WP, 118.2_WP,   2.967E-3_WP,      0.0_WP/)
   real(WP), parameter :: CoH_LBE(-1:3) = (/  4.56e5_WP, 0.0_WP, 164.8_WP,   -1.97E-2_WP, 4.167E-4_WP/)! check, WRong from literature.
   real(WP), parameter :: CoH_Li(-1:3)  = (/     0.0_WP, 0.0_WP, 4754.0_WP,  -4.625E-1_WP, 9.70E-5_WP/) ! derived from Cp
+  real(WP), parameter :: CoH_FLiBe(-1:3) = (/   0.0_WP, 0.0_WP, 2386.0_WP,        0.0_WP,     0.0_WP/)
+  real(WP), parameter :: CoH_PbLi(-1:3) = (/    0.0_WP, 0.0_WP, 195.0_WP,   -4.558E-3_WP,     0.0_WP/) ! derived from Cp
 
   ! M = vARies
   real(WP), parameter :: CoM_Na(-1:1) = (/556.835_WP,  -6.4406_WP, -0.3958_WP/) ! M = exp ( CoM(-1) / T + CoM(0) + CoM(1) * ln(T) )
@@ -367,6 +385,8 @@ module parameters_constant_mod
   real(WP), parameter :: CoM_Bi(-1:1) = (/  780.0_WP, 4.456E-4_WP,     0.0_WP/) ! M = CoM(0) * exp (CoM(-1) / T)
   real(WP), parameter :: CoM_LBE(-1:1)= (/  754.1_WP,  4.94E-4_WP,     0.0_WP/) ! M = CoM(0) * exp (CoM(-1) / T)
   real(WP), parameter :: CoM_Li(-1:1) = (/-4.164_WP, -6.374E-1_WP, 2.921e2_WP/) ! M = exp ( CoM(-1) + CoM(0) * ln(T) + (CoM(1) / T) )
+  real(WP), parameter :: CoM_FLiBe(-1:1) = (/4022.0_WP, 7.803E-5_WP,   0.0_WP/) ! M = CoM(0) * exp (CoM(-1) / T)
+  real(WP), parameter :: CoM_PbLi(0:3) = (/0.0061091_WP, -2.2574E-5_WP, 3.766E-8_WP, -2.2887E-11_WP/) ! M = CoM(0) + CoM(1) * T + CoM(2) * T^2 + CoM(3) * T^3
 end module parameters_constant_mod
 !==========================================================================================================
 module wtformat_mod
@@ -435,7 +455,7 @@ module udf_type_mod
     real(WP) :: CoB
     real(WP) :: CoCp(-2:2)
     real(WP) :: CoH(-1:3)
-    real(WP) :: CoM(-1:1)
+    real(WP) :: CoM(-1:3)
     real(WP) :: dhmax ! undim
     real(WP) :: dhmin ! undim
     type(t_fluidThermoProperty) :: ftp0ref    ! dim, reference state

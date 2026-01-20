@@ -331,22 +331,6 @@ subroutine Solve_eqs_iteration
     if( .not. is_IO_off ) then
     do i = 1, nxdomain
       !----------------------------------------------------------------------------------------------------------
-      !  validation for each time step
-      !----------------------------------------------------------------------------------------------------------
-      !if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
-      if(is_flow(i)) then
-        call Check_element_mass_conservation(flow(i), domain(i)) 
-        if(is_thermo(i)) then
-          call Find_max_min_3d(thermo(i)%tTemp, opt_name="T :")
-          !call Find_max_min_3d(thermo(i)%rhoh,  opt_name="rhoh :")
-        end if
-        call Find_max_min_3d(flow(i)%qx, opt_name="qx :")
-        call Find_max_min_3d(flow(i)%qy, opt_name="qy :")
-        call Find_max_min_3d(flow(i)%qz, opt_name="qz :")
-        call Find_max_min_3d(flow(i)%pres, opt_name="pr :")
-        call Find_max_min_3d(flow(i)%pcor, opt_name="ph :")
-      end if
-      !----------------------------------------------------------------------------------------------------------
       !  update statistics
       !----------------------------------------------------------------------------------------------------------
       if (iter > domain(i)%stat_istart .and. is_flow(i)) then
@@ -385,6 +369,26 @@ subroutine Solve_eqs_iteration
       if(domain(i)%is_thermo .and. is_thermo(i)) then
         call write_monitor_bulk(flow(i), domain(i), thermo(i))
         call write_monitor_probe(flow(i), domain(i), thermo(i))
+      end if
+      !----------------------------------------------------------------------------------------------------------
+      !  validation for each time step
+      !----------------------------------------------------------------------------------------------------------
+      !if(nrank == 0) call Print_debug_mid_msg("For domain id = "//trim(int2str(i)))
+      if(is_flow(i)) then
+        call Check_element_mass_conservation(flow(i), domain(i), iter)
+        if(domain(1)%is_mhd) then
+          call check_current_conservation(mhd(i), domain(i))
+          call Find_max_min_3d(mhd(i)%ep, opt_name="ep :")
+        end if
+        if(is_thermo(i)) then
+          call Find_max_min_3d(thermo(i)%tTemp, opt_name="T :")
+          !call Find_max_min_3d(thermo(i)%rhoh,  opt_name="rhoh :")
+        end if
+        call Find_max_min_3d(flow(i)%qx, opt_name="qx :")
+        call Find_max_min_3d(flow(i)%qy, opt_name="qy :")
+        call Find_max_min_3d(flow(i)%qz, opt_name="qz :")
+        call Find_max_min_3d(flow(i)%pres, opt_name="pr :")
+        call Find_max_min_3d(flow(i)%pcor, opt_name="ph :")
       end if
       !----------------------------------------------------------------------------------------------------------
       !  write out check point data for restart

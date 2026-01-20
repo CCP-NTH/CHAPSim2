@@ -947,7 +947,6 @@ contains
 !       write(*,*) 'qzrdz_cpc_ypencil', qzrdz_cpc_ypencil(4, 1, 4),  qzrdz_cpc_ypencil(4, 1, dm%knc_sym(4)) , &
 !                   qzrdz_cpc_ypencil(4, 1, 4)+qzrdz_cpc_ypencil(4, 1, dm%knc_sym(4))
 !     end if
-
 !       call Print_debug_mid_msg('qzr preparation ... done.')
 ! #endif
     end if

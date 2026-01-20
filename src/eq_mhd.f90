@@ -7,6 +7,7 @@ module mhd_mod
   private :: cross_production_mhd
   public  :: initialise_mhd
   public  :: compute_Lorentz_force
+  public  :: check_current_conservation
 contains
 !==========================================================================================================
   subroutine initialise_mhd(fl, mh, dm)
@@ -503,6 +504,63 @@ contains
     call write_visu_any3darray(fl%lrfz, 'lrfz', 'debug', dm%dccp, dm, fl%iteration)
 #endif
   return
+  end subroutine
+
+!==========================================================================================================
+  subroutine check_current_conservation(mh, dm)
+    use find_max_min_ave_mod
+    use udf_type_mod
+    use decomp_2d
+    use wtformat_mod
+    use continuity_eq_mod
+    implicit none
+    type(t_mhd),  intent(in) :: mh
+    type(t_domain), intent(in) :: dm
+    real(WP) :: intg_m, intg_fbcx(2), intg_fbcy(2), intg_fbcz(2), crrt_imbalance(8)
+    real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div
+    !
+    if(.not. dm%is_mhd) return
+    !-----------------------------------------------------------------
+    ! divergence-free current density flux
+    !-----------------------------------------------------------------
+    call Get_divergence_vector(mh%jx, mh%jy, mh%jz, div, dm)
+    call Find_max_min_3d(div, opt_calc='MAXI', opt_name="elementary div(j_vec) =")
+    !
+    call Get_volumetric_average_3d(dm, dm%dccc, div, intg_m, SPACE_INTEGRAL, 'Ivol')
+    !-----------------------------------------------------------------
+    ! current density flux through b.c. = integral_surface 
+    !-----------------------------------------------------------------
+    ! x-bc
+    intg_fbcx = ZERO
+    if(dm%ibcx_qx(1)/=IBC_PERIODIC)then
+      call Get_area_average_2d_for_fbcx(dm, dm%dpcc, mh%fbcx_jx, intg_fbcx, SPACE_INTEGRAL, 'fbcx')
+    end if
+    ! y-bc
+    intg_fbcy = ZERO
+    if(dm%ibcy_qy(1)/=IBC_PERIODIC)then
+      call Get_area_average_2d_for_fbcy(dm, dm%dcpc, mh%fbcy_jy, intg_fbcy, SPACE_INTEGRAL, 'fbcy', is_rf=.true.)
+    end if
+    ! z-bc
+    intg_fbcz = ZERO
+    if(dm%ibcz_qz(1)/=IBC_PERIODIC)then
+      call Get_area_average_2d_for_fbcz(dm, dm%dccp, mh%fbcz_jz, intg_fbcz, SPACE_INTEGRAL, 'fbcz')
+    end if
+    !
+    ! current change rate
+    crrt_imbalance(1:2) = intg_fbcx(1:2)
+    crrt_imbalance(3:4) = intg_fbcy(1:2)
+    crrt_imbalance(5:6) = intg_fbcz(1:2)
+    crrt_imbalance(7)   = intg_m
+    crrt_imbalance(8)   = intg_m + &
+                          intg_fbcx(1) - intg_fbcx(2) + &
+                          intg_fbcy(1) - intg_fbcy(2) + &
+                          intg_fbcz(1) - intg_fbcz(2) 
+    
+
+    if (nrank == 0) then
+        write (*, wrtfmt1el) 'global electric current imbalance = ', crrt_imbalance(8)
+    end if
+
   end subroutine
 
 end module
