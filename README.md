@@ -42,12 +42,13 @@ CHAPSim2/
 ├── build/                # Build directory for CHAPSim2
 ├── lib/                  # External libraries
 │   ├── 2decomp-fft/      # Domain decomposition and 3D FFT library 
-│   └── fishpack4.1/      # 1D/2D FFT library 
+│   └── fishpack4.1/      # 1D/2D FFT library, for testing only 
+├── tests/                # Containing 14 test cases for regression and smoke tests
 ├── prepost/              # Pre/post-processing tools
 │   ├── autoinput/        # Python scripts to generate input files 
 │   └── useful_scripts/   # Utility scripts for local or HPC execution
 ├── docs/                 # Documentation
-└── build_make.sh         # Build script
+└── build_chapsim.sh      # Build script
 ```
 
 ### Dependencies
@@ -65,7 +66,7 @@ CHAPSim2/
 ### Download
 
 ```bash
-git clone git@github.com:CHAPSim/CHAPSim2.git
+git git@github.com:CCP-NTH/CHAPSim2.git
 cd CHAPSim2
 ```
 
@@ -74,23 +75,32 @@ cd CHAPSim2
 1. Make the build script executable:
 
 ```bash
-chmod +x build_make.sh
+chmod +x build_chapsim.sh
 ```
 
 2. Run the build script:
 
 ```bash
-./build_make.sh
+./build_chapsim.sh
 ```
 
 3. When prompted, select options for:
-   - Rebuilding the 2decomp library
+   - Refreshing and rebuilding the 2decomp library
    - Running `make clean` before compilation
    - Building in debug mode
 
 Upon successful completion, the compiled executable `CHAPSim` will be available in the `bin/` directory.
 
 ---
+
+# Test
+
+In the folder `tests`, there are 14 test cases. Run below command to test all:
+
+```bash
+./run_regression.sh
+```
+Metrics tolerances are stored in `tests/tools/tolerances.json`
 
 # Running Simulations
 
