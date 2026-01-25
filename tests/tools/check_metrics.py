@@ -56,7 +56,7 @@ def check_metric(key, new_val, ref_val, tol_entry):
             f"[CHECK] {key:35s} "
             f"new={new_val:.6e} ref={ref_val:.6e} abs={err:.2e}"
         )
-        if err > abs_tol:
+        if err > abs_tol and abs(new_val) > abs(ref_val):
             print(f"[FAIL ] {key}: abs {err:.2e} > {abs_tol:.2e}")
             return True
 

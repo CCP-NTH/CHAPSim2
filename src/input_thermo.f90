@@ -944,7 +944,6 @@ contains
       write (*, wrtfmt1e) 'thermal diffusivity(m2/s):',   fluidparam%ftp0ref%alpha
       write (*, wrtfmt1e) 'Prandtl Number:',              fluidparam%ftp0ref%Pr
 
-
       call Print_debug_mid_msg("The initial thermal properties (dimensional) are")
       write (*, wrtfmt1r) 'Temperature(K):',              fluidparam%ftpini%t
       write (*, wrtfmt1r) 'Density(Kg/m3):',              fluidparam%ftpini%d

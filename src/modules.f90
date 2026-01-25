@@ -406,6 +406,7 @@ module wtformat_mod
   character(len = 22) :: wrtfmt2el  = '(2X, A40, 2ES23.15)'
   character(len = 22) :: wrtfmt1e   = '(2X, A40, 1ES16.8)'
   character(len = 22) :: wrtfmt2e   = '(2X, A40, 2ES16.8)'
+  character(len = 22) :: wrtfmt3e   = '(2X, A40, 3ES16.8)'
   character(len = 24) :: wrtfmt2ae  = '(2X, 2(A15, 1ES23.15))'
   character(len = 26) :: wrtfmt1i1r = '(2X, A40, 1I8.1, 1F14.7)'
   character(len = 26) :: wrtfmt1il1r= '(2X, A40, 1I15.1, 1F14.7)'
@@ -763,6 +764,7 @@ module udf_type_mod
     real(WP) :: ref_T0  ! '0' means dimensional 
     real(WP) :: init_T0 ! dim
     real(WP) :: time
+    real(WP) :: phy_time
     real(WP) :: rPrRen
     real(WP) :: tt_enthalpy
 

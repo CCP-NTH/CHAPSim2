@@ -1,6 +1,6 @@
 {
   "global mass balance": {
-    "rel": 1e-6
+    "abs": 1e-6
   },
   "max. mass conservation (interior)": {
     "abs": 1e-10

@@ -348,7 +348,7 @@ contains
     call Find_max_min_3d(div(nlayer+1:n-nlayer, :, :), opt_calc='MAXI', &
         opt_work=mm, opt_name="Mass Consv. (bulk    ) =")
     fl%mcon(1) = mm(2)
-    fl%mcon(4) = safe_divide(fl%mcon(1)-mm0, mm0)
+    fl%mcon(4) = safe_divide(fl%mcon(1)-mm0, dabs(mm0))
     if(nrank==0) write(*, '(A,1F9.2,A)') ' ', fl%mcon(4)*100.0_WP, '%'
     ! terminate code once too large
     if(nrank == 0) then
@@ -356,7 +356,7 @@ contains
       call Print_error_msg("Mass conservation is not strictly satisfied at the machine precision level.")
     end if
     if (nrank == 0) then
-      write (*, wrtfmt1el) 'global mass flux imbalance = ', fl%tt_mass_change
+      write (*, wrtfmt1el) 'global mass flux imbalance =', fl%tt_mass_change
     end if
     !----------------------------------------------------------------
     ! turn on numerical tricks based on mass conservation residual
@@ -371,9 +371,9 @@ contains
         end if
       else
         if(.not. is_global_mass_correction) then
-          if(fl%mcon(1) > 1.0e-5_WP) then
+          if(fl%tt_mass_change > 1.0e-7_WP) then
             is_global_mass_correction = .true. ! scaled convective b.c. has already met this.
-            if(nrank==0) call Print_warning_msg('Global mass balance is on for RHS of Pression Poisson Eq.')
+            if(nrank==0) call Print_warning_msg('is_global_mass_correction is True for RHS of Pression Poisson Eq.')
           end if
         end if
       end if

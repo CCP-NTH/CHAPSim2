@@ -1549,7 +1549,7 @@ contains
         write (*, wrtfmt2ae) 'maximum'//trim(abs)//opt_name, varmax_work, &
                              'minimum'//trim(abs)//opt_name, varmin_work
       else if(imax) then
-        if(opt_name == 'Mass Consv. (bulk    ) =') then
+        if(opt_name == 'Mass Consv. (bulk    ) = ') then
           write (*, wrtfmt1el, advance='no') 'maximum'//trim(abs)//opt_name, varmax_work
         else
           write (*, wrtfmt1el) 'maximum'//trim(abs)//opt_name, varmax_work

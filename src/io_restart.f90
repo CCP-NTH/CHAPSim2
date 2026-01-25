@@ -343,7 +343,8 @@ contains
     iter = max(1, fl%iteration)
     iter = mod(iter-1, dm%ndbfre) + 1
 
-    if (nrank == 0) call Print_debug_mid_msg("inlet at iteration " &
+    !if (nrank == 0) &
+    !  call Print_debug_mid_msg('inlet assigned at iteration '//trim(int2str(iter))
 
     if(dm%ibcx_nominal(1, 1) == IBC_DATABASE) then
       dtmp = dm%dpcc
@@ -477,9 +478,9 @@ contains
     if (mod(iter-1, dm%ndbfre)==0 .or. iter == (fl%iterfrom+1)) then
         niter = dm%ndbfre * (nblock + 1)
 
-      if(nrank == 0) call Print_debug_mid_msg("Read inlet database at iteration "&
-            //trim(int2str(iter))//' mapped to file name ='//trim(int2str(niter)))
-        //trim(int2str(iter))//'/'//trim(int2str(niter)))
+      if(nrank == 0) &
+      call Print_debug_mid_msg('Read inlet database at iteration '//trim(int2str(iter))&
+        //' mapped to file name ='//trim(int2str(niter)))
       call read_one_3d_array(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, niter, dm%dxcc)
       call read_one_3d_array(dm%fbcx_qx_inl2, 'outlet2_qx', dm%idom, niter, dm%dxcc)
       call read_one_3d_array(dm%fbcx_qy_inl1, 'outlet1_qy', dm%idom, niter, dm%dxpc)
