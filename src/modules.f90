@@ -525,6 +525,7 @@ module udf_type_mod
     real(wp) :: fbcx_const(2, NBC) ! bc values, (5 variables, 2 sides)
     real(wp) :: fbcy_const(2, NBC) ! bc values, (5 variables, 2 sides)
     real(wp) :: fbcz_const(2, NBC) ! bc values, (5 variables, 2 sides)
+    real(WP) :: inlet_tbuffer_len
 
     real(wp) :: lxx
     real(wp) :: lyt
@@ -553,6 +554,7 @@ module udf_type_mod
 
     type(DECOMP_INFO) :: d4cc
     type(DECOMP_INFO) :: d4pc
+    type(DECOMP_INFO) :: dc4c
 
     type(DECOMP_INFO) :: dxcc
     type(DECOMP_INFO) :: dxpc

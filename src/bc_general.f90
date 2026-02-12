@@ -368,10 +368,10 @@ end function
     allocate( dm%fbcx_qw (4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) )! default x pencil
     allocate( dm%fbcx_ftp(4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) )! default x pencil
 
-    allocate( dm%fbcy_qw (dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) )! default x pencil
+    allocate( dm%fbcy_qw (dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) )! default y pencil
     allocate( dm%fbcy_ftp(dm%dcpc%ysz(1), 4, dm%dcpc%ysz(3)) )! default y pencil
     
-    allocate( dm%fbcz_qw (dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )! default x pencil
+    allocate( dm%fbcz_qw (dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )! default z pencil
     allocate( dm%fbcz_ftp(dm%dccp%zsz(1), dm%dccp%zsz(2), 4) )! default z pencil
 
     return

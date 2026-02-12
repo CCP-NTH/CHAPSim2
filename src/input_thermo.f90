@@ -1223,7 +1223,7 @@ contains
     type(t_thermo), intent(inout) :: tm
     type(t_domain), intent(in) :: dm
 
-    integer :: j, jj
+    integer :: j, jj, nx
     real(WP) :: Ts
     
     if(nrank == 0) call Print_debug_start_msg("Initialise thermal variables ...")
@@ -1247,6 +1247,17 @@ contains
     tm%hEnth(:, :, :) = tm%ftp_ini%h
     tm%kCond(:, :, :) = tm%ftp_ini%k
     tm%tTemp(:, :, :) = tm%ftp_ini%t
+    if((dm%inlet_tbuffer_len - dm%h(1)) > MINP) then
+      nx = floor(dm%inlet_tbuffer_len * dm%h1r(1))
+      fl%dDens(1:nx, :, :) = ONE
+      fl%mVisc(1:nx, :, :) = ONE
+      tm%rhoh (1:nx, :, :) = ZERO
+      tm%hEnth(1:nx, :, :) = ZERO
+      tm%kCond(1:nx, :, :) = ONE
+      tm%tTemp(1:nx, :, :) = ONE
+    else
+      nx = 0
+    end if 
 
     if(dm%ibcy_Tm(2) == IBC_DIRICHLET .and. tm%inittype == INIT_GVBCLN) then
 
@@ -1257,10 +1268,12 @@ contains
       end if
 
       do j = 1, dm%dccc%xsz(2) 
-         jj = dm%dccc%xst(2) + j - 1 
-         tm%tTemp(:, j, :) = (dm%yc(jj) - dm%lyb) / (dm%lyt - dm%lyb) &
-                           * (dm%fbcy_const(2, 5) - Ts) + Ts
-        !write(*,*) 'test', j, jj, tm%tTemp(1, j, 1)
+        jj = dm%dccc%xst(2) + j - 1 
+        tm%tTemp(:, j, :) = (dm%yc(jj) - dm%lyb) / (dm%lyt - dm%lyb) &
+                            * (dm%fbcy_const(2, 5) - Ts) + Ts
+        if(nx > 0) then
+          tm%tTemp(1:nx, j, :) = ONE
+        end if
       end do
 
       call ftp_refresh_thermal_properties_from_T_undim_3Dtm(fl, tm, dm)

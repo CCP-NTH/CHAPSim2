@@ -429,7 +429,7 @@ contains
     type(t_thermo), intent(in)    :: tm
 
     real(WP) :: var1y(1:dm%np(2))
-    
+    real(WP), allocatable :: ac4c_ypencil(:, :, :), ac4c_xpencil(:, :, :)
     integer :: ny, n
 !----------------------------------------------------------------------------------------------------------
 ! to build up bc with constant values
@@ -450,7 +450,17 @@ contains
       if(nrank == 0 .and. dm%ibcx_nominal(1, 1) == IBC_DATABASE) &
       call Print_warning_msg("The thermal field's inlet temperature is the same as Tini given.")
     end if
-    
+    !
+    ny= 0
+    if((dm%inlet_tbuffer_len - dm%h(1)) > MINP) then
+      if(dm%inlet_tbuffer_len > dm%lxx) then 
+        call Print_warning_msg("The inlet thermal buffer layer exceeds the domain length and has been reduced to 1/10 of the domain length.")
+        dm%inlet_tbuffer_len = dm%lxx / TEN !
+      end if
+      call decomp_info_init(dm%nc(1), 4,  dm%nc(3), dm%dc4c) 
+      ny = floor(dm%inlet_tbuffer_len * dm%h1r(1))
+    end if
+    !
     do n = 1, 2 
 !----------------------------------------------------------------------------------------------------------
 ! x-bc in x-pencil, ftp, qx, qy, qz, pr
@@ -473,9 +483,31 @@ contains
         !write(*,*) 'test, bc-T', dm%fbcy_const(n, 5), dm%fbcy_ftp(4, n, 4)%t
       else if (dm%ibcy_nominal(n, 5) == IBC_NEUMANN) then
         dm%fbcy_qw(:, n, :) = dm%fbcy_const(n, 5) 
-        dm%fbcy_ftp(n, :, :) = tm%ftp_ini
+        dm%fbcy_ftp(:, n, :) = tm%ftp_ini
       else
-        dm%fbcy_ftp(n, :, :) = tm%ftp_ini
+        dm%fbcy_ftp(:, n, :) = tm%ftp_ini
+      end if
+      ! a patch for inlet buffer layer
+      if((dm%inlet_tbuffer_len - dm%h(1)) > MINP) then
+        allocate ( ac4c_xpencil(dm%dc4c%xsz(1), dm%dc4c%xsz(2), dm%dc4c%xsz(3)) )
+        allocate ( ac4c_ypencil(dm%dc4c%ysz(1), dm%dc4c%ysz(2), dm%dc4c%ysz(3)) ) 
+        ac4c_ypencil = dm%fbcy_const(n, 5)
+        call transpose_y_to_x(ac4c_ypencil, ac4c_xpencil, dm%dc4c)
+        if(dm%ibcy_nominal(n, 5) == IBC_DIRICHLET) then
+          ac4c_xpencil(1:ny, :, :) = ONE
+        else if (dm%ibcy_nominal(n, 5) == IBC_NEUMANN) then
+          ac4c_xpencil(1:ny, :, :) = ZERO
+        else 
+          ac4c_xpencil(1:ny, :, :) = dm%fbcy_const(n, 5)
+        end if
+        call transpose_x_to_y(ac4c_xpencil, ac4c_ypencil, dm%dc4c)
+        if(dm%ibcy_nominal(n, 5) == IBC_DIRICHLET) then
+          dm%fbcy_ftp(:, n, :)%t = ac4c_ypencil(:, n, :)
+          call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp(:, n:n, :))
+        else if (dm%ibcy_nominal(n, 5) == IBC_NEUMANN) then 
+          dm%fbcy_qw(:, n, :) = ac4c_ypencil(:, n, :) 
+        end if
+        deallocate(ac4c_ypencil, ac4c_xpencil)
       end if
 !----------------------------------------------------------------------------------------------------------
 ! z-bc in z-pencil, qx, qy, qz, pr
@@ -485,17 +517,18 @@ contains
         call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcz_ftp(:, :, n:n))
       else if (dm%ibcz_nominal(n, 5) == IBC_NEUMANN) then
         dm%fbcz_qw(:, :, n) = dm%fbcz_const(n, 5) 
-        dm%fbcz_ftp(n, :, :) = tm%ftp_ini
+        dm%fbcz_ftp(:, :, n) = tm%ftp_ini
       else 
-        dm%fbcz_ftp(n, :, :) = tm%ftp_ini
+        dm%fbcz_ftp(:, :, n) = tm%ftp_ini
       end if
     end do
+
     dm%fbcx_ftp(3, :, :) = dm%fbcx_ftp(1, :, :)
     dm%fbcx_ftp(4, :, :) = dm%fbcx_ftp(2, :, :)
-    dm%fbcy_ftp(3, :, :) = dm%fbcy_ftp(1, :, :)
-    dm%fbcy_ftp(4, :, :) = dm%fbcy_ftp(2, :, :)
-    dm%fbcz_ftp(3, :, :) = dm%fbcz_ftp(1, :, :)
-    dm%fbcz_ftp(4, :, :) = dm%fbcz_ftp(2, :, :)
+    dm%fbcy_ftp(:, 3, :) = dm%fbcy_ftp(:, 1, :)
+    dm%fbcy_ftp(:, 4, :) = dm%fbcy_ftp(:, 2, :)
+    dm%fbcz_ftp(:, :, 3) = dm%fbcz_ftp(:, :, 1)
+    dm%fbcz_ftp(:, :, 4) = dm%fbcz_ftp(:, :, 2)
 
     return
   end subroutine 

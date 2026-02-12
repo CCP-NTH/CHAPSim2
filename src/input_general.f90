@@ -753,6 +753,7 @@ contains
         if(is_any_energyeq) thermo(1 : nxdomain)%iterfrom = itmp
         read(inputUnit, *, iostat = ioerr) varname, rtmpx(1: nxdomain)
         if(is_any_energyeq) thermo(1 : nxdomain)%init_T0 = rtmpx(1: nxdomain)
+        read(inputUnit, *, iostat = ioerr) varname, domain(1 : nxdomain)%inlet_tbuffer_len
 
         if(is_any_energyeq .and. nrank == 0) then
           do i = 1, nxdomain
@@ -766,6 +767,7 @@ contains
             write (*, wrtfmt1i) 'thermo field initial type :', thermo(i)%inittype
             write (*, wrtfmt1i) 'iteration starting from :', thermo(i)%iterfrom
             write (*, wrtfmt1r) 'initial temperature (K) :', thermo(i)%init_T0
+            write (*, wrtfmt1r) 'inlet buffer length (lx/L0):', domain(i)%inlet_tbuffer_len
           end do
         else if(nrank == 0) then
          call Print_note_msg ('Thermal field is not considered. ')
