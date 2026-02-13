@@ -4,9 +4,7 @@ set -euo pipefail
 # -------------------------------------------------
 # Clean previous outputs
 # -------------------------------------------------
-rm -f *.log *.dat fort* *.err *.out regression_test_metrics.json
-rm -rf 2_*/ 3_*/ 4_*/
-
+./clearlogs.sh
 # -------------------------------------------------
 # Executable and MPI size
 # -------------------------------------------------

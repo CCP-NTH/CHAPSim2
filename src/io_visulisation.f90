@@ -1,1101 +1,1094 @@
-module io_visualisation_mod
-  use io_tools_mod
+
+!==========================================================================================================
+!  VISUALISATION I/O (mesh + fields) for XDMF + raw binary (.bin)
+!  - Mesh: write once at start (or when mesh changes), with XDMF describing the grid structure.
+!  - Fields: write at each output time, with XDMF describing the attribute and referencing the grid.
+!  Key design: keep XDMF files human-readable and editable, with binary files for data. This allows easy post-processing and visualization with tools like ParaView.
+!  Author: Wei Wang (2026-02)
+!  Date: 2026-02
+!==========================================================================================================
+
+module visualisation_xdmf_io_mod
+  use iso_fortran_env, only: int32
+  use parameters_constant_mod, only: WP, NDIM
+  implicit none
+  private
+
+  private :: xdmf_seek_bytes_int32
+  public :: xdmf_begin_grid_cart
+  public :: xdmf_begin_grid_cyl
+  public :: xdmf_end_grid
+  public :: xdmf_write_attribute_scalar
+  public :: xdmf_dims_kji_string
+
+contains
+  !========================================================================================================
+  pure function xdmf_seek_bytes_int32(n_int32) result(seekstr)
+    integer, intent(in) :: n_int32
+    character(len=32) :: seekstr
+    integer :: bytes
+    bytes = n_int32 * (storage_size(0_int32)/8)
+    write(seekstr,'(I0)') bytes
+  end function xdmf_seek_bytes_int32
+  !========================================================================================================
+  pure function xdmf_dims_kji_string(nijk) result(s)
+    integer, intent(in) :: nijk(NDIM)
+    character(len=64) :: s
+    write(s,'(I0,1X,I0,1X,I0)') nijk(3), nijk(2), nijk(1)
+  end function xdmf_dims_kji_string
+  !========================================================================================================
+  subroutine xdmf_begin_grid_cart(unit, grid_name, nnode, grid_files_1d)
+    use typeconvert_mod, only: int2str
+    integer, intent(in) :: unit
+    character(*), intent(in) :: grid_name
+    integer, intent(in) :: nnode(NDIM)
+    character(*), intent(in) :: grid_files_1d(NDIM) ! x,y,z 1D files
+
+    character(len=64) :: dims
+
+    dims = xdmf_dims_kji_string(nnode)
+
+    write(unit,'(A)') '<?xml version="1.0" ?>'
+    write(unit,'(A)') '<Xdmf Version="3.0">'
+    write(unit,'(A)') '  <Domain>'
+    write(unit,'(A)') '    <Grid Name="'//trim(grid_name)//'" GridType="Uniform">'
+    write(unit,'(A)') '      <Topology TopologyType="3DRectMesh" Dimensions="'//trim(dims)//'"/>'
+    write(unit,'(A)') '      <Geometry GeometryType="VXVYVZ">'
+
+    call xdmf_write_dataitem_1d(unit, grid_files_1d(1), nnode(1))
+    call xdmf_write_dataitem_1d(unit, grid_files_1d(2), nnode(2))
+    call xdmf_write_dataitem_1d(unit, grid_files_1d(3), nnode(3))
+
+    write(unit,'(A)') '      </Geometry>'
+  end subroutine xdmf_begin_grid_cart
+  !========================================================================================================
+  subroutine xdmf_write_dataitem_1d(unit, filename, npts)
+    use typeconvert_mod, only: int2str
+    integer, intent(in) :: unit, npts
+    character(*), intent(in) :: filename
+    ! Your 1D coord bin format: [int32 npts][real*8 data...]
+    write(unit,'(A)') '        <DataItem ItemType="Uniform"'
+    write(unit,'(A)') '                  Dimensions="'//trim(int2str(npts))//'"'
+    write(unit,'(A)') '                  NumberType="Float"'
+    write(unit,'(A)') '                  Precision="8"'
+    write(unit,'(A)') '                  Format="Binary"'
+    write(unit,'(A)') '                  Seek="'//trim(xdmf_seek_bytes_int32(1))//'">'
+    write(unit,'(A)') '          ../'//trim(filename)
+    write(unit,'(A)') '        </DataItem>'
+  end subroutine xdmf_write_dataitem_1d
+  !========================================================================================================
+  subroutine xdmf_begin_grid_cyl(unit, grid_name, nnode, grid_file)
+    use typeconvert_mod, only: int2str
+    integer, intent(in) :: unit
+    character(*), intent(in) :: grid_name
+    integer, intent(in) :: nnode(NDIM)
+    character(*), intent(in) :: grid_file
+
+    integer :: npts
+    character(len=64) :: topo_dims
+    character(len=64) :: geom_dims
+    character(len=32) :: seek
+
+    topo_dims = xdmf_dims_kji_string(nnode)
+    npts = nnode(1)*nnode(2)*nnode(3)
+
+    ! Your XYZ bin format: [int32 nx,ny,nz][ (x,y,z) as real*8 repeated ]
+    ! Seek = 3 int32 header = 12 bytes typically
+    seek = xdmf_seek_bytes_int32(3)
+    write(geom_dims,'(I0,1X,I0)') npts, 3
+
+    write(unit,'(A)') '<?xml version="1.0" ?>'
+    write(unit,'(A)') '<Xdmf Version="3.0">'
+    write(unit,'(A)') '  <Domain>'
+    write(unit,'(A)') '    <Grid Name="'//trim(grid_name)//'" GridType="Uniform">'
+    write(unit,'(A)') '      <Topology TopologyType="3DSMesh" Dimensions="'//trim(topo_dims)//'"/>'
+    write(unit,'(A)') '      <Geometry GeometryType="XYZ">'
+    write(unit,'(A)') '        <DataItem ItemType="Uniform"'
+    write(unit,'(A)') '                  Dimensions="'//trim(geom_dims)//'"'
+    write(unit,'(A)') '                  NumberType="Float"'
+    write(unit,'(A)') '                  Precision="8"'
+    write(unit,'(A)') '                  Format="Binary"'
+    write(unit,'(A)') '                  Endian="Big"'
+    write(unit,'(A)') '                  Seek="'//trim(seek)//'">'
+    write(unit,'(A)') '          ../'//trim(grid_file)
+    write(unit,'(A)') '        </DataItem>'
+    write(unit,'(A)') '      </Geometry>'
+  end subroutine xdmf_begin_grid_cyl
+  !======================================================================================================== 
+  subroutine xdmf_write_attribute_scalar(unit, name, center, dims_kji, data_file_rel)
+    integer, intent(in) :: unit
+    character(*), intent(in) :: name, center, dims_kji, data_file_rel
+
+    write(unit,'(A)') '      <Attribute Name="'//trim(name)//'" AttributeType="Scalar" Center="'//trim(center)//'">'
+    write(unit,'(A)') '        <DataItem ItemType="Uniform"'
+    write(unit,'(A)') '                  NumberType="Float"'
+    write(unit,'(A)') '                  Precision="8"'
+    write(unit,'(A)') '                  Format="Binary"'
+    write(unit,'(A)') '                  Dimensions="'//trim(dims_kji)//'">'
+    write(unit,'(A)') '          ../'//trim(data_file_rel)
+    write(unit,'(A)') '        </DataItem>'
+    write(unit,'(A)') '      </Attribute>'
+  end subroutine xdmf_write_attribute_scalar
+  !========================================================================================================
+  subroutine xdmf_end_grid(unit)
+    integer, intent(in) :: unit
+    write(unit,'(A)') '    </Grid>'
+    write(unit,'(A)') '  </Domain>'
+    write(unit,'(A)') '</Xdmf>'
+  end subroutine xdmf_end_grid
+
+end module visualisation_xdmf_io_mod
+!========================================================================================================
+!========================================================================================================
+module visualisation_mesh_mod
+  use iso_fortran_env, only: int32
+  use parameters_constant_mod, only: WP, NDIM
   use parameters_constant_mod
-  use print_msg_mod
-  implicit none 
-
-  character(len=*), parameter :: io_name = "solution-io"
-
-  integer, parameter :: XDMF_HEADER = 1, &
-                        XDMF_FOOTER = 2
-  integer, parameter :: PLANE_AVERAGE = -1
-  character(6), parameter :: SCALAR = "Scalar", &
-                             VECTOR = "Vector", &
-                             TENSOR = "Tensor"
-  character(4), parameter :: CELL = "Cell", &
-                             NODE = "Node"
+  use visualisation_xdmf_io_mod
+  use io_tools_mod
+  implicit none
+  private
+  !
+  integer, save :: NMINPL(NDIM)=(/16, 8, 16/)
+  integer, parameter, public :: NSLICE = 3   ! 3 slices per direction by default (quarter-ish positions)
+  !
+  integer, parameter, public :: Ivisu_3D   = 0, & ! visualise 3d field only
+                                Ivisu_2D   = 1, & ! visualise 2d field (3 planes in each dir) only
+                                Ivisu_3D2D = 2    ! visualise both 3d and 2d
+  integer, save, public :: nave_plane(NDIM)
+  type(DECOMP_INFO), public :: d1cc
+  type(DECOMP_INFO), public :: dc1c
+  type(DECOMP_INFO), public :: dcc1
+  integer, save, public :: slice_idx(NDIM, 0:NSLICE)
+  integer, save, public :: nnd_visu(NDIM), ncl_visu(NDIM)
+  character(len=256), save, public :: grid_cart_3d_fl(NDIM)
+  character(len=256), save, public :: grid_cart_slice(NDIM, NDIM, 0:NSLICE)  ! (coordfile index xyz, dir=1..3, n=1..NSLICE)
+  character(len=256), save, public :: grid_cyl_3d_fl
+  character(len=256), save, public :: grid_cyl_slice(NDIM, 0:NSLICE)         ! (dir, n)
   
+  
+  public  :: write_visu_ini
+  private :: compute_visu_nnode
+  private :: compute_slice_indices
+  private :: build_cartesian_coords
+  private :: build_cylindrical_to_cart
+  private :: write_mesh_cartesian
+  private :: write_cartesian_slice_one
+  private :: write_mesh_cylindrical
+
+contains
+  !========================================================================================================
+  subroutine write_visu_ini(dm)
+    use udf_type_mod
+    use parameters_constant_mod, only: ICARTESIAN, ICYLINDRICAL
+    use decomp_2d, only: xszV, yszV, zszV
+    implicit none
+    type(t_domain), intent(in) :: dm
+    !
+    real(WP), allocatable :: x1(:), y1(:), z1(:)
+    real(WP), allocatable :: x3(:,:,:), y3(:,:,:), z3(:,:,:)
+    logical :: px, py, pz
+    !
+    px = dm%is_periodic(1)
+    py = dm%is_periodic(2)
+    pz = dm%is_periodic(3)
+    nave_plane = 0
+    ! Case: X periodic only -> average over X, keep YZ plane
+    if (px .and. (.not. py) .and. (.not. pz)) then
+      nave_plane(1) = 1
+    end if
+    ! Case: Y periodic only -> not supported
+    if ((.not. px) .and. py .and. (.not. pz)) then
+      nave_plane(2) = 2
+    end if
+    ! Case: Z periodic only -> average over Z, keep XY plane
+    if ((.not. px) .and. (.not. py) .and. pz) then
+      nave_plane(3) = 3
+    end if
+
+    call compute_visu_nnode(dm, nnd_visu)
+    ncl_visu = nnd_visu - 1
+    call compute_slice_indices(nnd_visu, slice_idx)
+    call decomp_info_init(1, dm%nc(2), dm%nc(3), d1cc)
+    call decomp_info_init(dm%nc(1), 1, dm%nc(3), dc1c)
+    call decomp_info_init(dm%nc(1), dm%nc(2), 1, dcc1)
+
+    if (nrank /= 0) return
+
+    select case (dm%icoordinate)
+    case (ICARTESIAN)
+      allocate(x1(nnd_visu(1)), y1(nnd_visu(2)), z1(nnd_visu(3)))
+      call build_cartesian_coords(dm, x1, y1, z1)
+      call write_mesh_cartesian(dm, nnd_visu, x1, y1, z1)
+      deallocate(x1, y1, z1)
+
+    case (ICYLINDRICAL)
+      allocate(x3(nnd_visu(1),nnd_visu(2),nnd_visu(3)))
+      allocate(y3(nnd_visu(1),nnd_visu(2),nnd_visu(3)))
+      allocate(z3(nnd_visu(1),nnd_visu(2),nnd_visu(3)))
+      call build_cylindrical_to_cart(dm, x3, y3, z3)
+      call write_mesh_cylindrical(dm, nnd_visu, x3, y3, z3)
+      deallocate(x3, y3, z3)
+
+    case default
+      error stop "write_visu_ini: unknown coordinate system"
+    end select
+
+  end subroutine write_visu_ini
+  !========================================================================================================
+  subroutine compute_visu_nnode(dm, nnode)
+    use udf_type_mod
+    use decomp_2d, only: xszV, yszV, zszV
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(out) :: nnode(NDIM)
+
+    if (any(dm%visu_nskip(1:3) > 1)) then
+      nnode = [ xszV(1), yszV(2), zszV(3) ]  ! your existing convention
+    else
+      nnode = dm%np_geo(1:3)
+    end if
+  end subroutine compute_visu_nnode
+  !========================================================================================================
+  subroutine compute_slice_indices(nnode, idx_out)
+    integer, intent(in)  :: nnode(NDIM)
+    integer, intent(out) :: idx_out(NDIM, 0:NSLICE)
+    integer :: d, n
+    integer :: imax
+
+    do d = 1, NDIM
+      ! we need a 2-layer slab => start index must satisfy i <= nnode(d)-1
+      imax = max(1, nnode(d)-1)
+      do n = 0, NSLICE
+        ! evenly spaced inside domain (avoids boundary by default)
+        idx_out(d,n) = 1 + n * (imax-1) / (NSLICE+1)
+        idx_out(d,n) = max(1, min(imax, idx_out(d,n)))
+        if(n==1) &
+        idx_out(d,n) = min(NMINPL(d), idx_out(d,n))
+        if(n==NSLICE) &
+        idx_out(d,n) = max(nnode(d)-1-NMINPL(d), idx_out(d,n))
+        if(n==0) &
+        idx_out(d,n) = 1
+      end do
+      
+    end do
+  end subroutine compute_slice_indices
+  !========================================================================================================
+  subroutine build_cartesian_coords(dm, x, y, z)
+    use udf_type_mod
+    use parameters_constant_mod, only: MAXP
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(out) :: x(:), y(:), z(:)
+    integer :: i
+
+    x = MAXP; y = MAXP; z = MAXP
+
+    do i = 1, size(x)
+      x(i) = real(i-1, WP) * dm%h(1) * dm%visu_nskip(1)
+    end do
+    do i = 1, size(y)
+      if (dm%is_stretching(2)) then
+        y(i) = dm%yp(i)
+      else
+        y(i) = real(i-1, WP) * dm%h(2) * dm%visu_nskip(2)
+      end if
+    end do
+    do i = 1, size(z)
+      z(i) = real(i-1, WP) * dm%h(3) * dm%visu_nskip(3)
+    end do
+  end subroutine build_cartesian_coords
+  !========================================================================================================
+  subroutine build_cylindrical_to_cart(dm, x, y, z)
+    use udf_type_mod
+    use parameters_constant_mod, only: MAXP
+    use math_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(out) :: x(:,:,:), y(:,:,:), z(:,:,:)
+
+    integer :: i,j,k
+    real(WP) :: r, th
+
+    x = MAXP; y = MAXP; z = MAXP
+
+    do k = 1, size(x,3)
+      do j = 1, size(x,2)
+        do i = 1, size(x,1)
+          x(i,j,k) = real(i-1, WP) * dm%h(1) * dm%visu_nskip(1)
+
+          if (dm%is_stretching(2)) then
+            r = dm%yp(j)
+          else
+            r = real(j-1, WP) * dm%h(2) * dm%visu_nskip(2)
+          end if
+
+          th = real(k-1, WP) * dm%h(3) * dm%visu_nskip(3)
+
+          ! convert (r,theta) -> (y,z); keep x as axial
+          y(i,j,k) = r * sin_wp(th)
+          z(i,j,k) = r * cos_wp(th)
+        end do
+      end do
+    end do
+  end subroutine build_cylindrical_to_cart
+  !========================================================================================================
+  subroutine write_mesh_cartesian(dm, nnode, x, y, z)
+    use udf_type_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: nnode(NDIM)
+    real(WP), intent(in) :: x(:), y(:), z(:)
+
+    integer :: dir, n, n2(NDIM), nen
+    character(len=256) :: xdmf_name
+    character(len=256) :: grid1d(NDIM)
+
+    ! 3D (rectilinear) coord files
+    call write_bin_cart_1d(dm%idom, 'grid_x', x, grid_cart_3d_fl(1))
+    call write_bin_cart_1d(dm%idom, 'grid_y', y, grid_cart_3d_fl(2))
+    call write_bin_cart_1d(dm%idom, 'grid_z', z, grid_cart_3d_fl(3))
+
+    call write_xdmf_mesh_cart(dm%idom, 'grids_3d', nnode, grid_cart_3d_fl)
+
+    ! 2D slices: each slice has a 2-point coord file in the sliced direction
+    nen = 0
+    if(dm%visu_idim == Ivisu_2D .or. dm%visu_idim == Ivisu_3D2D) then
+      nen = NSLICE
+    end if
+    do n = 0, nen
+      do dir = 1, NDIM 
+        if (n == 0 .and. dir /= nave_plane(dir)) then
+          cycle 
+        end if
+        call write_cartesian_slice_one(dm, nnode, dir, n, x, y, z)
+      end do
+    end do
+
+  end subroutine write_mesh_cartesian
+  !========================================================================================================
+  subroutine write_cartesian_slice_one(dm, nnode3, dir, n, x, y, z)
+    use udf_type_mod
+    use typeconvert_mod, only: int2str
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: nnode3(NDIM), dir, n
+    real(WP), intent(in) :: x(:), y(:), z(:)
+
+    integer :: n2(NDIM), npl
+    character(len=256) :: grid_name
+    character(len=256) :: f2, gfiles(NDIM)
+
+    n2 = nnode3
+    n2(dir) = 2
+    npl = slice_idx(dir, n)
+    select case (dir)
+    case (1)
+      grid_name = 'grid_xi'//trim(int2str(npl))
+      call write_bin_cart_1d(dm%idom, grid_name, x(npl:npl+1), f2)
+      gfiles = grid_cart_3d_fl
+      gfiles(1) = f2
+    case (2)
+      grid_name = 'grid_yi'//trim(int2str(npl))
+      call write_bin_cart_1d(dm%idom, grid_name, y(npl:npl+1), f2)
+      gfiles = grid_cart_3d_fl
+      gfiles(2) = f2
+    case (3)
+      grid_name = 'grid_zi'//trim(int2str(npl))
+      call write_bin_cart_1d(dm%idom, grid_name, z(npl:npl+1), f2)
+      gfiles = grid_cart_3d_fl
+      gfiles(3) = f2
+    end select
+
+    grid_cart_slice(:,dir,n) = gfiles(:)
+    call write_xdmf_mesh_cart(dm%idom, trim(grid_name), n2, gfiles)
+
+  end subroutine write_cartesian_slice_one
+  !========================================================================================================
+  subroutine write_mesh_cylindrical(dm, nnode, x, y, z)
+    use udf_type_mod   
+    use typeconvert_mod, only: int2str
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: nnode(NDIM)
+    real(WP), intent(in) :: x(:,:,:), y(:,:,:), z(:,:,:)
+
+    integer :: dir, n2(NDIM), npl, n, nen
+    character(len=256) :: grid_name
+    character(len=256) :: fxyz
+
+    ! 3D curvilinear mesh: one XYZ binary
+    grid_name = 'grids_3d'
+    call generate_pathfile_name(grid_cyl_3d_fl, dm%idom, grid_name, dir_data, 'bin')
+    call write_bin_cyl_xyz(grid_cyl_3d_fl, x, y, z, nnode)
+    call write_xdmf_mesh_cyl(dm%idom, grid_name, nnode, grid_cyl_3d_fl)
+
+    ! slices: write a 2-layer slab as XYZ too (same file format)
+    nen = 0
+    if(dm%visu_idim == Ivisu_2D .or. dm%visu_idim == Ivisu_3D2D) then
+      nen = NSLICE
+    end if
+    do n = 0, nen
+      do dir = 1, NDIM 
+        if (n == 0 .and. dir /= nave_plane(dir)) then
+          cycle 
+        end if
+        n2 = nnode
+        n2(dir) = 2
+        npl = slice_idx(dir, n)
+        select case(dir)
+        case(1)
+          grid_name = 'grid_xi'//trim(int2str(npl))
+          call generate_pathfile_name(fxyz, dm%idom, grid_name, dir_data, 'bin')
+          call write_bin_cyl_xyz(fxyz, x(npl:npl+1,:,:), y(npl:npl+1,:,:), z(npl:npl+1,:,:), n2)
+
+        case(2)
+          grid_name = 'grid_yi'//trim(int2str(npl))
+          call generate_pathfile_name(fxyz, dm%idom, grid_name, dir_data, 'bin')
+          call write_bin_cyl_xyz(fxyz, x(:,npl:npl+1,:), y(:,npl:npl+1,:), z(:,npl:npl+1,:), n2)
+
+        case(3)
+          grid_name = 'grid_zi'//trim(int2str(npl))
+          call generate_pathfile_name(fxyz, dm%idom, grid_name, dir_data, 'bin')
+          call write_bin_cyl_xyz(fxyz, x(:,:,npl:npl+1), y(:,:,npl:npl+1), z(:,:,npl:npl+1), n2)
+        end select
+
+        grid_cyl_slice(dir, n) = fxyz
+        call write_xdmf_mesh_cyl(dm%idom, grid_name, n2, fxyz)
+      end do
+    end do
+    return
+  end subroutine write_mesh_cylindrical
+  !========================================================================================================
+  subroutine write_bin_cart_1d(idom, keyword, a, filename_out)
+    implicit none
+    integer, intent(in) :: idom
+    character(*), intent(in) :: keyword
+    real(WP), intent(in) :: a(:)
+    character(len=*), intent(out) :: filename_out
+    integer :: u, ios
+
+    call generate_pathfile_name(filename_out, idom, keyword, dir_data, 'bin')
+
+    open(newunit=u, file=trim(filename_out), access='stream', form='unformatted', &
+         status='replace', action='write', iostat=ios)
+    if (ios /= 0) error stop 'write_bin_cart_1d: cannot open file'
+
+    write(u) int(size(a), int32)
+    write(u) a
+    close(u)
+  end subroutine write_bin_cart_1d
+  !========================================================================================================
+  subroutine write_bin_cyl_xyz(filename, x, y, z, nnode)
+    implicit none
+    character(*), intent(in) :: filename
+    real(WP), intent(in) :: x(:,:,:), y(:,:,:), z(:,:,:)
+    integer, intent(in) :: nnode(NDIM)
+
+    integer :: u, ios
+    integer(int32) :: hdr(3)
+    integer :: i,j,k
+    real(WP) :: buf(3)
+
+    hdr = int(nnode, int32)
+
+    open(newunit=u, file=trim(filename), access='stream', form='unformatted', &
+         status='replace', action='write', iostat=ios, convert='BIG_ENDIAN')
+    if (ios /= 0) error stop 'write_bin_cyl_xyz: cannot open file'
+
+    write(u) hdr(1), hdr(2), hdr(3)
+    do k = 1, nnode(3)
+      do j = 1, nnode(2)
+        do i = 1, nnode(1)
+          buf = [ x(i,j,k), y(i,j,k), z(i,j,k) ]
+          write(u) buf
+        end do
+      end do
+    end do
+    close(u)
+  end subroutine write_bin_cyl_xyz
+  !========================================================================================================
+  subroutine write_xdmf_mesh_cart(idom, visuname, nnode, gridfiles)
+    implicit none
+    integer, intent(in) :: idom
+    character(*), intent(in) :: visuname
+    integer, intent(in) :: nnode(NDIM)
+    character(*), intent(in) :: gridfiles(NDIM)
+
+    integer :: u
+    character(len=256) :: xdmf_file
+
+    call generate_pathfile_name(xdmf_file, idom, visuname, dir_visu, 'xdmf', 0)
+    open(newunit=u, file=trim(xdmf_file), status='replace', action='write')
+    call xdmf_begin_grid_cart(u, xdmf_file, nnode, gridfiles)
+    call xdmf_end_grid(u)
+    close(u)
+  end subroutine write_xdmf_mesh_cart
+  !========================================================================================================
+  subroutine write_xdmf_mesh_cyl(idom, grid_name, nnode, grid_file)
+    implicit none
+    integer, intent(in) :: idom
+    character(*), intent(in) :: grid_name
+    integer, intent(in) :: nnode(NDIM)
+    character(*), intent(in) :: grid_file
+
+    character(len=256) :: xdmf
+    integer :: unit
+
+    call generate_pathfile_name(xdmf, idom, grid_name, dir_visu, 'xdmf', 0)
+
+    open(newunit=unit, file=trim(xdmf), status='replace', action='write')
+    call xdmf_begin_grid_cyl(unit, grid_name, nnode, grid_file)
+    call xdmf_end_grid(unit)
+    close(unit)
+  end subroutine write_xdmf_mesh_cyl
+
+end module visualisation_mesh_mod
+!==========================================================================================================
+!  FIELD OUTPUT: write binary (3D + slices) then append XDMF attributes into the matching XDMF files.
+!  Key change vs your current version:
+!    - Mesh XDMF files are created once by visualisation_mesh_mod.
+!    - Field XDMF writing *appends* <Attribute> blocks into those files before </Grid>.
+!      (We do this by writing a field-xdmf file that *re-declares the grid* OR by
+!       having separate XDMF per field. Below keeps your original pattern: one XDMF per field,
+!       with grid + attributes in that file. It’s consistent and easy.)
+!==========================================================================================================
+module visualisation_field_mod
+  use parameters_constant_mod, only: WP, NDIM
+  use visualisation_xdmf_io_mod
+  use visualisation_mesh_mod
+  use io_tools_mod
+  implicit none
+  private
+
   integer, parameter :: N_DIRECTION = 0, &
                         X_DIRECTION = 1, &
                         Y_DIRECTION = 2, &
                         Z_DIRECTION = 3
-  integer :: nnd_visu(3)
-  integer :: ncl_visu(3)
+  public :: write_visu_any3darray
+  public :: write_visu_flow
+  public :: write_visu_thermo
+  public :: write_visu_mhd
+  public :: write_visu_field_bin_and_xdmf
+  public :: write_visu_file_begin
+  public :: write_visu_file_end
+  public :: write_visu_plane_binary_and_xdmf
+  !
+  private :: find_n_from_npl
+  private :: stagger_to_ccc
+  private :: slice_prefix
+  private :: write_coarsened_3d
+  private :: write_plane_bin
+  private :: write_slice_field_xdmf
+  private :: write_visu_3d_binary_and_xdmf
 
-  !real(WP), allocatable :: xp(:), yp(:), zp(:)
-  real(WP), allocatable :: rp(:, :, :), ta(:, :, :)
-  real(WP), allocatable :: xp(:, :, :), yp(:, :, :), zp(:, :, :)
-  real(WP), allocatable :: xp1(:), yp1(:), zp1(:)
-  character(64):: grid_flname, grid_flname_1t2d, grid_flname_x, grid_flname_y, grid_flname_z
-  !character(6)  :: svisudim
-
-  public  :: write_visu_headerfooter
-  public  :: write_visu_field
-  public  :: visu_average_periodic_data
-  private :: write_visu_profile
-  private :: process_and_write_field
-  private :: write_mesh_binary_cylindrical
-
-  public  :: write_visu_ini
-  public  :: write_visu_flow
-  public  :: write_visu_thermo
-  public  :: write_visu_mhd
-  public  :: write_visu_any3darray
-  
 contains
 
-!========================================================================================================
-! Generic subroutine to process and write a field (velocity or thermal)
-!========================================================================================================
-  subroutine process_and_write_field(field, dm, field_name, filename, iteration, direction, opt_bc)
-    use udf_type_mod
-    use operations
-    implicit none
-    real(WP), contiguous, intent(in) :: field(:, :, :)
-    type(t_domain), intent(in) :: dm
-    character(*), intent(in) :: field_name, filename
-    integer, intent(in) :: iteration
-    integer, intent(in), optional :: opt_bc(:)
-    integer, intent(in) :: direction
-
-    ! Local variables
-    real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: accc_xpencil
-    real(WP), dimension(dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3)) :: accc_ypencil
-    real(WP), dimension(dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3)) :: accc_zpencil
-    real(WP), dimension(dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3)) :: acpc_ypencil
-    real(WP), dimension(dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3)) :: accp_ypencil
-    real(WP), dimension(dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3)) :: accp_zpencil
-
-#ifdef DEBUG_STEPS
-    if(nrank == 0) &
-    call Print_debug_inline_msg("Writing the field [" // trim(field_name) // &
-         "] to the file with a keyword [" // trim(filename)//"]")
-#endif
-
-    select case (direction)
-      case (N_DIRECTION)
-        ! Process scalar field (e.g., pressure)
-        call write_visu_field(dm, field, dm%dccc, trim(field_name), trim(filename), SCALAR, CELL, iteration)
-      case (X_DIRECTION)
-        ! Process x-direction field (e.g., qx or gx)
-        call Get_x_midp_P2C_3D(field, accc_xpencil, dm, dm%iAccuracy, opt_bc)
-        call write_visu_field(dm, accc_xpencil, dm%dccc, trim(field_name), trim(filename), SCALAR, CELL, iteration)
-
-      case (Y_DIRECTION)
-        ! Process y-direction field (e.g., qy or gy)
-        call transpose_x_to_y(field, acpc_ypencil, dm%dcpc)
-        call Get_y_midp_P2C_3D(acpc_ypencil, accc_ypencil, dm, dm%iAccuracy, opt_bc)
-        call transpose_y_to_x(accc_ypencil, accc_xpencil, dm%dccc)
-        call write_visu_field(dm, accc_xpencil, dm%dccc, trim(field_name), trim(filename), SCALAR, CELL, iteration)
-
-      case (Z_DIRECTION)
-        ! Process z-direction field (e.g., qz or gz)
-        call transpose_x_to_y(field, accp_ypencil, dm%dccp)
-        call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
-        call Get_z_midp_P2C_3D(accp_zpencil, accc_zpencil, dm, dm%iAccuracy, opt_bc)
-        call transpose_z_to_y(accc_zpencil, accc_ypencil, dm%dccc)
-        call transpose_y_to_x(accc_ypencil, accc_xpencil, dm%dccc)
-        call write_visu_field(dm, accc_xpencil, dm%dccc, trim(field_name), trim(filename), SCALAR, CELL, iteration)
-
-      case default
-        if (nrank == 0) call Print_debug_inline_msg("Error: Invalid direction in process_and_write_field.")
-    end select
-  end subroutine process_and_write_field
-
-
-  ! subroutine write_mesh_hdf5(xp, yp, zp, filename)
-  !   use precision_mod  
-  !   use hdf5
-  !   implicit none 
-  !   real(WP), intent(in) :: xp(:,:,:), yp(:,:,:), zp(:,:,:)
-  !   character(len=*), intent(in) :: filename
-
-  !   ! --- HDF5 handles and variables ---
-  !   integer(HID_T) :: file_id, dset_id, dspace_id, plist_id
-  !   integer(HSIZE_T), dimension(4) :: ndims
-  !   integer :: error, rank
-  !   real(WP), allocatable :: coords(:,:,:,:)
-  !   logical :: parallel_io_available = .false.
-
-  !   ! --- Initialize HDF5 ---
-  !   call h5open_f(error)
-  !   if (error /= 0) error stop "HDF5 initialization failed"
-
-  !   ! --- Create file access property list ---
-  !   call h5pcreate_f(H5P_FILE_ACCESS_F, plist_id, error)
-  !   if (error /= 0) error stop "Failed to create property list"
-    
-  !   ! --- Try to set MPI-IO (only if compiled with parallel HDF5) ---
-  !   parallel_io_available = .true.
-  !   call h5pset_fapl_mpio_f(plist_id, MPI_COMM_WORLD, MPI_INFO_NULL, error)
-  !   if (error /= 0) then
-  !       parallel_io_available = .false.
-  !       call h5pclose_f(plist_id, error)
-  !       call h5pcreate_f(H5P_FILE_ACCESS_F, plist_id, error)
-  !   end if
-
-  !   ! --- Create HDF5 file ---
-  !   call h5fcreate_f(trim(filename), H5F_ACC_TRUNC_F, file_id, error, access_prp=plist_id)
-  !   if (error /= 0) error stop "Failed to create HDF5 file: "//trim(filename)
-  !   call h5pclose_f(plist_id, error)
-
-  !   ! --- Dataset dimensions ---
-  !   rank = 4
-  !   ndims = [size(xp,1), size(xp,2), size(xp,3), 3]
-
-  !   ! --- Create dataspace ---
-  !   call h5screate_simple_f(rank, ndims, dspace_id, error)
-  !   if (error /= 0) error stop "Failed to create dataspace"
-
-  !   ! --- Create dataset ---
-  !   ! Note: Changed dataset name from filename to "coordinates" to avoid confusion
-  !   if (WP == kind(1.0)) then
-  !       call h5dcreate_f(file_id, "coordinates", H5T_NATIVE_REAL, dspace_id, dset_id, error)
-  !   else if (WP == kind(1.0d0)) then
-  !       call h5dcreate_f(file_id, "coordinates", H5T_NATIVE_DOUBLE, dspace_id, dset_id, error)
-  !   else
-  !       error stop "Unsupported precision in write_mesh_hdf5"
-  !   end if
-  !   if (error /= 0) error stop "Failed to create dataset"
-
-  !   ! --- Write data ---
-  !   allocate(coords(ndims(1), ndims(2), ndims(3), ndims(4)), stat=error)
-  !   if (error /= 0) error stop "Allocation failed"
-    
-  !   coords(:,:,:,1) = xp
-  !   coords(:,:,:,2) = yp
-  !   coords(:,:,:,3) = zp
-
-  !   ! Use the correct precision for writing
-  !   if (WP == kind(1.0)) then
-  !       call h5dwrite_f(dset_id, H5T_NATIVE_REAL, coords, ndims, error)
-  !   else
-  !       call h5dwrite_f(dset_id, H5T_NATIVE_DOUBLE, coords, ndims, error)
-  !   end if
-  !   if (error /= 0) error stop "Failed to write dataset"
-
-  !   ! --- Cleanup ---
-  !   deallocate(coords, stat=error)
-  !   call h5dclose_f(dset_id, error)
-  !   call h5sclose_f(dspace_id, error)
-  !   call h5fclose_f(file_id, error)
-  !   call h5close_f(error)
-
-  ! end subroutine write_mesh_hdf5
-
-  subroutine write_mesh_binary_cylindrical(xp, yp, zp, filename, opt_nx)
-    use precision_mod  
-    use iso_fortran_env, only: int32
-    implicit none 
-    real(WP), intent(in) :: xp(:,:,:), yp(:,:,:), zp(:,:,:)
-    character(len=*), intent(in) :: filename
-    integer, intent(in), optional:: opt_nx
-
-    ! --- HDF5 handles and variables ---
-    integer(int32) :: ndims(3)
-    integer :: error, i, j, k, unit
-    real(WP) :: coord_buffer(3)
-    logical :: parallel_io_available = .false.
-
-    if(nrank /= 0) return
-    ! --- Dataset dimensions ---
-    ndims = [size(xp,1), size(xp,2), size(xp,3)]
-    if(present(opt_nx)) ndims(1) = opt_nx + 1
-
-    ! Write to binary file
-    open(newunit=unit, file=trim(filename), access='stream', form='unformatted', &
-          status='replace', action='write', iostat=error, convert='BIG_ENDIAN')
-    if (error /= 0) error stop "Failed to open binary file for writing"
-
-    ! Write dimensions first
-    write(unit) ndims(1), ndims(2), ndims(3)
-    ! Write coordinates in order (x,y,z) for each point
-    do k = 1, ndims(3)
-      do j = 1, ndims(2)
-        do i = 1, ndims(1)
-          if(present(opt_nx)) then
-            coord_buffer(1) = real(i, WP)/real(ndims(1), WP) * 10.0_WP
-            coord_buffer(2) = yp(1,j,k)
-            coord_buffer(3) = zp(1,j,k)
-          else
-             coord_buffer(1) = xp(i,j,k)
-             coord_buffer(2) = yp(j,j,k)
-             coord_buffer(3) = zp(k,j,k)
-          end if
-          write(unit) coord_buffer
-        end do
-      end do
-    end do
-
-    close(unit)
-
-  end subroutine write_mesh_binary_cylindrical
-!==========================================================================================================
-! xszV means:
-! x - xpencil, could also be y, z
-! sz - size, could also be st, en
-! V - visualisation
-! xszV is the same as dppp%xsz/nskip, based on nodes, considering the skip nodes
-!==========================================================================================================
-  subroutine write_visu_ini(dm)
-    use udf_type_mod
-    use parameters_constant_mod, only: MAXP
-    use decomp_2d, only: xszV, yszV, zszV
-    use io_files_mod
-    use math_mod
-    use typeconvert_mod 
-    use iso_fortran_env, only: int32
-    implicit none 
-    type(t_domain), intent(in) :: dm
-
-    integer :: i, j ,k
-    character(64):: keyword
-    integer :: iogrid
-    character(12) :: istr(3)
-    integer :: nnd(3)
-
-    if(nrank /= 0) return
-    if(nrank == 0) call Print_debug_start_msg("Writing visu initial files ...")
-! note:: skip_nodes is not considered here, the visualisation is based on the nodes.
-!----------------------------------------------------------------------------------------------------------
-! allocate
-!----------------------------------------------------------------------------------------------------------
-    !if(.not. allocated(nnd_visu)) allocate (nnd_visu(3, nxdomain))
-    !if(.not. allocated(ncl_visu)) allocate (ncl_visu(3, nxdomain))
-    nnd_visu = 0
-    ncl_visu = 0
-! !----------------------------------------------------------------------------------------------------------
-! ! global size
-! !----------------------------------------------------------------------------------------------------------
-!     !svisudim = ''
-!     !if(dm%visu_idim == Ivisu_3D) then
-!       !svisudim = "3d"
-!       nnd_visu(1) = xszV(1)
-!       nnd_visu(2) = yszV(2)
-!       nnd_visu(3) = zszV(3)
-!       do i = 1, 3
-!         if(dm%is_periodic(i)) then 
-!           ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
-!           nnd_visu(i, dm%idom) = nnd_visu(i, dm%idom) + 1
-!         else 
-!           ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
-!         end if
-!       end do
-!     ! !else if(dm%visu_idim == Ivisu_2D_YZ) then
-!     !   svisudim = "2d_xa"
-!     !   nnd_visu(1) = 1
-!     !   nnd_visu(2) = yszV(2)
-!     !   nnd_visu(3) = zszV(3)
-!     !   do i = 1, 3
-!     !     if(dm%is_periodic(i)) then 
-!     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
-!     !       nnd_visu(i, dm%idom) = nnd_visu(i, dm%idom) + 1
-!     !     else 
-!     !       ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
-!     !     end if
-!     !   end do
-!     ! else if(dm%visu_idim == Ivisu_2D_XZ) then
-!     !   svisudim = "2d_ya"
-!     !   nnd_visu(1) = xszV(1)
-!     !   nnd_visu(2) = 1
-!     !   nnd_visu(3) = zszV(3)
-!     !   do i = 1, 3
-!     !     if(dm%is_periodic(i)) then 
-!     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
-!     !       nnd_visu(i, dm%idom) = nnd_visu(i, dm%idom) + 1
-!     !     else 
-!     !       ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
-!     !     end if
-!     !   end do
-!     ! else if(dm%visu_idim == Ivisu_2D_XY) then
-!     !   svisudim = "2d_za"
-!     !   nnd_visu(1) = xszV(1)
-!     !   nnd_visu(2) = yszV(2)
-!     !   nnd_visu(3) = 1
-!     !   do i = 1, 3
-!     !     if(dm%is_periodic(i)) then 
-!     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
-!     !       nnd_visu(i, dm%idom) = nnd_visu(i, dm%idom) + 1
-!     !     else 
-!     !       ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
-!     !     end if
-!     !   end do
-!     ! else if(dm%visu_idim == Ivisu_1D_Y) then
-!     !   svisudim = "2d_xza"
-!     !   nnd_visu(1) = 1
-!     !   nnd_visu(2) = yszV(2)
-!     !   nnd_visu(3) = 1
-!     !   do i = 1, 3
-!     !     if(dm%is_periodic(i)) then 
-!     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
-!     !       nnd_visu(i, dm%idom) = nnd_visu(i, dm%idom) + 1
-!     !     else 
-!     !       ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
-!     !     end if
-!     !   end do
-!     ! else
-!     !   svisudim = "3d"
-!     !   nnd_visu(1) = xszV(1)
-!     !   nnd_visu(2) = yszV(2)
-!     !   nnd_visu(3) = zszV(3)
-!     !   do i = 1, 3
-!     !     if(dm%is_periodic(i)) then 
-!     !       ncl_visu(i, dm%idom) = nnd_visu(i, dm%idom)
-!     !       nnd_visu(i, dm%idom) = nnd_visu(i, dm%idom) + 1
-!     !     else 
-!     !       ncl_visu(i, dm%idom) = MAX(nnd_visu(i, dm%idom) - 1, 1)
-!     !     end if
-!     !   end do
-!     ! end if
-!----------------------------------------------------------------------------------------------------------
-! calculated structured grids geometry - Cartesian Coordinates
-!----------------------------------------------------------------------------------------------------------    
-    if(dm%visu_nskip(1) > 1 .or. dm%visu_nskip(2) > 1 .or. dm%visu_nskip(3) > 1) then
-      nnd_visu(1) = xszV(1)
-      nnd_visu(2) = yszV(2)
-      nnd_visu(3) = zszV(3)
-    else
-      nnd_visu(1) = dm%np_geo(1)
-      nnd_visu(2) = dm%np_geo(2)
-      nnd_visu(3) = dm%np_geo(3)
-    end if
-    
-    ncl_visu(1) = nnd_visu(1)-1
-    ncl_visu(2) = nnd_visu(2)-1
-    ncl_visu(3) = nnd_visu(3)-1
-    ! if(nrank==0) then
-    !   write(*,*) 'Visualisation grid size (nodes and cells):'
-    !   write(*,*) nnd_visu(1:3), ncl_visu(1:3)
-    ! end if
-    ! write(*,*) nrank, xstV(1), xstV(2), xstV(3)
-    ! write(*,*) nrank, xenV(1), xenV(2), xenV(3)
-
-    nnd(1:3) = nnd_visu(1:3)
-    if(nrank == 0) then
-      if(dm%icoordinate == ICARTESIAN) then
-        if(.not. allocated(xp)) allocate ( xp1(nnd_visu(1)))
-        if(.not. allocated(yp)) allocate ( yp1(nnd_visu(2)))
-        if(.not. allocated(zp)) allocate ( zp1(nnd_visu(3)))
-        xp1 = MAXP
-        yp1 = MAXP
-        zp1 = MAXP
-
-        do i = 1, nnd_visu(1)
-          xp1(i) = real(i-1, WP) * dm%h(1) * dm%visu_nskip(1)
-        enddo
-        do j = 1, nnd_visu(2)
-          if(dm%is_stretching(2)) then 
-            yp1(j) = dm%yp(j)
-          else 
-            yp1(j) = real(j-1, WP) * dm%h(2) * dm%visu_nskip(2)
-          end if
-        end do
-        do k = 1, nnd_visu(3)
-          zp1(k) = real(k-1, WP) * dm%h(3) * dm%visu_nskip(3)
-        enddo
-      end if
-!----------------------------------------------------------------------------------------------------------
-! calculated structured grids geometry - Cylindrical Coordinates
-!---------------------------------------------------------------------------------------------------------- 
-      if(dm%icoordinate == ICYLINDRICAL) then
-        if(.not. allocated(xp)) allocate ( xp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
-        if(.not. allocated(yp)) allocate ( yp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
-        if(.not. allocated(zp)) allocate ( zp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
-        if(.not. allocated(rp)) allocate ( rp(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
-        if(.not. allocated(ta)) allocate ( ta(nnd_visu(1), nnd_visu(2), nnd_visu(3)))
-        rp = MAXP
-        ta = MAXP
-        xp = MAXP
-        yp = MAXP
-        zp = MAXP
-
-        do i = 1, nnd_visu(1)
-          xp(i, :, :) = real(i-1, WP) * dm%h(1) * dm%visu_nskip(1)
-        enddo
-        do j = 1, nnd_visu(2)
-          if(dm%is_stretching(2)) then 
-            yp(:, j, :) = dm%yp(j)
-          else 
-            yp(:, j, :) = real(j-1, WP) * dm%h(2) * dm%visu_nskip(2)
-          end if
-        end do
-        do k = 1, nnd_visu(3)
-          zp(:, :, k) = real(k-1, WP) * dm%h(3) * dm%visu_nskip(3)
-        enddo
-
-        rp(:, :, :) = yp(:, :, :) 
-        ta(:, :, :) = zp(:, :, :) 
-        do k = 1, nnd_visu(3)
-          do j = 1, nnd_visu(2)
-            do i = 1, nnd_visu(1)
-              zp(i, j, k) = rp(i, j, k) * dcos(ta(i, j, k))
-              yp(i, j, k) = rp(i, j, k) * dsin(ta(i, j, k))
-            end do
-          end do
-        end do
-      end if
-!----------------------------------------------------------------------------------------------------------
-! write grids - Cartesian Coordinates, well-structured rectangular grid
-!---------------------------------------------------------------------------------------------------------- 
-      istr(1) = trim(int2str(nnd_visu(1)))
-      istr(2) = trim(int2str(nnd_visu(2)))
-      istr(3) = trim(int2str(nnd_visu(3)))
-
-      if(dm%icoordinate == ICARTESIAN) then
-      ! Write binary files for each coordinate direction in double precision
-        keyword = "grid_x"
-        call generate_pathfile_name(grid_flname_x, dm%idom, keyword, dir_data, 'bin')
-        open(newunit=iogrid, file=trim(grid_flname_x), access='stream', form='unformatted', &
-            status='replace', action='write')
-        write(iogrid) int(size(xp1), kind=int32)  ! Write dimension as 4-byte integer
-        write(iogrid) xp1      ! Write coordinates as 8-byte floats (double precision)
-        close(iogrid)
-
-        keyword = "grid_y"
-        call generate_pathfile_name(grid_flname_y, dm%idom, keyword, dir_data, 'bin')
-        open(newunit=iogrid, file=trim(grid_flname_y), access='stream', form='unformatted', &
-            status='replace', action='write')
-        write(iogrid) int(size(yp1), kind=int32)
-        write(iogrid) yp1
-        close(iogrid)
-
-        keyword = "grid_z"
-        call generate_pathfile_name(grid_flname_z, dm%idom, keyword, dir_data, 'bin')
-        open(newunit=iogrid, file=trim(grid_flname_z), access='stream', form='unformatted', &
-            status='replace', action='write')
-        write(iogrid) int(size(zp1), kind=int32)
-        write(iogrid) zp1
-        close(iogrid)
-      end if
-!----------------------------------------------------------------------------------------------------------
-! write grids - Cylindrical Coordinates, well-structured non-rectangular grid
-!---------------------------------------------------------------------------------------------------------- 
-      if(dm%icoordinate == ICYLINDRICAL) then
-        if(dm%is_record_xoutlet) then
-          keyword = "grids_2d_outlet"
-          nnd(1) = dm%ndbfre + 1
-          call generate_pathfile_name(grid_flname_1t2d, dm%idom, keyword, dir_data, 'bin')
-          call write_mesh_binary_cylindrical(xp, yp, zp, trim(grid_flname_1t2d), opt_nx = dm%ndbfre)
-          call write_visu_headerfooter(nnd, keyword, dm%idom, dm%icoordinate, XDMF_HEADER, 0)
-          call write_visu_headerfooter(nnd, keyword, dm%idom, dm%icoordinate, XDMF_FOOTER, 0)
-        end if
-        keyword = "grids_3d"
-        !call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_visu, 'h5')
-        !call write_mesh_hdf5(xp, yp, zp, trim(grid_flname))
-        call generate_pathfile_name(grid_flname, dm%idom, keyword, dir_data, 'bin')
-        call write_mesh_binary_cylindrical(xp, yp, zp, trim(grid_flname))
-      end if
-
-      call write_visu_headerfooter(nnd, 'grids_3d', dm%idom, dm%icoordinate, XDMF_HEADER, 0)
-      call write_visu_headerfooter(nnd, 'grids_3d', dm%idom, dm%icoordinate, XDMF_FOOTER, 0)
-
-    end if
-
-    if(nrank == 0) call Print_debug_end_msg()
-
-    return
-  end subroutine
-
-!==========================================================================================================
-! ref: https://www.xdmf.org/index.php/XDMF_Model_and_Format
-!==========================================================================================================
-  subroutine write_visu_headerfooter(nnd, visuname, idom, icoor, iheadfoot, iter)
-    use precision_mod
-    use parameters_constant_mod, only: MAXP
-    use udf_type_mod, only: t_domain
-    use decomp_2d, only: xszV, yszV, zszV
-    use decomp_2d_constants, only: mytype
-    use decomp_2d_mpi
-    use io_files_mod
-    use typeconvert_mod
-    use iso_fortran_env, only: int32
-    implicit none 
-    integer, intent(in)        :: iheadfoot
-    integer, intent(in)        :: iter
-    integer, intent(in)        :: nnd(3)
-    integer, intent(in)        :: icoor
-    integer, intent(in)        :: idom
-    character(*), intent(in)   :: visuname
-
-    character(64):: keyword
-    character(64):: visu_flname
-    character(12):: istr(3)
-    character(len=20) :: byte_str
-    integer :: ioxdmf
-    integer :: nsz, i, j, k
-
-    if(nrank /= 0) return
-!----------------------------------------------------------------------------------------------------------
-! visu file name
-!----------------------------------------------------------------------------------------------------------
-    keyword = trim(visuname)
-    call generate_pathfile_name(visu_flname, idom, keyword, dir_visu, 'xdmf', iter)
-    if(file_exists(trim(visu_flname))) then
-      open(newunit = ioxdmf, file = trim(visu_flname), action = "write", position="append")
-    else 
-      open(newunit = ioxdmf, file = trim(visu_flname), status="new", action = "write")
-    end if
-    nsz = nnd(3) * nnd(2) * nnd(1)
-
-    ! Calculate header size (3 integers)
-    write(byte_str, '(I0)') storage_size(0_int32)/8 * 3
-!----------------------------------------------------------------------------------------------------------
-! xdmf head
-!----------------------------------------------------------------------------------------------------------
-    if(iheadfoot == XDMF_HEADER) then
-      istr(1) = trim(int2str(nnd(1)))
-      istr(2) = trim(int2str(nnd(2)))
-      istr(3) = trim(int2str(nnd(3)))
-!----------------------------------------------------------------------------------------------------------
-! write header
-! geometry is based on node coordinates
-! to do: write mesh into mesh.bin 
-!----------------------------------------------------------------------------------------------------------
-      ! Write XDMF header
-      write(ioxdmf, '(a)')'<?xml version="1.0" ?>'
-      write(ioxdmf, '(a)')'<Xdmf Version="3.0">'
-      write(ioxdmf, '(a)')' <Domain>'
-      write(ioxdmf, '(a)')'   <Grid Name="'//trim(keyword)//'" GridType="Uniform">'
-      
-      if(icoor == ICARTESIAN) then
-        ! Write topology
-        !-- For Fortran loop order i,j,k
-        !-- XDMF Dimensions are in REVERSE order: k,j,i
-        write(ioxdmf, '(a)')'     <Topology TopologyType="3DRectMesh" Dimensions=" '&
-                                //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'"/>'
-        ! Write geometry
-        write(ioxdmf, '(a)') '     <Geometry GeometryType="VXVYVZ">'
-        write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
-        write(ioxdmf, '(a)') '                 Dimensions="'//trim(istr(1))//'"'
-        write(ioxdmf, '(a)') '                 NumberType="Float"'
-        write(ioxdmf, '(a)') '                 Precision="8"'      ! 8-byte precision
-        write(ioxdmf, '(a)') '                 Format="Binary"'
-        write(ioxdmf, '(a)') '                 Seek="4">'         ! Skip 4-byte integer header
-        write(ioxdmf, '(a)') '          ../'//trim(grid_flname_x)
-        write(ioxdmf, '(a)') '        </DataItem>'
-        write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
-        write(ioxdmf, '(a)') '                 Dimensions="'//trim(istr(2))//'"'
-        write(ioxdmf, '(a)') '                 NumberType="Float"'
-        write(ioxdmf, '(a)') '                 Precision="8"'      ! 8-byte precision
-        write(ioxdmf, '(a)') '                 Format="Binary"'
-        write(ioxdmf, '(a)') '                 Seek="4">'         ! Skip 4-byte integer header
-        write(ioxdmf, '(a)') '          ../'//trim(grid_flname_y)
-        write(ioxdmf, '(a)') '        </DataItem>'
-        write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
-        write(ioxdmf, '(a)') '                 Dimensions="'//trim(istr(3))//'"'
-        write(ioxdmf, '(a)') '                 NumberType="Float"'
-        write(ioxdmf, '(a)') '                 Precision="8"'      ! 8-byte precision
-        write(ioxdmf, '(a)') '                 Format="Binary"'
-        write(ioxdmf, '(a)') '                 Seek="4">'         ! Skip 4-byte integer header
-        write(ioxdmf, '(a)') '          ../'//trim(grid_flname_z)
-        write(ioxdmf, '(a)')'        </DataItem>'
-        write(ioxdmf, '(a)')'      </Geometry>'
-      end if
-      if(icoor == ICYLINDRICAL) then
-        ! Write topology
-        write(ioxdmf, '(a)')'     <Topology TopologyType="3DSMesh" Dimensions=" '&
-                               //trim(istr(3))//' '//trim(istr(2))//' '//trim(istr(1))//'"/>'
-        ! Write geometry
-        write(ioxdmf, '(a)') '     <Geometry GeometryType="XYZ">'
-        write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
-        write(ioxdmf, '(a)') '                 Dimensions="'//trim(int2str(nsz))//' 3"'
-        write(ioxdmf, '(a)') '                 NumberType="Float"'
-        !write(ioxdmf, '(a)') '                 Precision="'//merge('4','8',WP==kind(1.0))//'"'
-        write(ioxdmf, '(a)') '                 Precision="8"'
-        write(ioxdmf, '(a)') '                 Format="Binary"'
-        write(ioxdmf, '(a)') '                 Endian="Big"'
-        write(ioxdmf, '(a)') '                 Seek="'//trim(byte_str)//'">'
-        write(ioxdmf, '(a)') '           '//"../"//trim(grid_flname)
-        write(ioxdmf, '(a)')'        </DataItem>'
-        write(ioxdmf, '(a)')'      </Geometry>'
-      end if  
-      
-    else if (iheadfoot == XDMF_FOOTER) then 
-      write(ioxdmf, '(a)')'   </Grid>'
-      write(ioxdmf, '(a)')' </Domain>'
-      write(ioxdmf, '(a)')'</Xdmf>'
-    else 
-    end if
-    close(ioxdmf)
-    return
-  end subroutine
-!==========================================================================================================
-! ref: https://www.xdmf.org/index.php/XDMF_Model_and_Format
-!==========================================================================================================
-  subroutine write_visu_field(dm, var, dtmp, varname, visuname, attributetype, centring, iter)
-    use precision_mod
-    use decomp_2d
-    use decomp_2d_io
-    use udf_type_mod, only: t_domain
-    use io_files_mod
-    use decomp_operation_mod
-    use typeconvert_mod
-    use io_tools_mod
-    implicit none
-    type(t_domain), intent(in) :: dm
-    real(WP), contiguous, intent(in) :: var(:, :, :)
-    character(len=*), intent(in) :: varname
-    character(len=*), intent(in) :: visuname
-    character(*), intent(in) :: attributetype
-    character(*), intent(in) :: centring
-    type(DECOMP_INFO), intent(in) :: dtmp
-    integer, intent(in), optional :: iter
-
-    character(64):: data_flname
-    character(64):: data_flname_path
-    character(64):: visu_flname_path
-    character(64):: keyword
-    integer :: nsz(3), nsz0
-    integer :: ioxdmf
-    real(WP), dimension(xstV(1):xenV(1), xstV(2):xenV(2), xstV(3):xenV(3)) :: var_coarse
-
-    if((.not. is_same_decomp(dtmp, dm%dccc))) then
-      if(nrank == 0) call Print_error_msg("Data is not stored at cell centre. varname = " // trim(varname))
-    end if
-!----------------------------------------------------------------------------------------------------------
-! xmdf file name
-!----------------------------------------------------------------------------------------------------------
-    keyword = trim(visuname)
-    call generate_pathfile_name(visu_flname_path, dm%idom, keyword, dir_visu, 'xdmf', iter)
-!----------------------------------------------------------------------------------------------------------
-! write data into binary file
-!----------------------------------------------------------------------------------------------------------
-    if(dm%visu_idim == Ivisu_3D) then
-      call generate_pathfile_name(data_flname_path, dm%idom, trim(keyword), dir_data, 'bin', iter)
-      if(.not.file_exists(data_flname_path)) then
-        if(dm%visu_nskip(1) == 1 .and. dm%visu_nskip(2) == 1 .and. dm%visu_nskip(3) == 1) then
-          call write_one_3d_array(var, trim(varname), dm%idom, iter, dtmp, opt_flname = data_flname_path)
-        else
-          var_coarse = MAXP
-          call fine_to_coarseV(IPENCIL(1), var, var_coarse)
-          call write_one_3d_array(var_coarse, trim(varname), dm%idom, iter, dtmp, opt_flname = data_flname_path)
-        end if
-      end if
-    if(nrank == 0) write(*,*) data_flname_path
-    else if(dm%visu_idim == Ivisu_1D_Y) then
-      !to add 1D profile
-    else 
-      !keyword = trim(varname)
-      !call generate_file_name(data_flname, dm%idom, keyword, 'bin', iter)
-      !call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'bin', iter)
-      !call decomp_2d_write_plane(IPENCIL(1), var, dm%visu_idim, PLANE_AVERAGE, trim(dir_data), &
-      !      trim(data_flname), io_name, opt_decomp=dtmp) ! to update, to check
-    end if
-!----------------------------------------------------------------------------------------------------------
-! dataitem for xdmf file
-!----------------------------------------------------------------------------------------------------------
-    if (nrank == 0) then
-      if(file_exists(trim(visu_flname_path))) then
-        open(newunit = ioxdmf, file = trim(visu_flname_path), action = "write", status = "old", position = "append")
-      else
-        open(newunit = ioxdmf, file = trim(visu_flname_path), action = "write", status = "new")
-      end if
-
-      if(trim(centring) == TRIM(CELL)) then
-        nsz(1:3) = ncl_visu(1:3)
-      else if (trim(centring) == TRIM(NODE)) then
-        nsz(1:3) = nnd_visu(1:3)
-      else
-      end if
-      nsz0 = nsz(1) * nsz(2) * nsz(3)
-
-      if(dm%icoordinate == ICARTESIAN) then
-        keyword = trim(int2str(nsz(3)))//' '//trim(int2str(nsz(2)))//' '//trim(int2str(nsz(1)))
-      end if
-      if(dm%icoordinate == ICYLINDRICAL) then
-        !keyword = trim(int2str(nsz0))//' 3'
-        keyword = trim(int2str(nsz(3)))//' '//trim(int2str(nsz(2)))//' '//trim(int2str(nsz(1)))
-      end if  
-
-      write(ioxdmf, '(a)') '      <Attribute Name="'//trim(varname)// &
-                          '" AttributeType="'//trim(attributetype)// &
-                          '" Center="'//trim(centring)//'">'
-      write(ioxdmf, '(a)') '        <DataItem ItemType="Uniform"'
-      write(ioxdmf, '(a)') '                 NumberType="Float"'
-      write(ioxdmf, '(a)') '                 Precision="8"'
-      write(ioxdmf, '(a)') '                 Format="Binary"'
-      write(ioxdmf, '(a)') '                 Dimensions="'//trim(keyword)//'">'
-      write(ioxdmf, '(a)') '          ../'//trim(data_flname_path)
-      write(ioxdmf, '(a)') '        </DataItem>'
-      write(ioxdmf, '(a)') '      </Attribute>'
-      close(ioxdmf)
-    end if
-
-    return
-  end subroutine 
+  !----------------------------- High-level drivers --------------------------------
   !==========================================================================================================
-! ref: https://www.xdmf.org/index.php/XDMF_Model_and_Format
-!==========================================================================================================
-  subroutine write_visu_profile(dm, var, dtmp, varname, visuname, attributetype, centring, idim, iter)
-    use precision_mod
-    use decomp_2d
-    use decomp_2d_io
-    use udf_type_mod, only: t_domain
-    use io_files_mod
-    use decomp_operation_mod
-    use typeconvert_mod
-    implicit none
-    type(t_domain), intent(in) :: dm
-    real(WP), intent(in) :: var(:)
-    character(len=*), intent(in) :: varname
-    character(len=*), intent(in) :: visuname
-    character(*), intent(in) :: attributetype
-    character(*), intent(in) :: centring
-    type(DECOMP_INFO), intent(in) :: dtmp
-    integer, intent(in) :: idim
-    integer, intent(in), optional :: iter
-
-    character(64):: data_flname
-    character(64):: data_flname_path
-    character(64):: visu_flname_path
-    character(64):: keyword
-    integer :: nsz(3)
-    integer :: ioxdmf, iofl
-
-    integer :: j
-
-    if((.not. is_same_decomp(dtmp, dm%dccc))) then
-      if(nrank == 0) call Print_error_msg("Data is not stored at cell centre. varname = " // trim(varname))
-    end if
-!----------------------------------------------------------------------------------------------------------
-! write data 
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) then
-      keyword = trim(varname)
-      call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'dat', iter)
-      open(newunit = iofl, file = data_flname_path, action = "write", status="replace")
-      if(idim /= 2) call Print_error_msg('Error in direction')
-      do j = 1, dtmp%ysz(2)
-        write(iofl, *) j, dm%yc(j), var(j) 
-      end do
-      close(iofl)
-    end if
-
-    return
-  end subroutine 
-!==========================================================================================================
-! Subroutine to write flow visualization data
-!==========================================================================================================
   subroutine write_visu_flow(fl, dm, suffix)
     use udf_type_mod
-    use precision_mod
-    use operations
-    use parameters_constant_mod
     implicit none
-
-    ! Input variables
+    type(t_flow),   intent(in) :: fl
     type(t_domain), intent(in) :: dm
-    type(t_flow), intent(in) :: fl
-    character(4), intent(in), optional :: suffix
+    character(*),   intent(in), optional :: suffix
+    character(len=256) :: visuname
+    integer :: iter
 
-    ! Local variables
-    integer :: iteration
-    character(64) :: visu_filename
+    iter = fl%iteration
+    visuname = 'flow'
+    if (present(suffix)) visuname = trim(visuname)//'_'//trim(suffix)
+    
+    call write_visu_file_begin(dm, visuname, iter)
+    call write_visu_field_bin_and_xdmf(dm, fl%pres, 'pressure', visuname, iter, N_DIRECTION)
+    call write_visu_field_bin_and_xdmf(dm, fl%pcor, 'phi',      visuname, iter, N_DIRECTION)
 
-    ! Initialize iteration and filename
-    iteration = fl%iteration
-    visu_filename = 'flow'
-    if (present(suffix)) visu_filename = trim(visu_filename) // '_' // trim(suffix)
+    call write_visu_field_bin_and_xdmf(dm, fl%qx, 'qx_ccc', visuname, iter, X_DIRECTION, opt_ibc=dm%ibcx_qx)
+    call write_visu_field_bin_and_xdmf(dm, fl%qy, 'qy_ccc', visuname, iter, Y_DIRECTION, opt_ibc=dm%ibcy_qy)
+    call write_visu_field_bin_and_xdmf(dm, fl%qz, 'qz_ccc', visuname, iter, Z_DIRECTION, opt_ibc=dm%ibcz_qz)
 
-    ! Write XDMF header
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename),dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
-
-    ! Write pressure field (cell-centered)
-    call process_and_write_field(fl%pres, dm, "pr", trim(visu_filename), iteration, &
-                                N_DIRECTION)
-    call process_and_write_field(fl%pcor, dm, "phi", trim(visu_filename), iteration, &
-                                N_DIRECTION)
-
-    ! Process and write velocity components (qx, qy, qz)
-    call process_and_write_field(fl%qx, dm, "qx_ccc", trim(visu_filename), iteration, &
-                                X_DIRECTION, opt_bc=dm%ibcx_qx)
-    call process_and_write_field(fl%qy, dm, "qy_ccc", trim(visu_filename), iteration, &
-                                Y_DIRECTION, opt_bc=dm%ibcy_qy)
-    call process_and_write_field(fl%qz, dm, "qz_ccc", trim(visu_filename), iteration, &
-                                Z_DIRECTION, opt_bc=dm%ibcz_qz)
-
-    ! Process and write thermal fields if enabled
     if (dm%is_thermo) then
-      call process_and_write_field(fl%gx, dm, "gx_ccc", trim(visu_filename), iteration, &
-                                  X_DIRECTION, opt_bc=dm%ibcx_qx)
-      call process_and_write_field(fl%gy, dm, "gy_ccc", trim(visu_filename), iteration, &
-                                  Y_DIRECTION, opt_bc=dm%ibcy_qy)
-      call process_and_write_field(fl%gz, dm, "gz_ccc", trim(visu_filename), iteration, &
-                                  Z_DIRECTION, opt_bc=dm%ibcz_qz)
+      call write_visu_field_bin_and_xdmf(dm, fl%gx, 'gx_ccc', visuname, iter, X_DIRECTION, opt_ibc=dm%ibcx_qx)
+      call write_visu_field_bin_and_xdmf(dm, fl%gy, 'gy_ccc', visuname, iter, Y_DIRECTION, opt_ibc=dm%ibcy_qy)
+      call write_visu_field_bin_and_xdmf(dm, fl%gz, 'gz_ccc', visuname, iter, Z_DIRECTION, opt_ibc=dm%ibcz_qz)
     end if
-
-    ! Write XDMF footer
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
-
-    ! Debug message
-    if (nrank == 0) call Print_debug_inline_msg("Flow field visualization data written successfully.")
-
+    call write_visu_file_end(dm, visuname, iter)
     return
-  end subroutine
-
+  end subroutine write_visu_flow
   !==========================================================================================================
-  subroutine write_visu_thermo(tm, fl, dm, str)
+  subroutine write_visu_thermo(tm, fl, dm, suffix)
     use udf_type_mod
-    use precision_mod
-    use operations
-    implicit none 
-    type(t_domain), intent(in) :: dm
+    implicit none
     type(t_thermo), intent(in) :: tm
     type(t_flow),   intent(in) :: fl
-    character(4), intent(in), optional :: str
-
-    integer :: iter 
-    character(64) :: visuname
+    type(t_domain), intent(in) :: dm
+    character(*),   intent(in), optional :: suffix
+    character(len=256) :: visuname
+    integer :: iter
 
     iter = tm%iteration
     visuname = 'thermo'
-    if(present(str)) visuname = trim(visuname)//'_'//trim(str)
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-!----------------------------------------------------------------------------------------------------------
-! write data, temperature, to cell centre
-!----------------------------------------------------------------------------------------------------------
-    call write_visu_field(dm, tm%tTemp, dm%dccc, "Temp", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%dDens, dm%dccc, "Dens", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%mVisc, dm%dccc, "Visc", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, tm%kCond, dm%dccc, "Cond", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, tm%hEnth, dm%dccc, "Enth", trim(visuname), SCALAR, CELL, iter)
-    call write_visu_field(dm, fl%drhodt,dm%dccc, "dddt", trim(visuname), SCALAR, CELL, iter)
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-
-    if(nrank == 0) call Print_debug_inline_msg("Write out visualisation for thermal field.")
+    if (present(suffix)) visuname = trim(visuname)//'_'//trim(suffix)
     
+    call write_visu_file_begin(dm, visuname, iter)
+    call write_visu_field_bin_and_xdmf(dm, tm%tTemp, 'Temperature',  visuname, iter, N_DIRECTION)
+    call write_visu_field_bin_and_xdmf(dm, fl%dDens, 'Density',      visuname, iter, N_DIRECTION)
+    call write_visu_field_bin_and_xdmf(dm, fl%mVisc, 'Viscosity',    visuname, iter, N_DIRECTION)
+    call write_visu_field_bin_and_xdmf(dm, tm%kCond, 'Conductivity', visuname, iter, N_DIRECTION)
+    call write_visu_field_bin_and_xdmf(dm, tm%hEnth, 'Enthalpy',     visuname, iter, N_DIRECTION)
+    call write_visu_field_bin_and_xdmf(dm, fl%drhodt,'drho_dt',      visuname, iter, N_DIRECTION)
+    call write_visu_file_end(dm, visuname, iter)
     return
-  end subroutine
-!==========================================================================================================
+  end subroutine write_visu_thermo
+  !==========================================================================================================
   subroutine write_visu_mhd(mh, fl, dm, suffix)
     use udf_type_mod
-    use precision_mod
-    use operations
-    use parameters_constant_mod
     implicit none
+    type(t_mhd),   intent(in) :: mh
+    type(t_flow),  intent(in) :: fl
+    type(t_domain),intent(in) :: dm
+    character(*),  intent(in), optional :: suffix
+    character(len=256) :: visuname
+    integer :: iter
 
-    ! Input variables
-    type(t_domain), intent(in) :: dm
-    type(t_flow), intent(in) :: fl
-    type(t_mhd), intent(in) :: mh
-    character(4), intent(in), optional :: suffix
+    iter = fl%iteration
+    visuname = 'mhd'
+    if (present(suffix)) visuname = trim(visuname)//'_'//trim(suffix)
+    ! 
+    call write_visu_file_begin(dm, visuname, iter)
+    call write_visu_field_bin_and_xdmf(dm, mh%ep, 'electric_potential', visuname, iter, N_DIRECTION)
 
-    ! Local variables
-    integer :: iteration
-    character(64) :: visu_filename
+    call write_visu_field_bin_and_xdmf(dm, mh%jx, 'jx_current', visuname, iter, X_DIRECTION, opt_ibc=mh%ibcx_jx)
+    call write_visu_field_bin_and_xdmf(dm, mh%jy, 'jy_current', visuname, iter, Y_DIRECTION, opt_ibc=mh%ibcy_jy)
+    call write_visu_field_bin_and_xdmf(dm, mh%jz, 'jz_current', visuname, iter, Z_DIRECTION, opt_ibc=mh%ibcz_jz)
 
-    ! Initialize iteration and filename
-    iteration = fl%iteration
-    visu_filename = 'mhd'
-    if (present(suffix)) visu_filename = trim(visu_filename) // '_' // trim(suffix)
-
-    ! Write XDMF header
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_HEADER, iteration)
-
-    ! Write electric potential field (cell-centered)
-    call process_and_write_field(mh%ep, dm, "potential", trim(visu_filename), iteration, &
-                                N_DIRECTION)
-
-    ! Process and write current density components (jx, jy, jz)
-    call process_and_write_field(mh%jx, dm, "jx_current", trim(visu_filename), iteration, &
-                                X_DIRECTION, opt_bc=mh%ibcx_jx)
-    call process_and_write_field(mh%jy, dm, "jy_current", trim(visu_filename), iteration, &
-                                Y_DIRECTION, opt_bc=mh%ibcy_jy)
-    call process_and_write_field(mh%jz, dm, "jz_current", trim(visu_filename), iteration, &
-                                Z_DIRECTION, opt_bc=mh%ibcz_jz)
-    ! Process and write Lorentz components
-    call process_and_write_field(fl%lrfx, dm, "fx_Lorentz", trim(visu_filename), iteration, &
-                                X_DIRECTION, opt_bc=dm%ibcx_qx)
-    call process_and_write_field(fl%lrfy, dm, "fy_Lorentz", trim(visu_filename), iteration, &
-                                Y_DIRECTION, opt_bc=dm%ibcy_qy)
-    call process_and_write_field(fl%lrfz, dm, "fz_Lorentz", trim(visu_filename), iteration, &
-                                Z_DIRECTION, opt_bc=dm%ibcz_qz)
-    ! Write XDMF footer
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3), trim(visu_filename), dm%idom, dm%icoordinate, XDMF_FOOTER, iteration)
-
-    ! Debug message
-    if (nrank == 0) call Print_debug_inline_msg("MHD field visualization data written successfully.")
-
-    return
-  end subroutine
-  
+    call write_visu_field_bin_and_xdmf(dm, fl%lrfx, 'fx_Lorentz', visuname, iter, X_DIRECTION, opt_ibc=dm%ibcx_qx)
+    call write_visu_field_bin_and_xdmf(dm, fl%lrfy, 'fy_Lorentz', visuname, iter, Y_DIRECTION, opt_ibc=dm%ibcy_qy)
+    call write_visu_field_bin_and_xdmf(dm, fl%lrfz, 'fz_Lorentz', visuname, iter, Z_DIRECTION, opt_ibc=dm%ibcz_qz)
+    !
+    call write_visu_file_end(dm, visuname, iter)
+    return 
+  end subroutine write_visu_mhd
   !==========================================================================================================
   subroutine write_visu_any3darray(var, varname, visuname, dtmp, dm, iter)
     use udf_type_mod
-    use precision_mod
-    use operations
     use decomp_operation_mod
-    use io_files_mod
-    use parameters_constant_mod
-    implicit none 
-    type(t_domain), intent(in) :: dm
+    implicit none
+    real(WP), intent(in)          :: var(:,:,:)
+    character(*), intent(in)      :: varname
+    character(*), intent(in)      :: visuname
     type(DECOMP_INFO), intent(in) :: dtmp
-    character(*), intent(in) :: varname
-    real(WP), dimension( dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3) ), intent(in) :: var
-    integer, intent(in) :: iter 
-    character(*), intent(in) :: visuname
+    type(t_domain), intent(in)    :: dm
+    integer, intent(in)           :: iter
 
-    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: accc
-    real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: accc_ypencil
-    real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: accc_zpencil
-    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: acpc_ypencil
-    real(WP), dimension( dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3) ) :: accp_ypencil
-    real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil
+    character(len=256) :: outname
 
-    character(64) :: keyword
+    outname = trim(visuname)//'_'//trim(varname)//'_visu'
 
-!----------------------------------------------------------------------------------------------------------
-! write xdmf header
-!----------------------------------------------------------------------------------------------------------
-    keyword = trim(visuname)//"_"//trim(varname)//'_visu'
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3), trim(keyword), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
-    !if(nrank==0) write(*,*) keyword, iter
-!----------------------------------------------------------------------------------------------------------
-! write data, temperature, to cell centre
-!----------------------------------------------------------------------------------------------------------
+    call write_visu_file_begin(dm, outname, iter)
+
     if (is_same_decomp(dtmp, dm%dccc)) then
-      call process_and_write_field(var, dm, trim(varname), trim(keyword), iter, N_DIRECTION)  
+      call write_visu_field_bin_and_xdmf(dm, var, trim(varname), outname, iter, N_DIRECTION)
     else if (is_same_decomp(dtmp, dm%dpcc)) then
-      call process_and_write_field(var, dm, trim(varname), trim(keyword), iter, X_DIRECTION, opt_bc=dm%ibcx_qx)  
+      call write_visu_field_bin_and_xdmf(dm, var, trim(varname), outname, iter, X_DIRECTION, opt_ibc=dm%ibcx_qx)
     else if (is_same_decomp(dtmp, dm%dcpc)) then
-      call process_and_write_field(var, dm, trim(varname), trim(keyword), iter, Y_DIRECTION, opt_bc=dm%ibcy_qy)  
+      call write_visu_field_bin_and_xdmf(dm, var, trim(varname), outname, iter, Y_DIRECTION, opt_ibc=dm%ibcy_qy)
     else if (is_same_decomp(dtmp, dm%dccp)) then
-      call process_and_write_field(var, dm, trim(varname), trim(keyword), iter, Z_DIRECTION, opt_bc=dm%ibcz_qz)  
+      call write_visu_field_bin_and_xdmf(dm, var, trim(varname), outname, iter, Z_DIRECTION, opt_ibc=dm%ibcz_qz)
     else
-      call Print_error_msg ("Given decomp_into is not supported "//trim(varname))
+      call Print_error_msg("write_visu_any3darray: unsupported decomposition for "//trim(varname))
     end if
-!----------------------------------------------------------------------------------------------------------
-! write xdmf footer
-!----------------------------------------------------------------------------------------------------------
-    if(nrank == 0) &
-    call write_visu_headerfooter(nnd_visu(1:3), trim(keyword), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
-    
+
+    call write_visu_file_end(dm, outname, iter)
+  end subroutine write_visu_any3darray
+  !----------------------------- File begin/end -----------------------------------
+  !==========================================================================================================
+  subroutine write_visu_file_begin(dm, visuname, iter, opt_is_savg)
+    use parameters_constant_mod, only: ICARTESIAN, ICYLINDRICAL
+    use typeconvert_mod, only: int2str
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(*),   intent(in) :: visuname
+    integer,        intent(in) :: iter
+    logical,        intent(in), optional :: opt_is_savg
+    !
+    integer :: nnode(3), n2node(3)
+    integer :: u
+    integer :: dir, n, npl, nst, nen
+    character(len=256) :: xdmf_file, fullname
+    character(len=256) :: g1d(3)
+    !
+    if (nrank /= 0) return
+    !
+    if(.not. present(opt_is_savg) .or. .not. opt_is_savg) then
+    if(dm%visu_idim == Ivisu_3D .or. dm%visu_idim == Ivisu_3D2D) then
+      call generate_pathfile_name(xdmf_file, dm%idom, visuname, dir_visu, 'xdmf', iter)
+      open(newunit=u, file=trim(xdmf_file), status='replace', action='write')
+      nnode = nnd_visu(1:3) 
+      if (dm%icoordinate == ICARTESIAN) then
+        call xdmf_begin_grid_cart(u, xdmf_file, nnode, grid_cart_3d_fl)
+      else if (dm%icoordinate == ICYLINDRICAL) then
+        call xdmf_begin_grid_cyl(u, xdmf_file, nnode, grid_cyl_3d_fl)
+      end if
+      close(u)
+    end if
+    end if
+    !
+    if (present(opt_is_savg) .and. opt_is_savg) then
+      nen = 0
+      nst = 0
+    else
+      nst = 1
+      if (dm%visu_idim == Ivisu_2D .or. dm%visu_idim == Ivisu_3D2D) then
+        nen = NSLICE
+      else
+        nen = 0
+      end if
+    end if
+
+    do n = nst, nen
+      do dir = 1, NDIM 
+        if (n == 0 .and. dir /= nave_plane(dir)) then
+          cycle 
+        end if
+        n2node = nnd_visu(1:3)
+        n2node(dir) = 2
+        npl = slice_idx(dir, n)
+        fullname = trim(visuname)//'_'//slice_prefix(dir)//trim(int2str(npl))
+        call generate_pathfile_name(xdmf_file, dm%idom, fullname, dir_visu, 'xdmf', iter)
+        open(newunit=u, file=trim(xdmf_file), status='replace', action='write')
+        if (dm%icoordinate == ICARTESIAN) then
+          g1d = grid_cart_slice(:, dir, find_n_from_npl(dir,npl))
+          call xdmf_begin_grid_cart(u, fullname, n2node, g1d)
+        else
+          call xdmf_begin_grid_cyl(u, fullname, n2node, grid_cyl_slice(dir, find_n_from_npl(dir,npl)))
+        end if
+        close(u)
+      end do
+    end do
+
     return
-  end subroutine
+  end subroutine write_visu_file_begin
+  !==========================================================================================================
+  subroutine write_visu_file_end(dm, visuname, iter, opt_is_savg)
+    use parameters_constant_mod, only: ICARTESIAN, ICYLINDRICAL
+    use typeconvert_mod, only: int2str
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(*),   intent(in) :: visuname
+    integer,        intent(in) :: iter
+    logical,        intent(in), optional :: opt_is_savg
+    !
+    integer :: nnode(3)
+    integer :: u
+    integer :: dir, n, npl, nen, nst
+    character(len=256) :: xdmf_file, fullname
+    !
+    if (nrank /= 0) return
+    !
+    if(.not. present(opt_is_savg) .or. .not. opt_is_savg) then
+    if(dm%visu_idim == Ivisu_3D .or. dm%visu_idim == Ivisu_3D2D) then
+      call generate_pathfile_name(xdmf_file, dm%idom, visuname, dir_visu, 'xdmf', iter)
+      open(newunit=u, file=trim(xdmf_file), status='old', action='write', position='append')
+      call xdmf_end_grid(u)
+      close(u)
+    end if
+    end if
+    !
+    if (present(opt_is_savg) .and. opt_is_savg) then
+      nen = 0
+      nst = 0
+    else
+      nst = 1
+      if (dm%visu_idim == Ivisu_2D .or. dm%visu_idim == Ivisu_3D2D) then
+        nen = NSLICE
+      else
+        nen = 0
+      end if
+    end if
+    do n = nst, nen
+      do dir = 1, NDIM 
+        if (n == 0 .and. dir /= nave_plane(dir)) then
+          cycle 
+        end if
+        npl = slice_idx(dir,n)
+        fullname = trim(visuname)//'_'//slice_prefix(dir)//trim(int2str(npl))
+        call generate_pathfile_name(xdmf_file, dm%idom, fullname, dir_visu, 'xdmf', iter)
+        open(newunit=u, file=trim(xdmf_file), status='old', action='write', position='append')
+        call xdmf_end_grid(u)
+        close(u)
+      end do
+    end do
+    return
+  end subroutine write_visu_file_end
+  !----------------------------- Core field writer --------------------------------
+  !==========================================================================================================
+  subroutine write_visu_field_bin_and_xdmf(dm, field_in, field_name, visuname, iter, direction, opt_ibc)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP),        intent(in) :: field_in(:,:,:)
+    character(*),    intent(in) :: field_name, visuname
+    integer,         intent(in) :: iter
+    integer,         intent(in) :: direction
+    integer,         intent(in), optional :: opt_ibc(:)
 
+    real(WP), allocatable :: accc(:,:,:)
+    integer :: dir, n
+    ! data transfer to cell-centered if needed
+    allocate(accc(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)))
+    if(direction /= N_DIRECTION) then
+      call stagger_to_ccc(dm, field_in, accc, direction, opt_ibc)
+    else
+      accc = field_in
+    end if 
+    ! 
+    if (dm%visu_idim == Ivisu_3D .or. dm%visu_idim == Ivisu_3D2D) then
+      call write_visu_3d_binary_and_xdmf(dm, accc, field_name, visuname, iter)
+    end if
+    !
+    if (dm%visu_idim == Ivisu_2D .or. dm%visu_idim == Ivisu_3D2D) then
+      do dir = 1, NDIM
+        do n = 1, NSLICE
+          call write_visu_plane_binary_and_xdmf(dm, accc, field_name, visuname, dir, n, iter) 
+        end do
+      end do
+    end if
 
-!==========================================================================================================
-!==========================================================================================================
-  subroutine visu_average_periodic_data(data_in, str1, dtmp, dm, str2, iter)
+    deallocate(accc)
+  end subroutine write_visu_field_bin_and_xdmf
+  !==========================================================================================================
+  subroutine stagger_to_ccc(dm, fin, fout, direction, opt_ibc)
+    use udf_type_mod
+    use operations
+    use decomp_2d
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in)  :: fin(:,:,:)
+    real(WP), intent(out) :: fout(:,:,:)
+    integer,  intent(in)  :: direction
+    integer,  intent(in), optional :: opt_ibc(:)
+
+    real(WP), allocatable :: acpc_ypencil(:,:,:), &
+                             accc_ypencil(:,:,:), &
+                             accp_ypencil(:,:,:), &
+                             accp_zpencil(:,:,:), &
+                             accc_zpencil(:,:,:)
+
+    select case(direction)
+    case (N_DIRECTION)
+      fout = fin
+
+    case (X_DIRECTION)
+      call Get_x_midp_P2C_3D(fin, fout, dm, dm%iAccuracy, opt_ibc)
+
+    case (Y_DIRECTION)
+      allocate(acpc_ypencil(dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3)))
+      allocate(accc_ypencil(dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3)))
+      call transpose_x_to_y(fin, acpc_ypencil, dm%dcpc)
+      call Get_y_midp_P2C_3D(acpc_ypencil, accc_ypencil, dm, dm%iAccuracy, opt_ibc)
+      call transpose_y_to_x(accc_ypencil, fout, dm%dccc)
+      deallocate(acpc_ypencil, accc_ypencil)
+
+    case (Z_DIRECTION)
+      allocate(accp_ypencil(dm%dccp%ysz(1), dm%dccp%ysz(2), dm%dccp%ysz(3)))
+      allocate(accp_zpencil(dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3)))
+      allocate(accc_zpencil(dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3)))
+      allocate(accc_ypencil(dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3)))
+      call transpose_x_to_y(fin, accp_ypencil, dm%dccp)
+      call transpose_y_to_z(accp_ypencil, accp_zpencil, dm%dccp)
+      call Get_z_midp_P2C_3D(accp_zpencil, accc_zpencil, dm, dm%iAccuracy, opt_ibc)
+      call transpose_z_to_y(accc_zpencil, accc_ypencil, dm%dccc)
+      call transpose_y_to_x(accc_ypencil, fout, dm%dccc)
+      deallocate(accp_ypencil, accp_zpencil, accc_zpencil, accc_ypencil)
+
+    case default
+      call Print_error_msg("stagger_to_ccc: invalid direction")
+      fout = fin
+    end select
+    return
+  end subroutine stagger_to_ccc
+  !==========================================================================================================
+  subroutine write_visu_3d_binary_and_xdmf(dm, accc, field_name, visuname, iter)
+    use udf_type_mod
+    use decomp_2d
+    use decomp_2d_io
+    use typeconvert_mod, only: int2str
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: accc(:,:,:)
+    character(*), intent(in) :: field_name, visuname
+    integer, intent(in) :: iter
+    !
+    character(len=256) :: bin_file
+    character(len=256) :: xdmf_file
+    character(len=64) :: dimstring
+    integer :: u
+    !----------------------- 3D binary -----------------------
+    call generate_pathfile_name(bin_file, dm%idom, trim(field_name), dir_data, 'bin', iter)
+    if (.not. file_exists(trim(bin_file))) then
+      if (all(dm%visu_nskip(1:3) == 1)) then
+        call write_one_3d_array(accc, trim(field_name), dm%idom, iter, dm%dccc)
+      else
+        call write_coarsened_3d(dm, accc, field_name, iter)
+      end if
+    end if
+    !----------------------- 3D binary -----------------------
+    if (nrank == 0) then
+      call generate_pathfile_name(xdmf_file, dm%idom, visuname, dir_visu, 'xdmf', iter)
+      open(newunit=u, file=trim(xdmf_file), status='old', action='write', position='append')
+      dimstring = xdmf_dims_kji_string(ncl_visu(1:3))
+      call xdmf_write_attribute_scalar(u, field_name, 'Cell', dimstring, bin_file)
+      close(u)
+    end if
+    return
+  end subroutine write_visu_3d_binary_and_xdmf
+  !==========================================================================================================
+  subroutine write_visu_plane_binary_and_xdmf(dm, accc, field_name, visuname, dir, n, iter)
+    use udf_type_mod
+    use decomp_2d
+    use decomp_2d_io
+    use typeconvert_mod, only: int2str
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: accc(:,:,:)
+    character(*), intent(in) :: field_name, visuname
+    integer, intent(in) :: iter, dir, n
+
+    character(len=256) :: data3d
+    character(len=256) :: xdmf
+    integer :: u
+    integer :: ncell(3), nnode(3)
+    integer :: npl
+    character(len=256) :: bin_file
+    character(len=256) :: slice_tag
+    integer :: ncell2(3)
+
+    nnode = nnd_visu(1:3)
+    ncell = ncl_visu(1:3)
+
+    !----------------------- 2D slices binary -----------------------
+    npl = slice_idx(dir, n)
+    slice_tag = slice_prefix(dir)//trim(int2str(npl))
+    call generate_pathfile_name(bin_file, dm%idom, trim(field_name)//'_'//trim(slice_tag), dir_data, 'bin', iter)
+    if (.not. file_exists(trim(bin_file))) then
+      call write_plane_bin(dm, accc, dir, npl, bin_file)
+    end if
+    !----------------------- 2D slices XDMF -----------------------
+    if (nrank == 0) then
+      call write_slice_field_xdmf(dm, visuname, field_name, bin_file, dir, npl, iter)
+    end if
+
+  end subroutine write_visu_plane_binary_and_xdmf
+  !==========================================================================================================
+  pure function slice_prefix(dir) result(p)
+    integer, intent(in) :: dir
+    character(len=2) :: p
+    select case(dir)
+    case(1); p='xi'
+    case(2); p='yi'
+    case(3); p='zi'
+    end select
+  end function slice_prefix
+  !==========================================================================================================
+  subroutine write_coarsened_3d(dm, ccc, field_name, iter)
+    use udf_type_mod
+    use decomp_2d
+    use decomp_2d_io
+    use io_tools_mod
+    use parameters_constant_mod, only: MAXP, IPENCIL
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: ccc(:,:,:)
+    character(*), intent(in) :: field_name
+    integer, intent(in) :: iter
+    real(WP), allocatable :: coarse(:,:,:)
+
+    allocate(coarse(xstV(1):xenV(1), xstV(2):xenV(2), xstV(3):xenV(3)))
+    coarse = MAXP
+    call fine_to_coarseV(IPENCIL(1), ccc, coarse)
+    call write_one_3d_array(coarse, trim(field_name), dm%idom, iter, dm%dccc)
+    deallocate(coarse)
+  end subroutine write_coarsened_3d
+  !==========================================================================================================
+  subroutine write_plane_bin(dm, accc_in, dir, npl, bin_file)
+    use udf_type_mod
+    use decomp_2d_io
+    use transpose_extended_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: accc_in(:,:,:)
+    integer, intent(in) :: dir, npl
+    character(*), intent(in) :: bin_file
+
+    real(WP), allocatable :: accc_yp(:,:,:), accc_zp(:,:,:)
+    real(WP), allocatable :: accc(:,:,:)
+
+    select case(dir)
+    case(1)
+      allocate(accc(d1cc%xsz(1), d1cc%xsz(2), d1cc%xsz(3)))
+      accc(1, :, :) = accc_in(npl, :, :)
+      call decomp_2d_write_one(IPENCIL(1), accc, trim(bin_file), opt_decomp=d1cc)
+      deallocate(accc)
+
+    case(2)
+      allocate(accc_yp(dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3)))
+      call transpose_x_to_y(accc_in, accc_yp, dm%dccc)
+      allocate(accc(dc1c%ysz(1), dc1c%ysz(2), dc1c%ysz(3)))
+      accc(:, 1, :) = accc_yp(:, npl, :)
+      call decomp_2d_write_one(IPENCIL(2), accc, trim(bin_file), opt_decomp=dc1c)
+      deallocate(accc, accc_yp)
+
+    case(3)
+      allocate(accc_yp(dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3)))
+      allocate(accc_zp(dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3)))
+      call transpose_x_to_y(accc_in, accc_yp, dm%dccc)
+      call transpose_y_to_z(accc_yp, accc_zp, dm%dccc)
+      allocate(accc(dcc1%zsz(1), dcc1%zsz(2), dcc1%zsz(3)))
+      accc(:, :, 1) = accc_zp(:, :, npl)
+      call decomp_2d_write_one(IPENCIL(3), accc, trim(bin_file), opt_decomp=dcc1)
+      deallocate(accc, accc_yp, accc_zp)
+    end select
+
+    return
+  end subroutine write_plane_bin
+  !==========================================================================================================
+  subroutine write_slice_field_xdmf(dm, visuname, field_name, bin_file, dir, npl, iter)
     use udf_type_mod
     use parameters_constant_mod
+    use typeconvert_mod, only: int2str
     implicit none
-    type(DECOMP_INFO), intent(in) :: dtmp
     type(t_domain), intent(in) :: dm
-    real(WP), dimension(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)), intent(in)  :: data_in
-    character(*), intent(in) :: str1
-    character(*), intent(in) :: str2
-    integer, intent(in) :: iter
-    
+    character(*), intent(in) :: visuname, field_name, bin_file
+    integer, intent(in) :: dir, npl, iter
 
-    real(WP), dimension(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)) :: a_xpencil
-    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: a_ypencil
-    real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: a_zpencil
-    real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: b_zpencil
+    character(len=256) :: xdmf_file
+    character(len=256) :: name
+    integer :: u
+    integer :: n2cell(3)
+    character(len=64) :: dimstring
 
-    real(WP), dimension( dtmp%ysz(2)) :: var
+    name = trim(visuname)//'_'//slice_prefix(dir)//trim(int2str(npl))
 
-    integer :: i, j, k
-    real(WP) :: sum
+    n2cell = ncl_visu(1:3)
+    n2cell(dir) = 1   ! cells reduce by 1 in sliced direction (2 nodes -> 1 cell)
 
-    if(dm%is_periodic(1) .and. &
-       dm%is_periodic(3) .and. &
-       dm%is_periodic(2)) then
+    call generate_pathfile_name(xdmf_file, dm%idom, name, dir_visu, 'xdmf', iter)
+    open(newunit=u, file=trim(xdmf_file), status='old', action='write', position='append')
+    dimstring = xdmf_dims_kji_string(n2cell)
+    call xdmf_write_attribute_scalar(u, field_name, 'Cell', dimstring, bin_file)
+    close(u)
+  end subroutine write_slice_field_xdmf
+  !==========================================================================================================
+  pure function find_n_from_npl(dir, npl) result(nfound)
+    integer, intent(in) :: dir, npl
+    integer :: nfound, n
+    nfound = 1
+    do n = 1, NSLICE
+      if (slice_idx(dir,n) == npl) then
+        nfound = n
+        return
+      end if
+    end do
+  end function find_n_from_npl
 
-    ! do nothing here, but bulk value output
-
-    else if(dm%is_periodic(1) .and. &
-            dm%is_periodic(3) .and. &
-      .not. dm%is_periodic(2)) then
-
-      do j = 1, dtmp%xsz(2)
-        do k = 1, dtmp%xsz(3)
-          sum =  ZERO
-          do i = 1, dtmp%xsz(1)
-            sum = sum + data_in(i, j, k) 
-          end do
-          sum =  sum/real(dtmp%xsz(1), WP)
-          a_xpencil(:, j, k) = sum
-        end do
-      end do
-
-      call transpose_x_to_y(a_xpencil, a_ypencil, dtmp)
-      call transpose_y_to_z(a_ypencil, a_zpencil, dtmp)
-      do i = 1, dtmp%zsz(1)
-        do j = 1, dtmp%zsz(2)
-          sum =  ZERO
-          do k = 1, dtmp%zsz(3)
-            sum = sum + a_zpencil(i, j, k) 
-          end do
-          b_zpencil(i, j, :) =  sum/real(dtmp%zsz(3), WP)
-        end do
-      end do
-      call transpose_z_to_y(b_zpencil, a_ypencil, dtmp)
-      var = a_ypencil(1,:,1)
-      call write_visu_profile(dm, var, dm%dccc, trim(str1), trim(str2), SCALAR, CELL, 2, iter)
-  
-    else if(dm%is_periodic(1) .and. &
-      .not. dm%is_periodic(3) .and. &
-      .not. dm%is_periodic(2)) then
-
-      do j = 1, dtmp%xsz(2)
-        do k = 1, dtmp%xsz(3)
-          sum =  ZERO
-          do i = 1, dtmp%xsz(1)
-            sum = sum + data_in(i, j, k) 
-          end do
-          sum =  sum/real(dtmp%xsz(1), WP)
-          a_xpencil(:, j, k) = sum
-        end do
-      end do
-
-      call write_visu_field(dm, a_xpencil, dm%dccc, trim(str1), trim(str2), SCALAR, CELL, iter)
-
-    else if( &
-      .not. dm%is_periodic(1) .and. &
-            dm%is_periodic(3) .and. &
-      .not. dm%is_periodic(2)) then
-
-      call transpose_x_to_y(data_in,   a_ypencil, dtmp)
-      call transpose_y_to_z(a_ypencil, a_zpencil, dtmp)
-      do j = 1, dtmp%zsz(2)
-        do i = 1, dtmp%zsz(1)
-          sum =  ZERO
-          do k = 1, dtmp%zsz(3)
-            sum = sum + a_zpencil(i, j, k) 
-          end do
-          sum =  sum /real(dtmp%zsz(3), WP)
-          b_zpencil(i, j, :) = sum
-        end do
-      end do
-
-      call transpose_z_to_y(b_zpencil, a_ypencil, dtmp)
-      call transpose_y_to_x(a_ypencil, a_xpencil, dtmp)
-
-      call write_visu_field(dm, a_xpencil, dm%dccc, trim(str1), trim(str2), SCALAR, CELL, iter)
-
-    else
-      ! do nothing here
-      !data_out = data_in
-    end if
-
-
-    return
-  end subroutine
-
-
-
-end module
+end module visualisation_field_mod

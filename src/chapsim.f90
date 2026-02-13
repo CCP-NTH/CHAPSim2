@@ -37,7 +37,7 @@ subroutine initialise_chapsim
   use poisson_interface_mod
   use solver_tools_mod
   use thermo_info_mod
-  use io_visualisation_mod
+  use visualisation_field_mod
   use eq_momentum_mod
   use wrt_debug_field_mod
   use mhd_mod
@@ -202,7 +202,7 @@ subroutine Solve_eqs_iteration
   use input_general_mod
   use mpi_mod
   use wtformat_mod
-  use io_visualisation_mod
+  use visualisation_field_mod
   use io_monitor_mod
   use io_tools_mod
   use io_restart_mod

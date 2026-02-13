@@ -280,7 +280,7 @@ contains
     use mpi_mod
     use solver_tools_mod
     use wtformat_mod
-    use io_visualisation_mod
+    !use io_visualisation_mod
     use find_max_min_ave_mod
     use typeconvert_mod
     implicit none
@@ -323,10 +323,10 @@ contains
     call Get_divergence_flow(fl, div, dm)
     div = div + drhodt
     !
-#ifdef DEBUG_STEPS
-    if(MOD(fl%iteration, dm%visu_nfre) == 0) &
-    call write_visu_any3darray(div, 'divU', 'debug'//trim(str), dm%dccc, dm, fl%iteration)
-#endif
+! #ifdef DEBUG_STEPS
+!     if(MOD(fl%iteration, dm%visu_nfre) == 0) &
+!     call write_visu_any3darray(div, 'divU', 'debug'//trim(str), dm%dccc, dm, fl%iteration)
+! #endif
     !----------------------------------------------------------------
     ! Find Max. mass conservation residual
     !----------------------------------------------------------------

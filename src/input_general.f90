@@ -943,6 +943,9 @@ contains
     !----------------------------------------------------------------------------------------------------------
     ! cross session conditions
     !----------------------------------------------------------------------------------------------------------
+    if(is_any_energyeq .and. domain(1)%is_periodic(1)) then
+      domain(:)%inlet_tbuffer_len = ZERO
+    end if
     if((.not. domain(1)%is_periodic(2)) .and. is_any_energyeq) then
       ! check!
       if(domain(1)%is_periodic(1)) &

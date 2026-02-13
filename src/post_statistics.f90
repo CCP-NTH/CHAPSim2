@@ -1,3 +1,405 @@
+
+!==========================================================================================================
+! Periodic averaging refactor
+!
+! What this fixes vs your current version:
+!   - No duplicated hand-written loops for each periodicity pattern
+!   - One clear dispatcher that decides WHAT to average (bulk / 1D profile / 2D plane)
+!   - One set of reusable reducers:
+!        mean_over_dir_1d():    average over 2 directions -> 1D profile
+!        mean_over_dir_2d():    average over 1 direction  -> 2D plane (stored as 3D with size=1)
+!
+!==========================================================================================================
+
+module visualisation_spatial_average_mod
+  use parameters_constant_mod
+  use print_msg_mod
+  implicit none
+  private
+
+  integer, parameter :: XDIR=1, YDIR=2, ZDIR=3
+
+  public  :: write_visu_savg_bin_and_xdmf
+  private :: write_visu_profile
+  private :: mean_over_two_dirs_to_profile
+  private :: mean_over_one_dir_to_plane
+  private :: mean_data_xpencil_over_xdir
+  private :: mean_data_ypencil_over_ydir 
+  private :: mean_data_zpencil_over_zdir 
+  private :: extract_profile_from_ypencil 
+  private :: remaining_dir
+
+contains
+  subroutine write_visu_savg_bin_and_xdmf(dm, data_in, field_name, visuname, iter)
+    use udf_type_mod
+    use decomp_2d
+    use visualisation_field_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP),        intent(in) :: data_in(:,:,:)
+    character(*),    intent(in) :: field_name, visuname
+    integer,         intent(in) :: iter
+
+    logical :: px, py, pz
+    real(WP), allocatable :: prof(:)
+    real(WP), allocatable :: savg_data(:,:,:)
+    type(DECOMP_INFO) :: dtmp
+
+    px = dm%is_periodic(XDIR)
+    py = dm%is_periodic(YDIR)
+    pz = dm%is_periodic(ZDIR)
+    dtmp = dm%dccc
+    !--------------------------------------------
+    ! point
+    !--------------------------------------------
+    if (px .and. py .and. pz) then
+      ! All periodic: usually only a bulk value makes sense.
+      ! Keep behaviour: do nothing here (or add a bulk output if you want).
+      return
+    end if
+    !--------------------------------------------
+    ! two direction periodic -> 1D profile
+    !--------------------------------------------
+    ! Case: X and Z periodic, Y bounded -> produce Y-profile (mean over X and Z)
+    if (px .and. pz .and. (.not. py)) then
+      allocate(prof(dtmp%ysz(2)))
+      call mean_over_two_dirs_to_profile(data_in, dm, YDIR, prof)
+      call write_visu_profile(dm, prof, trim(field_name), YDIR, iter)
+      deallocate(prof)
+      return
+    end if
+
+    ! Case: X and Y periodic, Z bounded -> produce Z-profile (mean over X and Y)
+    if (px .and. py .and. (.not. pz)) then
+      allocate(prof(dtmp%zsz(3)))
+      call mean_over_two_dirs_to_profile(data_in, dm, ZDIR, prof)
+      call write_visu_profile(dm, prof, trim(field_name), ZDIR, iter)
+      deallocate(prof)
+      return
+    end if
+
+    ! Case: Y and Z periodic, X bounded -> produce X-profile (mean over Y and Z)
+    if (py .and. pz .and. (.not. px)) then
+      allocate(prof(dtmp%xsz(1)))
+      call mean_over_two_dirs_to_profile(data_in, dm, XDIR, prof)
+      call write_visu_profile(dm, prof, trim(field_name), XDIR, iter)
+      deallocate(prof)
+      return
+    end if
+    !--------------------------------------------
+    ! one direction periodic -> 2d plane
+    !--------------------------------------------
+    ! Case: X periodic only -> average over X, keep YZ plane
+    if (px .and. (.not. py) .and. (.not. pz)) then
+      allocate(savg_data(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)))
+      call mean_over_one_dir_to_plane(data_in, dm, XDIR, savg_data)
+      call write_visu_plane_binary_and_xdmf(dm, savg_data, field_name, visuname, 1, 0, iter) 
+      deallocate(savg_data)
+      return
+    end if
+
+    ! Case: Y periodic only -> not supported
+    if ((.not. px) .and. py .and. (.not. pz)) then
+      allocate(savg_data(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)))
+      call mean_over_one_dir_to_plane(data_in, dm, YDIR, savg_data)
+      call write_visu_plane_binary_and_xdmf(dm, savg_data, field_name, visuname, 2, 0, iter) 
+      deallocate(savg_data)
+      return
+    end if
+
+    ! Case: Z periodic only -> average over Z, keep XY plane
+    if ((.not. px) .and. (.not. py) .and. pz) then
+      allocate(savg_data(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)))
+      call mean_over_one_dir_to_plane(data_in, dm, ZDIR, savg_data)
+      call write_visu_plane_binary_and_xdmf(dm, savg_data, field_name, visuname, 3, 0, iter) 
+      deallocate(savg_data)
+      return
+    end if
+
+    ! Other mixed periodicities not handled in your original logic:
+    ! - X&Y periodic, Z bounded
+    ! - Y periodic only, etc.
+    ! Add cases here if you need them later.
+    return
+
+  end subroutine write_visu_savg_bin_and_xdmf
+
+  subroutine write_visu_profile(dm, prof, varname, dir, iter)
+    use precision_mod
+    use decomp_2d
+    use decomp_2d_io
+    use udf_type_mod, only: t_domain
+    use io_tools_mod
+    use decomp_operation_mod
+    use typeconvert_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: prof(:)
+    character(len=*), intent(in) :: varname
+    integer, intent(in) :: dir
+    integer, intent(in), optional :: iter
+
+    character(64):: data_flname
+    character(64):: data_flname_path
+    character(64):: visu_flname_path
+    character(64):: keyword
+    integer :: nsz(3)
+    integer :: ioxdmf, iofl
+    type(DECOMP_INFO) :: dtmp
+
+    integer :: j
+
+    dtmp = dm%dccc
+!----------------------------------------------------------------------------------------------------------
+! write data 
+!----------------------------------------------------------------------------------------------------------
+    if(nrank == 0) then
+      keyword = trim(varname)
+      call generate_pathfile_name(data_flname_path, dm%idom, keyword, dir_data, 'dat', iter)
+      open(newunit = iofl, file = data_flname_path, action = "write", status="replace")
+      select case (dir)
+      case (XDIR)
+        do j = 1, dtmp%xsz(1)
+          write(iofl, *) j, (j + HALF) * dm%h(1), prof(j) 
+        end do
+      case (YDIR)
+        do j = 1, dtmp%ysz(2)
+          write(iofl, *) j, dm%yc(j), prof(j) 
+        end do
+      case (ZDIR)
+        do j = 1, dtmp%zsz(3)
+          write(iofl, *) j, (j + HALF) * dm%h(3), prof(j) 
+        end do
+      end select
+      
+      close(iofl)
+    end if
+
+    return
+  end subroutine 
+  !========================================================================================================
+  ! Average over two directions -> return 1D profile along the remaining direction.
+  !
+  ! Example: mean over X and Z -> profile along Y.
+  ! Implementation strategy:
+  !   - Compute mean over first direction in current pencil when possible.
+  !   - Transpose as needed to average over second direction.
+  !   - Return 1D vector of the remaining coordinate.
+  !========================================================================================================
+  subroutine mean_over_two_dirs_to_profile(data_xpencil, dm, dir, profile_out)
+    use udf_type_mod
+    use decomp_2d
+    implicit none
+    real(WP), intent(in)          :: data_xpencil(:,:,:)
+    type(t_domain), intent(in)    :: dm
+    integer, intent(in)           :: dir
+    real(WP), allocatable, intent(out) :: profile_out(:)
+
+    real(WP), allocatable :: tmp_x(:,:,:), tmp_y(:,:,:), tmp_z(:,:,:)
+    type(DECOMP_INFO) :: dtmp
+
+    dtmp = dm%dccc
+    select case(dir)
+    case (XDIR)
+      ! Average over YZ to get X-profile
+      allocate(tmp_x(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)))
+      allocate(tmp_y(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)))
+      allocate(tmp_z(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)))
+      call transpose_x_to_y(data_xpencil, tmp_y, dtmp)
+      call mean_data_ypencil_over_ydir(tmp_y, dtmp)
+      call transpose_y_to_z(tmp_y, tmp_z, dtmp)
+      call mean_data_zpencil_over_zdir(tmp_z, dtmp)
+      call transpose_z_to_y(tmp_z, tmp_y, dtmp)
+      call transpose_y_to_x(tmp_y, tmp_x, dtmp)
+      profile_out = tmp_x(:, 1, 1)
+      deallocate(tmp_x, tmp_y, tmp_z)
+
+    case (YDIR)
+      ! Average over XZ to get Y-profile
+      allocate(tmp_x(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)))
+      allocate(tmp_y(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)))
+      allocate(tmp_z(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)))
+      tmp_x = data_xpencil
+      call mean_data_xpencil_over_xdir(tmp_x, dtmp)
+      call transpose_x_to_y(tmp_x, tmp_y, dtmp)
+      call transpose_y_to_z(tmp_y, tmp_z, dtmp)
+      call mean_data_zpencil_over_zdir(tmp_z, dtmp)
+      call transpose_z_to_y(tmp_z, tmp_y, dtmp)
+      profile_out = tmp_y(1, :, 1)
+      deallocate(tmp_x, tmp_y, tmp_z)
+
+    case (ZDIR)
+      ! Average over XY to get Z-profile
+      allocate(tmp_x(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)))
+      allocate(tmp_y(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)))
+      allocate(tmp_z(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)))
+      tmp_x = data_xpencil
+      call mean_data_xpencil_over_xdir(tmp_x, dtmp)
+      call transpose_x_to_y(tmp_x, tmp_y, dtmp)
+      call mean_data_ypencil_over_ydir(tmp_y, dtmp)
+      call transpose_y_to_z(tmp_y, tmp_z, dtmp)
+      profile_out = tmp_z(1, 1, :)
+      deallocate(tmp_x, tmp_y, tmp_z)
+
+    case default
+      call Print_error_msg("mean_over_two_dirs_to_profile: invalid dir")
+      allocate(profile_out(0))
+    end select
+
+  end subroutine mean_over_two_dirs_to_profile
+  !========================================================================================================
+  ! Average over one direction -> return a 2D plane as a 3D array with size 1 in that direction.
+  !
+  ! Example:
+  !   - mean over X -> YZ-plane (shape: (1, Ny, Nz) in x-pencil conceptually)
+  !   - mean over Z -> XY-plane (shape: (Nx, Ny, 1))
+  !
+  !========================================================================================================
+  subroutine mean_over_one_dir_to_plane(data_xpencil, dm, dirAvg, plane_out)
+    use udf_type_mod
+    use decomp_2d
+    implicit none
+    real(WP), intent(in)          :: data_xpencil(:,:,:)
+    
+    type(t_domain), intent(in)    :: dm
+    integer, intent(in)           :: dirAvg
+    real(WP), allocatable, intent(out) :: plane_out(:,:,:)
+
+    real(WP), allocatable :: tmp_y(:,:,:), tmp_z(:,:,:)
+    real(WP), allocatable :: avg(:,:,:)
+    type(DECOMP_INFO) :: dtmp
+
+    dtmp = dm%dccc
+    select case(dirAvg)
+    case (XDIR)
+      ! Average over X in x-pencil directly
+      allocate(avg(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)))
+      avg = data_xpencil
+      call mean_data_xpencil_over_xdir(avg, dtmp)
+      plane_out = avg
+      deallocate(avg)
+
+    case (YDIR)
+      ! Need y-pencil to average over Y then return to x-pencil
+      allocate(tmp_y(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)))
+      call transpose_x_to_y(data_xpencil, tmp_y, dtmp)
+      call mean_data_ypencil_over_ydir(tmp_y, dtmp)
+
+      allocate(plane_out(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)))
+      call transpose_y_to_x(tmp_y, plane_out, dtmp)
+      deallocate(tmp_y)
+
+    case (ZDIR)
+      ! Need z-pencil to average over Z then return to x-pencil
+      allocate(tmp_y(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)))
+      allocate(tmp_z(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)))
+      call transpose_x_to_y(data_xpencil, tmp_y, dtmp)
+      call transpose_y_to_z(tmp_y, tmp_z, dtmp)
+      call mean_data_zpencil_over_zdir(tmp_z, dtmp)
+
+      call transpose_z_to_y(tmp_z, tmp_y, dtmp)
+      allocate(plane_out(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)))
+      call transpose_y_to_x(tmp_y, plane_out, dtmp)
+
+      deallocate(tmp_y, tmp_z)
+
+    case default
+      call Print_error_msg("mean_over_one_dir_to_plane: invalid dirAvg")
+      allocate(plane_out(0,0,0))
+    end select
+
+  end subroutine mean_over_one_dir_to_plane
+  !========================================================================================================
+  ! In-place mean reducers that keep array shape but broadcast the mean along averaged dimension.
+  ! This makes subsequent transposes trivial and avoids changing interface signatures.
+  !========================================================================================================
+  subroutine mean_data_xpencil_over_xdir(data_xpencil, dtmp)
+    use decomp_2d
+    implicit none
+    real(WP), intent(inout) :: data_xpencil(:,:,:)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    integer :: i,j,k
+    real(WP) :: s
+
+    do j = 1, dtmp%xsz(2)
+      do k = 1, dtmp%xsz(3)
+        s = sum(data_xpencil(:,j,k)) / real(dtmp%xsz(1), WP)
+        data_xpencil(:,j,k) = s
+      end do
+    end do
+    return
+  end subroutine mean_data_xpencil_over_xdir
+!========================================================================================================
+  subroutine mean_data_ypencil_over_ydir(data_ypencil, dtmp)
+    use decomp_2d
+    implicit none
+    real(WP), intent(inout) :: data_ypencil(:,:,:)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    integer :: i,j,k
+    real(WP) :: s
+
+    do i = 1, dtmp%ysz(1)
+      do k = 1, dtmp%ysz(3)
+        s = sum(data_ypencil(i,:,k)) / real(dtmp%ysz(2), WP)
+        data_ypencil(i,:,k) = s
+      end do
+    end do
+  end subroutine mean_data_ypencil_over_ydir
+!========================================================================================================
+  subroutine mean_data_zpencil_over_zdir(data_zpencil, dtmp)
+    use decomp_2d
+    implicit none
+    real(WP), intent(inout) :: data_zpencil(:,:,:)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    integer :: i,j,k
+    real(WP) :: s
+    !
+    do i = 1, dtmp%zsz(1)
+      do j = 1, dtmp%zsz(2)
+        s = sum(data_zpencil(i,j,:)) / real(dtmp%zsz(3), WP)
+        data_zpencil(i,j,:) = s
+      end do
+    end do
+    return
+  end subroutine mean_data_zpencil_over_zdir
+
+
+  !========================================================================================================
+  ! Extract a 1D profile from y-pencil data after averaging.
+  ! For your primary supported case (mean over X & Z), remaining is YDIR:
+  !   profile(j) = a(1,j,1)
+  !
+  ! If you later add other cases, extend the select below.
+  !========================================================================================================
+  subroutine extract_profile_from_ypencil(a_ypencil, dtmp, dirRemain, profile_out)
+    use decomp_2d
+    implicit none
+    real(WP), intent(in) :: a_ypencil(:,:,:)
+    type(DECOMP_INFO), intent(in) :: dtmp
+    integer, intent(in) :: dirRemain
+    real(WP), allocatable, intent(out) :: profile_out(:)
+
+    select case(dirRemain)
+    case (YDIR)
+      allocate(profile_out(dtmp%ysz(2)))
+      profile_out = a_ypencil(1,:,1)
+    case default
+      call Print_error_msg("extract_profile_from_ypencil: remaining dir not supported")
+      allocate(profile_out(0))
+    end select
+  end subroutine extract_profile_from_ypencil
+
+
+  pure function remaining_dir(dirA, dirB) result(dirR)
+    integer, intent(in) :: dirA, dirB
+    integer :: dirR
+    integer :: s
+    s = dirA + dirB
+    dirR = XDIR + YDIR + ZDIR - s
+  end function remaining_dir
+
+end module visualisation_spatial_average_mod
+!==========================================================================================================
 module statistics_mod
   use print_msg_mod
   use parameters_constant_mod
@@ -36,13 +438,15 @@ module statistics_mod
   public  :: write_visu_stats_mhd
 contains
 !==========================================================================================================
-  subroutine run_stats_action(mode, accc_tavg, str, iter, dm, opt_accc, opt_visnm)
+  subroutine run_stats_action(mode, accc_tavg, field_name, iter, dm, opt_accc, opt_visnm)
     use typeconvert_mod
     use udf_type_mod
-    use io_visualisation_mod
+    use visualisation_field_mod
+    use visualisation_spatial_average_mod
+    use io_tools_mod
     implicit none
     integer, intent(in) :: mode
-    character(len=*), intent(in) :: str
+    character(len=*), intent(in) :: field_name
     integer, intent(in) :: iter
     real(WP), contiguous, intent(inout) :: accc_tavg(:, :, :) 
     character(len=*), intent(in), optional :: opt_visnm
@@ -54,10 +458,10 @@ contains
     !
     select case(mode)
     case(STATS_READ)
-      call read_one_3d_array(accc_tavg, trim(str), dm%idom, iter, dm%dccc)
+      call read_one_3d_array(accc_tavg, trim(field_name), dm%idom, iter, dm%dccc)
       !
     case(STATS_WRITE)
-      call write_one_3d_array(accc_tavg, trim(str), dm%idom, iter, dm%dccc)
+      call write_one_3d_array(accc_tavg, trim(field_name), dm%idom, iter, dm%dccc)
       !
     case(STATS_TAVG)
       if(.not. present(opt_accc)) call Print_error_msg("Error. Need Time Averaged Value.")
@@ -67,10 +471,9 @@ contains
       accc_tavg = am * accc_tavg + ac * opt_accc
       !
     case(STATS_VISU3)
-      call write_visu_field(dm, accc_tavg, dm%dccc, trim(str), trim(opt_visnm), SCALAR, CELL, iter)
-      !
+      call write_visu_field_bin_and_xdmf(dm, accc_tavg, field_name, trim(opt_visnm), iter, 0)
     case(STATS_VISU1)
-      call visu_average_periodic_data(accc_tavg, trim(str),  dm%dccc, dm, trim(opt_visnm), iter)
+      call write_visu_savg_bin_and_xdmf(dm, accc_tavg, trim(field_name),  trim(opt_visnm), iter)
       !
     case default
       call Print_error_msg("This action mode is not supported.")
@@ -79,12 +482,12 @@ contains
     return
   end subroutine
 !==========================================================================================================
-  subroutine run_stats_loops1(mode, accc_tavg, str, iter, dm, opt_accc1, opt_accc0, opt_visnm)
+  subroutine run_stats_loops1(mode, accc_tavg, field_name, iter, dm, opt_accc1, opt_accc0, opt_visnm)
     use udf_type_mod
     use typeconvert_mod
     implicit none
     integer, intent(in) :: mode
-    character(len=*), intent(in) :: str
+    character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
     real(WP), dimension(:, :, :), contiguous, intent(inout) :: accc_tavg
     real(WP), dimension(:, :, :), intent(in), optional :: opt_accc1, opt_accc0
@@ -100,18 +503,18 @@ contains
         opt_accc(:, :, :) = opt_accc1(:, :, :)
       end if
     end if
-    call run_stats_action(mode, accc_tavg, trim(str), iter, dm, opt_accc, opt_visnm)
+    call run_stats_action(mode, accc_tavg, trim(field_name), iter, dm, opt_accc, opt_visnm)
     if(mode == STATS_TAVG) &
     accc_tavg(:, :, :) = accc_tavg(:, :, :)
     return
   end subroutine
 !==========================================================================================================
-  subroutine run_stats_loops3(mode, acccn_tavg, str, iter, dm, opt_acccn1, opt_accc0, opt_visnm)
+  subroutine run_stats_loops3(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_accc0, opt_visnm)
     use udf_type_mod
     use typeconvert_mod
     implicit none
     integer, intent(in) :: mode
-    character(len=*), intent(in) :: str
+    character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
     real(WP), dimension(:, :, :, :), intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :), intent(in), optional :: opt_acccn1
@@ -131,19 +534,19 @@ contains
           opt_accc(:, :, :) = opt_acccn1(:, :, :, i)
         end if
       end if
-      call run_stats_action(mode, accc_tavg, trim(str)//trim(int2str(i)), iter, dm, opt_accc, opt_visnm)
+      call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i)), iter, dm, opt_accc, opt_visnm)
       if(mode == STATS_TAVG)&
       acccn_tavg(:, :, :, i) = accc_tavg(:, :, :)
     end do
     return
   end subroutine
 !==========================================================================================================
-  subroutine run_stats_loops6(mode, acccn_tavg, str, iter, dm, opt_acccn1, opt_acccn2, opt_accc0, opt_visnm)
+  subroutine run_stats_loops6(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_acccn2, opt_accc0, opt_visnm)
     use udf_type_mod
     use typeconvert_mod
     implicit none
     integer, intent(in) :: mode
-    character(len=*), intent(in) :: str
+    character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
     real(WP), dimension(:, :, :, :), intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :), intent(in), optional :: opt_acccn1, opt_acccn2
@@ -166,7 +569,7 @@ contains
             if(present(opt_accc0)) &
             opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
           end if
-          call run_stats_action(mode, accc_tavg, trim(str)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm)
+          call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm)
           if(mode == STATS_TAVG)&
           acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
         end if
@@ -175,12 +578,12 @@ contains
     return
   end subroutine
 !==========================================================================================================
-  subroutine run_stats_loops10(mode, acccn_tavg, str, iter, dm, opt_acccn1, opt_acccn2, opt_acccn3, opt_accc0, opt_visnm)
+  subroutine run_stats_loops10(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_acccn2, opt_acccn3, opt_accc0, opt_visnm)
     use udf_type_mod
     use typeconvert_mod
     implicit none
     integer, intent(in) :: mode
-    character(len=*), intent(in) :: str
+    character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
     real(WP), dimension(:, :, :, :), intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :), intent(in), optional :: opt_acccn1, opt_acccn2, opt_acccn3
@@ -209,7 +612,7 @@ contains
                 if(present(opt_accc0)) &
                 opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
               end if
-              call run_stats_action(mode, accc_tavg, trim(str)//trim(int2str(i))//trim(int2str(j))//trim(int2str(k)), iter, dm, opt_accc, opt_visnm)
+              call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j))//trim(int2str(k)), iter, dm, opt_accc, opt_visnm)
               if(mode == STATS_TAVG)&
               acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
             end if
@@ -219,12 +622,12 @@ contains
       return
   end subroutine
 !==========================================================================================================
-  subroutine run_stats_loops45(mode, acccn_tavg, str, iter, dm, opt_acccnn1, opt_acccnn2, opt_accc0, opt_visnm)
+  subroutine run_stats_loops45(mode, acccn_tavg, field_name, iter, dm, opt_acccnn1, opt_acccnn2, opt_accc0, opt_visnm)
     use udf_type_mod
     use typeconvert_mod
     implicit none
     integer, intent(in) :: mode
-    character(len=*), intent(in) :: str
+    character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
     real(WP), dimension(:, :, :, :),    intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :, :), intent(in), optional :: opt_acccnn1, opt_acccnn2
@@ -285,7 +688,7 @@ contains
             if(present(opt_accc0)) &
             opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
           end if
-          call run_stats_action(mode, accc_tavg, trim(str)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm)
+          call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm)
           if(mode == STATS_TAVG)&
           acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
         end if
@@ -804,7 +1207,7 @@ contains
     use udf_type_mod
     use precision_mod
     use typeconvert_mod
-    use io_visualisation_mod
+    use visualisation_field_mod
     implicit none 
     type(t_domain), intent(in) :: dm
     type(t_flow),   intent(inout) :: fl
@@ -818,8 +1221,7 @@ contains
     iter = fl%iteration
     visuname = 't_avg_flow'
     ! write xdmf header
-    if(nrank == 0) &
-    call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+    call write_visu_file_begin(dm, visuname, iter)
     ! shared parameters
     call run_stats_loops1 (STATS_VISU3, fl%tavg_pr,   't_avg_pr',   iter, dm, opt_visnm=trim(visuname))
     call run_stats_loops3 (STATS_VISU3, fl%tavg_u,    't_avg_u',    iter, dm, opt_visnm=trim(visuname))
@@ -843,16 +1245,15 @@ contains
       call run_stats_loops3 (STATS_VISU3, fl%tavg_eu, 't_avg_eu', iter, dm, opt_visnm=trim(visuname))
     end if
     ! write xdmf footer
-    if(nrank == 0) &
-    call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+    call write_visu_file_end(dm, visuname, iter)
 !----------------------------------------------------------------------------------------------------------
 ! write time averaged and space averaged 3d data (stored 2d or 1d data)
 !----------------------------------------------------------------------------------------------------------
     if( ANY(dm%is_periodic(:))) then
       visuname = 'tsp_avg_flow'
       ! write xdmf header for 1-periodic
-      if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-      call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+      if(count(dm%is_periodic(1:3)) == 1 .and. nrank == 0) &
+      call write_visu_file_begin(dm, visuname, iter, opt_is_savg=.true.)
       ! shared parameters
       call run_stats_loops1 (STATS_VISU1, fl%tavg_pr,   'tsp_avg_pr',   iter, dm, opt_visnm=trim(visuname))
       call run_stats_loops3 (STATS_VISU1, fl%tavg_u,    'tsp_avg_u',    iter, dm, opt_visnm=trim(visuname))
@@ -876,8 +1277,8 @@ contains
         call run_stats_loops3 (STATS_VISU1, fl%tavg_eu, 'tsp_avg_eu', iter, dm, opt_visnm=trim(visuname))
       end if
       ! write xdmf footer
-      if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-      call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+      if(count(dm%is_periodic(1:3)) == 1 .and. nrank == 0) &
+      call write_visu_file_end(dm, visuname, iter, opt_is_savg=.true.)
     end if
     !
     return
@@ -887,7 +1288,7 @@ contains
   subroutine write_visu_stats_thermo(tm, dm)
     use udf_type_mod
     use precision_mod
-    use io_visualisation_mod
+    use visualisation_field_mod
     implicit none 
     type(t_domain), intent(in) :: dm
     type(t_thermo), intent(inout) :: tm
@@ -900,7 +1301,7 @@ contains
     visuname = 't_avg_thermo'
     ! write xdmf header
     if(nrank == 0) &
-    call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+    call write_visu_file_begin(dm, visuname, iter)
     ! write data
     call run_stats_loops1(STATS_VISU3, tm%tavg_h,    't_avg_h',    iter, dm, opt_visnm=trim(visuname))
     call run_stats_loops1(STATS_VISU3, tm%tavg_T,    't_avg_T',    iter, dm, opt_visnm=trim(visuname))
@@ -908,23 +1309,23 @@ contains
     !call run_stats_loops6(STATS_VISU3, tm%tavg_dTdT, 't_avg_dTdT', iter, dm, opt_visnm=trim(visuname))
     ! write xdmf footer
     if(nrank == 0) &
-    call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+    call write_visu_file_end(dm, visuname, iter)
 !----------------------------------------------------------------------------------------------------------
 ! write time averaged and space averaged 3d data (stored 2d or 1d data)
 !----------------------------------------------------------------------------------------------------------
     if( ANY(dm%is_periodic(:))) then
       visuname = 'tsp_avg_thermo'
       ! write xdmf header
-      if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-      call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+      if(count(dm%is_periodic(1:3)) == 1 .and. nrank == 0) &
+      call write_visu_file_begin(dm, visuname, iter, opt_is_savg=.true.)
       ! write data
       call run_stats_loops1 (STATS_VISU1, tm%tavg_h,    'tsp_avg_h',    iter, dm, opt_visnm=trim(visuname))
       call run_stats_loops1 (STATS_VISU1, tm%tavg_T,    'tsp_avg_T',    iter, dm, opt_visnm=trim(visuname))
       call run_stats_loops1 (STATS_VISU1, tm%tavg_TT,   'tsp_avg_TT',   iter, dm, opt_visnm=trim(visuname))
       !call run_stats_loops6 (STATS_VISU1, tm%tavg_dTdT, 'tsp_avg_dTdT', iter, dm, opt_visnm=trim(visuname))
       ! write xdmf footer
-      if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-      call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+      if(count(dm%is_periodic(1:3)) == 1 .and. nrank == 0) &
+      call write_visu_file_end(dm, visuname, iter, opt_is_savg=.true.)
     end if
     
     return
@@ -933,7 +1334,7 @@ contains
   subroutine write_visu_stats_mhd(mh, dm)
     use udf_type_mod
     use precision_mod
-    use io_visualisation_mod
+    use visualisation_field_mod
     implicit none 
     type(t_domain), intent(in) :: dm
     type(t_mhd), intent(inout) :: mh
@@ -946,7 +1347,7 @@ contains
     visuname = 't_avg_mhd'
     ! write xdmf header
     if(nrank == 0) &
-    call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+    call write_visu_file_begin(dm, visuname, iter)
     ! write data
     call run_stats_loops1(STATS_VISU3, mh%tavg_e,  't_avg_e',  iter, dm, opt_visnm=trim(visuname))
     call run_stats_loops3(STATS_VISU3, mh%tavg_j,  't_avg_j',  iter, dm, opt_visnm=trim(visuname))
@@ -954,24 +1355,24 @@ contains
     call run_stats_loops6(STATS_VISU3, mh%tavg_jj, 't_avg_jj', iter, dm, opt_visnm=trim(visuname))
     ! write xdmf footer
     if(nrank == 0) &
-    call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+    call write_visu_file_end(dm, visuname, iter)
 !----------------------------------------------------------------------------------------------------------
 ! write time averaged and space averaged 3d data (stored 2d or 1d data)
 !----------------------------------------------------------------------------------------------------------
     if( ANY(dm%is_periodic(:))) then
       visuname = 'tsp_avg_mhd'
       ! write xdmf header
-      if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-      call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_HEADER, iter)
+      if(count(dm%is_periodic(1:3)) == 1 .and. nrank == 0) &
+      call write_visu_file_begin(dm, visuname, iter, opt_is_savg=.true.)
       ! write data
-      call run_stats_loops1(STATS_VISU1, mh%tavg_e,  't_avg_e',  iter, dm, opt_visnm=trim(visuname))
-      call run_stats_loops3(STATS_VISU1, mh%tavg_j,  't_avg_j',  iter, dm, opt_visnm=trim(visuname))
-      call run_stats_loops3(STATS_VISU1, mh%tavg_ej, 't_avg_ej', iter, dm, opt_visnm=trim(visuname))
-      call run_stats_loops6(STATS_VISU1, mh%tavg_jj, 't_avg_jj', iter, dm, opt_visnm=trim(visuname))
+      call run_stats_loops1(STATS_VISU1, mh%tavg_e,  'tsp_avg_e',  iter, dm, opt_visnm=trim(visuname))
+      call run_stats_loops3(STATS_VISU1, mh%tavg_j,  'tsp_avg_j',  iter, dm, opt_visnm=trim(visuname))
+      call run_stats_loops3(STATS_VISU1, mh%tavg_ej, 'tsp_avg_ej', iter, dm, opt_visnm=trim(visuname))
+      call run_stats_loops6(STATS_VISU1, mh%tavg_jj, 'tsp_avg_jj', iter, dm, opt_visnm=trim(visuname))
 
       ! write xdmf footer
-      if(.not. (dm%is_periodic(1) .and. dm%is_periodic(3)) .and. nrank == 0) &
-      call write_visu_headerfooter(dm%np_geo(1:3), trim(visuname), dm%idom, dm%icoordinate, XDMF_FOOTER, iter)
+      if(count(dm%is_periodic(1:3)) == 1 .and. nrank == 0) &
+      call write_visu_file_end(dm, visuname, iter, opt_is_savg=.true.)
     end if
     
     return

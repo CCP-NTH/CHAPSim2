@@ -519,14 +519,12 @@ module io_field_interpolation_mod
 
   contains 
 !==========================================================================================================
-  subroutine Read_input_parameters_tgt(dm, fl, tm, flinput)
+  subroutine Read_input_parameters_tgt(dm, flinput)
     use parameters_constant_mod
     use print_msg_mod
     implicit none
     character(len = *), intent(in) :: flinput 
     type(t_domain), intent(inout) :: dm
-    type(t_flow)  , intent(inout) :: fl
-    type(t_thermo), intent(inout) :: tm
 
     integer, parameter :: IOMSG_LEN = 200
     character(len = IOMSG_LEN) :: iotxt
@@ -849,7 +847,7 @@ module io_field_interpolation_mod
     use geometry_mod
     use domain_decomposition_mod
     use io_restart_mod
-    use io_visualisation_mod
+   !use io_visualisation_mod
     implicit none 
     type(t_domain), intent(in) :: dm_src
     type(t_flow)  , intent(in) :: fl_src
@@ -862,7 +860,7 @@ module io_field_interpolation_mod
     
     if(nproc > 1) call Print_error_msg('Field interpolation and io are in serial mode only.')
     ! geo/domain
-    call Read_input_parameters_tgt(domain_tgt,flow_tgt, thermo_tgt, input_tgt)
+    call Read_input_parameters_tgt(domain_tgt, input_tgt)
     domain_tgt%is_periodic(:) = dm_src%is_periodic(:)
     domain_tgt%ibcx_qx = dm_src%ibcx_qx
     domain_tgt%ibcy_qy = dm_src%ibcy_qy

@@ -12,12 +12,6 @@ module io_tools_mod
   character(*), parameter :: io_restart = "restart-io"
   character(*), parameter :: io_in2outlet = "outlet2inlet-io"
 
-  integer, parameter :: Ivisu_3D    = 0, &
-                        Ivisu_2D_YZ = 1, & ! yz plane, should not change this value. 
-                        Ivisu_2D_XZ = 2, & ! xz plane
-                        Ivisu_2D_XY = 3, & ! xy plane
-                        Ivisu_1D_Y  = 4    ! y profile
-
   public :: initialise_decomp_io
   !public :: generate_file_name
   public :: generate_pathfile_name
@@ -54,24 +48,26 @@ contains
   end subroutine
 !==========================================================================================================
 !==========================================================================================================
-  subroutine write_one_3d_array(var, keyword, idom, iter, dtmp, opt_flname)
+  subroutine write_one_3d_array(var, field_name, idom, iter, dtmp)
     implicit none 
     real(WP), contiguous, intent(in) :: var( :, :, :)
     type(DECOMP_INFO), intent(in) :: dtmp
-    character(*), intent(in) :: keyword
+    character(*), intent(in) :: field_name
     integer, intent(in) :: idom
     integer, intent(in) :: iter
-    character(64), intent(out), optional :: opt_flname
 
-    character(64):: data_flname_path
+    character(256):: field_file
 
-    call generate_pathfile_name(data_flname_path, idom, trim(keyword), dir_data, 'bin', iter)
-    if(.not.file_exists(data_flname_path)) &
-    call decomp_2d_write_one(IPENCIL(1), var, trim(data_flname_path), opt_decomp=dtmp)
-    if(present(opt_flname)) opt_flname = data_flname_path
+    call generate_pathfile_name(field_file, idom, trim(field_name), dir_data, 'bin', iter)
+    !if(present(opt_flname)) opt_flname = field_file
+    if(.not.file_exists(field_file)) &
+    call decomp_2d_write_one(IPENCIL(1), var, trim(field_file), opt_decomp=dtmp)
 
     return
   end subroutine
+
+  !==========================================================================================================
+
   
 !==========================================================================================================
   subroutine initialise_decomp_io(dm)

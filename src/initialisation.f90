@@ -162,7 +162,7 @@ contains
     use math_mod
     use boundary_conditions_mod
     use flatten_index_mod
-    use io_visualisation_mod
+    !use io_visualisation_mod
     use wtformat_mod
     use find_max_min_ave_mod
     use wrt_debug_field_mod
@@ -587,7 +587,7 @@ contains
     use udf_type_mod
     use parameters_constant_mod
     use io_restart_mod
-    use io_visualisation_mod
+    use visualisation_field_mod
     use wtformat_mod
     use solver_tools_mod
     use continuity_eq_mod
@@ -695,7 +695,7 @@ contains
     use thermo_info_mod
     use io_restart_mod
     use statistics_mod
-    use io_visualisation_mod
+    use visualisation_field_mod
     use boundary_conditions_mod
     implicit none
 

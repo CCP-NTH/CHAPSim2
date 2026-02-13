@@ -4,15 +4,13 @@ set -euo pipefail
 # -------------------------------------------------
 # Clean previous outputs
 # -------------------------------------------------
-rm -f *.log *.dat fort* *.err *.out regression_test_metrics.json
-rm -rf 2_*/ 3_*/ 4_*/
-
+./clearlogs.sh
 # -------------------------------------------------
 # Executable and MPI size
 # -------------------------------------------------
 RUN_MODE=${RUN_MODE:-regression}   # regression | smoke
 EXEC="../../bin/CHAPSim"
-NP=${NP:-4}   # allow override: NP=128 ./run_chapsim.sh
+NP=${NP:-4}   # allow override: NP=128 ./run.sh
 
 timestamp=$(date +'%Y-%m-%d_%H.%M')
 OUTPUT="output_chapsim2_${timestamp}.log"
