@@ -1223,7 +1223,7 @@ contains
     type(t_thermo), intent(inout) :: tm
     type(t_domain), intent(in) :: dm
 
-    integer :: j, jj, nx
+    integer :: j, jj, nxst, nxen, nxen1, nxen2
     real(WP) :: Ts
     
     if(nrank == 0) call Print_debug_start_msg("Initialise thermal variables ...")
@@ -1240,46 +1240,75 @@ contains
       write (*, wrtfmt1r) '  Enthalphy:',            tm%ftp_ini%h
       write (*, wrtfmt1r) '  mass enthaphy:',        tm%ftp_ini%rhoh
     end if
+    ! -----------------------------
+    ! Init from ftp_ini
+    ! -----------------------------
+    fl%dDens = tm%ftp_ini%d
+    fl%mVisc = tm%ftp_ini%m
+    tm%rhoh  = tm%ftp_ini%rhoh
+    tm%hEnth = tm%ftp_ini%h
+    tm%kCond = tm%ftp_ini%k
+    tm%tTemp = tm%ftp_ini%t
+    ! -----------------------------
+    ! Buffer-layer x ranges
+    ! -----------------------------
+    nxst  = 0
+    nxen  = 0
+    nxen1 = dm%dccc%xsz(1)
+    nxen2 = dm%dccc%xsz(1)
 
-    fl%dDens(:, :, :) = tm%ftp_ini%d
-    fl%mVisc(:, :, :) = tm%ftp_ini%m
-    tm%rhoh (:, :, :) = tm%ftp_ini%rhoh
-    tm%hEnth(:, :, :) = tm%ftp_ini%h
-    tm%kCond(:, :, :) = tm%ftp_ini%k
-    tm%tTemp(:, :, :) = tm%ftp_ini%t
-    if((dm%inlet_tbuffer_len - dm%h(1)) > MINP) then
-      nx = floor(dm%inlet_tbuffer_len * dm%h1r(1))
-      fl%dDens(1:nx, :, :) = ONE
-      fl%mVisc(1:nx, :, :) = ONE
-      tm%rhoh (1:nx, :, :) = ZERO
-      tm%hEnth(1:nx, :, :) = ZERO
-      tm%kCond(1:nx, :, :) = ONE
-      tm%tTemp(1:nx, :, :) = ONE
-    else
-      nx = 0
-    end if 
+    if ( (dm%thermo_buffer_layer(1) - dm%h(1)) > MINP ) then
+      nxst = floor(dm%thermo_buffer_layer(1) * dm%h1r(1))
+    end if
 
-    if(dm%ibcy_Tm(2) == IBC_DIRICHLET .and. tm%inittype == INIT_GVBCLN) then
+    if ( (dm%thermo_buffer_layer(2) - dm%h(1)) > MINP ) then
+      nxen  = floor(dm%thermo_buffer_layer(2) * dm%h1r(1))
+      nxen1 = dm%dccc%xsz(1) - nxen
+      nxen2 = dm%dccc%xsz(1)
+    end if
+    ! -----------------------------
+    ! Apply buffer-layer overrides (same pattern, twice)
+    ! -----------------------------
+    if (nxst > 0) then
+      fl%dDens(1:nxst, :, :) = ONE
+      fl%mVisc(1:nxst, :, :) = ONE
+      tm%rhoh (1:nxst, :, :) = ZERO
+      tm%hEnth(1:nxst, :, :) = ZERO
+      tm%kCond(1:nxst, :, :) = ONE
+      tm%tTemp(1:nxst, :, :) = ONE
+    end if
 
-      if(dm%ibcy_Tm(1) == IBC_DIRICHLET) then
+    if (nxen > 0) then
+      fl%dDens(nxen1:nxen2, :, :) = ONE
+      fl%mVisc(nxen1:nxen2, :, :) = ONE
+      tm%rhoh (nxen1:nxen2, :, :) = ZERO
+      tm%hEnth(nxen1:nxen2, :, :) = ZERO
+      tm%kCond(nxen1:nxen2, :, :) = ONE
+      tm%tTemp(nxen1:nxen2, :, :) = ONE
+    end if
+    ! -----------------------------
+    ! Optional linear temperature init
+    ! -----------------------------
+    if (dm%ibcy_Tm(2) == IBC_DIRICHLET .and. tm%inittype == INIT_GVBCLN) then
+
+      if (dm%ibcy_Tm(1) == IBC_DIRICHLET) then
         Ts = dm%fbcy_const(1, 5)
-      else 
+      else
         Ts = tm%ftp_ini%t
       end if
 
-      do j = 1, dm%dccc%xsz(2) 
-        jj = dm%dccc%xst(2) + j - 1 
+      do j = 1, dm%dccc%xsz(2)
+        jj = dm%dccc%xst(2) + j - 1
         tm%tTemp(:, j, :) = (dm%yc(jj) - dm%lyb) / (dm%lyt - dm%lyb) &
-                            * (dm%fbcy_const(2, 5) - Ts) + Ts
-        if(nx > 0) then
-          tm%tTemp(1:nx, j, :) = ONE
-        end if
+                          * (dm%fbcy_const(2, 5) - Ts) + Ts
       end do
-
+      ! Re-impose buffer-layer temp after the profile is set
+      if (nxst > 0) tm%tTemp(1:nxst, :, :) = ONE
+      if (nxen > 0) tm%tTemp(nxen1:nxen2, :, :) = ONE
       call ftp_refresh_thermal_properties_from_T_undim_3Dtm(fl, tm, dm)
-    end if 
+    end if
 
-    if(nrank == 0) call Print_debug_end_msg()
+    if (nrank == 0) call Print_debug_end_msg()
     return
   end subroutine initialise_thermal_properties
 

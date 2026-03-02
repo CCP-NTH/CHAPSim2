@@ -431,7 +431,7 @@ contains
 
     real(WP) :: var1y(1:dm%np(2))
     real(WP), allocatable :: ac4c_ypencil(:, :, :), ac4c_xpencil(:, :, :)
-    integer :: ny, n
+    integer :: ny, n, nxst, nxen, nxen1, nxen2
     type(DECOMP_INFO) :: dtmp
 !----------------------------------------------------------------------------------------------------------
 ! to build up bc with constant values
@@ -453,14 +453,29 @@ contains
       call Print_warning_msg("The thermal field's inlet temperature is the same as Tini given.")
     end if
     !
-    ny= 0
-    if((dm%inlet_tbuffer_len - dm%h(1)) > MINP) then
-      if(dm%inlet_tbuffer_len > dm%lxx) then 
+    nxst = 0
+    nxen = 0
+    ! ---- Clamp buffer lengths to domain length (if active) ----
+    if ( (dm%thermo_buffer_layer(1) - dm%h(1)) > MINP ) then
+      if (dm%thermo_buffer_layer(1) > dm%lxx) then
         call Print_warning_msg("The inlet thermal buffer layer exceeds the domain length and has been reduced to 1/10 of the domain length.")
-        dm%inlet_tbuffer_len = dm%lxx / TEN !
+        dm%thermo_buffer_layer(1) = dm%lxx / TEN
       end if
-      call decomp_info_init(dm%nc(1), 4,  dm%nc(3), dtmp) 
-      ny = floor(dm%inlet_tbuffer_len * dm%h1r(1))
+      nxst = floor(dm%thermo_buffer_layer(1) * dm%h1r(1))
+    end if
+
+    if ( (dm%thermo_buffer_layer(2) - dm%h(1)) > MINP ) then
+      if (dm%thermo_buffer_layer(2) > dm%lxx) then
+        call Print_warning_msg("The outlet thermal buffer layer exceeds the domain length and has been reduced to 1/10 of the domain length.")
+        dm%thermo_buffer_layer(2) = dm%lxx / TEN
+      end if
+      nxen = floor(dm%thermo_buffer_layer(2) * dm%h1r(1))
+    end if
+    nxen1 = dm%nc(1) - nxen
+    nxen2 = dm%nc(1)
+    ! ---- Init decomp once if any buffer is active ----
+    if ( nxst > 0 .or. nxen > 0 ) then
+      call decomp_info_init(dm%nc(1), 4, dm%nc(3), dtmp)
     end if
     !
     do n = 1, 2 
@@ -479,36 +494,49 @@ contains
 !----------------------------------------------------------------------------------------------------------
 ! y-bc in y-pencil, ftp, qx, qy, qz, pr
 !----------------------------------------------------------------------------------------------------------
-      if(dm%ibcy_nominal(n, 5) == IBC_DIRICHLET) then
-        dm%fbcy_ftp(:, n, :)%t   = dm%fbcy_const(n, 5)
+      ! -----------------------------
+      ! Base BC assignment
+      ! -----------------------------
+      select case (dm%ibcy_nominal(n, 5))
+      case (IBC_DIRICHLET)
+        dm%fbcy_ftp(:, n, :)%t = dm%fbcy_const(n, 5)
         call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp(:, n:n, :))
-        !write(*,*) 'test, bc-T', dm%fbcy_const(n, 5), dm%fbcy_ftp(4, n, 4)%t
-      else if (dm%ibcy_nominal(n, 5) == IBC_NEUMANN) then
-        dm%fbcy_qw(:, n, :) = dm%fbcy_const(n, 5) 
+      case (IBC_NEUMANN)
+        dm%fbcy_qw(:, n, :)  = dm%fbcy_const(n, 5)
         dm%fbcy_ftp(:, n, :) = tm%ftp_ini
-      else
+      case default
         dm%fbcy_ftp(:, n, :) = tm%ftp_ini
-      end if
-      ! a patch for inlet buffer layer
-      if((dm%inlet_tbuffer_len - dm%h(1)) > MINP) then
-        allocate ( ac4c_xpencil(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)) )
-        allocate ( ac4c_ypencil(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) ) 
+      end select
+      ! -----------------------------
+      ! Patch for inlet/outlet buffer layer
+      ! -----------------------------
+      if (nxst > 0 .or. nxen > 0) then
+        allocate(ac4c_xpencil(dtmp%xsz(1), dtmp%xsz(2), dtmp%xsz(3)))
+        allocate(ac4c_ypencil(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)))
+        ! Start from uniform bc_val everywhere in y-pencil, then go to x-pencil
         ac4c_ypencil = dm%fbcy_const(n, 5)
         call transpose_y_to_x(ac4c_ypencil, ac4c_xpencil, dtmp)
-        if(dm%ibcy_nominal(n, 5) == IBC_DIRICHLET) then
-          ac4c_xpencil(1:ny, :, :) = ONE
-        else if (dm%ibcy_nominal(n, 5) == IBC_NEUMANN) then
-          ac4c_xpencil(1:ny, :, :) = ZERO
-        else 
-          ac4c_xpencil(1:ny, :, :) = dm%fbcy_const(n, 5)
-        end if
+        !
+        select case (dm%ibcy_nominal(n, 5))
+        case (IBC_DIRICHLET, IBC_NEUMANN)
+          ! Dirichlet buffer uses bc_val; Neumann buffer uses ZERO
+          if (nxst > 0) ac4c_xpencil(1:nxst,      :, :) = merge(dm%fbcy_const(n, 5), ZERO, dm%ibcy_nominal(n, 5) == IBC_DIRICHLET)
+          if (nxen > 0) ac4c_xpencil(nxen1:nxen2, :, :) = merge(dm%fbcy_const(n, 5), ZERO, dm%ibcy_nominal(n, 5) == IBC_DIRICHLET)
+        case default
+          ! Keep uniform bc_val (already set)
+        end select
+        !
         call transpose_x_to_y(ac4c_xpencil, ac4c_ypencil, dtmp)
-        if(dm%ibcy_nominal(n, 5) == IBC_DIRICHLET) then
+        ! Write back only what matters for each BC type
+        select case (dm%ibcy_nominal(n, 5))
+        case (IBC_DIRICHLET)
           dm%fbcy_ftp(:, n, :)%t = ac4c_ypencil(:, n, :)
           call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcy_ftp(:, n:n, :))
-        else if (dm%ibcy_nominal(n, 5) == IBC_NEUMANN) then 
-          dm%fbcy_qw(:, n, :) = ac4c_ypencil(:, n, :) 
-        end if
+        case (IBC_NEUMANN)
+          dm%fbcy_qw(:, n, :) = ac4c_ypencil(:, n, :)
+        case default
+          dm%fbcy_ftp(:, n, :)%t = ac4c_ypencil(:, n, :)
+        end select
         deallocate(ac4c_ypencil, ac4c_xpencil)
       end if
 !----------------------------------------------------------------------------------------------------------

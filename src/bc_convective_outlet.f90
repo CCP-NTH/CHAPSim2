@@ -72,6 +72,7 @@ module bc_convective_outlet_mod
     ! calc convective velocity
     uxdx = HALF * (uxmax_work + uxmin_work)
     uxdx = uxdx * dx
+    !uxdx = max(uxdx, ZERO) ! in case of negative velocity, set to zero to avoid numerical instability.
 #ifdef DEBUG_STEPS 
     if(nrank == 0) write(*, '(10X, A, 3ES13.5)') 'convective outlet velocity Max., Min., Ave = ', &
       uxmax_work, uxmin_work, HALF * (uxmax_work + uxmin_work)

@@ -525,7 +525,7 @@ module udf_type_mod
     real(wp) :: fbcx_const(2, NBC) ! bc values, (5 variables, 2 sides)
     real(wp) :: fbcy_const(2, NBC) ! bc values, (5 variables, 2 sides)
     real(wp) :: fbcz_const(2, NBC) ! bc values, (5 variables, 2 sides)
-    real(WP) :: inlet_tbuffer_len
+    real(WP) :: thermo_buffer_layer(2)
     real(WP) :: outlet_sponge_layer(2) ! outlet_sponge_layer(1) = length of sponge layer, outlet_sponge_layer(2) for min. Re_sponge (max. viscosity)
     
     real(wp) :: lxx

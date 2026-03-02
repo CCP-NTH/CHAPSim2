@@ -779,7 +779,7 @@ contains
         !
         call run_stats_loops1 (STATS_READ, fl%tavg_fh,   't_avg_fh',   iter, dm)
         call run_stats_loops3 (STATS_READ, fl%tavg_fuh,  't_avg_fuh',  iter, dm)
-        call run_stats_loops6 (STATS_READ, fl%tavg_fuuh, 't_avg_fuhh', iter, dm)
+        call run_stats_loops6 (STATS_READ, fl%tavg_fuuh, 't_avg_fuuh', iter, dm)
       end if
       ! MHD
       if(dm%is_mhd) then
