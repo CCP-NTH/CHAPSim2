@@ -600,8 +600,8 @@ end function
     integer, intent(in), optional      :: axis_rn_mode
 
     !
-    real(WP), dimension(size(var,1), size(var,2), size(var,3)) :: dummy
-    real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil
+    real(WP), allocatable :: dummy(:, :, :)
+    real(WP), allocatable :: var_ypencil(:, :, :)
     real(WP), dimension(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)) :: var_ypencil_sym
     real(WP), dimension(dtmp%zsz(1), dtmp%zsz(2), dtmp%zsz(3)) :: var_zpencil, var_zpencil_sym
 
@@ -610,16 +610,19 @@ end function
     real(WP), dimension(dtmp%zsz(1)) :: ucart_z, ucart_y, ucart_0, ucart_2c, ucart_2s
     real(WP) :: theta
 
-    dummy = var
     axis_mode_local = AXIS_RECON_NONE
     nr_local = 0
     if(present(axis_mode)) axis_mode_local = axis_mode
     if(present(nr)) nr_local = nr
     if(nr_local > 0) then
       if(.not. present(opt_r)) call Print_error_msg("Wrong usage of axis_mirror_fbcy - 1")
+      allocate(dummy(size(var, 1), size(var, 2), size(var, 3)))
+      dummy = var
       call multiple_cylindrical_rn(dummy, dtmp, opt_r, nr_local, pencil)
+      call transpose_to_z_pencil(dummy, var_zpencil, dtmp, pencil)
+    else
+      call transpose_to_z_pencil(var, var_zpencil, dtmp, pencil)
     end if
-    call transpose_to_z_pencil(dummy, var_zpencil, dtmp, pencil)
 
     sign_sym = ONE
     if (present(is_odd)) then
@@ -641,6 +644,7 @@ end function
 
     if(present(assign_axis_to_var)) then
       if(assign_axis_to_var) then
+        allocate(var_ypencil(dtmp%ysz(1), dtmp%ysz(2), dtmp%ysz(3)))
         if(.not. present(nr)) call Print_error_msg("Wrong usage of axis_mirror_fbcy - 2")
         if(nr_local /= 0) call Print_error_msg("Wrong usage of axis_mirror_fbcy - 3")
         call transpose_to_y_pencil(var, var_ypencil, dtmp, pencil)
