@@ -67,19 +67,22 @@ jobs:
           # check_metrics.py is the metric comparator the test runners invoke
           # with file paths, not a standalone checker, so it is excluded.
           #
-          # The checkers below already fail on a clean checkout for reasons
-          # unrelated to any change under test, so they are reported without
-          # going red. No
+          # Checkers listed below are known to fail on a clean checkout for
+          # reasons unrelated to any change under test, so they are reported
+          # without going red. No
           # checker is skipped, modified or weakened - every one still runs and
           # its output is printed. A checker that is not on this list and fails
           # is blocking, and a listed checker that starts passing is blocking
           # too, so the list cannot silently rot.
           #
+          # The table is empty: every checker is expected to pass. It held
+          # check_validation_profile_compat.py until the validation profile
+          # data that checker needs was added to the tree, at which point the
+          # anti-rot half of this gate flagged it and the entry was removed.
+          #
           # One "name|reason" per line. Matching is on the whole file name
           # (awk field equality), so no entry can absorb a different checker.
-          KNOWN_FAILING_TABLE="
-          check_validation_profile_compat.py|needs validation profile output that no clean checkout contains
-          "
+          KNOWN_FAILING_TABLE=""
 
           known_reason() {
             printf '%s\n' "$KNOWN_FAILING_TABLE" |
