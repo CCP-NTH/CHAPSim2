@@ -308,3 +308,18 @@ jobs:
           TEST_MODE: run
           REGRESSION_SUITE: standard
         run: ./run_regression.sh
+
+      # tests/run_functional.sh, not tests/functional/run_functional.sh: the
+      # latter resolves its sub-runner paths from tests/functional/ and so
+      # looks for tests/functional/functional/restart/, which does not exist,
+      # and exits 2 before running anything. Only the wrapper at tests/ works.
+      #
+      # These suites are not part of run_regression.sh. The restart runner
+      # checks that a restarted run reproduces the uninterrupted one, which no
+      # regression case covers; the mesh-mapping runner checks the stretched
+      # and mapped-grid cases.
+      - name: Run functional suites (restart equivalence, mesh mapping)
+        working-directory: tests
+        env:
+          TEST_MODE: run
+        run: ./run_functional.sh
