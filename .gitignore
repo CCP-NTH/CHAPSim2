@@ -40,6 +40,14 @@ chapsim2.code-workspace
 # committed back and republished by accident.
 validation/references/channel/mkm/
 validation/references/pipe/eggels/
+
+# NIST Standard Reference Data is copyrighted under 15 U.S.C. § 290e and may
+# not be redistributed without prior permission, so this table is not shipped.
+# Generate it with validation/thermal_properties/generate_property_table.py,
+# or download your own copy; either way it stays out of version control. See
+# validation/thermal_properties/README.md.
+validation/thermal_properties/NIST_CO2_8MP.DAT
+
 # ------------------------
 # Tests folder
 # Ignore everything recursively in tests, except specific files

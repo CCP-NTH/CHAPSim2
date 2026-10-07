@@ -71,6 +71,18 @@
 
 ### Changed
 
+- Removed `validation/thermal_properties/NIST_CO2_8MP.DAT`. It is generated
+  output of NIST Standard Reference Data 69, which is copyrighted under
+  15 U.S.C. 290e and may not be redistributed without prior permission; no such
+  permission is recorded. `ifluid= scp_co2` is unaffected as a solver option -
+  supply the table in the working directory and the case runs, or generate one
+  under the MIT licence with `generate_property_table.py`. Nothing in `tests/`
+  selects `scp_co2`, so no case or baseline changes. The path is now in
+  `.gitignore` and `check_validation_layout.py` asserts both that guard and
+  that the file is untracked. `NIST_WATER_23.5MP.DAT` is unchanged and still
+  shipped; its redistribution status is unresolved on the same evidence and is
+  recorded as such in `validation/thermal_properties/README.md`.
+
 - Changed `prepost/job_submission/run_local.sh` to take the CHAPSim2 directory
   from `CHAPSIM_DIR`, falling back to a `/path/to/CHAPSim2` placeholder and
   stopping with a message when that directory does not exist. It previously
@@ -114,8 +126,10 @@
   WebBook isobaric generator reproduces the water densities to 11 significant
   figures and the CO2 thermodynamic columns exactly. NIST Standard Reference
   Data is copyrighted under 15 U.S.C. 290e and is excluded from the general
-  NIST redistribution grant, so the README states that no redistribution
-  permission has been obtained for these files rather than implying one.
+  NIST redistribution grant. The README keeps three questions apart - evidence
+  of provenance, evidence of an applicable restriction, and whether permission
+  was found in this repository's records - and states that none was found,
+  which is an absence of evidence rather than proof that none exists.
 
 - Added `validation/thermal_properties/generate_property_table.py`, which
   builds a table in the solver's column format from CoolProp (MIT licence).
