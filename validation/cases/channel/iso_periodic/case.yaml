@@ -13,12 +13,18 @@ solver_output_dirs:
   - 3_monitor
   - 4_check
 references:
+  # Not redistributed by CHAPSim2: no redistribution permission established.
+  # Download into the paths below, see validation/references/README.md.
   - id: mkm_retau180
     path: validation/references/channel/mkm/retau180
     source: Moser-Kim-Mansour channel DNS profiles
+    shipped: false
+    obtain: https://turbulence.oden.utexas.edu/MKM_1999.html
   - id: mkm_retau395
     path: validation/references/channel/mkm/retau395
     source: Moser-Kim-Mansour channel DNS profiles
+    shipped: false
+    obtain: https://turbulence.oden.utexas.edu/MKM_1999.html
 case_specific_postprocessing:
   - post/1_data/postprocess_channel_wall_units.py
   - post/2_visu/postprocess_channel_wall_units.py

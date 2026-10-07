@@ -31,7 +31,13 @@ Shared monitor and mesh-check scripts are under `validation/tools/scripts/`.
 
 ## References
 
-Moser-Kim-Mansour channel reference profiles are stored under:
+`plot_channel_velo_stress.py` compares against the Moser-Kim-Mansour channel
+DNS profiles, which CHAPSim2 does **not** redistribute — their redistribution
+terms could not be established. Download them once into
 
 - `validation/references/channel/mkm/retau180/`
 - `validation/references/channel/mkm/retau395/`
+
+using the commands in `validation/references/README.md`, or point the script at
+an existing local copy with `--ref-dir`. Cite Moser, Kim & Mansour (1999),
+doi:10.1063/1.869966, in any published comparison.

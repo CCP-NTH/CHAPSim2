@@ -354,6 +354,9 @@ class ChannelFlowPlotter:
     def _available_reference_retaus(self) -> list[int]:
         available = []
 
+        if not self.ref_root.is_dir():
+            return available
+
         for entry in sorted(self.ref_root.iterdir()):
             if not entry.is_dir():
                 continue
@@ -384,7 +387,16 @@ class ChannelFlowPlotter:
         available = self._available_reference_retaus()
 
         if not available:
-            raise FileNotFoundError(f"No MKM reference datasets found under {self.ref_root}")
+            # CHAPSim2 does not redistribute the MKM database: it carries no
+            # licence and no redistribution permission. An empty ref_root is
+            # the normal state of a fresh clone, not a broken checkout.
+            raise FileNotFoundError(
+                f"No MKM reference datasets found under {self.ref_root}.\n"
+                "CHAPSim2 does not ship this database. Download it from\n"
+                "  https://turbulence.oden.utexas.edu/MKM_1999.html\n"
+                "using the commands in validation/references/README.md, or "
+                "pass --ref-dir pointing at an existing local copy."
+            )
 
         if requested_retau is not None:
             if requested_retau not in available:

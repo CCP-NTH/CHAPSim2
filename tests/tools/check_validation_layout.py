@@ -21,13 +21,8 @@ REQUIRED_PATHS = (
     "cases/pipe/iso_periodic/case.yaml",
     "cases/pipe/iso_periodic/post/2_visu/plot_pipe_velo_stress.py",
     "cases/pipe/iso_periodic/post/2_visu/plot_pipe_velo_stress_v2.py",
-    "references/channel/mkm/retau180/chan180.means",
-    "references/channel/mkm/retau180/chan180.reystress",
-    "references/channel/mkm/retau395/chan395.means",
-    "references/channel/mkm/retau395/chan395.reystress",
     "references/pipe/tdl/retau180/dataverse_files.zip",
     "references/pipe/tdl/retau550/dataverse_files.zip",
-    "references/pipe/eggels/reb5300/dnsEggels5300.asc",
     "tools/scripts/plot_monitor_bulk_change_history.py",
     "tools/scripts/plot_monitor_points.py",
     "tools/scripts/plot_monitor_points_seperate.py",
@@ -39,6 +34,40 @@ REQUIRED_PATHS = (
 )
 
 
+# Datasets deliberately not shipped: their redistribution terms could not be
+# established, so users fetch them themselves. Their presence is not required
+# and must not be asserted — a user who followed the download instructions has
+# them, a fresh clone does not, and both are correct. What is asserted is that
+# the packaging decision stays documented and that an accidental `git add` of a
+# local download cannot redistribute them.
+WITHHELD_DATASETS = (
+    "channel/mkm/",
+    "pipe/eggels/",
+)
+
+
+def check_withheld_datasets() -> list[str]:
+    problems = []
+
+    readme = (VALIDATION_ROOT / "references" / "README.md").read_text()
+    ignored = (REPO_ROOT / ".gitignore").read_text().splitlines()
+
+    for dataset in WITHHELD_DATASETS:
+        if dataset not in readme:
+            problems.append(
+                f"validation/references/README.md no longer documents how to "
+                f"obtain, or why CHAPSim2 omits, references/{dataset}"
+            )
+        rule = f"validation/references/{dataset}"
+        if rule not in ignored:
+            problems.append(
+                f".gitignore no longer carries '{rule}', so a local download "
+                f"of data CHAPSim2 may not redistribute could be committed"
+            )
+
+    return problems
+
+
 def main() -> int:
     missing = [path for path in REQUIRED_PATHS if not (VALIDATION_ROOT / path).exists()]
 
@@ -48,7 +77,17 @@ def main() -> int:
             print(f"  - validation/{path}")
         return 1
 
-    print(f"Validation framework layout OK ({len(REQUIRED_PATHS)} paths checked)")
+    problems = check_withheld_datasets()
+    if problems:
+        print("Withheld reference dataset handling is inconsistent:")
+        for problem in problems:
+            print(f"  - {problem}")
+        return 1
+
+    print(
+        f"Validation framework layout OK ({len(REQUIRED_PATHS)} paths checked, "
+        f"{len(WITHHELD_DATASETS)} withheld datasets documented and ignored)"
+    )
     return 0
 
 

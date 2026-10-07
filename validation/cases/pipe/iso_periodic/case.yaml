@@ -16,12 +16,11 @@ references:
   - id: tdl_retau180
     path: validation/references/pipe/tdl/retau180
     source: TDL pipe DNS database
+    shipped: true
   - id: tdl_retau550
     path: validation/references/pipe/tdl/retau550
     source: TDL pipe DNS database
-  - id: eggels_reb5300
-    path: validation/references/pipe/eggels/reb5300
-    source: Eggels pipe DNS profile
+    shipped: true
 case_specific_postprocessing:
   - post/2_visu/plot_pipe_velo_stress.py
   - post/2_visu/plot_pipe_velo_stress_v2.py

@@ -66,8 +66,8 @@ After copying a case, verify the following parameters:
 | Path | Content |
 | --- | --- |
 | `validation/cases/channel/iso_periodic/post/` | Channel velocity/stress plotting and wall-unit postprocessing scripts. |
-| `validation/references/channel/mkm/retau180/` | Reference profile data for channel comparison. |
-| `validation/references/channel/mkm/retau395/` | Higher-Re channel reference profiles. |
+| `validation/references/channel/mkm/retau180/` | Channel comparison profiles. **Not shipped**: download per `validation/references/README.md`. |
+| `validation/references/channel/mkm/retau395/` | Higher-Re channel profiles. **Not shipped**: same download. |
 | `validation/cases/pipe/iso_periodic/post/` | Pipe velocity/stress plotting scripts. |
 | `validation/references/pipe/tdl/retau180/` | Pipe reference data at friction Reynolds number near 180. |
 | `validation/references/pipe/tdl/retau550/` | Pipe reference data at higher friction Reynolds number. |

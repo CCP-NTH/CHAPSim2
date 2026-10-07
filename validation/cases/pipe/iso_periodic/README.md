@@ -34,4 +34,6 @@ Pipe reference data is stored under:
 
 - `validation/references/pipe/tdl/retau180/`
 - `validation/references/pipe/tdl/retau550/`
-- `validation/references/pipe/eggels/reb5300/`
+
+Both are CC0 and shipped with the repository; cite the Texas Data Repository
+DOIs listed in `validation/references/README.md`.

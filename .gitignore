@@ -33,6 +33,13 @@ chapsim2.code-workspace
 # solver .dat output is ignored elsewhere.
 !validation/references/**/*.dat
 !validation/references/**/*.asc
+
+# Reference datasets CHAPSim2 does not redistribute because their terms could
+# not be established — users download them themselves, see
+# validation/references/README.md. Ignored so that a local copy cannot be
+# committed back and republished by accident.
+validation/references/channel/mkm/
+validation/references/pipe/eggels/
 # ------------------------
 # Tests folder
 # Ignore everything recursively in tests, except specific files

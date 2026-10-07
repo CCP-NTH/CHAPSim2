@@ -71,6 +71,18 @@
 
 ### Changed
 
+- Removed the bundled Moser-Kim-Mansour channel profiles
+  (`validation/references/channel/mkm/`) and the unattributed
+  `dnsEggels5300.asc` pipe profile (`validation/references/pipe/eggels/`) from
+  the distribution: neither carries a licence or an explicit redistribution
+  permission, and public availability is not permission.
+  `validation/references/README.md` now gives the authoritative source, the
+  required citation and the exact download commands for the MKM database, and
+  `plot_channel_velo_stress.py` says so when `--ref-dir` is empty. Both paths
+  are in `.gitignore` so a local download cannot be committed back. The Texas
+  Data Repository pipe datasets are unaffected; they are CC0 and still shipped.
+  No numerical test reads any of this data.
+
 - Changed the source cited for the PbLi dynamic viscosity from the 1991 journal
   paper to the primary measurement report KfK-4144 (1986), Part II section 4.3,
   which has been read directly and prints the identical expression. The
