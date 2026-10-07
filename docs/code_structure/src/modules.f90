@@ -455,8 +455,8 @@ module parameters_constant_mod
   ! own value is self-consistent -- its thermal diffusivity, density and cp give
   ! 13.2 W/mK at 550 K independently -- so the gap is not a misread equation.
   ! Published PbLi conductivities genuinely scatter over roughly this range, so
-  ! this is recorded as an open question (see docs/superpowers/BACKLOG.md), not
-  ! corrected here: changing it would move every PbLi thermal baseline.
+  ! this is left as an open question rather than corrected here: changing it
+  ! would move every PbLi thermal baseline.
 
   ! B = 1 / (CoB - T), which is -(1/rho)*drho/dT rewritten for a density that is
   ! linear in T, so CoB = -CoD(0) / CoD(1).
@@ -957,6 +957,14 @@ module udf_type_mod
     ! not exactly a discrete gradient.
     real(WP) :: max_strain_rate_mag2_init ! max S_ij S_ij over the initial field
     ! post processing - sharing
+    ! Number of instantaneous fields folded into every tavg_* array below. It is
+    ! counted, not derived from the iteration number: the running average divides
+    ! by this, and iter - stat_istart is only equal to it when the sample stream
+    ! is unbroken from stat_istart + 1. It is not, in a mixed restart (one field
+    ! continued, the other injected fresh) or when a field is frozen by
+    ! niterflowfirst / niterthermofirst. Checkpointed and restored with the
+    ! averages themselves; see run_stats_action in post_statistics.f90.
+    integer :: nstat_samples = 0
     real(WP), allocatable :: tavg_u   (:, :, :, :)  ! 3  = u, v, w
     real(WP), allocatable :: tavg_pr  (:, :, :)
     real(WP), allocatable :: tavg_pru (:, :, :, :)  ! 3  = pu, pv, pw
@@ -1003,6 +1011,11 @@ module udf_type_mod
     real(WP), allocatable :: spec_fft_wx(:)
     real(WP), allocatable :: spec_fft_wz(:)
     integer :: nspec_samples = 0
+    ! First iteration folded into the spectra above. Unlike the tavg_* fields the
+    ! spectra are not checkpointed, so after a restart their averaging window is
+    ! shorter than stat_istart would suggest; this records the true window start
+    ! so the written file says which samples it covers. See write_spectrum_uu.
+    integer :: nspec_istart = 0
     !
     real(WP), allocatable :: rre_sponge_p(:)         ! vis=1/Re_sponge at centre in sponge layer
     real(WP), allocatable :: rre_sponge_c(:)         ! vis=1/Re_sponge at node in sponge layer
@@ -1047,6 +1060,10 @@ module udf_type_mod
     real(WP), allocatable :: fbcx_rhoh_rhs0(:, :)  !
     real(WP), allocatable :: fbcz_rhoh_rhs0(:, :)  !
 
+    ! Counted sample population of the tavg_* arrays below; see the same member
+    ! of t_flow. The thermal field keeps its own count because it keeps its own
+    ! clock - tm%iteration only advances while is_thermo is true.
+    integer :: nstat_samples = 0
     real(WP), allocatable :: tavg_h(:, :, :)
     !real(WP), allocatable :: tavg_hh(:, :, :)
     real(WP), allocatable :: tavg_T(:, :, :)
@@ -1060,8 +1077,15 @@ module udf_type_mod
 !  mhd info
 !------------------------------------------------------------------------------
   type t_mhd
-    integer  :: iterfrom
-    integer  :: iteration
+    ! Default-initialised because init_stats_mhd reads iterfrom from
+    ! Buildup_mpi_domain_decomposition, before initialise_mhd has run. The value
+    ! is fixed in Read_input_parameters next to iteration_start, so that it does
+    ! not depend on where [mhd] sits relative to [flow] in the input file.
+    integer  :: iterfrom = 0
+    integer  :: iteration = 0
+    ! Counted sample population of the tavg_* arrays; see the same member of
+    ! t_flow.
+    integer  :: nstat_samples = 0
     logical :: is_NStuart
     logical :: is_NHartmn
     real(WP) :: NStuart

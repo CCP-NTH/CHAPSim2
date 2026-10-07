@@ -170,11 +170,11 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/io_tools_mod.html'>io_tools_mod</a></li>
                   <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/checkpoint_metadata_mod.html'>checkpoint_metadata_mod</a></li>
-                  <li class="list-inline-item">decomp_2d_io</li>
+                  <li class="list-inline-item"><a href='../module/io_tools_mod.html'>io_tools_mod</a></li>
                   <li class="list-inline-item">decomp_2d_io_object_mpi</li>
+                  <li class="list-inline-item">decomp_2d_io</li>
               </ul>
             </li>
         </ul>
@@ -197,7 +197,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~31"></span>
+              <span class="anchor" id="variable-tm~10"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(in)</td>
@@ -212,7 +212,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~263"></span>
+              <span class="anchor" id="variable-dm~83"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -276,7 +276,7 @@
 
 <span class="k">    call </span><span class="n">io</span><span class="p">%</span><span class="k">close</span><span class="p">()</span>
 <span class="w">    </span><span class="k">call </span><span class="n">write_stats_bundle_metadata</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;thermo_stats&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">thermo_stats_bundle_signature</span><span class="p">(</span><span class="n">dm</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">                                     </span><span class="n">thermo_stats_bundle_fields</span><span class="p">(</span><span class="n">dm</span><span class="p">))</span>
+<span class="w">                                     </span><span class="n">thermo_stats_bundle_fields</span><span class="p">(</span><span class="n">dm</span><span class="p">),</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">nstat_samples</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">write_checkpoint_manifest</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="nb">time</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dt</span><span class="p">)</span>
 
 <span class="w">    </span><span class="k">return</span>

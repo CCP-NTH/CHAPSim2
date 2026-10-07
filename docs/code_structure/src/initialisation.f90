@@ -744,7 +744,10 @@ contains
     if(fl%inittype == INIT_RESTART) then
       call read_instantaneous_flow(fl, dm)
       call restore_flow_variables_from_restart(fl, dm)
-      !call read_stats_flow(fl, dm)
+      ! The time-averaged fields are not read here. They are restored, together
+      ! with their sample count, by init_stats_flow in post_statistics.f90,
+      ! which runs earlier - from Buildup_mpi_domain_decomposition, where the
+      ! accumulators are allocated.
 
     else if (fl%inittype == INIT_RANDOM) then
       call Generate_random_field(fl, dm)
@@ -933,7 +936,8 @@ contains
     if(tm%inittype == INIT_RESTART) then
       call read_instantaneous_thermo  (tm, fl, dm)
       call restore_thermo_variables_from_restart(fl, tm, dm)
-      !call read_stats_thermo(tm, dm)
+      ! Time-averaged thermal fields are restored by init_stats_thermo; see the
+      ! same note in initialise_flow_fields.
     else
       call initialise_thermal_properties (fl, tm, dm)
       if (dm%icase == ICASE_TGV3D) then

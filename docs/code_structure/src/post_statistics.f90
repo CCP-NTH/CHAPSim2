@@ -732,6 +732,8 @@ module statistics_mod
   private :: require_stats_restart_file
   private :: write_stats_bundle_metadata
   private :: validate_stats_bundle_metadata
+  private :: read_stats_sample_count
+  private :: restore_stats_sample_count
   private :: stats_bundle_write1
   private :: stats_bundle_writeN
   private :: stats_bundle_read1
@@ -974,7 +976,8 @@ contains
     return
   end function mhd_stats_bundle_fields
 !==============================================================================
-  subroutine write_stats_bundle_metadata(dm, group_name, iter, signature, fields)
+  subroutine write_stats_bundle_metadata(dm, group_name, iter, signature, fields, nsamples, &
+                                         opt_existing_output_policy)
     use io_tools_mod
     use udf_type_mod
     implicit none
@@ -983,23 +986,132 @@ contains
     character(*), intent(in) :: signature
     character(*), intent(in) :: fields
     integer, intent(in) :: iter
+    integer, intent(in) :: nsamples
+    ! Supplied only on the per-field write path, where this file is not part of
+    ! an output set that prepare_output_file_set has already screened. Without
+    ! it, OUTPUT_POLICY_SKIP would leave the previous run's averages on disk
+    ! beside this run's sample count.
+    integer, intent(in), optional :: opt_existing_output_policy
 
     character(256) :: meta_file
+    character(256) :: output_files(1)
     integer :: u
+    logical :: do_write
+
+    call generate_pathfile_name(meta_file, dm%idom, trim(group_name)//'_meta', dir_data, 'dat', iter)
+    if(present(opt_existing_output_policy)) then
+      output_files(1) = meta_file
+      call prepare_output_file_set(output_files, opt_existing_output_policy, &
+                                   trim(group_name)//' metadata', do_write)
+      if(.not. do_write) return
+    end if
 
     if(nrank /= 0) return
 
-    call generate_pathfile_name(meta_file, dm%idom, trim(group_name)//'_meta', dir_data, 'dat', iter)
     open(newunit=u, file=trim(meta_file), status='replace', action='write')
     write(u, '(A)') 'CHAPSim_stats_bundle_v1'
     write(u, '(A,1X,A)') 'group', trim(group_name)
     write(u, '(A,1X,I0)') 'iter', iter
     write(u, '(A,1X,A)') 'signature', trim(signature)
     write(u, '(A,1X,A)') 'fields', trim(fields)
+    ! Appended after the five keys validate_stats_bundle_metadata reads by
+    ! position, so a file written here still loads in a build that predates
+    ! them, and a file written by one is still validated by this build -
+    ! read_stats_sample_count simply reports it as absent.
+    write(u, '(A,1X,I0)') 'stat_istart', dm%stat_istart
+    write(u, '(A,1X,I0)') 'nsamples', nsamples
     close(u)
 
     return
   end subroutine write_stats_bundle_metadata
+!==============================================================================
+! The sample population of a stored set of time averages, and the stat_istart
+! that set was accumulated under. Read by key, not by position, and tolerant of
+! a missing file or missing keys: a checkpoint written before the count existed
+! restarts with found = .false., and the caller falls back to the old derived
+! weight with a warning. A stat_istart that disagrees is fatal - it silently
+! re-weights every stored average, which is exactly the failure this records.
+!==============================================================================
+  subroutine read_stats_sample_count(dm, group_name, iter, nsamples, found)
+    use io_tools_mod
+    use typeconvert_mod
+    use udf_type_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(*), intent(in) :: group_name
+    integer, intent(in) :: iter
+    integer, intent(out) :: nsamples
+    logical, intent(out) :: found
+
+    character(256) :: meta_file
+    character(4096) :: line, key
+    integer :: u, ioerr, ival, istart_read
+    logical :: has_istart
+
+    nsamples = 0
+    found = .false.
+    has_istart = .false.
+    istart_read = 0
+
+    call generate_pathfile_name(meta_file, dm%idom, trim(group_name)//'_meta', dir_data, 'dat', iter)
+    if(.not. file_exists(trim(meta_file))) return
+
+    open(newunit=u, file=trim(meta_file), status='old', action='read', iostat=ioerr)
+    if(ioerr /= 0) return
+
+    do
+      read(u, '(A)', iostat=ioerr) line
+      if(ioerr /= 0) exit
+      read(line, *, iostat=ioerr) key, ival
+      if(ioerr /= 0) cycle
+      if(trim(key) == 'nsamples') then
+        nsamples = ival
+        found = .true.
+      else if(trim(key) == 'stat_istart') then
+        istart_read = ival
+        has_istart = .true.
+      end if
+    end do
+    close(u)
+
+    if(has_istart .and. istart_read /= dm%stat_istart) &
+    call Print_error_msg("The stored "//trim(group_name)//" averages were accumulated with "// &
+      "stat_istart = "//trim(int2str(istart_read))//", but this run sets stat_istart = "// &
+      trim(int2str(dm%stat_istart))//". Continuing would re-weight them against a window they "// &
+      "do not cover. Restart with the original stat_istart, or set it at or above the restart "// &
+      "iteration to start a fresh average.")
+
+    return
+  end subroutine read_stats_sample_count
+!==============================================================================
+! Restore the sample count that goes with a set of time averages just read from
+! a checkpoint. Pre-count checkpoints carry no count, so fall back to the weight
+! the solver used to derive - correct for the unbroken single-run case those
+! files came from - and say so.
+!==============================================================================
+  subroutine restore_stats_sample_count(dm, group_name, iter, nsamples)
+    use typeconvert_mod
+    use udf_type_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(*), intent(in) :: group_name
+    integer, intent(in) :: iter
+    integer, intent(out) :: nsamples
+    logical :: found
+
+    call read_stats_sample_count(dm, trim(group_name), iter, nsamples, found)
+    if(found) return
+
+    nsamples = max(iter - dm%stat_istart, 0)
+    if(nrank == 0) &
+    call Print_warning_msg("The "//trim(group_name)//" checkpoint at iteration "// &
+      trim(int2str(iter))//" carries no sample count, so it is assumed to hold "// &
+      trim(int2str(nsamples))//" samples, one per iteration since stat_istart. That is right "// &
+      "for a checkpoint from an uninterrupted run and wrong if the field was ever frozen or "// &
+      "injected fresh part-way through.")
+
+    return
+  end subroutine restore_stats_sample_count
 !==============================================================================
   subroutine validate_stats_bundle_metadata(dm, group_name, iter, signature, fields)
     use io_tools_mod
@@ -1176,7 +1288,7 @@ contains
 
     call io%close()
     call write_stats_bundle_metadata(dm, 'flow_stats', iter, flow_stats_bundle_signature(dm), &
-                                     flow_stats_bundle_fields(dm))
+                                     flow_stats_bundle_fields(dm), fl%nstat_samples)
     call write_checkpoint_manifest(dm%idom, iter, fl%time, dm%dt)
 
     return
@@ -1276,7 +1388,7 @@ contains
 
     call io%close()
     call write_stats_bundle_metadata(dm, 'thermo_stats', iter, thermo_stats_bundle_signature(dm), &
-                                     thermo_stats_bundle_fields(dm))
+                                     thermo_stats_bundle_fields(dm), tm%nstat_samples)
     call write_checkpoint_manifest(dm%idom, iter, tm%time, dm%dt)
 
     return
@@ -1352,7 +1464,7 @@ contains
 
     call io%close()
     call write_stats_bundle_metadata(dm, 'mhd_stats', iter, mhd_stats_bundle_signature(dm), &
-                                     mhd_stats_bundle_fields(dm))
+                                     mhd_stats_bundle_fields(dm), mh%nstat_samples)
 
     return
   end subroutine write_mhd_stats_bundle
@@ -1419,7 +1531,7 @@ contains
     return
   end subroutine require_stats_restart_file
 !==============================================================================
-  subroutine run_stats_action(mode, accc_tavg, field_name, iter, dm, opt_accc, opt_visnm)
+  subroutine run_stats_action(mode, accc_tavg, field_name, iter, dm, opt_accc, opt_visnm, opt_nstat)
     use io_tools_mod
     use typeconvert_mod
     use udf_type_mod
@@ -1432,6 +1544,10 @@ contains
     real(WP), contiguous, intent(inout) :: accc_tavg(:, :, :)
     character(len=*), intent(in), optional :: opt_visnm
     real(WP), intent(in), optional :: opt_accc(:, :, :)
+    ! Sample population of accc_tavg *including* the one being folded in now.
+    ! Required for STATS_TAVG; the owning field counts it, because the elapsed
+    ! iteration count is not the sample count whenever the stream has a gap.
+    integer, intent(in), optional :: opt_nstat
     type(t_domain), intent(in) :: dm
     !
     real(WP) :: ac, am
@@ -1446,7 +1562,8 @@ contains
       !
     case(STATS_TAVG)
       if(.not. present(opt_accc)) call Print_error_msg("Error. Need Time Averaged Value.")
-      nstat = iter - dm%stat_istart
+      if(.not. present(opt_nstat)) call Print_error_msg("Error. A time average needs its sample count.")
+      nstat = opt_nstat
       if(nstat > 0) then
         ac = ONE / real(nstat, WP)
         am = real(nstat - 1, WP) / real(nstat, WP)
@@ -1466,13 +1583,14 @@ contains
     return
   end subroutine
 !==============================================================================
-  subroutine run_stats_loops1(mode, accc_tavg, field_name, iter, dm, opt_accc1, opt_accc0, opt_visnm)
+  subroutine run_stats_loops1(mode, accc_tavg, field_name, iter, dm, opt_accc1, opt_accc0, opt_visnm, opt_nstat)
     use typeconvert_mod
     use udf_type_mod
     implicit none
     integer, intent(in) :: mode
     character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
+    integer, intent(in), optional :: opt_nstat ! sample count, required for STATS_TAVG
     real(WP), dimension(:, :, :), contiguous, intent(inout) :: accc_tavg
     real(WP), dimension(:, :, :), intent(in), optional :: opt_accc1, opt_accc0
     integer, intent(in) :: iter
@@ -1487,19 +1605,20 @@ contains
         opt_accc(:, :, :) = opt_accc1(:, :, :)
       end if
     end if
-    call run_stats_action(mode, accc_tavg, trim(field_name), iter, dm, opt_accc, opt_visnm)
+    call run_stats_action(mode, accc_tavg, trim(field_name), iter, dm, opt_accc, opt_visnm, opt_nstat)
     if(mode == STATS_TAVG .or. mode == STATS_READ) &
     accc_tavg(:, :, :) = accc_tavg(:, :, :)
     return
   end subroutine
 !==============================================================================
-  subroutine run_stats_loops3(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_accc0, opt_visnm)
+  subroutine run_stats_loops3(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_accc0, opt_visnm, opt_nstat)
     use typeconvert_mod
     use udf_type_mod
     implicit none
     integer, intent(in) :: mode
     character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
+    integer, intent(in), optional :: opt_nstat ! sample count, required for STATS_TAVG
     real(WP), dimension(:, :, :, :), intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :), intent(in), optional :: opt_acccn1
     real(WP), dimension(:, :, :),    intent(in), optional :: opt_accc0
@@ -1518,20 +1637,21 @@ contains
           opt_accc(:, :, :) = opt_acccn1(:, :, :, i)
         end if
       end if
-      call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i)), iter, dm, opt_accc, opt_visnm)
+      call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i)), iter, dm, opt_accc, opt_visnm, opt_nstat)
       if(mode == STATS_TAVG .or. mode == STATS_READ)&
       acccn_tavg(:, :, :, i) = accc_tavg(:, :, :)
     end do
     return
   end subroutine
 !==============================================================================
-  subroutine run_stats_loops6(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_acccn2, opt_accc0, opt_visnm)
+  subroutine run_stats_loops6(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_acccn2, opt_accc0, opt_visnm, opt_nstat)
     use typeconvert_mod
     use udf_type_mod
     implicit none
     integer, intent(in) :: mode
     character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
+    integer, intent(in), optional :: opt_nstat ! sample count, required for STATS_TAVG
     real(WP), dimension(:, :, :, :), intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :), intent(in), optional :: opt_acccn1, opt_acccn2
     real(WP), dimension(:, :, :),    intent(in), optional :: opt_accc0
@@ -1553,7 +1673,7 @@ contains
             if(present(opt_accc0)) &
             opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
           end if
-          call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm)
+          call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm, opt_nstat)
           if(mode == STATS_TAVG .or. mode == STATS_READ)&
           acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
         end if
@@ -1562,13 +1682,14 @@ contains
     return
   end subroutine
 !==============================================================================
-  subroutine run_stats_loops9(mode, acccn_tavg, field_name, iter, dm, opt_acccnn1, opt_accc0, opt_visnm)
+  subroutine run_stats_loops9(mode, acccn_tavg, field_name, iter, dm, opt_acccnn1, opt_accc0, opt_visnm, opt_nstat)
     use typeconvert_mod
     use udf_type_mod
     implicit none
     integer, intent(in) :: mode
     character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
+    integer, intent(in), optional :: opt_nstat ! sample count, required for STATS_TAVG
     real(WP), dimension(:, :, :, :),    intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :, :), intent(in), optional :: opt_acccnn1
     real(WP), dimension(:, :, :),       intent(in), optional :: opt_accc0
@@ -1591,7 +1712,7 @@ contains
           if(present(opt_accc0)) &
           opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
         end if
-        call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm)
+        call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm, opt_nstat)
         if(mode == STATS_TAVG .or. mode == STATS_READ)&
         acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
       end do
@@ -1599,13 +1720,14 @@ contains
     return
   end subroutine
 !==============================================================================
-  subroutine run_stats_loops10(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_acccn2, opt_acccn3, opt_accc0, opt_visnm)
+  subroutine run_stats_loops10(mode, acccn_tavg, field_name, iter, dm, opt_acccn1, opt_acccn2, opt_acccn3, opt_accc0, opt_visnm, opt_nstat)
     use typeconvert_mod
     use udf_type_mod
     implicit none
     integer, intent(in) :: mode
     character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
+    integer, intent(in), optional :: opt_nstat ! sample count, required for STATS_TAVG
     real(WP), dimension(:, :, :, :), intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :), intent(in), optional :: opt_acccn1, opt_acccn2, opt_acccn3
     real(WP), dimension(:, :, :),    intent(in), optional :: opt_accc0
@@ -1633,7 +1755,7 @@ contains
                 if(present(opt_accc0)) &
                 opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
               end if
-              call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j))//trim(int2str(k)), iter, dm, opt_accc, opt_visnm)
+              call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j))//trim(int2str(k)), iter, dm, opt_accc, opt_visnm, opt_nstat)
               if(mode == STATS_TAVG .or. mode == STATS_READ)&
               acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
             end if
@@ -1643,13 +1765,14 @@ contains
       return
   end subroutine
 !==============================================================================
-  subroutine run_stats_loops45(mode, acccn_tavg, field_name, iter, dm, opt_ndudusz, opt_acccnn1, opt_acccnn2, opt_accc0, opt_visnm)
+  subroutine run_stats_loops45(mode, acccn_tavg, field_name, iter, dm, opt_ndudusz, opt_acccnn1, opt_acccnn2, opt_accc0, opt_visnm, opt_nstat)
     use typeconvert_mod
     use udf_type_mod
     implicit none
     integer, intent(in) :: mode
     character(len=*), intent(in) :: field_name
     character(len=*), intent(in), optional :: opt_visnm
+    integer, intent(in), optional :: opt_nstat ! sample count, required for STATS_TAVG
     real(WP), dimension(:, :, :, :),    intent(inout) :: acccn_tavg
     real(WP), dimension(:, :, :, :, :), intent(in), optional :: opt_acccnn1, opt_acccnn2
     real(WP), dimension(:, :, :),       intent(in), optional :: opt_accc0
@@ -1695,7 +1818,7 @@ contains
                 end if
                 call run_stats_action(mode, accc_tavg, &
                     trim(field_name)//trim(int2str(i))//trim(int2str(j))//trim(int2str(s))//trim(int2str(l)), &
-                    iter, dm, opt_accc, opt_visnm)
+                    iter, dm, opt_accc, opt_visnm, opt_nstat)
                 if(mode == STATS_TAVG .or. mode == STATS_READ)&
                 acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
               end if
@@ -1719,7 +1842,7 @@ contains
               if(present(opt_accc0)) &
               opt_accc(:, :, :) = opt_accc(:, :, :) * opt_accc0(:, :, :)
             end if
-            call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm)
+            call run_stats_action(mode, accc_tavg, trim(field_name)//trim(int2str(i))//trim(int2str(j)), iter, dm, opt_accc, opt_visnm, opt_nstat)
             if(mode == STATS_TAVG .or. mode == STATS_READ)&
             acccn_tavg(:, :, :, n) = accc_tavg(:, :, :)
           end if
@@ -1741,6 +1864,7 @@ contains
     external :: RFFTI
 
     fl%nspec_samples = 0
+    fl%nspec_istart  = 0
 
     if(dm%is_periodic(1)) then
       nkx = dm%nc(1) / 2 + 1
@@ -1810,6 +1934,7 @@ contains
       call accumulate_spectrum_dir(uprime_z, dm%nc(3), fl%spec_fft_wz, fl%spec_uu_kz, 3)
     end if
 
+    if(fl%nspec_samples == 0) fl%nspec_istart = fl%iteration
     fl%nspec_samples = fl%nspec_samples + 1
 
     return
@@ -1919,6 +2044,7 @@ contains
       write(unit_s, '(A,1X,I0)') '# domain', dm%idom
       write(unit_s, '(A,1X,I0)') '# iter', fl%iteration
       write(unit_s, '(A,1X,I0)') '# samples', fl%nspec_samples
+      write(unit_s, '(A,1X,I0)') '# window_first_iter', fl%nspec_istart
       write(unit_s, '(A)') '# columns: k_index  y_index  k  y  yplus  E  kE'
     end if
 
@@ -1986,6 +2112,10 @@ contains
       else
         call generate_pathfile_name(filename, dm%idom, trim(keyword), dir_data, 'dat', fl%iteration)
         open(newunit=unit_s, file=trim(filename), action='write', status='replace')
+        ! The averaging window, stated because it need not run from stat_istart:
+        ! the spectra are not checkpointed, so a restart begins a fresh window.
+        write(unit_s, '(A,1X,I0)') '# samples', fl%nspec_samples
+        write(unit_s, '(A,1X,I0)') '# window_first_iter', fl%nspec_istart
         write(unit_s, '(A)') '# k_index  y_index  k  y  yplus  Euu  kEuu'
       end if
       do j = 1, dm%nc(2)
@@ -2123,6 +2253,16 @@ contains
     if(fl%inittype == INIT_RESTART .and. fl%iterfrom > dm%stat_istart .and. &
        dm%restart_clock == RESTART_CLOCK_CONTINUE) then
       if(nrank == 0) call Print_debug_inline_msg("Reading flow statistics ...")
+      call restore_stats_sample_count(dm, 'flow_stats', iter, fl%nstat_samples)
+      ! The Euu spectra are deliberately not restored: their only record on disk
+      ! is the reduced, normalised text diagnostic, and reconstructing the
+      ! per-rank accumulators from it would make restart depend on the format of
+      ! a human-readable output file. They therefore cover a shorter window than
+      ! the tavg_* fields; both windows are stated in the written headers.
+      if(nrank == 0 .and. dm%stat_level > ISTATL1 .and. &
+         (dm%is_periodic(1) .or. dm%is_periodic(3))) &
+        call Print_warning_msg("Euu spectra restart empty; they average only &
+             &from this restart onwards, unlike the time-averaged fields.")
       if(dm%restart_data_layout_read == RESTART_LAYOUT_BUNDLED) then
         call read_flow_stats_bundle(fl, dm)
       else
@@ -2240,6 +2380,7 @@ contains
     !
     if(tm%inittype == INIT_RESTART .and. tm%iterfrom > dm%stat_istart .and. &
        dm%restart_clock == RESTART_CLOCK_CONTINUE) then
+      call restore_stats_sample_count(dm, 'thermo_stats', iter, tm%nstat_samples)
       if(dm%restart_data_layout_read == RESTART_LAYOUT_BUNDLED) then
         call read_thermo_stats_bundle(tm, dm)
       else
@@ -2267,12 +2408,13 @@ contains
   end subroutine
 !==============================================================================
 !==============================================================================
-  subroutine init_stats_mhd(mh, dm)
+  subroutine init_stats_mhd(mh, fl, dm)
     use io_tools_mod
     use parameters_constant_mod
     use udf_type_mod
     implicit none
     type(t_domain), intent(in) :: dm
+    type(t_flow),   intent(in) :: fl
     type(t_mhd), intent(inout) :: mh
     integer :: iter
     !
@@ -2307,7 +2449,14 @@ contains
       mh%tavg_jj = ZERO
     end if
     !
-    if(mh%iterfrom > dm%stat_istart .and. dm%restart_clock == RESTART_CLOCK_CONTINUE) then
+    ! inittype is the flow's: the MHD field has no initialisation mode of its
+    ! own, it is rebuilt from the flow by initialise_mhd. Reading its stored
+    ! averages therefore depends on the flow having been restarted, exactly as
+    ! in init_stats_flow - without that test a fresh run whose stat_istart sits
+    ! below a stale iterfrom would try to read a checkpoint it never wrote.
+    if(fl%inittype == INIT_RESTART .and. mh%iterfrom > dm%stat_istart .and. &
+       dm%restart_clock == RESTART_CLOCK_CONTINUE) then
+      call restore_stats_sample_count(dm, 'mhd_stats', iter, mh%nstat_samples)
       if(dm%restart_data_layout_read == RESTART_LAYOUT_BUNDLED) then
         call read_mhd_stats_bundle(mh, dm)
       else
@@ -2357,7 +2506,13 @@ contains
     integer :: iter
     !
     iter = fl%iteration
-    if(iter < dm%stat_istart) return
+    ! <= , not < : at iter == stat_istart the old weight nstat = iter - stat_istart
+    ! was zero and nothing was folded in, so accumulation has always begun at
+    ! stat_istart + 1. The solver loop guards with iter > stat_istart as well.
+    if(iter <= dm%stat_istart) return
+    ! Count the sample before it is folded in, so nstat is the population of the
+    ! accumulator after this call. Everything below shares the one count.
+    fl%nstat_samples = fl%nstat_samples + 1
 !------------------------------------------------------------------------------
 !   preparation for u_i and du_i/dx_j, both cell-centred and in physical
 !   components. Shared with the LES models, see flow_gradient_mod.
@@ -2378,37 +2533,37 @@ contains
 !------------------------------------------------------------------------------
     !flow - shared
     if(dm%stat_level > ISTATL0) then
-      call run_stats_loops1 (STATS_TAVG, fl%tavg_pr,  't_avg_pr',  iter, dm, opt_accc1=fl%pres)
-      call run_stats_loops3 (STATS_TAVG, fl%tavg_u,   't_avg_u',   iter, dm, opt_acccn1=uccc)
-      call run_stats_loops9 (STATS_TAVG, fl%tavg_dudx,'t_avg_dudx',iter, dm, opt_acccnn1=dudx)
-      call run_stats_loops3 (STATS_TAVG, fl%tavg_vort,'t_avg_vort',iter, dm, opt_acccn1=vort)
+      call run_stats_loops1 (STATS_TAVG, fl%tavg_pr,  't_avg_pr',  iter, dm, opt_accc1=fl%pres, opt_nstat=fl%nstat_samples)
+      call run_stats_loops3 (STATS_TAVG, fl%tavg_u,   't_avg_u',   iter, dm, opt_acccn1=uccc, opt_nstat=fl%nstat_samples)
+      call run_stats_loops9 (STATS_TAVG, fl%tavg_dudx,'t_avg_dudx',iter, dm, opt_acccnn1=dudx, opt_nstat=fl%nstat_samples)
+      call run_stats_loops3 (STATS_TAVG, fl%tavg_vort,'t_avg_vort',iter, dm, opt_acccn1=vort, opt_nstat=fl%nstat_samples)
     end if
     if(dm%stat_level > ISTATL1) then
       call accumulate_spectrum_uu(fl, dm, uccc)
-      call run_stats_loops6 (STATS_TAVG, fl%tavg_uu,  't_avg_uu',  iter, dm, opt_acccn1=uccc, opt_acccn2=uccc)
-      call run_stats_loops6 (STATS_TAVG, fl%tavg_vortvort,'t_avg_vortvort',iter, dm, opt_acccn1=vort, opt_acccn2=vort)
+      call run_stats_loops6 (STATS_TAVG, fl%tavg_uu,  't_avg_uu',  iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_nstat=fl%nstat_samples)
+      call run_stats_loops6 (STATS_TAVG, fl%tavg_vortvort,'t_avg_vortvort',iter, dm, opt_acccn1=vort, opt_acccn2=vort, opt_nstat=fl%nstat_samples)
     end if
     if(dm%stat_level > ISTATL2) then
-      call run_stats_loops3 (STATS_TAVG, fl%tavg_pru, 't_avg_pru', iter, dm, opt_acccn1=uccc, opt_accc0=fl%pres)
-      call run_stats_loops9 (STATS_TAVG, fl%tavg_prdu,'t_avg_prdu',iter, dm, opt_acccnn1=dudx, opt_accc0=fl%pres)
-      call run_stats_loops10(STATS_TAVG, fl%tavg_uuu, 't_avg_uuu', iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_acccn3=uccc)
-      call run_stats_loops45(STATS_TAVG, fl%tavg_dudu,'t_avg_dudu',iter, dm, opt_acccnn1=dudx,opt_acccnn2=dudx, opt_ndudusz=NDUDU_ACTIVE)
+      call run_stats_loops3 (STATS_TAVG, fl%tavg_pru, 't_avg_pru', iter, dm, opt_acccn1=uccc, opt_accc0=fl%pres, opt_nstat=fl%nstat_samples)
+      call run_stats_loops9 (STATS_TAVG, fl%tavg_prdu,'t_avg_prdu',iter, dm, opt_acccnn1=dudx, opt_accc0=fl%pres, opt_nstat=fl%nstat_samples)
+      call run_stats_loops10(STATS_TAVG, fl%tavg_uuu, 't_avg_uuu', iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_acccn3=uccc, opt_nstat=fl%nstat_samples)
+      call run_stats_loops45(STATS_TAVG, fl%tavg_dudu,'t_avg_dudu',iter, dm, opt_acccnn1=dudx,opt_acccnn2=dudx, opt_ndudusz=NDUDU_ACTIVE, opt_nstat=fl%nstat_samples)
     end if
     ! flow - Favre
     if(dm%is_thermo) then
     if(dm%stat_level > ISTATL0) then
-      call run_stats_loops1 (STATS_TAVG, fl%tavg_f,   't_avg_f',   iter, dm, opt_accc1=fl%dDens)
-      call run_stats_loops3 (STATS_TAVG, fl%tavg_fu,  't_avg_fu',  iter, dm, opt_acccn1=uccc, opt_accc0=fl%dDens)
-      call run_stats_loops1 (STATS_TAVG, fl%tavg_fh,  't_avg_fh',  iter, dm, opt_accc1=fl%dDens, opt_accc0=tm%hEnth)
+      call run_stats_loops1 (STATS_TAVG, fl%tavg_f,   't_avg_f',   iter, dm, opt_accc1=fl%dDens, opt_nstat=fl%nstat_samples)
+      call run_stats_loops3 (STATS_TAVG, fl%tavg_fu,  't_avg_fu',  iter, dm, opt_acccn1=uccc, opt_accc0=fl%dDens, opt_nstat=fl%nstat_samples)
+      call run_stats_loops1 (STATS_TAVG, fl%tavg_fh,  't_avg_fh',  iter, dm, opt_accc1=fl%dDens, opt_accc0=tm%hEnth, opt_nstat=fl%nstat_samples)
     end if
     if(dm%stat_level > ISTATL1) then
-      call run_stats_loops6 (STATS_TAVG, fl%tavg_fuu, 't_avg_fuu', iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_accc0=fl%dDens)
-      call run_stats_loops3 (STATS_TAVG, fl%tavg_fuh, 't_avg_fuh', iter, dm, opt_acccn1=uccc, opt_accc0=tm%hEnth*fl%dDens)
-      call run_stats_loops3 (STATS_TAVG, fl%tavg_Tu,  't_avg_Tu',  iter, dm, opt_acccn1=uccc, opt_accc0=tm%tTemp)
+      call run_stats_loops6 (STATS_TAVG, fl%tavg_fuu, 't_avg_fuu', iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_accc0=fl%dDens, opt_nstat=fl%nstat_samples)
+      call run_stats_loops3 (STATS_TAVG, fl%tavg_fuh, 't_avg_fuh', iter, dm, opt_acccn1=uccc, opt_accc0=tm%hEnth*fl%dDens, opt_nstat=fl%nstat_samples)
+      call run_stats_loops3 (STATS_TAVG, fl%tavg_Tu,  't_avg_Tu',  iter, dm, opt_acccn1=uccc, opt_accc0=tm%tTemp, opt_nstat=fl%nstat_samples)
     end if
     if(dm%stat_level > ISTATL2) then
-      call run_stats_loops10(STATS_TAVG, fl%tavg_fuuu,'t_avg_fuuu', iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_acccn3=uccc, opt_accc0=fl%dDens*tm%tTemp)
-      call run_stats_loops6 (STATS_TAVG, fl%tavg_fuuh,'t_avg_fuuh', iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_accc0=tm%hEnth*fl%dDens)
+      call run_stats_loops10(STATS_TAVG, fl%tavg_fuuu,'t_avg_fuuu', iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_acccn3=uccc, opt_accc0=fl%dDens*tm%tTemp, opt_nstat=fl%nstat_samples)
+      call run_stats_loops6 (STATS_TAVG, fl%tavg_fuuh,'t_avg_fuuh', iter, dm, opt_acccn1=uccc, opt_acccn2=uccc, opt_accc0=tm%hEnth*fl%dDens, opt_nstat=fl%nstat_samples)
     end if
    end if
     !
@@ -2437,7 +2592,8 @@ contains
     if(.not. dm%is_thermo) return
     !
     iter = tm%iteration
-    if(iter < dm%stat_istart) return
+    if(iter <= dm%stat_istart) return ! see the same guard in update_stats_flow
+    tm%nstat_samples = tm%nstat_samples + 1
     ! preparation for dT/dx_j
     ! fbcx_4cc(:, :, :) = dm%fbcx_ftp(:, :, :)%t
     ! fbcy_c4c(:, :, :) = dm%fbcy_ftp(:, :, :)%t
@@ -2454,11 +2610,11 @@ contains
     ! dTdx(:, :, :, 3) = accc_xpencil(:, :, :)
     !
     if(dm%stat_level > ISTATL0) then
-      call run_stats_loops1(STATS_TAVG, tm%tavg_h,    't_avg_h',    iter, dm, opt_accc1=tm%hEnth)
-      call run_stats_loops1(STATS_TAVG, tm%tavg_T,    't_avg_T',    iter, dm, opt_accc1=tm%tTemp)
+      call run_stats_loops1(STATS_TAVG, tm%tavg_h,    't_avg_h',    iter, dm, opt_accc1=tm%hEnth, opt_nstat=tm%nstat_samples)
+      call run_stats_loops1(STATS_TAVG, tm%tavg_T,    't_avg_T',    iter, dm, opt_accc1=tm%tTemp, opt_nstat=tm%nstat_samples)
     end if
     if(dm%stat_level > ISTATL1) then
-      call run_stats_loops1(STATS_TAVG, tm%tavg_TT,   't_avg_TT',   iter, dm, opt_accc1=tm%tTemp, opt_accc0=tm%tTemp)
+      call run_stats_loops1(STATS_TAVG, tm%tavg_TT,   't_avg_TT',   iter, dm, opt_accc1=tm%tTemp, opt_accc0=tm%tTemp, opt_nstat=tm%nstat_samples)
     end if
     !call run_stats_loops6(STATS_TAVG, tm%tavg_dTdT, 't_avg_dTdT', iter, dm, opt_acccn1=dTdx, opt_acccn2=dTdx)
     !
@@ -2493,7 +2649,8 @@ contains
 
 
     iter = mh%iteration
-    if(iter < dm%stat_istart) return
+    if(iter <= dm%stat_istart) return ! see the same guard in update_stats_flow
+    mh%nstat_samples = mh%nstat_samples + 1
     !------------------------------------------------------------------------------
     !   preparation for u_i
     !------------------------------------------------------------------------------
@@ -2554,8 +2711,8 @@ contains
     end if
     !
     if(dm%stat_level > ISTATL0) then
-    call run_stats_loops1(STATS_TAVG, mh%tavg_e,  't_avg_e',  iter, dm, opt_accc1=mh%ep)
-    call run_stats_loops3(STATS_TAVG, mh%tavg_j,  't_avg_j',  iter, dm, opt_acccn1=jccc)
+    call run_stats_loops1(STATS_TAVG, mh%tavg_e,  't_avg_e',  iter, dm, opt_accc1=mh%ep, opt_nstat=mh%nstat_samples)
+    call run_stats_loops3(STATS_TAVG, mh%tavg_j,  't_avg_j',  iter, dm, opt_acccn1=jccc, opt_nstat=mh%nstat_samples)
     end if
     if(dm%stat_level > ISTATL1) then
     do i = 1, 3
@@ -2563,10 +2720,10 @@ contains
         juccc(:, :, :, i, j) = jccc(:, :, :, i) * uccc(:, :, :, j)
       end do
     end do
-    call run_stats_loops3(STATS_TAVG, mh%tavg_eu, 't_avg_eu', iter, dm, opt_acccn1=uccc, opt_accc0=mh%ep)
-    call run_stats_loops3(STATS_TAVG, mh%tavg_ej, 't_avg_ej', iter, dm, opt_acccn1=jccc, opt_accc0=mh%ep)
-    call run_stats_loops9(STATS_TAVG, mh%tavg_ju, 't_avg_ju', iter, dm, opt_acccnn1=juccc)
-    call run_stats_loops6(STATS_TAVG, mh%tavg_jj, 't_avg_jj', iter, dm, opt_acccn1=jccc, opt_acccn2=jccc)
+    call run_stats_loops3(STATS_TAVG, mh%tavg_eu, 't_avg_eu', iter, dm, opt_acccn1=uccc, opt_accc0=mh%ep, opt_nstat=mh%nstat_samples)
+    call run_stats_loops3(STATS_TAVG, mh%tavg_ej, 't_avg_ej', iter, dm, opt_acccn1=jccc, opt_accc0=mh%ep, opt_nstat=mh%nstat_samples)
+    call run_stats_loops9(STATS_TAVG, mh%tavg_ju, 't_avg_ju', iter, dm, opt_acccnn1=juccc, opt_nstat=mh%nstat_samples)
+    call run_stats_loops6(STATS_TAVG, mh%tavg_jj, 't_avg_jj', iter, dm, opt_acccn1=jccc, opt_acccn2=jccc, opt_nstat=mh%nstat_samples)
     end if
     !
     return
@@ -2629,6 +2786,13 @@ contains
       call run_stats_loops6 (STATS_WRITE, fl%tavg_fuuh,'t_avg_fuuh', iter, dm)
     end if
     end if
+    ! The per-field layout stores no manifest of its own, so the sample count
+    ! would have nowhere to live. Write the same metadata file the bundled
+    ! layout writes; only read_stats_sample_count reads it on this path, so the
+    ! signature and field list it also carries impose nothing on a restart.
+    call write_stats_bundle_metadata(dm, 'flow_stats', iter, flow_stats_bundle_signature(dm), &
+                                     flow_stats_bundle_fields(dm), fl%nstat_samples, &
+                                     opt_existing_output_policy = dm%existing_output_policy)
     !
     if(nrank == 0) call Print_debug_end_msg()
     return
@@ -2663,6 +2827,9 @@ contains
       call run_stats_loops1 (STATS_WRITE, tm%tavg_TT,   't_avg_TT',   iter, dm)
     end if
     !call run_stats_loops6 (STATS_WRITE, tm%tavg_dTdT, 't_avg_dTdT', iter, dm)
+    call write_stats_bundle_metadata(dm, 'thermo_stats', iter, thermo_stats_bundle_signature(dm), &
+                                     thermo_stats_bundle_fields(dm), tm%nstat_samples, &
+                                     opt_existing_output_policy = dm%existing_output_policy)
     !
     if(nrank == 0) call Print_debug_end_msg()
     return
@@ -2696,6 +2863,9 @@ contains
     call run_stats_loops9(STATS_WRITE, mh%tavg_ju, 't_avg_ju', iter, dm)
     call run_stats_loops6(STATS_WRITE, mh%tavg_jj, 't_avg_jj', iter, dm)
     end if
+    call write_stats_bundle_metadata(dm, 'mhd_stats', iter, mhd_stats_bundle_signature(dm), &
+                                     mhd_stats_bundle_fields(dm), mh%nstat_samples, &
+                                     opt_existing_output_policy = dm%existing_output_policy)
     !
     if(nrank == 0) call Print_debug_end_msg()
     return

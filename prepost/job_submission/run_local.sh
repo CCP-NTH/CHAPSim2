@@ -62,9 +62,16 @@ set -euo pipefail
 # 📧 Email: wei.wang@stfc.ac.uk  
 # =============================================================================
 
-# Define the base directory for CHAPSim
-# chapsim_dir="/Users/wei.wang/Work_RSDevelopment/1_CHAPSim/CHAPSim2"
-chapsim_dir="/Users/wei.wang/Work_RSDevelopment/1_CHAPSim/CHAPSim2"
+# Define the base directory for CHAPSim. Export CHAPSIM_DIR to point this at
+# your own checkout, or edit the fallback below. The default is a placeholder,
+# so an unedited run stops with a message instead of failing later on a path
+# that only existed on the author's machine.
+chapsim_dir="${CHAPSIM_DIR:-/path/to/CHAPSim2}"
+if [ ! -d "$chapsim_dir" ]; then
+    echo "error: CHAPSim2 directory '$chapsim_dir' does not exist." >&2
+    echo "       Run 'export CHAPSIM_DIR=/path/to/CHAPSim2' and try again." >&2
+    exit 1
+fi
 
 # Check if input_chapsim.ini exists and ask user if they want to regenerate it
 iniautogen_file="$chapsim_dir/prepost/autoinput/autoinput.py"

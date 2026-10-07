@@ -71,6 +71,19 @@
 
 ### Changed
 
+- Changed `prepost/job_submission/run_local.sh` to take the CHAPSim2 directory
+  from `CHAPSIM_DIR`, falling back to a `/path/to/CHAPSim2` placeholder and
+  stopping with a message when that directory does not exist. It previously
+  hardcoded one developer's absolute path, so an unedited run failed later and
+  less clearly. The other job-submission helpers already had this treatment;
+  this script was missed.
+
+- Regenerated the FORD reference under `docs/code_structure/` from the current
+  `src/`. The published bundle predated the statistics sample-count work, so it
+  omitted `read_stats_sample_count` and `restore_stats_sample_count` and
+  carried an older copy of several source files. Comparing file lists, as the
+  previous check did, cannot detect that.
+
 - Removed the bundled Moser-Kim-Mansour channel profiles
   (`validation/references/channel/mkm/`) and the unattributed
   `dnsEggels5300.asc` pipe profile (`validation/references/pipe/eggels/`) from
@@ -94,6 +107,24 @@
   the melting point already sets 508 K and the viscosity cuts the top to 625 K.
 
 ### Added
+
+- Added `validation/thermal_properties/README.md`, recording what the two
+  supercritical property tables actually are. Both were shown by reproduction
+  to be generated output of NIST Standard Reference Data - the NIST Chemistry
+  WebBook isobaric generator reproduces the water densities to 11 significant
+  figures and the CO2 thermodynamic columns exactly. NIST Standard Reference
+  Data is copyrighted under 15 U.S.C. 290e and is excluded from the general
+  NIST redistribution grant, so the README states that no redistribution
+  permission has been obtained for these files rather than implying one.
+
+- Added `validation/thermal_properties/generate_property_table.py`, which
+  builds a table in the solver's column format from CoolProp (MIT licence).
+  CoolProp uses the same equations of state, so the thermodynamic columns match
+  the shipped tables to round-off for water and to the file's own five
+  significant figures for CO2; the transport columns differ by up to 5% because
+  the correlations have since been revised. Replacing a shipped table with a
+  generated one would therefore move the thermal baselines and is not a silent
+  substitution.
 
 - Added `stat_istart` and `nsamples` to the statistics manifest
   `domain<N>_<group>_stats_meta_<iter>.dat`, so the number of samples behind a

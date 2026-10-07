@@ -33,7 +33,7 @@ Codex started from step 3 only: copying generated metrics into reference files a
 
 - Date/time: 2026-08-13 16:42:22 BST
 - Git commit at refresh time: `2cf9507`
-- Repository: `/Users/wei.wang/Work_RSDevelopment/1_CHAPSim/CHAPSim2`
+- Repository: a local CHAPSim2 checkout on the author's workstation
 
 ## Commands
 

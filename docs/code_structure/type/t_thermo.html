@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 7.1% of total for derived types.</p>Including implementation: 34 statements,  7.1% of total for derived types.">34 statements</a>
+                 title="<p> 7.2% of total for derived types.</p>Including implementation: 35 statements,  7.2% of total for derived types.">35 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -139,7 +139,7 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../type/t_thermo.html#variable-ifluid~3">ifluid</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-inittype~2">inittype</a>
-            <a class="list-group-item" href="../type/t_thermo.html#variable-iterfrom~4">iterfrom</a>
+            <a class="list-group-item" href="../type/t_thermo.html#variable-iterfrom~3">iterfrom</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-iteration~3">iteration</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-niterthermostart">nIterThermoStart</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-niterthermoend">nIterThermoEnd</a>
@@ -155,7 +155,7 @@
             <a class="list-group-item" href="../type/t_thermo.html#variable-rprren">rPrRen</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-tt_enthalpy">tt_enthalpy</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-thermo_buffer_layer">thermo_buffer_layer</a>
-            <a class="list-group-item" href="../type/t_thermo.html#variable-rhoh~4">rhoh</a>
+            <a class="list-group-item" href="../type/t_thermo.html#variable-rhoh~3">rhoh</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-henth">hEnth</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-kcond">kCond</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-econd">eCond</a>
@@ -165,6 +165,7 @@
             <a class="list-group-item" href="../type/t_thermo.html#variable-ene_rhs0">ene_rhs0</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-fbcx_rhoh_rhs0">fbcx_rhoh_rhs0</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-fbcz_rhoh_rhs0">fbcz_rhoh_rhs0</a>
+            <a class="list-group-item" href="../type/t_thermo.html#variable-nstat_samples~2">nstat_samples</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-tavg_h">tavg_h</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-tavg_t">tavg_T</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-tavg_tt">tavg_TT</a>
@@ -257,7 +258,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iterfrom~4"></span>
+              <span class="anchor" id="variable-iterfrom~3"></span>
               integer,
             </td>
               <td>public</td>
@@ -529,7 +530,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rhoh~4"></span>
+              <span class="anchor" id="variable-rhoh~3"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -699,6 +700,23 @@
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-nstat_samples~2"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nstat_samples</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-tavg_h"></span>
               real(kind=WP),
             </td>
@@ -812,6 +830,10 @@
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_rhoh_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">!</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_rhoh_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">!</span>
 
+<span class="w">    </span><span class="c">! Counted sample population of the tavg_* arrays below; see the same member</span>
+<span class="w">    </span><span class="c">! of t_flow. The thermal field keeps its own count because it keeps its own</span>
+<span class="w">    </span><span class="c">! clock - tm%iteration only advances while is_thermo is true.</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nstat_samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_h</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
 <span class="w">    </span><span class="c">!real(WP), allocatable :: tavg_hh(:, :, :)</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_T</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>

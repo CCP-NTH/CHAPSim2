@@ -2368,6 +2368,11 @@ contains
       end if
       if(domain(i)%restart_clock == RESTART_CLOCK_RESET) itmp = 0
       domain(i)%iteration_start = itmp
+      ! The MHD field has no initialisation keys of its own - it is rebuilt from
+      ! the flow - so it inherits the flow's checkpoint index. Fixed here and
+      ! not in the [mhd] parser, because init_stats_mhd reads it and the parser
+      ! would otherwise depend on [mhd] appearing after the flow section.
+      if(domain(i)%is_mhd .and. allocated(mhd)) mhd(i)%iterfrom = flow(i)%iterfrom
       !
       ! A field whose last iteration is at or before the run start never passes
       ! its gate in the solver loop, so it stays frozen for the whole run while
