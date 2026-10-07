@@ -946,7 +946,9 @@ contains
   end subroutine
 
 !==============================================================================
-  subroutine check_current_conservation(fl, mh, dm)
+  !> - opt_work_div (inout): previous-step max|div(j)|, kept by the caller so
+  !>   that the per-mille change is measured against the last step.
+  subroutine check_current_conservation(fl, mh, dm, opt_work_div)
     use bc_dirichlet_mod
     use continuity_eq_mod
     use decomp_2d
@@ -957,6 +959,7 @@ contains
     type(t_flow), intent(inout) :: fl
     type(t_mhd),  intent(in) :: mh
     type(t_domain), intent(in) :: dm
+    real(WP), intent(inout), optional :: opt_work_div(2)
     real(WP) :: intg_m, intg_fbcx(2), intg_fbcy(2), intg_fbcz(2), crrt_imbalance(8)
     real(WP) :: maxmin_div(2)
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div
@@ -988,8 +991,10 @@ contains
     call extract_dirichlet_fbcz(fbcz_jvec, accp_zpencil, dm%dccp)
     call Get_divergence_vector(mh%jx, mh%jy, mh%jz, div, dm, fbcx_jvec, fbcy_jvec, fbcz_jvec)
     maxmin_div = ZERO
+    if(present(opt_work_div)) maxmin_div = opt_work_div
     call Find_max_min_3d(div, opt_abs='ABS', opt_calc='MAXI', opt_work=maxmin_div, &
                          opt_name="elementary |div(j_vec)| =")
+    if(present(opt_work_div)) opt_work_div = maxmin_div
     fl%max_div_j = maxmin_div(2)
     !
     call Get_volumetric_average_3d(dm, dm%dccc, div, intg_m, SPACE_INTEGRAL, 'Ivol')

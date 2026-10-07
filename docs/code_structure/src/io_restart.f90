@@ -33,6 +33,8 @@ module io_restart_mod
   !private :: read_instantaneous_plane !not used
   private :: write_flow_restart_bundle
   private :: read_flow_restart_bundle
+  private :: read_flow_restart_bundle_initial
+  private :: initialise_flow_from_restart_q
   private :: write_thermo_restart_bundle
   private :: read_thermo_restart_bundle
   private :: write_xoutlet_database_bundle
@@ -129,12 +131,19 @@ contains
     return
   end function flow_restart_fields
 !==============================================================================
-  function flow_restart_fields_exact(dm) result(fields)
+  ! opt_is_thermo overrides dm%is_thermo, so that a thermal run can recognise
+  ! a bundle written by an isothermal run (see read_flow_restart_bundle_exact)
+  function flow_restart_fields_exact(dm, opt_is_thermo) result(fields)
     implicit none
     type(t_domain), intent(in) :: dm
+    logical, intent(in), optional :: opt_is_thermo
     character(1024) :: fields
+    logical :: is_thermo
 
-    if(dm%is_thermo) then
+    is_thermo = dm%is_thermo
+    if(present(opt_is_thermo)) is_thermo = opt_is_thermo
+
+    if(is_thermo) then
       fields = 'gx:dpcc,gy:dcpc,gz:dccp,qx:dpcc,qy:dcpc,qz:dccp,pr:dccc,'// &
                'mx_rhs0:dpcc,my_rhs0:dcpc,mz_rhs0:dccp'
     else
@@ -142,7 +151,7 @@ contains
                'mx_rhs0:dpcc,my_rhs0:dcpc,mz_rhs0:dccp'
     end if
     if(dm%is_conv_outlet(1)) then
-      if(dm%is_thermo) then
+      if(is_thermo) then
         fields = trim(fields)// &
           ',fbcx_gx:d4cc,fbcx_gy:d4pc,fbcx_gz:d4cp'// &
           ',fbcx_qx:d4cc,fbcx_qy:d4pc,fbcx_qz:d4cp'// &
@@ -185,12 +194,18 @@ contains
     return
   end function flow_restart_shapes
 !==============================================================================
-  function flow_restart_shapes_exact(dm) result(shapes)
+  ! opt_is_thermo: see flow_restart_fields_exact
+  function flow_restart_shapes_exact(dm, opt_is_thermo) result(shapes)
     implicit none
     type(t_domain), intent(in) :: dm
+    logical, intent(in), optional :: opt_is_thermo
     character(2048) :: shapes
+    logical :: is_thermo
 
-    if(dm%is_thermo) then
+    is_thermo = dm%is_thermo
+    if(present(opt_is_thermo)) is_thermo = opt_is_thermo
+
+    if(is_thermo) then
       shapes = trim(bundle_shape('gx', dm%dpcc))//';'// &
                trim(bundle_shape('gy', dm%dcpc))//';'// &
                trim(bundle_shape('gz', dm%dccp))//';'// &
@@ -211,7 +226,7 @@ contains
                trim(bundle_shape('mz_rhs0', dm%dccp))
     end if
     if(dm%is_conv_outlet(1)) then
-      if(dm%is_thermo) then
+      if(is_thermo) then
         shapes = trim(shapes)//';'// &
                  trim(bundle_shape('fbcx_gx', dm%d4cc))//';'// &
                  trim(bundle_shape('fbcx_gy', dm%d4pc))//';'// &
@@ -318,12 +333,14 @@ contains
     return
   end subroutine write_flow_restart_xoutlet_state
 !==============================================================================
-  subroutine read_flow_restart_xoutlet_state(io, fl, dm)
+  ! opt_is_thermo: see flow_restart_fields_exact
+  subroutine read_flow_restart_xoutlet_state(io, fl, dm, opt_is_thermo)
     use thermo_info_mod, only: ftp_refresh_thermal_properties_from_DH
     implicit none
     type(d2d_io_mpi), intent(inout) :: io
     type(t_flow), intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
+    logical, intent(in), optional :: opt_is_thermo
 
     real(WP), dimension(dm%d4cc%xsz(1), dm%d4cc%xsz(2), dm%d4cc%xsz(3)) :: fbcx_ftp_d
     real(WP), dimension(dm%d4cc%xsz(1), dm%d4cc%xsz(2), dm%d4cc%xsz(3)) :: fbcx_ftp_rhoh
@@ -331,10 +348,14 @@ contains
     real(WP), dimension(dm%d1pc%xsz(1), dm%d1pc%xsz(2), dm%d1pc%xsz(3)) :: fbcx_a0pc_rhs0
     real(WP), dimension(dm%d1cp%xsz(1), dm%d1cp%xsz(2), dm%d1cp%xsz(3)) :: fbcx_a0cp_rhs0
     integer :: n, j, k
+    logical :: is_thermo
 
     if(.not. dm%is_conv_outlet(1)) return
 
-    if(dm%is_thermo) then
+    is_thermo = dm%is_thermo
+    if(present(opt_is_thermo)) is_thermo = opt_is_thermo
+
+    if(is_thermo) then
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gx, opt_decomp=dm%d4cc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gy, opt_decomp=dm%d4pc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gz, opt_decomp=dm%d4cp)
@@ -411,20 +432,26 @@ contains
     return
   end subroutine write_flow_restart_xoutlet_state_compact
 !==============================================================================
-  subroutine read_flow_restart_xoutlet_state_compact(io, fl, dm)
+  ! opt_is_thermo: see flow_restart_fields_exact
+  subroutine read_flow_restart_xoutlet_state_compact(io, fl, dm, opt_is_thermo)
     use thermo_info_mod, only: ftp_refresh_thermal_properties_from_DH
     implicit none
     type(d2d_io_mpi), intent(inout) :: io
     type(t_flow), intent(inout) :: fl
     type(t_domain), intent(inout) :: dm
+    logical, intent(in), optional :: opt_is_thermo
 
     real(WP), dimension(dm%d4cc%xsz(1), dm%d4cc%xsz(2), dm%d4cc%xsz(3)) :: fbcx_ftp_d
     real(WP), dimension(dm%d4cc%xsz(1), dm%d4cc%xsz(2), dm%d4cc%xsz(3)) :: fbcx_ftp_rhoh
     integer :: n, j, k
+    logical :: is_thermo
 
     if(.not. dm%is_conv_outlet(1)) return
 
-    if(dm%is_thermo) then
+    is_thermo = dm%is_thermo
+    if(present(opt_is_thermo)) is_thermo = opt_is_thermo
+
+    if(is_thermo) then
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gx, opt_decomp=dm%d4cc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gy, opt_decomp=dm%d4pc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gz, opt_decomp=dm%d4cp)
@@ -905,12 +932,23 @@ contains
     return
   end subroutine write_flow_restart_bundle_exact
 !==============================================================================
-  subroutine read_flow_restart_bundle(fl, dm)
+  ! opt_is_initial: the restart flow field is an initial condition for a
+  ! thermal run whose thermal field is not restarted (see
+  ! read_flow_restart_bundle_initial)
+  subroutine read_flow_restart_bundle(fl, dm, opt_is_initial)
     implicit none
     type(t_domain), intent(inout) :: dm
     type(t_flow),   intent(inout) :: fl
+    logical, intent(in), optional :: opt_is_initial
 
-    if(is_restart_history_exact(dm)) then
+    logical :: is_initial
+
+    is_initial = .false.
+    if(present(opt_is_initial)) is_initial = opt_is_initial
+
+    if(is_initial) then
+      call read_flow_restart_bundle_initial(fl, dm)
+    else if(is_restart_history_exact(dm)) then
       call read_flow_restart_bundle_exact(fl, dm)
     else
       call read_flow_restart_bundle_compact(fl, dm)
@@ -959,6 +997,136 @@ contains
 
     return
   end subroutine read_flow_restart_bundle_exact
+!==============================================================================
+  !----------------------------------------------------------------------------
+  ! Flow restart of a thermal run whose thermal field is initialised afresh.
+  ! The two fields do not continue a common trajectory, so this is an
+  ! initialisation from a stored velocity field, not a restart, and the bundle
+  ! is accepted in any layout a flow restart can be written in:
+  !   - thermal, exact history
+  !   - isothermal, exact history
+  !   - isothermal, compact history
+  ! (thermal compact is rejected at input, so it is never written). Only the
+  ! primitive state q, pr and the outlet planes fbcx_q* are taken. Whatever
+  ! else the bundle holds - g, fbcx_g*, fbcx_ftp, RHS histories - belongs to
+  ! the old thermal field and is replaced in initialise_flow_from_restart_q.
+  !----------------------------------------------------------------------------
+  subroutine read_flow_restart_bundle_initial(fl, dm)
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    type(t_flow),   intent(inout) :: fl
+
+    type(d2d_io_mpi) :: io
+    character(256) :: bundle_file
+    character(256) :: meta_file
+    character(1024) :: fields_read
+    type(t_fluidThermoProperty), allocatable :: fbcx_ftp_initial(:, :, :)
+    logical :: is_thermo_read, is_exact_read
+
+    call ensure_restart_convective_outlet_supported(dm)
+
+    call generate_pathfile_name(bundle_file, dm%idom, 'flow_restart', dir_data, 'bin', fl%iterfrom)
+    if(.not. file_exists(trim(bundle_file))) &
+    call Print_error_msg("The file "//trim(bundle_file)//" does not exist.")
+
+    !--------------------------------------------------------------------------
+    ! The layout is identified from the metadata field list; an unrecognised
+    ! list falls through to the thermal-exact validation, which reports it.
+    !--------------------------------------------------------------------------
+    call generate_pathfile_name(meta_file, dm%idom, 'flow_restart_meta', dir_data, 'dat', fl%iterfrom)
+    fields_read = ''
+    if(file_exists(trim(meta_file))) fields_read = metadata_value(meta_file, 'fields')
+    is_thermo_read = .true.
+    is_exact_read  = .true.
+    if(trim(fields_read) == trim(flow_restart_fields_exact(dm, opt_is_thermo=.false.))) then
+      is_thermo_read = .false.
+    else if(trim(fields_read) == trim(flow_restart_fields_compact(dm))) then
+      is_thermo_read = .false.
+      is_exact_read  = .false.
+    end if
+    if(is_exact_read) then
+      call validate_bundle_metadata(dm, 'flow_restart', fl%iterfrom, &
+        flow_restart_fields_exact(dm, opt_is_thermo=is_thermo_read), &
+        flow_restart_shapes_exact(dm, opt_is_thermo=is_thermo_read))
+    else
+      call validate_bundle_metadata(dm, 'flow_restart', fl%iterfrom, &
+        flow_restart_fields_compact(dm), flow_restart_shapes_compact(dm))
+    end if
+    if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(bundle_file))
+
+    ! a thermal bundle would overwrite the outlet thermal state set up for the
+    ! new thermal field
+    if(is_thermo_read .and. dm%is_conv_outlet(1)) then
+      allocate(fbcx_ftp_initial, source=dm%fbcx_ftp)
+    end if
+
+    call io%open(trim(bundle_file), decomp_2d_read_mode)
+    if(is_thermo_read) then
+      call decomp_2d_read_var(io, IPENCIL(1), fl%gx, opt_decomp=dm%dpcc)
+      call decomp_2d_read_var(io, IPENCIL(1), fl%gy, opt_decomp=dm%dcpc)
+      call decomp_2d_read_var(io, IPENCIL(1), fl%gz, opt_decomp=dm%dccp)
+    end if
+    call decomp_2d_read_var(io, IPENCIL(1), fl%qx, opt_decomp=dm%dpcc)
+    call decomp_2d_read_var(io, IPENCIL(1), fl%qy, opt_decomp=dm%dcpc)
+    call decomp_2d_read_var(io, IPENCIL(1), fl%qz, opt_decomp=dm%dccp)
+    call decomp_2d_read_var(io, IPENCIL(1), fl%pres, opt_decomp=dm%dccc)
+    if(is_exact_read) then
+      call decomp_2d_read_var(io, IPENCIL(1), fl%mx_rhs0, opt_decomp=dm%dpcc)
+      call decomp_2d_read_var(io, IPENCIL(1), fl%my_rhs0, opt_decomp=dm%dcpc)
+      call decomp_2d_read_var(io, IPENCIL(1), fl%mz_rhs0, opt_decomp=dm%dccp)
+      call read_flow_restart_xoutlet_state(io, fl, dm, opt_is_thermo=is_thermo_read)
+    else
+      call read_flow_restart_xoutlet_state_compact(io, fl, dm, opt_is_thermo=.false.)
+    end if
+    call io%close()
+
+    if(allocated(fbcx_ftp_initial)) then
+      dm%fbcx_ftp = fbcx_ftp_initial
+      deallocate(fbcx_ftp_initial)
+    end if
+
+    call initialise_flow_from_restart_q(fl, dm)
+
+    return
+  end subroutine read_flow_restart_bundle_initial
+!==============================================================================
+  !----------------------------------------------------------------------------
+  ! Complete a flow field read as an initial condition for a thermal run
+  ! (thermal field not restarted).
+  !
+  ! g = rho * u in the interior, rho being the density initialise_thermo_fields
+  ! has just set (it runs before initialise_flow_fields). The boundary planes
+  ! fbc*_g* follow from the IQ2G/IBND conversion in initialise_flow_fields.
+  ! Unless rho is uniform, g = rho*u does not satisfy div(g) = -d(rho)/dt
+  ! discretely; the first projection restores it.
+  !
+  ! The momentum and outlet RHS histories, if read, were accumulated against
+  ! another thermal field (or none), so they are dropped and the first step
+  ! uses startup history, as for restart_history_mode=compact.
+  !----------------------------------------------------------------------------
+  subroutine initialise_flow_from_restart_q(fl, dm)
+    use convert_primary_conservative_mod, only: convert_primary_conservative
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    type(t_flow),   intent(inout) :: fl
+
+    call convert_primary_conservative(dm, fl%dDens, IQ2G, IBLK, fl%qx, fl%qy, fl%qz, fl%gx, fl%gy, fl%gz)
+    fl%mx_rhs0 = ZERO
+    fl%my_rhs0 = ZERO
+    fl%mz_rhs0 = ZERO
+    if(dm%is_conv_outlet(1)) then
+      fl%fbcx_a0cc_rhs0 = ZERO
+      fl%fbcx_a0pc_rhs0 = ZERO
+      fl%fbcx_a0cp_rhs0 = ZERO
+    end if
+    fl%is_compact_restart_startup = .true.
+
+    if(nrank == 0) call Print_note_msg( &
+      'Flow restart with a freshly initialised thermal field: the restart flow field is used as an '// &
+      'initial condition. g = rho*u is rebuilt from the current density and the momentum RHS history is dropped.')
+
+    return
+  end subroutine initialise_flow_from_restart_q
 !==============================================================================
   subroutine write_flow_restart_bundle_compact(fl, dm)
     implicit none
@@ -1160,16 +1328,20 @@ contains
   !> Read instantaneous flow variables from restart files.
   !> - fl (inout): Flow state receiving restart fields.
   !> - dm (inout): Domain descriptor.
-  subroutine read_instantaneous_flow(fl, dm)
+  !> - opt_is_initial (in): the flow field initialises a thermal run whose
+  !>   thermal field is not restarted; see read_flow_restart_bundle_initial.
+  subroutine read_instantaneous_flow(fl, dm, opt_is_initial)
     use io_tools_mod
     implicit none
     type(t_domain), intent(inout) :: dm
     type(t_flow),   intent(inout) :: fl
+    logical, intent(in), optional :: opt_is_initial
 
     character(64):: data_flname
     character(64):: keyword
     real(WP) :: restart_dt
     logical  :: has_metadata
+    logical  :: is_initial
 
 
     if(nrank == 0) call Print_debug_inline_msg("read instantaneous flow data ...")
@@ -1184,9 +1356,19 @@ contains
         "The stored restart time is preserved, and the input dt is used for the next steps.")
     end if
 
+    is_initial = .false.
+    if(present(opt_is_initial)) is_initial = opt_is_initial
+
     if(dm%restart_data_layout_read == RESTART_LAYOUT_BUNDLED) then
       if(nrank == 0) call Print_debug_mid_msg("Restart input layout expects bundled flow restart files.")
-      call read_flow_restart_bundle(fl, dm)
+      call read_flow_restart_bundle(fl, dm, opt_is_initial=is_initial)
+    else if(is_initial) then
+      if(nrank == 0) call Print_debug_mid_msg("Restart input layout expects per-field flow restart files.")
+      call read_one_3d_array(fl%qx, 'qx', dm%idom, fl%iterfrom, dm%dpcc)
+      call read_one_3d_array(fl%qy, 'qy', dm%idom, fl%iterfrom, dm%dcpc)
+      call read_one_3d_array(fl%qz, 'qz', dm%idom, fl%iterfrom, dm%dccp)
+      call read_one_3d_array(fl%pres, 'pr', dm%idom, fl%iterfrom, dm%dccc)
+      call initialise_flow_from_restart_q(fl, dm)
     else
       if(nrank == 0) call Print_debug_mid_msg("Restart input layout expects per-field flow restart files.")
       if(dm%is_thermo) then

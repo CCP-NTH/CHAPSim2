@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.0% of total for procedures.">11 statements</a>
+                 title=" 0.1% of total for procedures.">17 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -162,7 +162,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine read_flow_restart_bundle(fl, dm)  
+    <h2>private  subroutine read_flow_restart_bundle(fl, dm, opt_is_initial)  
 </h2>
     
 
@@ -181,7 +181,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~53"></span>
+              <span class="anchor" id="variable-fl~50"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -196,7 +196,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~186"></span>
+              <span class="anchor" id="variable-dm~193"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -205,6 +205,21 @@
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_is_initial"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_is_initial</strong></td>
             <td>
                 
             </td>
@@ -226,12 +241,20 @@
     
     <section>
     <h2><span class="anchor" id="src"></span>Source Code</h2>
-    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">read_flow_restart_bundle</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">read_flow_restart_bundle</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">opt_is_initial</span><span class="p">)</span>
 <span class="w">    </span><span class="k">implicit none</span>
 <span class="k">    type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
 <span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_flow</span><span class="p">),</span><span class="w">   </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fl</span>
+<span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">opt_is_initial</span>
 
-<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_restart_history_exact</span><span class="p">(</span><span class="n">dm</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_initial</span>
+
+<span class="w">    </span><span class="n">is_initial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">opt_is_initial</span><span class="p">))</span><span class="w"> </span><span class="n">is_initial</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">opt_is_initial</span>
+
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_initial</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      call </span><span class="n">read_flow_restart_bundle_initial</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+<span class="w">    </span><span class="k">else if</span><span class="p">(</span><span class="n">is_restart_history_exact</span><span class="p">(</span><span class="n">dm</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <span class="k">      call </span><span class="n">read_flow_restart_bundle_exact</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
 <span class="w">    </span><span class="k">else</span>
 <span class="k">      call </span><span class="n">read_flow_restart_bundle_compact</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>

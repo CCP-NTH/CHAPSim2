@@ -4,6 +4,18 @@
 
 ### Fixed
 
+- Fixed the per-mille change printed with `|div(j_vec)|`, which was always
+  `0.00‰` because `check_current_conservation` zeroed its tracker on every
+  call; the previous-step value is now kept by the caller. Fixed the
+  previous-step trackers in `Solve_eqs_iteration` (`maxmin_ep`, `maxmin_qx`,
+  ...) being read uninitialised on the first step.
+- Fixed the per-mille change printed with the mass residuals in
+  `Check_element_mass_conservation`. Its tracker was zeroed on every call and
+  shared between the inlet, outlet and bulk lines, so periodic cases always
+  printed `0.00‰` and inlet/outlet cases compared each region with the one
+  printed before it. Each region is now compared with its own value from the
+  previous call (`fl%mcon`, `fl%mcon_projected`).
+
 - Fixed the averaging weight used by the time-averaged statistics, which was
   derived from the iteration number as `iter - stat_istart` instead of counting
   the samples actually folded in. The two agree only while the sample stream is
@@ -71,6 +83,15 @@
 
 ### Changed
 
+- Changed the per-step MHD log output. `max-abs-elementary |div(j_vec)|` and
+  `global electric current imbalance` are constraint residuals and are now
+  printed under `Numerical Info`, next to the mass residuals, instead of under
+  `Field Info`. `Field Info` gains the extrema of the current density
+  (`jx`, `jy`, `jz`) and the Lorentz force (`lrfx`, `lrfy`, `lrfz`), each with
+  its per-mille change from the previous step, to follow the development of
+  the MHD field; both are from the start of the last substep. The JSON metrics
+  are unchanged.
+
 - Removed `validation/thermal_properties/NIST_CO2_8MP.DAT`. It is generated
   output of NIST Standard Reference Data 69, which is copyrighted under
   15 U.S.C. 290e and may not be redistributed without prior permission; no such
@@ -119,6 +140,24 @@
   the melting point already sets 508 K and the viscosity cuts the top to 625 K.
 
 ### Added
+
+- Added partial restarts of a thermal run as initialisations. When only one of
+  the flow and thermal fields is restarted, the restarted field is treated as
+  an initial condition rather than a continuation:
+  - flow restart, thermal field initialised afresh: the flow bundle is
+    accepted in any layout (thermal exact, isothermal exact, isothermal
+    compact; per-field layout reads `qx`, `qy`, `qz`, `pr`). Only `q`, `pr`
+    and the outlet `fbcx_q*` planes are taken; `g = rho*u` is rebuilt from
+    the new density, the stored `g*`, `fbcx_g*` and `fbcx_ftp_*` are
+    discarded, and the momentum and outlet RHS histories are dropped
+    (`read_flow_restart_bundle_initial`, `initialise_flow_from_restart_q`).
+    Previously an isothermal bundle stopped the run with "Bundle field list
+    mismatch", and a thermal bundle reused the stored `g` and outlet thermal
+    state against a different thermal field.
+  - thermal restart, flow field initialised afresh: `ene_rhs0` and
+    `fbcx_rhoh_rhs0` are dropped.
+  A full restart (isothermal, or thermal with both fields restarted) still
+  requires the exact layout.
 
 - Added `validation/thermal_properties/README.md`, recording what the two
   supercritical property tables actually are. Both were shown by reproduction

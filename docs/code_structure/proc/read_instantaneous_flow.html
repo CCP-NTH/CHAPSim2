@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">48 statements</a>
+                 title=" 0.2% of total for procedures.">59 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -156,7 +156,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine read_instantaneous_flow(fl, dm)  
+    <h2>public  subroutine read_instantaneous_flow(fl, dm, opt_is_initial)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -174,7 +174,9 @@
 
     <p>Read instantaneous flow variables from restart files.
 - fl (inout): Flow state receiving restart fields.
-- dm (inout): Domain descriptor.</p>
+- dm (inout): Domain descriptor.
+- opt_is_initial (in): the flow field initialises a thermal run whose
+  thermal field is not restarted; see read_flow_restart_bundle_initial.</p>
 
 
     <h3>Arguments</h3>
@@ -190,7 +192,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~60"></span>
+              <span class="anchor" id="variable-fl~59"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -205,7 +207,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~193"></span>
+              <span class="anchor" id="variable-dm~202"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -214,6 +216,21 @@
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_is_initial~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_is_initial</strong></td>
             <td>
                 
             </td>

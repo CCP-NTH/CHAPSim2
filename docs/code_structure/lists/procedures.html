@@ -722,7 +722,7 @@ MPI : x-pencil
                  <td><a href='../proc/check_current_conservation.html'>check_current_conservation</a></td>
                  <td><a href='../module/mhd_mod.html'>mhd_mod</a></td>
                  <td>Subroutine</td>
-                 <td></td>
+                 <td><a href="../proc/check_current_conservation.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/check_element_mass_conservation.html'>Check_element_mass_conservation</a></td>
@@ -2192,6 +2192,12 @@ Scope:  mpi    called-freq    xdomain     module
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/initialise_flow_from_restart_q.html'>initialise_flow_from_restart_q</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/initialise_mhd.html'>initialise_mhd</a></td>
                  <td><a href='../module/mhd_mod.html'>mhd_mod</a></td>
                  <td>Subroutine</td>
@@ -2963,6 +2969,12 @@ This subroutine is called repeatly to update the RHS of the TDMA algorithm
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/read_flow_restart_bundle_initial.html'>read_flow_restart_bundle_initial</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/read_flow_restart_xoutlet_state.html'>read_flow_restart_xoutlet_state</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
@@ -3009,7 +3021,9 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
                  <td>Subroutine</td>
                  <td><p>Read instantaneous flow variables from restart files.
 - fl (inout): Flow state receiving restart fields.
-- dm (inout): Domain descriptor.</p></td>
+- dm (inout): Domain descriptor.
+- opt_is_initial (in): the flow field initialises a thermal run whose
+  thermal field is not restarted; see read_flow_restart_bundle_initial.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/read_instantaneous_thermo.html'>read_instantaneous_thermo</a></td>

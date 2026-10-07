@@ -386,6 +386,7 @@ contains
     character(32) :: str
     integer :: n, nlayer, isub
     real(WP) :: mm(2), mm_projected(2), mass_balance(8), safety_mass_residual
+    real(WP) :: mcon_prev(3), mcon_projected_prev(3)
     real(WP), dimension(dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3)) :: div, div_projected, drhodt
     !----------------------------------------------------------------
     ! safe-proof
@@ -433,33 +434,43 @@ contains
     ! Find Max. mass conservation residual
     !----------------------------------------------------------------
     n = dm%dccc%xsz(1)
-    !mm0 = fl%mcon(1)
+    !----------------------------------------------------------------
+    ! Each region is seeded with its own value from the previous call,
+    ! so that the per-mille change Find_max_min_3d prints is measured
+    ! against the same region one call earlier (1 bulk, 2 inlet, 3 outlet).
+    !----------------------------------------------------------------
+    mcon_prev           = fl%mcon
+    mcon_projected_prev = fl%mcon_projected
     fl%mcon = ZERO
     fl%mcon_projected = ZERO
-    mm = ZERO
-    mm_projected = ZERO
     !
     if(dm%is_periodic(1)) then
       nlayer = 0
     else
       nlayer = 4
+      mm = [ZERO, mcon_prev(2)]
       call Find_max_min_3d(div(1:nlayer, :, :), opt_abs='ABS', opt_calc='MAXI', &
             opt_work=mm, opt_name="Physical- Mass Consv. (inlet  4):")
       fl%mcon(2) = mm(2)
+      mm_projected = [ZERO, mcon_projected_prev(2)]
       call Find_max_min_3d(div_projected(1:nlayer, :, :), opt_abs='ABS', opt_calc='MAXI', &
             opt_work=mm_projected, opt_name="Projected Mass Consv. (inlet  4):")
       fl%mcon_projected(2) = mm_projected(2)
+      mm = [ZERO, mcon_prev(3)]
       call Find_max_min_3d(div(n-nlayer+1:n, :, :), opt_abs='ABS', opt_calc='MAXI', &
             opt_work=mm, opt_name="Physical- Mass Consv. (outlet 4):")
       fl%mcon(3) = mm(2)
 
+      mm_projected = [ZERO, mcon_projected_prev(3)]
       call Find_max_min_3d(div_projected(n-nlayer+1:n, :, :), opt_abs='ABS', opt_calc='MAXI', &
             opt_work=mm_projected, opt_name="Projected Mass Consv. (outlet 4):")
       fl%mcon_projected(3) = mm_projected(2)
     end if
+    mm = [ZERO, mcon_prev(1)]
     call Find_max_min_3d(div(nlayer+1:n-nlayer, :, :), opt_abs='ABS', opt_calc='MAXI', &
         opt_work=mm, opt_name="Physical- Mass Consv. (bulk    ):")
     fl%mcon(1) = mm(2)
+    mm_projected = [ZERO, mcon_projected_prev(1)]
     call Find_max_min_3d(div_projected(nlayer+1:n-nlayer, :, :), opt_abs='ABS', opt_calc='MAXI', &
         opt_work=mm_projected, opt_name="Projected Mass Consv. (bulk    ):")
     fl%mcon_projected(1) = mm_projected(2)

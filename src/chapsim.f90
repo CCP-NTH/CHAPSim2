@@ -230,13 +230,25 @@ subroutine Solve_eqs_iteration
   integer :: iteration
   integer :: niter
   logical :: is_timing_iter
+  ! previous-step extrema, from which Find_max_min_3d reports the change in per mille
   real(WP) :: maxmin_ep(2), maxmin_temp(2), &
               maxmin_qx(2), maxmin_qy(2), maxmin_qz(2), &
-              maxmin_pr(2), maxmin_ph(2)
+              maxmin_pr(2), maxmin_ph(2), &
+              maxmin_divj(2), &
+              maxmin_jx(2), maxmin_jy(2), maxmin_jz(2), &
+              maxmin_lrfx(2), maxmin_lrfy(2), maxmin_lrfz(2)
 
   !==============================================================================
   ! flow advancing/marching iteration/time control
   !==============================================================================
+  ! zero history: the first step reports no change (safe_divide by zero)
+  maxmin_ep   = ZERO; maxmin_temp = ZERO
+  maxmin_qx   = ZERO; maxmin_qy   = ZERO; maxmin_qz = ZERO
+  maxmin_pr   = ZERO; maxmin_ph   = ZERO
+  maxmin_divj = ZERO
+  maxmin_jx   = ZERO; maxmin_jy   = ZERO; maxmin_jz   = ZERO
+  maxmin_lrfx = ZERO; maxmin_lrfy = ZERO; maxmin_lrfz = ZERO
+
   iteration = HUGE(0)
   niter     = 0
   do i = 1, nxdomain
@@ -403,10 +415,20 @@ subroutine Solve_eqs_iteration
       if(is_flow(i)) then
         if(nrank==0) call Print_debug_mid_msg("Numerical Info")
         call Check_element_mass_conservation(flow(i), domain(i), iter)
+        ! charge conservation is a constraint residual like mass conservation
+        if(domain(1)%is_mhd) call check_current_conservation(flow(i), mhd(i), domain(i), maxmin_divj)
         if(nrank==0) call Print_debug_mid_msg("Field Info")
         if(domain(1)%is_mhd) then
-          call check_current_conservation(flow(i), mhd(i), domain(i))
           call Find_max_min_3d(mhd(i)%ep, opt_work=maxmin_ep, opt_name="ep =")
+          ! j and the Lorentz force were evaluated by compute_Lorentz_force at
+          ! the start of the last substep, so they lag the printed velocity by
+          ! that substep.
+          call Find_max_min_3d(mhd(i)%jx,   opt_work=maxmin_jx,   opt_name="jx =")
+          call Find_max_min_3d(mhd(i)%jy,   opt_work=maxmin_jy,   opt_name="jy =")
+          call Find_max_min_3d(mhd(i)%jz,   opt_work=maxmin_jz,   opt_name="jz =")
+          call Find_max_min_3d(flow(i)%lrfx, opt_work=maxmin_lrfx, opt_name="lrfx =")
+          call Find_max_min_3d(flow(i)%lrfy, opt_work=maxmin_lrfy, opt_name="lrfy =")
+          call Find_max_min_3d(flow(i)%lrfz, opt_work=maxmin_lrfz, opt_name="lrfz =")
         end if
         if(is_thermo(i)) then
           call Find_max_min_3d(thermo(i)%tTemp, opt_work=maxmin_temp, opt_name="T =")

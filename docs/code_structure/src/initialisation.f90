@@ -727,6 +727,7 @@ contains
     type(t_thermo), intent(inout), optional :: opt_tm
 
     real(WP) :: velo(3)
+    logical  :: is_thermo_fresh
 
     if(nrank == 0) call Print_debug_start_msg("Initialise flow fields ...")
   !------------------------------------------------------------------------------
@@ -742,7 +743,13 @@ contains
     fl%iteration = 0
 
     if(fl%inittype == INIT_RESTART) then
-      call read_instantaneous_flow(fl, dm)
+      !------------------------------------------------------------------------
+      ! With a freshly initialised thermal field, the restart flow field is an
+      ! initial condition rather than a continuation; it is read accordingly.
+      !------------------------------------------------------------------------
+      is_thermo_fresh = .false.
+      if(dm%is_thermo .and. present(opt_tm)) is_thermo_fresh = (opt_tm%inittype /= INIT_RESTART)
+      call read_instantaneous_flow(fl, dm, opt_is_initial=is_thermo_fresh)
       call restore_flow_variables_from_restart(fl, dm)
       ! The time-averaged fields are not read here. They are restored, together
       ! with their sample count, by init_stats_flow in post_statistics.f90,
@@ -846,6 +853,8 @@ contains
         ! restore_thermo_variables_from_restart: initialise_thermo_fields runs
         ! before initialise_flow_fields (chapsim.f90), so at that point neither
         ! the restart flow field nor any rescaling of it has been applied yet.
+        ! With a freshly initialised thermal field, the interior g = q*rho is
+        ! rebuilt from the new density by read_instantaneous_flow instead.
         !------------------------------------------------------------------------
         call convert_primary_conservative (dm, fl%dDens, IQ2G, IBND)
       end if
@@ -936,6 +945,18 @@ contains
     if(tm%inittype == INIT_RESTART) then
       call read_instantaneous_thermo  (tm, fl, dm)
       call restore_thermo_variables_from_restart(fl, tm, dm)
+      !------------------------------------------------------------------------
+      ! With a freshly initialised flow field, the restart thermal field is an
+      ! initial condition: its energy RHS histories were accumulated against
+      ! another flow field, so they are dropped.
+      !------------------------------------------------------------------------
+      if(fl%inittype /= INIT_RESTART) then
+        tm%ene_rhs0(:, :, :) = ZERO
+        if(dm%is_conv_outlet(1)) tm%fbcx_rhoh_rhs0(:, :) = ZERO
+        if(nrank == 0) call Print_note_msg( &
+          'Thermal restart with a freshly initialised flow field: the restart thermal field is used '// &
+          'as an initial condition and its energy RHS history is dropped.')
+      end if
       ! Time-averaged thermal fields are restored by init_stats_thermo; see the
       ! same note in initialise_flow_fields.
     else
