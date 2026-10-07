@@ -67,9 +67,9 @@ jobs:
           # check_metrics.py is the metric comparator the test runners invoke
           # with file paths, not a standalone checker, so it is excluded.
           #
-          # The checkers below already fail on a clean checkout of b684d1c for
-          # reasons unrelated to any change under test, so they are reported
-          # without going red; see docs/superpowers/worklog/STATUS.md. No
+          # The checkers below already fail on a clean checkout for reasons
+          # unrelated to any change under test, so they are reported without
+          # going red. No
           # checker is skipped, modified or weakened - every one still runs and
           # its output is printed. A checker that is not on this list and fails
           # is blocking, and a listed checker that starts passing is blocking
@@ -141,7 +141,7 @@ jobs:
           fi
           if [ -n "$unexpected_passes" ]; then
             for b in $unexpected_passes; do
-              echo "::error file=.github/workflows/ci.yml,title=Remove from known-failing::${b} now passes. Delete its line from KNOWN_FAILING_TABLE in .github/workflows/ci.yml and its row in the known-failing table in docs/superpowers/worklog/STATUS.md, then re-run."
+              echo "::error file=.github/workflows/ci.yml,title=Remove from known-failing::${b} now passes. Delete its line from KNOWN_FAILING_TABLE in .github/workflows/ci.yml, then re-run."
             done
             {
               echo ""
@@ -149,7 +149,7 @@ jobs:
               echo ""
               echo "These checkers now pass and must stop being tolerated:"
               for b in $unexpected_passes; do
-                echo "- \`$b\` - delete from \`KNOWN_FAILING_TABLE\` in \`.github/workflows/ci.yml\` and from \`docs/superpowers/worklog/STATUS.md\`"
+                echo "- \`$b\` - delete from \`KNOWN_FAILING_TABLE\` in \`.github/workflows/ci.yml\`"
               done
             } >> "$GITHUB_STEP_SUMMARY"
             status=1
@@ -189,7 +189,7 @@ jobs:
           # but no nested .git, so the script would delete them and clone
           # upstream master unpinned. Creating an empty repository here keeps
           # the build on the vendored sources and off the network.
-          # Proper fix belongs in build_chapsim.sh; see docs/superpowers/BACKLOG.md.
+          # Proper fix belongs in build_chapsim.sh.
           git -C lib/2decomp-fft init -q
 
       - name: Build CHAPSim (Tier 0)
