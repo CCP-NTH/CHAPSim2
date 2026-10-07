@@ -16,15 +16,15 @@ module fft2decomp_interface_mod
   integer, parameter :: IFORWARD  = 1
   integer, parameter :: IBACKWARD = -1
 
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype) :: xlx ! domain length
   real(mytype) :: yly ! physical domain
   real(mytype) :: zlz
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   logical :: nclx ! logic, whether it is periodic bc
   logical :: ncly
   logical :: nclz
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   ! below information is from incompact3d.
   ! Boundary conditions : ncl = 2 --> Dirichlet
   ! Boundary conditions : ncl = 1 --> Free-slip
@@ -39,78 +39,79 @@ module fft2decomp_interface_mod
   integer :: nclx1 ! boundary condition, velocity
   integer :: ncly1
   integer :: nclz1
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   integer, save :: nx ! computational node number
   integer, save :: ny
   integer, save :: nz
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   integer, save :: nxm ! number of spacing
   integer, save :: nym
   integer, save :: nzm
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype), save :: dx
   real(mytype), save :: dy ! physical grid spacing
   real(mytype), save :: dz
   real(mytype), save :: alpha, beta
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   !real(mytype) :: alpha
   !real(mytype) :: beta
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype), save :: alcaix6
   real(mytype), save :: acix6
   real(mytype), save :: bcix6
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype), save :: alcaiy6
   real(mytype), save :: aciy6
   real(mytype), save :: bciy6
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype), save :: alcaiz6
   real(mytype), save :: aciz6
   real(mytype), save :: bciz6
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype), save :: ailcaix6
   real(mytype), save :: aicix6
   real(mytype), save :: bicix6
   real(mytype), save :: cicix6
   real(mytype), save :: dicix6
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype), save :: ailcaiy6
   real(mytype), save :: aiciy6
   real(mytype), save :: biciy6
   real(mytype), save :: ciciy6
   real(mytype), save :: diciy6
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype), save :: ailcaiz6
   real(mytype), save :: aiciz6
   real(mytype), save :: biciz6
   real(mytype), save :: ciciz6
   real(mytype), save :: diciz6
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   !module waves
   complex(mytype),allocatable,dimension(:), save :: zkz,zk2,ezs
   complex(mytype),allocatable,dimension(:), save :: yky,yk2,eys
   complex(mytype),allocatable,dimension(:), save :: xkx,xk2,exs
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
   real(mytype), allocatable, save :: aa(:), bb(:), cc(:), bbb_real(:), bbb_imag(:)
   real(mytype), allocatable, save :: rc2(:), ty_real(:), ty_imag(:)
 
   public :: build_up_fft2decomp_interface
 
 contains
-!==========================================================================================================
+!==============================================================================
   subroutine build_up_fft2decomp_interface(dm)
     use operations
     use parameters_constant_mod
     use udf_type_mod
     implicit none
     type(t_domain), intent(in) :: dm
-    integer :: j, iaccu
+    integer :: j
+    integer :: iaccu(NDIM)
 
     !real(WP) :: alcai, aci, bci
 
 
     if (nrank == 0) call Print_debug_mid_msg("Building up the interface for the poisson solver ...")
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     istret = dm%istret
     if (istret /= 0) then
       beta = dm%rstret
@@ -125,17 +126,17 @@ contains
         if(skip_c2c(j)) write(*, *) 'fft 2decomp_interface: skip c2c fft in direction ', j
       end do
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     xlx = dm%lxx
     yly = dm%lyt - dm%lyb ! check computational or physical length?
     zlz = dm%lzz
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     nclx = dm%is_periodic(1)
     ncly = dm%is_periodic(2)
     nclz = dm%is_periodic(3)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !   nclx1, ncly1, nclz1 are not used for poisson solver but only for debugging.
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(dm%ibcx_qx(1) == IBC_PERIODIC ) then
       nclx1 = 0
     else if (dm%ibcx_qx(1) == IBC_DIRICHLET ) then
@@ -159,7 +160,7 @@ contains
     else
       nclz1 = 1
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if (nclx) then
       nx = dm%np_geo(1) - 1
       nxm = dm%np_geo(1) - 1
@@ -183,15 +184,15 @@ contains
       nz = dm%np_geo(3) - 1
       nzm = dm%np_geo(3) - 1
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(nrank==0) write(*,*) 'FFT: nx, ny, nz, nxm, nym, nzm:(var)', nx, ny, nz, nxm, nym, nzm
 
     dx = dm%h(1)
     dy = dm%h(2)!(dm%lyt - dm%lyb) / real(dm%nc(2), WP) !dm%h(2) ! check, computational or physical grid spacing (yes))?
     dz = dm%h(3)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     !alpha, beta from geo
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     ! if(dm%iAccuracy == IACCU_CD2) then
     !   alcai = ZERO
     !   aci = ONE
@@ -201,20 +202,23 @@ contains
     !   aci = SIXTYTHREE / SIXTYTWO
     !   bci = SEVENTEEN / SIXTYTWO / THREE
     ! end if
-    iaccu = dm%iAccuracy
-    if(dm%icoordinate==ICYLINDRICAL) iaccu = IACCU_CD2
+    ! One scheme per direction, shared with the divergence in eq_continuity and the
+    ! pressure gradient in eq_momentum2. kxyz is the separable sum xk2 + yk2 + zk2 (the
+    ! interpolation cross-terms in `waves` sit behind ftr = .false.), and each term is the
+    ! square of that direction's own symbol, so each direction only has to match itself.
+    iaccu = get_projection_accuracy(dm)
     !
-    alcaix6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu)
-    acix6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu) / dx
-    bcix6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu) / dx
+    alcaix6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu(1))
+    acix6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu(1)) / dx
+    bcix6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu(1)) / dx
 
-    alcaiy6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu)
-    aciy6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu) / dy
-    bciy6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu) / dy
+    alcaiy6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu(2))
+    aciy6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu(2)) / dy
+    bciy6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu(2)) / dy
 
-    alcaiz6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu)
-    aciz6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu) / dz
-    bciz6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu) / dz
+    alcaiz6 = d1fC2P(3, 1, IBC_PERIODIC, iaccu(3))
+    aciz6   = d1rC2P(3, 1, IBC_PERIODIC, iaccu(3)) / dz
+    bciz6   = d1rC2P(3, 2, IBC_PERIODIC, iaccu(3)) / dz
 
     ! ! only IBC_PERIODIC is necessary, as all non-period data are converted to periodic data.
     ! if(dm%ibcx(1, 1) == IBC_PERIODIC ) then
@@ -258,7 +262,7 @@ contains
 #ifdef DEBUG_STEPS
   write(*,*) '1stder, alpha, a, b/3 = ', alcaix6, acix6 * dx, bcix6 * dx
 #endif
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !   only classic interpolation, no optimized schemes added here. check paper S. Lele 1992
 !   check pros of optimized schemes, to do (see below info from xcompact3d)
 !*``ipinter=1``: conventional sixth-order interpolation coefficients as described in `Lele 1992 <https://www.sciencedirect.com/science/article/pii/002199919290324R>`_\
@@ -278,23 +282,27 @@ contains
     !   dicix6 = ZERO
     ! end if
 
-    ailcaix6 = m1fC2P(3, 1, IBC_PERIODIC, iaccu)
-    aicix6   = m1rC2P(3, 1, IBC_PERIODIC, iaccu)
-    bicix6   = m1rC2P(3, 2, IBC_PERIODIC, iaccu)
+    ! Interpolation transfer functions. Only read by `waves` inside the ftr branch, which
+    ! is switched off (ftr = .false.), so these are inert today; kept per-direction anyway
+    ! so they cannot silently disagree with the derivative coefficients above if it is
+    ! ever switched on.
+    ailcaix6 = m1fC2P(3, 1, IBC_PERIODIC, iaccu(1))
+    aicix6   = m1rC2P(3, 1, IBC_PERIODIC, iaccu(1))
+    bicix6   = m1rC2P(3, 2, IBC_PERIODIC, iaccu(1))
     cicix6   = zero
     dicix6   = zero
 
-    ailcaiy6 = ailcaix6
-    aiciy6   = aicix6
-    biciy6   = bicix6
-    ciciy6   = cicix6
-    diciy6   = dicix6
+    ailcaiy6 = m1fC2P(3, 1, IBC_PERIODIC, iaccu(2))
+    aiciy6   = m1rC2P(3, 1, IBC_PERIODIC, iaccu(2))
+    biciy6   = m1rC2P(3, 2, IBC_PERIODIC, iaccu(2))
+    ciciy6   = zero
+    diciy6   = zero
 
-    ailcaiz6 = ailcaix6
-    aiciz6   = aicix6
-    biciz6   = bicix6
-    ciciz6   = cicix6
-    diciz6   = dicix6
+    ailcaiz6 = m1fC2P(3, 1, IBC_PERIODIC, iaccu(3))
+    aiciz6   = m1rC2P(3, 1, IBC_PERIODIC, iaccu(3))
+    biciz6   = m1rC2P(3, 2, IBC_PERIODIC, iaccu(3))
+    ciciz6   = zero
+    diciz6   = zero
 
     ! if(dm%ibcx(1, 1) == IBC_PERIODIC ) then
     !     ailcaix6 = m1fC2P(3, 1, IBC_PERIODIC)
@@ -347,7 +355,7 @@ contains
 #ifdef DEBUG_STEPS
   write(*,*) 'interp, alpha, a/2, b/4 = ', ailcaix6, aicix6, bicix6
 #endif
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 
     !module waves
     allocate(zkz(nz/2+1))
@@ -418,7 +426,7 @@ contains
 
 end module
 
-!==========================================================================================================
+!==============================================================================
 !##################################################################
 !##################################################################
 subroutine inversion5_v1(aaa_in,eee,spI)
@@ -468,8 +476,22 @@ subroutine inversion5_v1(aaa_in,eee,spI)
         mi = m + i
         do k = spI%yst(3), spI%yen(3)
            do j = spI%yst(1), spI%yen(1)
-              if (dabs(rl(aaa(j,m,k,3))) > MINP) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
-              if (dabs(iy(aaa(j,m,k,3))) > MINP) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
+              ! A zero pivot occurs at the singular (0,0) transverse mode, where
+              ! yky(1) = 0 makes cw22 and hence aaa(:,1,:,3) vanish. The
+              ! multiplier must then be zero, as in every other guarded division
+              ! in this routine; leaving tmp1/tmp2 unassigned would carry over
+              ! the previous iteration's value into sr and into the elimination
+              ! of eee below.
+              if (abs_prec(rl(aaa(j,m,k,3))) > epsilon) then
+                 tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
+              else
+                 tmp1 = zero
+              endif
+              if (abs_prec(iy(aaa(j,m,k,3))) > epsilon) then
+                 tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
+              else
+                 tmp2 = zero
+              endif
               sr(j,k)=cx(tmp1,tmp2)
               eee(j,mi,k)=cx(rl(eee(j,mi,k)) - tmp1 * rl(eee(j,m,k)),&
                              iy(eee(j,mi,k)) - tmp2 * iy(eee(j,m,k)))
@@ -769,11 +791,22 @@ module decomp_2d_poisson
   ! Generic pointer that can point to any variant
   !---------------------------------------------------
   procedure(poisson_base), pointer :: poisson           => null()
+  real(mytype), save :: poisson_zero_mode_rhs_projection = 0.0_mytype
   !---------------------------------------------------
   ! define subs
   !---------------------------------------------------
   public :: decomp_2d_poisson_init,decomp_2d_poisson_finalize,poisson
+  public :: reset_poisson_zero_mode_rhs_projection, get_poisson_zero_mode_rhs_projection
 contains
+
+  subroutine reset_poisson_zero_mode_rhs_projection()
+    poisson_zero_mode_rhs_projection = 0.0_mytype
+  end subroutine reset_poisson_zero_mode_rhs_projection
+
+  subroutine get_poisson_zero_mode_rhs_projection(projection)
+    real(mytype), intent(out) :: projection
+    projection = poisson_zero_mode_rhs_projection
+  end subroutine get_poisson_zero_mode_rhs_projection
 
 
 
@@ -1001,7 +1034,12 @@ contains
 
     implicit none
 
-    deallocate(ax,bx,ay,by,az,bz)
+    if (allocated(ax)) deallocate(ax)
+    if (allocated(bx)) deallocate(bx)
+    if (allocated(ay)) deallocate(ay)
+    if (allocated(by)) deallocate(by)
+    if (allocated(az)) deallocate(az)
+    if (allocated(bz)) deallocate(bz)
 
     call decomp_info_finalize(ph)
     call decomp_info_finalize(sp)
@@ -1009,27 +1047,132 @@ contains
     call decomp_2d_fft_finalize
     fft_initialised = .false.
 
-    deallocate(kxyz)
+    if (allocated(kxyz)) deallocate(kxyz)
 
     if (bcx==0 .and. bcy==0 .and. bcz==0) then
-       deallocate(cw1)
-       deallocate(a,a2,a3)
+       if (allocated(cw1)) deallocate(cw1)
+       if (allocated(a)) deallocate(a)
+       if (allocated(a2)) deallocate(a2)
+       if (allocated(a3)) deallocate(a3)
     else if (bcx==1 .and. bcy==0 .and. bcz==0) then
-       deallocate(cw1,cw1b,rw1,rw1b,rw2)
-       deallocate(a,a2,a3)
+       if (allocated(cw1)) deallocate(cw1)
+       if (allocated(cw1b)) deallocate(cw1b)
+       if (allocated(rw1)) deallocate(rw1)
+       if (allocated(rw1b)) deallocate(rw1b)
+       if (allocated(rw2)) deallocate(rw2)
+       if (allocated(a)) deallocate(a)
+       if (allocated(a2)) deallocate(a2)
+       if (allocated(a3)) deallocate(a3)
     else if (bcx==0 .and. bcy==1 .and. bcz==0) then
-       deallocate(cw1,cw2,cw2b,rw2,rw2b)
-       deallocate(a,a2,a3)
+       if (allocated(cw1)) deallocate(cw1)
+       if (allocated(cw2)) deallocate(cw2)
+       if (allocated(cw22)) deallocate(cw22)
+       if (allocated(cw2b)) deallocate(cw2b)
+       if (allocated(cw2c)) deallocate(cw2c)
+       if (allocated(rw2)) deallocate(rw2)
+       if (allocated(rw2b)) deallocate(rw2b)
+       if (allocated(a)) deallocate(a)
+       if (allocated(a2)) deallocate(a2)
+       if (allocated(a3)) deallocate(a3)
     else if (bcx==1 .and. bcy==1) then
-       deallocate(cw1,cw1b,cw2,cw2b,rw1,rw1b,rw2,rw2b)
-       deallocate(a,a2,a3)
-       if (bcz==1) then
-          deallocate(rw3)
-       end if
+       if (allocated(cw1)) deallocate(cw1)
+       if (allocated(cw1b)) deallocate(cw1b)
+       if (allocated(cw2)) deallocate(cw2)
+       if (allocated(cw22)) deallocate(cw22)
+       if (allocated(cw2b)) deallocate(cw2b)
+       if (allocated(cw2c)) deallocate(cw2c)
+       if (allocated(rw1)) deallocate(rw1)
+       if (allocated(rw1b)) deallocate(rw1b)
+       if (allocated(rw2)) deallocate(rw2)
+       if (allocated(rw2b)) deallocate(rw2b)
+       if (allocated(rw3)) deallocate(rw3)
+       if (allocated(a)) deallocate(a)
+       if (allocated(a2)) deallocate(a2)
+       if (allocated(a3)) deallocate(a3)
     end if
+
+    if (allocated(zkz)) deallocate(zkz)
+    if (allocated(zk2)) deallocate(zk2)
+    if (allocated(ezs)) deallocate(ezs)
+    if (allocated(yky)) deallocate(yky)
+    if (allocated(yk2)) deallocate(yk2)
+    if (allocated(eys)) deallocate(eys)
+    if (allocated(xkx)) deallocate(xkx)
+    if (allocated(xk2)) deallocate(xk2)
+    if (allocated(exs)) deallocate(exs)
+
+    if (allocated(ty_real)) deallocate(ty_real)
+    if (allocated(ty_imag)) deallocate(ty_imag)
+    if (allocated(aa)) deallocate(aa)
+    if (allocated(bb)) deallocate(bb)
+    if (allocated(cc)) deallocate(cc)
+    if (allocated(bbb_real)) deallocate(bbb_real)
+    if (allocated(bbb_imag)) deallocate(bbb_imag)
+    if (allocated(rc2)) deallocate(rc2)
 
     return
   end subroutine decomp_2d_poisson_finalize
+
+  subroutine solve_yskip_tdma_line(n, rhs, lower, diag, upper, zero_mode)
+    use parameters_constant_mod, only: ONE, ZERO
+    use tridiagonal_matrix_algorithm
+    implicit none
+
+    integer, intent(in) :: n
+    real(mytype), intent(inout) :: rhs(n)
+    real(mytype), intent(in) :: lower(n), diag(n), upper(n)
+    logical, intent(in) :: zero_mode
+
+    real(mytype) :: lower_work(n), diag_work(n), upper_work(n), null_weight(n)
+    real(mytype) :: rhs_mean, weight_sum
+    integer :: j
+
+    lower_work(:) = lower(:)
+    diag_work(:)  = diag(:)
+    upper_work(:) = upper(:)
+
+    if (zero_mode) then
+      ! Project the singular zero-mode line onto the range of the discrete
+      ! operator using its left-null vector w, defined by w^T A = 0. With the
+      ! coefficients built in build_up_fft2decomp_interface,
+      !   aa(j) = h2r * Jc(j)^-1 * Jp(j)^-1   * rp(j)   * rc(j)
+      !   cc(j) = h2r * Jc(j)^-1 * Jp(j+1)^-1 * rp(j+1) * rc(j)
+      ! (yMappingcc/pt hold dEta/dy, i.e. the inverse Jacobian), the recursion
+      ! below gives
+      !   w(j)/w(j-1) = cc(j-1)/aa(j) = (Jc(j)/Jc(j-1)) * (rc(j-1)/rc(j)),
+      ! hence w(j) ~ Jc(j)/rc(j). The caller pre-multiplies the source by r^2,
+      ! so the functional actually removed is
+      !   sum_j w(j) * (rc(j)^2 * f(j)) = sum_j Jc(j) * rc(j) * f(j),
+      ! which is exactly the physical volume integral of f. The projection
+      ! therefore coincides with the volume-weighted mean subtracted by
+      ! is_global_mass_correction / enforce_domain_mass_balance_dyn_fbc, in
+      ! both Cartesian and cylindrical coordinates and on a stretched mesh:
+      ! the 1/rc in the null weight cancels the r^2 pre-scaling. Keeping these
+      ! two functionals identical is what makes the compatibility correction
+      ! applied by the caller land on the component this solver discards.
+      null_weight(1) = ONE
+      do j = 2, n
+        null_weight(j) = null_weight(j - 1) * upper(j - 1) / lower(j)
+      end do
+      weight_sum = sum(null_weight)
+      if (abs(weight_sum) > epsilon) then
+        rhs_mean = sum(null_weight * rhs) / weight_sum
+        rhs(:) = rhs(:) - rhs_mean
+        if(abs(rhs_mean) > abs(poisson_zero_mode_rhs_projection)) &
+          poisson_zero_mode_rhs_projection = rhs_mean
+      end if
+
+      lower_work(n) = ZERO
+      diag_work(n)  = ONE
+      upper_work(n) = ZERO
+      ! Explicit pressure gauge for the singular Neumann zero mode.
+      rhs(n)        = ZERO
+    end if
+
+    call Solve_TDMA_standard(n, rhs, lower_work, diag_work, upper_work)
+
+    return
+  end subroutine solve_yskip_tdma_line
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   ! Solving 3D Poisson equation with periodic B.C in all 3 dimensions
@@ -1851,6 +1994,7 @@ contains
 
     !integer :: nx,ny,nz,
     integer :: i,j,k,ii,jj,kk
+    logical :: zero_mode
 
     ! complex(mytype) :: cx
     ! real(mytype) :: rl, iy
@@ -2109,6 +2253,10 @@ contains
 !-----------------------------------------------------------
     do i = sp%yst(1), sp%yen(1)
       do k = sp%yst(3), sp%yen(3)
+        zero_mode = abs(rl(xk2(i))) < epsilon .and. &
+                    abs(iy(xk2(i))) < epsilon .and. &
+                    abs(rl(zk2(k))) < epsilon .and. &
+                    abs(iy(zk2(k))) < epsilon
         do j = sp%yst(2), sp%yen(2)
           bbb_real(j) = bb(j) - (rl(xk2(i)) * rc2(j) + rl(zk2(k)))
           bbb_imag(j) = bb(j) - (iy(xk2(i)) * rc2(j) + iy(zk2(k)))
@@ -2116,9 +2264,18 @@ contains
           ty_imag(j) = iy(cw2(i, j, k))
           !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test31', ty(j), i, j, k
         end do
-        !call TRID0(ph%ysz(2), ty)!a, bb, c, ty)
-        call Solve_TDMA_standard(sp%ysz(2), ty_real, aa, bbb_real, cc)
-        call Solve_TDMA_standard(sp%ysz(2), ty_imag, aa, bbb_imag, cc)
+        call solve_yskip_tdma_line(sp%ysz(2), &
+                                   ty_real(sp%yst(2):sp%yen(2)), &
+                                   aa(sp%yst(2):sp%yen(2)), &
+                                   bbb_real(sp%yst(2):sp%yen(2)), &
+                                   cc(sp%yst(2):sp%yen(2)), &
+                                   zero_mode)
+        call solve_yskip_tdma_line(sp%ysz(2), &
+                                   ty_imag(sp%yst(2):sp%yen(2)), &
+                                   aa(sp%yst(2):sp%yen(2)), &
+                                   bbb_imag(sp%yst(2):sp%yen(2)), &
+                                   cc(sp%yst(2):sp%yen(2)), &
+                                   zero_mode)
         do j =sp%yst(2), sp%yen(2)
           cw2(i, j, k) = cmplx(ty_real(j), ty_imag(j), kind=mytype)
           !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test32', ty(j), i, j, k
@@ -2758,6 +2915,7 @@ contains
 
     !integer :: nx,ny,nz,
     integer :: i,j,k
+    logical :: zero_mode
 
     ! complex(mytype) :: cx
     ! real(mytype) :: rl, iy
@@ -3119,6 +3277,10 @@ contains
     call transpose_x_to_y(cw1b,cw2b,sp)
     do i = sp%yst(1), sp%yen(1)
       do k = sp%yst(3), sp%yen(3)
+        zero_mode = abs(rl(xk2(i))) < epsilon .and. &
+                    abs(iy(xk2(i))) < epsilon .and. &
+                    abs(rl(zk2(k))) < epsilon .and. &
+                    abs(iy(zk2(k))) < epsilon
         do j = sp%yst(2), sp%yen(2)
           bbb_real(j) = bb(j) - (rl(xk2(i)) * rc2(j) + rl(zk2(k)))
           bbb_imag(j) = bb(j) - (iy(xk2(i)) * rc2(j) + iy(zk2(k)))
@@ -3126,9 +3288,18 @@ contains
           ty_real(j) = rl(cw2b(i, j, k))
           !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test31', ty(j), i, j, k
         end do
-        !call TRID0(ph%ysz(2), ty)!a, bb, c, ty)
-        call Solve_TDMA_standard(sp%ysz(2), ty_real, aa, bbb_real, cc)
-        call Solve_TDMA_standard(sp%ysz(2), ty_imag, aa, bbb_imag, cc)
+        call solve_yskip_tdma_line(sp%ysz(2), &
+                                   ty_real(sp%yst(2):sp%yen(2)), &
+                                   aa(sp%yst(2):sp%yen(2)), &
+                                   bbb_real(sp%yst(2):sp%yen(2)), &
+                                   cc(sp%yst(2):sp%yen(2)), &
+                                   zero_mode)
+        call solve_yskip_tdma_line(sp%ysz(2), &
+                                   ty_imag(sp%yst(2):sp%yen(2)), &
+                                   aa(sp%yst(2):sp%yen(2)), &
+                                   bbb_imag(sp%yst(2):sp%yen(2)), &
+                                   cc(sp%yst(2):sp%yen(2)), &
+                                   zero_mode)
         do j =sp%yst(2), sp%yen(2)
           cw2b(i, j, k) = cmplx(ty_real(j), ty_imag(j), kind=mytype)
           !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test32', ty(j), i, j, k
@@ -3291,137 +3462,6 @@ contains
     return
   end subroutine poisson_11x_yskip
 
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  ! Solving 3D Poisson equation: Neumann in X, Y; Neumann/periodic in Z
-!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  subroutine poisson_11x_xyskip(rhs)
-    use tridiagonal_matrix_algorithm
-    !use dbg_schemes, only: abs_prec
-    use math_mod, only: cx, rl, iy!, only: abs_prec
-    implicit none
-
-    real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
-
-    complex(mytype) :: xyzk
-    real(mytype) :: tmp1, tmp2, tmp3, tmp4
-    real(mytype) :: xx1,xx2,xx3,xx4,xx5,xx6,xx7,xx8
-
-    !integer :: nx,ny,nz,
-    integer :: i,j,k
-
-    ! complex(mytype) :: cx
-    ! real(mytype) :: rl, iy
-    ! external cx, rl, iy
-#ifdef DEBUG_FFT
-    real(mytype) avg_param
-#endif
-
-100 format(1x,a8,3I4,2F12.6)
-
-    if (bcz == 1) then
-       do j = 1, ph%zsz(2)
-          do i = 1, ph%zsz(1)
-             do k = 1, nz/2
-                rw3(i,j,k) = rhs(i,j,2*(k-1)+1)
-             end do
-             do k = nz/2 + 1, nz
-                rw3(i,j,k) = rhs(i,j,2*nz-2*k+2)
-             end do
-          end do
-       end do
-       !call transpose_z_to_y(rw3,rw2,ph)
-    else if (bcz == 0) then
-       !call transpose_z_to_y(rhs,rw2,ph)
-    end if
-    ! init FFT
-    if (.not. fft_initialised) then
-       call decomp_2d_fft_init(PHYSICAL_IN_Z,nx,ny,nz,opt_skip_XYZ_c2c=skip_c2c)
-       fft_initialised = .true.
-    end if
-
-    ! compute r2c fft transform
-    call decomp_2d_fft_3d(rhs,cw1)
-    if (.not. skip_c2c(1)) cw1 = cw1 / real(nx, kind=mytype)
-    if (.not. skip_c2c(2)) cw1 = cw1 / real(ny, kind=mytype)
-    if (.not. skip_c2c(3)) cw1 = cw1 / real(nz, kind=mytype)
-
-    ! post-processing in spectral space
-    ! POST PROCESSING IN Z ! WW: check why not seperate z=0 and z=1?
-    do k = sp%xst(3), sp%xen(3)
-       do j = sp%xst(2), sp%xen(2)
-          do i = sp%xst(1), sp%xen(1)
-             tmp1 = rl(cw1(i,j,k))
-             tmp2 = iy(cw1(i,j,k))
-             cw1(i,j,k) = cx(tmp1 * bz(k) + tmp2 * az(k), &
-                             tmp2 * bz(k) - tmp1 * az(k))
-          end do
-       end do
-    end do
-
-!-----------------------------------------------------------
-! Iterative ADI method
-!-----------------------------------------------------------
-    ! sweep TMDA in the Y direction (stretching grids direction)
-    call transpose_x_to_y(cw1,cw2,sp)
-    do i = sp%yst(1), sp%yen(1)
-      do k = sp%yst(3), sp%yen(3)
-        do j = sp%yst(2), sp%yen(2)
-          bbb_real(j) = bb(j) - (rl(xk2(i)) * rc2(j) + rl(zk2(k)))
-          bbb_imag(j) = bb(j) - (iy(xk2(i)) * rc2(j) + iy(zk2(k)))
-          ty_imag(j) = iy(cw2b(i, j, k))
-          ty_real(j) = rl(cw2b(i, j, k))
-          !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test31', ty(j), i, j, k
-        end do
-        !call TRID0(ph%ysz(2), ty)!a, bb, c, ty)
-        call Solve_TDMA_standard(sp%ysz(2), ty_real, aa, bbb_real, cc)
-        call Solve_TDMA_standard(sp%ysz(2), ty_imag, aa, bbb_imag, cc)
-        do j =sp%yst(2), sp%yen(2)
-          cw2b(i, j, k) = cmplx(ty_real(j), ty_imag(j), kind=mytype)
-          !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test32', ty(j), i, j, k
-        end do
-      end do
-    end do
-    call transpose_y_to_x(cw2b,cw1b,sp)
-    ! sweep TMDA in the x direction (stretching grids direction)
-    ! to do , to add
-    !
-!-----------------------------------------------------------
-! post-processing backward
-!-----------------------------------------------------------
-    ! POST PROCESSING IN Z
-    do k = sp%xst(3), sp%xen(3)
-       do j = sp%xst(2), sp%xen(2)
-          do i = sp%xst(1), sp%xen(1)
-             tmp1 = rl(cw1(i,j,k))
-             tmp2 = iy(cw1(i,j,k))
-             cw1(i,j,k) = cx(tmp1 * bz(k) - tmp2 * az(k), &
-                             tmp2 * bz(k) + tmp1 * az(k))
-          end do
-       end do
-    end do
-
-    ! compute c2r transform, back to physical space
-    call decomp_2d_fft_3d(cw1,rhs)
-
-    if (bcz == 1) then
-       do j = 1, ph%zsz(2)
-          do i = 1, ph%zsz(1)
-             do k = 1, nz/2
-                rw3(i,j,2*k-1) = rhs(i,j,k)
-             end do
-             do k = 1, nz/2
-                rw3(i,j,2*k) = rhs(i,j,nz-k+1)
-             end do
-          end do
-       end do
-       !call transpose_z_to_y(rw3,rw2,ph)
-    else if (bcz == 0) then
-       !call transpose_z_to_y(rhs,rw2,ph)
-    end if
-
-    return
-  end subroutine poisson_11x_xyskip
-
 
   subroutine abxyz(ax,ay,az,bx,by,bz,nx,ny,nz,bcx,bcy,bcz)
 
@@ -3520,6 +3560,9 @@ contains
     ! real(mytype) :: rl, iy
     ! external cx, rl, iy
     logical :: ftr = .false.
+    ! CHAPSim solves pressure on cell centres with fully staggered velocity fluxes.
+    ! The discrete pressure Laplacian is directional D(P2C)*D(C2P), so the
+    ! transverse interpolation transfer factors used by Xcompact3D stay disabled.
 
     xkx = zero
     xk2 = zero
@@ -3845,6 +3888,9 @@ contains
 !
     real(mytype) :: xa0_2, xa1_2, xa01, xa0p1_2
     logical :: ftr = .false.
+    ! Keep interpolation-transfer factors disabled for the fully staggered
+    ! pressure operator. See waves(): the pressure Poisson eigenvalues should
+    ! match directional pressure-gradient/divergence operators only.
 !
     do i = sp%yst(1),sp%yen(1)
        if(ftr) then
@@ -4328,4 +4374,3 @@ subroutine avg3d (var, avg)
 end subroutine avg3d
 
 end module decomp_2d_poisson
-

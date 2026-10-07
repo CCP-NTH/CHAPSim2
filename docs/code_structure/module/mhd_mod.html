@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>mhd_mod &ndash; Fortran Program</title>
+    <title>mhd_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>mhd_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.9% of total for modules and submodules.">444 statements</a>
+                 title=" 2.3% of total for modules and submodules.">651 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,18 +128,18 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
          aria-expanded="false" aria-controls="subs-0">
@@ -144,19 +148,23 @@
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/mhd_mod.html#proc-initialise_mhd">initialise_mhd</a>
+            <a class="list-group-item" href="../module/mhd_mod.html#proc-resolve_electrical_bc">resolve_electrical_bc</a>
+            <a class="list-group-item" href="../module/mhd_mod.html#proc-build_current_ibc">build_current_ibc</a>
+            <a class="list-group-item" href="../module/mhd_mod.html#proc-initialise_static_magnetic_field">initialise_static_magnetic_field</a>
+            <a class="list-group-item" href="../module/mhd_mod.html#proc-cross_production_mhd">cross_production_mhd</a>
             <a class="list-group-item" href="../module/mhd_mod.html#proc-compute_lorentz_force">compute_Lorentz_force</a>
             <a class="list-group-item" href="../module/mhd_mod.html#proc-check_current_conservation">check_current_conservation</a>
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -164,7 +172,7 @@
     </div>
 
     <div class="col-md-9" id='text'>
-
+      
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -178,7 +186,7 @@
       </div>
     </div>
 
-
+      
       <br>
 
 
@@ -191,11 +199,11 @@
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-initialise_mhd"></span> <h3>public  subroutine <a href='../proc/initialise_mhd.html'>initialise_mhd</a>(fl, mh, dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-initialise_mhd"></span> <h3>public  subroutine <a href='../proc/initialise_mhd.html'>initialise_mhd</a>(fl, mh, dm)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -210,12 +218,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~16"></span>
+              <span class="anchor" id="variable-fl~30"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
@@ -230,7 +238,7 @@
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mh</strong></td>
@@ -240,12 +248,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~44"></span>
+              <span class="anchor" id="variable-dm~106"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -261,11 +269,12 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-compute_lorentz_force"></span> <h3>public  subroutine <a href='../proc/compute_lorentz_force.html'>compute_Lorentz_force</a>(fl, mh, dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-resolve_electrical_bc"></span> <h3>private  subroutine <a href='../proc/resolve_electrical_bc.html'>resolve_electrical_bc</a>(ebc, ibc_pr, ibc_ep, dir)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  <p>\brief Map the named electrical boundary condition onto the IBC_* code the
+       operators and the Poisson solver understand.</p><a href="../proc/resolve_electrical_bc.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -280,12 +289,253 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~18"></span>
-              type(<a href='../type/t_flow.html'>t_flow</a>),
+              <span class="anchor" id="variable-ebc"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebc</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_pr"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_pr</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_ep"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_ep</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dir"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dir</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-build_current_ibc"></span> <h3>private  subroutine <a href='../proc/build_current_ibc.html'>build_current_ibc</a>(ibc_ep, ibc_q, ibc_j, dir, is_normal)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>\brief Boundary condition for one component of the current density on one
+       pair of sides.</p><a href="../proc/build_current_ibc.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_ep~2"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_ep</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_q"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_q</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_j"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_j</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dir~2"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dir</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_normal"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_normal</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-initialise_static_magnetic_field"></span> <h3>private  subroutine <a href='../proc/initialise_static_magnetic_field.html'>initialise_static_magnetic_field</a>(mh, dm)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mh~3"></span>
+              type(<a href='../type/t_mhd.html'>t_mhd</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mh</strong></td>
+            <td>
 
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~107"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-cross_production_mhd"></span> <h3>private  subroutine <a href='../proc/cross_production_mhd.html'>cross_production_mhd</a>(fl, mh, ab_cross_x, ab_cross_y, ab_cross_z, str, dm)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~31"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
@@ -298,9 +548,9 @@
               <span class="anchor" id="variable-mh~4"></span>
               type(<a href='../type/t_mhd.html'>t_mhd</a>),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mh</strong></td>
@@ -310,12 +560,72 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~46"></span>
+              <span class="anchor" id="variable-ab_cross_x"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3))
+            </td>
+            <td>::</td>
+            <td><strong>ab_cross_x</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ab_cross_y"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3))
+            </td>
+            <td>::</td>
+            <td><strong>ab_cross_y</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ab_cross_z"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out),</td>
+              <td></td>            <td>
+              dimension(dm%dccp%xsz(1), dm%dccp%xsz(2), dm%dccp%xsz(3))
+            </td>
+            <td>::</td>
+            <td><strong>ab_cross_z</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-str~21"></span>
+              character(len=8),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>str</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~108"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -331,11 +641,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-check_current_conservation"></span> <h3>public  subroutine <a href='../proc/check_current_conservation.html'>check_current_conservation</a>(mh, dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_lorentz_force"></span> <h3>public  subroutine <a href='../proc/compute_lorentz_force.html'>compute_Lorentz_force</a>(fl, mh, dm)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -350,12 +660,27 @@
     <tbody>
         <tr>
             <td>
+              <span class="anchor" id="variable-fl~32"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-mh~5"></span>
               type(<a href='../type/t_mhd.html'>t_mhd</a>),
             </td>
-<td>intent(in)</td>
+<td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mh</strong></td>
@@ -365,12 +690,82 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~47"></span>
+              <span class="anchor" id="variable-dm~109"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
 
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-check_current_conservation"></span> <h3>public  subroutine <a href='../proc/check_current_conservation.html'>check_current_conservation</a>(fl, mh, dm)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~33"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mh~6"></span>
+              type(<a href='../type/t_mhd.html'>t_mhd</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mh</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~110"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -400,8 +795,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

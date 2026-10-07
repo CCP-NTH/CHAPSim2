@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>write_metrics_json &ndash; Fortran Program</title>
+    <title>write_metrics_json &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>write_metrics_json
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.4% of total for procedures.">37 statements</a>
+                 title=" 0.2% of total for procedures.">58 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,39 +124,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/write_metrics_json.html#src">write_metrics_json</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine write_metrics_json(filename, metrics, is_thermo)
+    <h2>public  subroutine write_metrics_json(filename, metrics, is_thermo, is_mhd, is_les)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -171,7 +181,9 @@
     <p>Write regression metrics to a JSON file on rank 0.
 - filename (in): Output JSON file name.
 - metrics (in): Metrics to write.
-- is_thermo (in): Include thermal metrics when true.</p>
+- is_thermo (in): Include thermal metrics when true.
+- is_mhd (in): Include MHD charge-conservation metrics when true.
+- is_les (in): Include LES metrics when true.</p>
 
 
     <h3>Arguments</h3>
@@ -187,47 +199,77 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-filename~5"></span>
+              <span class="anchor" id="variable-filename~8"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>filename</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-metrics"></span>
+              <span class="anchor" id="variable-metrics~2"></span>
               type(<a href='../type/t_metrics.html'>t_metrics</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>metrics</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_thermo~3"></span>
+              <span class="anchor" id="variable-is_thermo~5"></span>
               logical,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_thermo</strong></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_mhd~2"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_mhd</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_les"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_les</strong></td>
+            <td>
+                
             </td>
         </tr>
     </tbody>
@@ -236,16 +278,123 @@
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">write_metrics_json</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">,</span><span class="w"> </span><span class="n">is_thermo</span><span class="p">,</span><span class="w"> </span><span class="n">is_mhd</span><span class="p">,</span><span class="w"> </span><span class="n">is_les</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">mpi_mod</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">nrank</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">filename</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_metrics</span><span class="p">),</span><span class="w">  </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">metrics</span>
+<span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_thermo</span>
+<span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_mhd</span>
+<span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_les</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">unit</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">exists</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! Only rank 0 writes</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">return</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="k">inquire</span><span class="p">(</span><span class="k">file</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="n">exist</span><span class="o">=</span><span class="n">exists</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">exists</span><span class="p">)</span><span class="w"> </span><span class="k">open</span><span class="p">(</span><span class="n">newunit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="k">file</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;write&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">exists</span><span class="p">)</span><span class="w"> </span><span class="k">open</span><span class="p">(</span><span class="n">newunit</span><span class="o">=</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="k">file</span><span class="o">=</span><span class="n">filename</span><span class="p">,</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">&#39;new&#39;</span><span class="p">,</span><span class="w">     </span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;write&#39;</span><span class="p">)</span>
 
+<span class="w">    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(a)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;{&#39;</span>
+<span class="w">    </span><span class="c">! mass</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;global mass balance&#39;</span><span class="p">,</span><span class="w">               </span><span class="n">metrics</span><span class="p">%</span><span class="n">mass_balance</span><span class="p">,</span><span class="w">        </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="c">! Preserve the established regression meaning: these keys measure the</span>
+<span class="w">    </span><span class="c">! continuity residual achieved by the pressure projection.</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. mass conservation (interior)&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">projected_mass_residual</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. mass conservation (inlet)&#39;</span><span class="p">,</span><span class="w">    </span><span class="n">metrics</span><span class="p">%</span><span class="n">projected_mass_residual</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. mass conservation (outlet)&#39;</span><span class="p">,</span><span class="w">   </span><span class="n">metrics</span><span class="p">%</span><span class="n">projected_mass_residual</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. physical mass conservation (interior)&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">mass_residual</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. physical mass conservation (inlet)&#39;</span><span class="p">,</span><span class="w">    </span><span class="n">metrics</span><span class="p">%</span><span class="n">mass_residual</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. physical mass conservation (outlet)&#39;</span><span class="p">,</span><span class="w">   </span><span class="n">metrics</span><span class="p">%</span><span class="n">mass_residual</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. projected mass conservation (interior)&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">projected_mass_residual</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. projected mass conservation (inlet)&#39;</span><span class="p">,</span><span class="w">    </span><span class="n">metrics</span><span class="p">%</span><span class="n">projected_mass_residual</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. projected mass conservation (outlet)&#39;</span><span class="p">,</span><span class="w">   </span><span class="n">metrics</span><span class="p">%</span><span class="n">projected_mass_residual</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;physical Poisson compatibility defect&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">physical_poisson_compatibility_defect</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;explicit uniform Poisson-source correction&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                         </span><span class="n">metrics</span><span class="p">%</span><span class="n">uniform_poisson_source_correction</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Poisson projected-source amplitude&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">poisson_projected_source_amplitude</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;Poisson zero-mode projection (scaled solver RHS)&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                         </span><span class="n">metrics</span><span class="p">%</span><span class="n">poisson_zero_mode_rhs_projection</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;total mass&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">total_mass</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;total mass drift from run start&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">total_mass_drift</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;global pressure drop&#39;</span><span class="p">,</span><span class="w">  </span><span class="n">metrics</span><span class="p">%</span><span class="n">pressure_drop</span><span class="p">,</span><span class="w">    </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;mean dpdx&#39;</span><span class="p">,</span><span class="w">             </span><span class="n">metrics</span><span class="p">%</span><span class="n">mean_dpdx</span><span class="p">,</span><span class="w">        </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="c">! momentum</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;total kinetic energy&#39;</span><span class="p">,</span><span class="w">  </span><span class="n">metrics</span><span class="p">%</span><span class="n">kinetic_energy</span><span class="p">,</span><span class="w">   </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bulk velocity ux&#39;</span><span class="p">,</span><span class="w">      </span><span class="n">metrics</span><span class="p">%</span><span class="n">bulk_velocity</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="c">!call write_json_real(unit, &#39;bulk velocity uy&#39;,      metrics%bulk_velocity(2), last=.false.)</span>
+<span class="w">    </span><span class="c">! JSON forbids a trailing comma, so whichever optional block comes last has to</span>
+<span class="w">    </span><span class="c">! close the object. The order is flow -&gt; thermal -&gt; mhd -&gt; les.</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bulk velocity uz&#39;</span><span class="p">,</span><span class="w">      </span><span class="n">metrics</span><span class="p">%</span><span class="n">bulk_velocity</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                         </span><span class="n">last</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_mhd</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_les</span><span class="p">))</span>
+<span class="w">    </span><span class="c">!call write_json_real(unit, &#39;wall shear integral&#39;,  metrics%wall_shear_integral, last=.false.)</span>
 
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! mass flux</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bulk massflux gx&#39;</span><span class="p">,</span><span class="w">      </span><span class="n">metrics</span><span class="p">%</span><span class="n">bulk_massflux</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="c">!call write_json_real(unit, &#39;bulk massflux gy&#39;,      metrics%bulk_massflux(2), last=.false.)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bulk massflux gz&#39;</span><span class="p">,</span><span class="w">      </span><span class="n">metrics</span><span class="p">%</span><span class="n">bulk_massflux</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bulk enthalpy&#39;</span><span class="p">,</span><span class="w">         </span><span class="n">metrics</span><span class="p">%</span><span class="n">bulk_enthalpy</span><span class="p">,</span><span class="w">    </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bulk temperature&#39;</span><span class="p">,</span><span class="w">      </span><span class="n">metrics</span><span class="p">%</span><span class="n">bulk_temperature</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                           </span><span class="n">last</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_mhd</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_les</span><span class="p">))</span>
+<span class="w">     </span><span class="c">!call write_json_real(unit, &#39;wall_heat_flux&#39;,                    metrics%wall_heat_flux,      last=.false.)</span>
+<span class="w">    </span><span class="k">end if</span>
 
+<span class="k">    if</span><span class="p">(</span><span class="n">is_mhd</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! Charge conservation. j = -grad(ep) + u x B is solenoidal only if the</span>
+<span class="w">      </span><span class="c">! discrete D.G reproduces the Poisson operator the solver inverts, so these</span>
+<span class="w">      </span><span class="c">! two numbers are the MHD analogue of the mass-conservation residual above.</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. |div(current density)|&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">max_div_j</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;global electric current imbalance&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">current_imbalance</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                           </span><span class="n">last</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_les</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
 
+<span class="k">    if</span><span class="p">(</span><span class="n">is_les</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! Taken on the initial field, never on an advanced one: a solid-body rotation</span>
+<span class="w">      </span><span class="c">! has S_ij = 0 exactly, so a cylindrical case initialised that way turns this</span>
+<span class="w">      </span><span class="c">! key into a machine-zero gate on the velocity-gradient assembly. For any</span>
+<span class="w">      </span><span class="c">! other initial condition it is simply the peak resolved strain.</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. initial strain rate S_ijS_ij&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                           </span><span class="n">metrics</span><span class="p">%</span><span class="n">max_strain_rate_mag2_init</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="c">! The four subgrid-coefficient gates; see the block comment on the module</span>
+<span class="w">      </span><span class="c">! accumulators for what each one has to satisfy.</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;min. sgs coefficient on stress/flux faces&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                           </span><span class="n">metrics</span><span class="p">%</span><span class="n">sgs_coef_face_min</span><span class="p">,</span><span class="w">   </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;min. total face viscosity (molecular+sgs)&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                           </span><span class="n">metrics</span><span class="p">%</span><span class="n">sgs_visc_face_min</span><span class="p">,</span><span class="w">   </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. sgs coefficient on physical walls&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                           </span><span class="n">metrics</span><span class="p">%</span><span class="n">sgs_wall_coef_peak</span><span class="p">,</span><span class="w">  </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. sgs coefficient at inlet/outlet&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                           </span><span class="n">metrics</span><span class="p">%</span><span class="n">sgs_inout_coef_peak</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_thermo</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;max. |sgs enthalpy flux|&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                           </span><span class="n">metrics</span><span class="p">%</span><span class="n">sgs_enthalpy_flux_peak</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="w">    </span><span class="c">! other</span>
+<span class="w">    </span><span class="k">write</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="s1">&#39;(a)&#39;</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;}&#39;</span>
+<span class="w">    </span><span class="k">close</span><span class="p">(</span><span class="n">unit</span><span class="p">)</span>
+<span class="w">    </span><span class="k">return</span>
+<span class="k">  end subroutine </span><span class="n">write_metrics_json</span>
+</pre></div>
 
-
-
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -256,8 +405,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

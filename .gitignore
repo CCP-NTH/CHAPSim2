@@ -19,9 +19,20 @@ build/*.mod
 .history/
 *.log
 *.dat
+*.pyc
+__pycache__/
 .codex
 chapsim2.code-workspace
 .codex/
+
+# Documentation generation mistakes
+/code_structure/
+/docs/code_structure/doc/
+
+# Keep curated validation reference data versionable even though generated
+# solver .dat output is ignored elsewhere.
+!validation/references/**/*.dat
+!validation/references/**/*.asc
 # ------------------------
 # Tests folder
 # Ignore everything recursively in tests, except specific files
@@ -35,6 +46,51 @@ tests/*/regression_test_metrics.json
 !tests/*/reference.json
 !tests/*_inout*/1_data/
 !tests/*_inout*/1_data/*outlet*.bin
+!tests/functional/
+!tests/functional/*/
+!tests/functional/**/
+!tests/functional/**/*.sh
+!tests/functional/**/*.ini
+!tests/functional/**/*.DAT
+!tests/functional/**/reference.json
+!tests/functional/**/tolerance*.json
+!tests/functional/LES_channel_iso_peridic/*.sh
+!tests/functional/LES_channel_iso_peridic/*.ini
+!tests/functional/LES_channel_iso_peridic/reference.json
+!tests/functional/LES_channel_scp_inout_Tw/*.sh
+!tests/functional/LES_channel_scp_inout_Tw/*.ini
+!tests/functional/LES_channel_scp_inout_Tw/*.DAT
+!tests/functional/LES_channel_scp_inout_Tw/reference.json
+!tests/functional/MHD_channel_iso_peridic/*.sh
+!tests/functional/MHD_channel_iso_peridic/*.ini
+!tests/functional/MHD_channel_iso_peridic/reference.json
+!tests/functional/MHD_channel_scp_inout_Tw/*.sh
+!tests/functional/MHD_channel_scp_inout_Tw/*.ini
+!tests/functional/MHD_channel_scp_inout_Tw/*.DAT
+!tests/functional/MHD_channel_scp_inout_Tw/reference.json
+!tests/regression/
+!tests/regression/**/
+!tests/regression/*.sh
+!tests/regression/**/*.sh
+!tests/regression/**/*.ini
+!tests/regression/**/*.DAT
+!tests/regression/**/reference.json
+tests/**/0_src/**
+tests/**/1_data/**
+tests/**/2_visu/**
+tests/**/3_monitor/**
+tests/**/4_check/**
+!tests/**/1_data/
+!tests/**/1_data/*outlet*.bin
+!tests/**/1_data/*outlet*_meta_*.dat
+!tests/tools/
+!tests/tools/*.py
+!tests/tools/*.sh
+!tests/tools/*.json
+# Small tracked inputs for the standalone checkers. Without these two lines
+# tests/*/** swallows them and the checkers that read them cannot run in CI.
+!tests/tools/fixtures/
+!tests/tools/fixtures/*
 
 # ------------------------
 # Libraries

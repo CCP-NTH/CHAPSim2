@@ -55,7 +55,14 @@ istret= ...
 rstret= ...
 ```
 
-After script execution, run the source case in serial (single-rank MPI) mode. Upon successful completion, the source case should generate `domain0_*` files in `1_data/`.
+After script execution, you can run the source case with MPI. The interpolation
+pre-run uses the same 2-D pencil decomposition as the solver, exchanges source
+field halos between neighbouring ranks, and writes distributed target restart
+files. Upon successful completion, the source case should generate `domain0_*`
+files in `1_data/`.
+
+For first use on a new topology or mesh-ratio change, compare a small serial
+pre-run and MPI pre-run before launching a production interpolation.
 
 ## Step 2: Prepare the Target Case
 
@@ -105,6 +112,6 @@ Before running the target case:
 | Symptom | Likely cause | Action |
 | --- | --- | --- |
 | `input_chapsim.ini not found` | Script was run from the wrong directory. | Run Step 1 inside the source case directory. |
-| `No domain0_* files found` | Source prerun did not complete or wrote output elsewhere. | Re-run the source case in serial and inspect `1_data/`. |
+| `No domain0_* files found` | Source prerun did not complete or wrote output elsewhere. | Re-run the source pre-run with the intended MPI configuration and inspect the solver log and `1_data/`. |
 | Target starts from the wrong mesh | `input_chapsim_tgt.ini` does not match the intended target case. | Edit or regenerate `input_chapsim_tgt.ini`, then rerun Step 2. |
 | Target run becomes unstable immediately | Interpolated field and target setup are inconsistent. | Check topology, physics options, wall units, CFL, and boundary conditions. |

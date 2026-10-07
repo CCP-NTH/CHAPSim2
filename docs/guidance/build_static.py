@@ -19,14 +19,21 @@ OUTPUT_DIR = ROOT / "html"
 
 SECTIONS = [
     ("Home", [("index.md", "index.html", "Overview")]),
-    ("Getting Started", [("installation.md", "installation.html", "Installation")]),
-    ("Benchmark Cases", [("benchmark-cases.md", "benchmark-cases.html", "Benchmark and Example Cases")]),
+    (
+        "Getting Started",
+        [
+            ("installation.md", "installation.html", "Installation"),
+            ("fft-backend.md", "fft-backend.html", "FFT Backend"),
+        ],
+    ),
+    ("Benchmark Cases", [("benchmark-cases.md", "benchmark-cases.html", "Benchmark and Validation Cases")]),
     (
         "User Guide and How-To's",
         [
             ("user-guide.md", "user-guide.html", "Overview"),
             ("input-file.md", "input-file.html", "Input File Guide"),
             ("mesh-reviewer.md", "mesh-reviewer.html", "Mesh Reviewer"),
+            ("restart-io.md", "restart-io.html", "Restart I/O"),
             ("mesh-restart.md", "mesh-restart.html", "Mesh Restart"),
             ("postprocessing.md", "postprocessing.html", "Postprocessing"),
             ("testing.md", "testing.html", "Testing"),

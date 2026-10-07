@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>burgers_eq_mod &ndash; Fortran Program</title>
+    <title>burgers_eq_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>burgers_eq_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.6% of total for modules and submodules.">371 statements</a>
+                 title=" 1.3% of total for modules and submodules.">371 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,7 +128,7 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#vars-0"
          aria-expanded="false" aria-controls="vars-0">
@@ -136,25 +140,25 @@
             <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-icase_burgers1d_viscous">ICASE_BURGERS1D_VISCOUS</a>
             <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-icase_burgers1d_inviscid">ICASE_BURGERS1D_INVISCID</a>
             <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-icase_burgers1d_wavepropagation">ICASE_BURGERS1D_WAVEPROPAGATION</a>
-            <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-alpha~4">alpha</a>
-            <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-beta~3">beta</a>
+            <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-alpha">alpha</a>
+            <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-beta">beta</a>
             <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-nu">nu</a>
-            <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-icase~2">icase</a>
+            <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-icase">icase</a>
             <a class="list-group-item" href="../module/burgers_eq_mod.html#variable-idir">idir</a>
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
          aria-expanded="false" aria-controls="subs-0">
@@ -163,19 +167,21 @@
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/burgers_eq_mod.html#proc-initialise_burgers_flow">initialise_burgers_flow</a>
+            <a class="list-group-item" href="../module/burgers_eq_mod.html#proc-compute_burgers_rhs">Compute_burgers_rhs</a>
+            <a class="list-group-item" href="../module/burgers_eq_mod.html#proc-validate_burgers_error">Validate_burgers_error</a>
             <a class="list-group-item" href="../module/burgers_eq_mod.html#proc-plot_burgers_profile">Plot_burgers_profile</a>
             <a class="list-group-item" href="../module/burgers_eq_mod.html#proc-solve_burgers_eq_iteration">Solve_burgers_eq_iteration</a>
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -183,7 +189,7 @@
     </div>
 
     <div class="col-md-9" id='text'>
-
+      
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -198,7 +204,7 @@
       </div>
     </div>
 
-
+      
       <br>
 
 
@@ -221,14 +227,14 @@
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>ICASE_BURGERS1D</strong></td>
 <td> =</td>
                 <td>11</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -238,14 +244,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>ICASE_BURGERS1D_VISCOUS</strong></td>
 <td> =</td>
                 <td>12</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -255,14 +261,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>ICASE_BURGERS1D_INVISCID</strong></td>
 <td> =</td>
                 <td>13</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -272,48 +278,48 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>ICASE_BURGERS1D_WAVEPROPAGATION</strong></td>
 <td> =</td>
                 <td>14</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~4"></span>
+              <span class="anchor" id="variable-alpha"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>alpha</strong></td>
 <td> =</td>
                 <td>ONE</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-beta~3"></span>
+              <span class="anchor" id="variable-beta"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>beta</strong></td>
 <td> =</td>
                 <td>ZERO</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -323,31 +329,31 @@ parameter
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nu</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-icase~2"></span>
+              <span class="anchor" id="variable-icase"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>icase</strong></td>
 <td> =</td>
                 <td>11</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -357,14 +363,14 @@ parameter
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>idir</strong></td>
 <td> =</td>
                 <td>1</td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -381,11 +387,11 @@ parameter
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-initialise_burgers_flow"></span> <h3>public  subroutine <a href='../proc/initialise_burgers_flow.html'>initialise_burgers_flow</a>(dm, ux, uy, uz, p)
+    <div class="card-header codesum"><span class="anchor" id="proc-initialise_burgers_flow"></span> <h3>public  subroutine <a href='../proc/initialise_burgers_flow.html'>initialise_burgers_flow</a>(dm, ux, uy, uz, p)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -400,12 +406,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~28"></span>
+              <span class="anchor" id="variable-dm"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -415,12 +421,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ux~2"></span>
+              <span class="anchor" id="variable-ux"></span>
               real(kind=WP),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ux</strong>(:,:,:)</td>
@@ -430,12 +436,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-uy~2"></span>
+              <span class="anchor" id="variable-uy"></span>
               real(kind=WP),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>uy</strong>(:,:,:)</td>
@@ -445,12 +451,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-uz~2"></span>
+              <span class="anchor" id="variable-uz"></span>
               real(kind=WP),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>uz</strong>(:,:,:)</td>
@@ -465,7 +471,7 @@ parameter
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>p</strong>(:,:,:)</td>
@@ -481,11 +487,11 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-plot_burgers_profile"></span> <h3>public  subroutine <a href='../proc/plot_burgers_profile.html'>Plot_burgers_profile</a>(fl, dm, iter)
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_burgers_rhs"></span> <h3>private  subroutine <a href='../proc/compute_burgers_rhs.html'>Compute_burgers_rhs</a>(fl, dm, isub)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -500,12 +506,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~12"></span>
+              <span class="anchor" id="variable-fl"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
@@ -515,12 +521,137 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~31"></span>
+              <span class="anchor" id="variable-dm~2"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
 
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~2"></span>
+              integer(kind=4),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-validate_burgers_error"></span> <h3>private  subroutine <a href='../proc/validate_burgers_error.html'>Validate_burgers_error</a>(fl, dm)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~2"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~3"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-plot_burgers_profile"></span> <h3>public  subroutine <a href='../proc/plot_burgers_profile.html'>Plot_burgers_profile</a>(fl, dm, iter)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~3"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~4"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -535,7 +666,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iter</strong></td>
@@ -551,11 +682,11 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-solve_burgers_eq_iteration"></span> <h3>public  subroutine <a href='../proc/solve_burgers_eq_iteration.html'>Solve_burgers_eq_iteration</a>()
+    <div class="card-header codesum"><span class="anchor" id="proc-solve_burgers_eq_iteration"></span> <h3>public  subroutine <a href='../proc/solve_burgers_eq_iteration.html'>Solve_burgers_eq_iteration</a>()  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
     <em>None</em>
@@ -578,8 +709,8 @@ parameter
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>find_max_min_ave_mod &ndash; Fortran Program</title>
+    <title>find_max_min_ave_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>find_max_min_ave_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.7% of total for modules and submodules.">402 statements</a>
+                 title=" 1.4% of total for modules and submodules.">402 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,18 +128,18 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
          aria-expanded="false" aria-controls="subs-0">
@@ -154,13 +158,13 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -168,22 +172,22 @@
     </div>
 
     <div class="col-md-9" id='text'>
-
+      
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
                   <li class="list-inline-item"><a href='wtformat_mod.html'>wtformat_mod</a></li>
+                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
               </ul>
             </li>
         </ul>
       </div>
     </div>
 
-
+      
       <br>
 
 
@@ -196,11 +200,11 @@
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-is_valid_number_3d"></span> <h3>public  subroutine <a href='../proc/is_valid_number_3d.html'>is_valid_number_3D</a>(var, varname)
+    <div class="card-header codesum"><span class="anchor" id="proc-is_valid_number_3d"></span> <h3>public  subroutine <a href='../proc/is_valid_number_3d.html'>is_valid_number_3D</a>(var, varname)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -215,12 +219,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-var~20"></span>
+              <span class="anchor" id="variable-var~13"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>var</strong>(:,:,:)</td>
@@ -235,7 +239,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>varname</strong></td>
@@ -251,11 +255,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-find_maximum_absvar3d_loc"></span> <h3>public  subroutine <a href='../proc/find_maximum_absvar3d_loc.html'>Find_maximum_absvar3d_loc</a>(var, varmax_work, dtmp, str, nxst0)
+    <div class="card-header codesum"><span class="anchor" id="proc-find_maximum_absvar3d_loc"></span> <h3>public  subroutine <a href='../proc/find_maximum_absvar3d_loc.html'>Find_maximum_absvar3d_loc</a>(var, varmax_work, dtmp, str, nxst0)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -270,12 +274,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-var~21"></span>
+              <span class="anchor" id="variable-var~14"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>var</strong>(:,:,:)</td>
@@ -290,7 +294,7 @@
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>varmax_work</strong></td>
@@ -300,12 +304,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dtmp~22"></span>
+              <span class="anchor" id="variable-dtmp~18"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dtmp</strong></td>
@@ -315,12 +319,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-str~4"></span>
+              <span class="anchor" id="variable-str~12"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>str</strong></td>
@@ -335,7 +339,7 @@
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nxst0</strong></td>
@@ -351,11 +355,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-find_max_min_3d"></span> <h3>public  subroutine <a href='../proc/find_max_min_3d.html'>Find_max_min_3d</a>(var, opt_abs, opt_calc, opt_work, opt_name)
+    <div class="card-header codesum"><span class="anchor" id="proc-find_max_min_3d"></span> <h3>public  subroutine <a href='../proc/find_max_min_3d.html'>Find_max_min_3d</a>(var, opt_abs, opt_calc, opt_work, opt_name)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -370,12 +374,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-var~22"></span>
+              <span class="anchor" id="variable-var~15"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>var</strong>(:,:,:)</td>
@@ -390,7 +394,7 @@
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_abs</strong></td>
@@ -405,7 +409,7 @@
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_calc</strong></td>
@@ -420,7 +424,7 @@
             </td>
 <td>intent(inout),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_work</strong>(2)</td>
@@ -435,7 +439,7 @@
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_name</strong></td>
@@ -451,11 +455,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_volumetric_average_3d"></span> <h3>public  subroutine <a href='../proc/get_volumetric_average_3d.html'>Get_volumetric_average_3d</a>(dm, dtmp, var, fo_work, itype, str)
+    <div class="card-header codesum"><span class="anchor" id="proc-get_volumetric_average_3d"></span> <h3>public  subroutine <a href='../proc/get_volumetric_average_3d.html'>Get_volumetric_average_3d</a>(dm, dtmp, var, fo_work, itype, str)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -470,12 +474,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~35"></span>
+              <span class="anchor" id="variable-dm~72"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -485,12 +489,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dtmp~23"></span>
+              <span class="anchor" id="variable-dtmp~19"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dtmp</strong></td>
@@ -500,12 +504,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-var~23"></span>
+              <span class="anchor" id="variable-var~16"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>var</strong>(:,:,:)</td>
@@ -520,7 +524,7 @@
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fo_work</strong></td>
@@ -535,7 +539,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>itype</strong></td>
@@ -545,12 +549,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-str~5"></span>
+              <span class="anchor" id="variable-str~13"></span>
               character(len=*),
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>str</strong></td>
@@ -566,11 +570,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_area_average_2d_for_fbcx"></span> <h3>public  subroutine <a href='../proc/get_area_average_2d_for_fbcx.html'>Get_area_average_2d_for_fbcx</a>(dm, dtmp, var, fo_work, itype, str)
+    <div class="card-header codesum"><span class="anchor" id="proc-get_area_average_2d_for_fbcx"></span> <h3>public  subroutine <a href='../proc/get_area_average_2d_for_fbcx.html'>Get_area_average_2d_for_fbcx</a>(dm, dtmp, var, fo_work, itype, str)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -585,12 +589,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~36"></span>
+              <span class="anchor" id="variable-dm~73"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -600,12 +604,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dtmp~24"></span>
+              <span class="anchor" id="variable-dtmp~20"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dtmp</strong></td>
@@ -615,12 +619,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-var~24"></span>
+              <span class="anchor" id="variable-var~17"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>var</strong>(:,:,:)</td>
@@ -635,7 +639,7 @@
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fo_work</strong>(2)</td>
@@ -650,7 +654,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>itype</strong></td>
@@ -660,12 +664,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-str~6"></span>
+              <span class="anchor" id="variable-str~14"></span>
               character(len=4),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>str</strong></td>
@@ -681,11 +685,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_area_average_2d_for_fbcz"></span> <h3>public  subroutine <a href='../proc/get_area_average_2d_for_fbcz.html'>Get_area_average_2d_for_fbcz</a>(dm, dtmp, var, fo_work, itype, str)
+    <div class="card-header codesum"><span class="anchor" id="proc-get_area_average_2d_for_fbcz"></span> <h3>public  subroutine <a href='../proc/get_area_average_2d_for_fbcz.html'>Get_area_average_2d_for_fbcz</a>(dm, dtmp, var, fo_work, itype, str)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -700,12 +704,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~37"></span>
+              <span class="anchor" id="variable-dm~74"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -715,12 +719,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dtmp~25"></span>
+              <span class="anchor" id="variable-dtmp~21"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dtmp</strong></td>
@@ -730,12 +734,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-var~25"></span>
+              <span class="anchor" id="variable-var~18"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>var</strong>(:,:,:)</td>
@@ -750,7 +754,7 @@
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fo_work</strong>(2)</td>
@@ -765,7 +769,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>itype</strong></td>
@@ -775,12 +779,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-str~7"></span>
+              <span class="anchor" id="variable-str~15"></span>
               character(len=4),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>str</strong></td>
@@ -796,10 +800,10 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_area_average_2d_for_fbcy"></span> <h3>public  subroutine <a href='../proc/get_area_average_2d_for_fbcy.html'>Get_area_average_2d_for_fbcy</a>(dm, dtmp, var, fo_work, itype, str, is_rf)
+    <div class="card-header codesum"><span class="anchor" id="proc-get_area_average_2d_for_fbcy"></span> <h3>public  subroutine <a href='../proc/get_area_average_2d_for_fbcy.html'>Get_area_average_2d_for_fbcy</a>(dm, dtmp, var, fo_work, itype, str, is_rf)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Note: qy = r<em>ur, integral r</em>ur * dtheta dx, therefore no extra r here.</p>
 
   <h4>Arguments</h4>
@@ -815,12 +819,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~38"></span>
+              <span class="anchor" id="variable-dm~75"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -830,12 +834,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dtmp~26"></span>
+              <span class="anchor" id="variable-dtmp~22"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dtmp</strong></td>
@@ -845,12 +849,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-var~26"></span>
+              <span class="anchor" id="variable-var~19"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>var</strong>(:,:,:)</td>
@@ -865,7 +869,7 @@
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fo_work</strong>(2)</td>
@@ -880,7 +884,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>itype</strong></td>
@@ -890,12 +894,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-str~8"></span>
+              <span class="anchor" id="variable-str~16"></span>
               character(len=4),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>str</strong></td>
@@ -910,7 +914,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_rf</strong></td>
@@ -940,8 +944,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

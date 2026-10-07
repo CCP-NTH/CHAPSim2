@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>generate_random11_stateless_hash &ndash; Fortran Program</title>
+    <title>generate_random11_stateless_hash &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>generate_random11_stateless_hash
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">18 statements</a>
+                 title=" 0.1% of total for procedures.">18 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,39 +124,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/generate_random11_stateless_hash.html#src">generate_random11_stateless_hash</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine generate_random11_stateless_hash(i, j, k, n, rd)
+    <h2>public  subroutine generate_random11_stateless_hash(i, j, k, n, rd)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -160,8 +170,8 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
                   <li class="list-inline-item"><a href='../module/math_mod.html'>math_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
                   <li class="list-inline-item"><a href='http://fortranwiki.org/fortran/show/iso_fortran_env'>iso_fortran_env</a></li>
               </ul>
             </li>
@@ -185,62 +195,62 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-i~57"></span>
+              <span class="anchor" id="variable-i~71"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>i</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-j~40"></span>
+              <span class="anchor" id="variable-j~25"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>j</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-k~43"></span>
+              <span class="anchor" id="variable-k~25"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>k</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-n~21"></span>
+              <span class="anchor" id="variable-n~15"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>n</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -250,12 +260,12 @@
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>rd</strong></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -264,16 +274,45 @@
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">generate_random11_stateless_hash</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">rd</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">iso_fortran_env</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">int32</span><span class="p">,</span><span class="w"> </span><span class="n">int64</span>
+<span class="w">    </span><span class="k">use </span><span class="n">math_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">parameters_constant_mod</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">WP</span><span class="p">,</span><span class="w"> </span><span class="n">ONE</span><span class="p">,</span><span class="w"> </span><span class="n">TWO</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">n</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rd</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">hash_a</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="mf">2.9898_wp</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">hash_b</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">7</span><span class="mf">8.233_wp</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">hash_c</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">3</span><span class="mf">7.719_wp</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">hash_d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="mf">1.131_wp</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">hash_s</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4375</span><span class="mf">8.5453123_wp</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rnd</span>
 
+<span class="w">    </span><span class="c">! Stateless index hash for GPU: avoids seed-neighbor correlation striping.</span>
+<span class="w">    </span><span class="c">! sin_wp with scaling may be sensitive across platforms/compilers</span>
+<span class="w">    </span><span class="n">rnd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">sin_wp</span><span class="p">(</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hash_a</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hash_b</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                  </span><span class="kt">real</span><span class="p">(</span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hash_c</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hash_d</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">hash_s</span>
+<span class="w">    </span><span class="n">rnd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rnd</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="kt">real</span><span class="p">(</span><span class="nb">floor</span><span class="p">(</span><span class="n">rnd</span><span class="p">),</span><span class="w"> </span><span class="n">WP</span><span class="p">)</span>
+<span class="w">    </span><span class="n">rd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">TWO</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rnd</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">ONE</span>
+<span class="w">    </span><span class="k">return</span>
+<span class="k">  end subroutine </span><span class="n">generate_random11_stateless_hash</span>
+</pre></div>
 
-
-
-
-
-
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -284,8 +323,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

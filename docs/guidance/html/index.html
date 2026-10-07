@@ -132,9 +132,9 @@
     </div>
     <div class="layout">
       <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
-<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a></div>
-<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Example Cases</a></div>
-<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
 <div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
 <div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
 <div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
@@ -147,8 +147,8 @@
 <li>Select or generate an input configuration file using:</li>
 </ol>
 <ul>
-<li>An existing case from <code>tests/</code>, or</li>
-<li>Python tools in <code>prepost/autoinput/</code> for custom configurations.</li>
+<li>An existing case from <code>tests/regression/</code> or <code>tests/functional/</code>, or</li>
+<li>Python tools in <code>prepost/input_generator/</code> for custom configurations.</li>
 </ul>
 <ol>
 <li>Edit <code>input_chapsim.ini</code> to specify geometry, physics, mesh, and output requirements.</li>
@@ -158,8 +158,8 @@
 <h2>Documentation Structure</h2>
 <ul>
 <li><strong>Getting Started:</strong> <a href="installation.html">Installation and First Run</a>.</li>
-<li><strong>Benchmark Cases:</strong> <a href="benchmark-cases.html">Benchmark and Example Cases</a>.</li>
-<li><strong>User Guide and How-To&#x27;s:</strong> <a href="user-guide.html">User Guide and How-To&#x27;s</a>, including input files, mesh review, restart/interpolation, postprocessing, and tests.</li>
+<li><strong>Benchmark Cases:</strong> <a href="benchmark-cases.html">Benchmark and Validation Cases</a>.</li>
+<li><strong>User Guide and How-To&#x27;s:</strong> <a href="user-guide.html">User Guide and How-To&#x27;s</a>, including input files, mesh review, restart I/O, restart/interpolation, postprocessing, and tests.</li>
 <li><strong>Reference:</strong> <a href="reference.html">Reference</a> and <a href="input-file.html">CHAPSim Input File Guide</a>.</li>
 <li><strong>Methodology:</strong> <a href="methodology.html">Methodology</a> and the generated FORD code-structure reference.</li>
 <li><strong>Troubleshooting:</strong> <a href="troubleshooting.html">Troubleshooting</a>.</li>
@@ -172,19 +172,23 @@
 <li>Edit <code>input_chapsim.ini</code> while referencing the <a href="input-file.html">CHAPSim Input File Guide</a></li>
 <li>Use the <a href="mesh-reviewer.html">Mesh Stretching Reviewer</a> to validate grid stretching</li>
 <li>After the first successful run, inspect monitor histories and visualization output before interpreting statistics</li>
+<li>Use <a href="restart-io.html">Restart I/O Modes</a> when choosing exact or compact restart files</li>
 <li>Use the <a href="mesh-restart.html">Mesh-Restart Workflow</a> when refining or resizing grids with a developed flow field</li>
 <li>Apply smoke/regression tests when modifying code or input-generation logic</li>
 </ol>
 <h2>Repository Layout</h2>
 <ul>
 <li><code>src/</code>: Main Fortran solver source code</li>
-<li><code>build/</code>: Build output and compiled solver location</li>
-<li><code>tests/</code>: Regression and smoke-test cases with ready-to-edit input files</li>
-<li><code>examples/</code>: Example postprocessing scripts and reference data</li>
-<li><code>prepost/</code>: Input-generation and pre/post-processing utilities</li>
-<li><code>docs/</code>: User guidance and generated code-structure documentation</li>
+<li><code>build/</code>, <code>obj/</code>: Build system and intermediate build output</li>
+<li><code>bin/</code>: Compiled solver (<code>bin/CHAPSim</code>)</li>
+<li><code>lib/</code>: Bundled third-party libraries (2decomp-fft, fishpack)</li>
+<li><code>tests/</code>: <code>regression/</code> metric-gated cases, <code>functional/</code> feature cases, and <code>tools/</code></li>
+<li><code>validation/</code>: Validation cases, reference databases, shared post-processing tools, and suite manifests</li>
+<li><code>examples/</code>: Case-specific example inputs</li>
+<li><code>prepost/</code>: Input generation (<code>input_generator/</code>), job submission (<code>job_submission/</code>), and mesh review (<code>mesh_reviewer/</code>)</li>
+<li><code>docs/</code>: User guidance, source diagrams, and generated code-structure documentation</li>
 </ul>
-<p>The generated FORD code-structure reference is maintained separately under <code>docs/code_structure/</code>.</p>
+<p>The generated FORD code-structure reference is maintained separately under <code>docs/code_structure/</code>. Source diagrams are maintained under <code>docs/diagrams/</code>.</p>
       </article>
     </div>
   </main>

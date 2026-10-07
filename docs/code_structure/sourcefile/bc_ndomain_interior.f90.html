@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>bc_ndomain_interior.f90 &ndash; Fortran Program</title>
+    <title>bc_ndomain_interior.f90 &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>bc_ndomain_interior.f90
       <small>Source File</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.0% of total for source files.">230 statements</a>
+                 title=" 0.8% of total for source files.">230 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -122,11 +126,11 @@
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
         <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#mods-0"
          aria-expanded="false" aria-controls="mods-0">
@@ -139,20 +143,20 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
     <div class="card card-primary">
       <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
       <div class="list-group">
@@ -165,7 +169,7 @@
 
     </div>
     <div class="col-md-9" id='text'>
-
+      
       <br>
 
       <section>
@@ -186,7 +190,7 @@
 <a id="ln-14" name="ln-14" href="#ln-14"></a><span class="w">  </span><span class="k">public</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">update_fbc_2dm_thermo_halo</span><span class="w"> </span><span class="c">! for multiple domains only, update every NS</span>
 <a id="ln-15" name="ln-15" href="#ln-15"></a>
 <a id="ln-16" name="ln-16" href="#ln-16"></a><span class="k">contains</span>
-<a id="ln-17" name="ln-17" href="#ln-17"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-17" name="ln-17" href="#ln-17"></a><span class="c">!==============================================================================</span>
 <a id="ln-18" name="ln-18" href="#ln-18"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">apply_fbcx_2dm_halo</span><span class="p">(</span><span class="n">fbcx</span><span class="p">,</span><span class="w"> </span><span class="n">var</span><span class="p">,</span><span class="w"> </span><span class="n">iside</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">)</span>
 <a id="ln-19" name="ln-19" href="#ln-19"></a><span class="w">    </span><span class="k">use </span><span class="n">print_msg_mod</span>
 <a id="ln-20" name="ln-20" href="#ln-20"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dtmp</span>
@@ -206,7 +210,7 @@
 <a id="ln-34" name="ln-34" href="#ln-34"></a>
 <a id="ln-35" name="ln-35" href="#ln-35"></a><span class="k">    return</span>
 <a id="ln-36" name="ln-36" href="#ln-36"></a><span class="k">  end subroutine</span>
-<a id="ln-37" name="ln-37" href="#ln-37"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-37" name="ln-37" href="#ln-37"></a><span class="c">!==============================================================================</span>
 <a id="ln-38" name="ln-38" href="#ln-38"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">apply_fbcy_2dm_halo</span><span class="p">(</span><span class="n">fbcy</span><span class="p">,</span><span class="w"> </span><span class="n">var</span><span class="p">,</span><span class="w"> </span><span class="n">iside</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">)</span>
 <a id="ln-39" name="ln-39" href="#ln-39"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dtmp</span>
 <a id="ln-40" name="ln-40" href="#ln-40"></a><span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">     </span><span class="kd">::</span><span class="w"> </span><span class="n">iside</span>
@@ -228,7 +232,7 @@
 <a id="ln-56" name="ln-56" href="#ln-56"></a>
 <a id="ln-57" name="ln-57" href="#ln-57"></a><span class="k">    return</span>
 <a id="ln-58" name="ln-58" href="#ln-58"></a><span class="k">  end subroutine</span>
-<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="c">!==============================================================================</span>
 <a id="ln-60" name="ln-60" href="#ln-60"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">apply_fbcz_2dm_halo</span><span class="p">(</span><span class="n">fbcz</span><span class="p">,</span><span class="w"> </span><span class="n">var</span><span class="p">,</span><span class="w"> </span><span class="n">iside</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">)</span>
 <a id="ln-61" name="ln-61" href="#ln-61"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dtmp</span>
 <a id="ln-62" name="ln-62" href="#ln-62"></a><span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">     </span><span class="kd">::</span><span class="w"> </span><span class="n">iside</span>
@@ -252,8 +256,8 @@
 <a id="ln-80" name="ln-80" href="#ln-80"></a>
 <a id="ln-81" name="ln-81" href="#ln-81"></a><span class="k">    return</span>
 <a id="ln-82" name="ln-82" href="#ln-82"></a><span class="k">  end subroutine</span>
-<a id="ln-83" name="ln-83" href="#ln-83"></a><span class="c">!==========================================================================================================</span>
-<a id="ln-84" name="ln-84" href="#ln-84"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-83" name="ln-83" href="#ln-83"></a><span class="c">!==============================================================================</span>
+<a id="ln-84" name="ln-84" href="#ln-84"></a><span class="c">!==============================================================================</span>
 <a id="ln-85" name="ln-85" href="#ln-85"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">apply_fbc_2dm_flow_halo</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">iside</span><span class="p">,</span><span class="w"> </span><span class="n">bc_type</span><span class="p">)</span>
 <a id="ln-86" name="ln-86" href="#ln-86"></a><span class="w">    </span><span class="k">use </span><span class="n">cylindrical_rn_mod</span>
 <a id="ln-87" name="ln-87" href="#ln-87"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
@@ -265,13 +269,13 @@
 <a id="ln-93" name="ln-93" href="#ln-93"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpp</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpp</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ac4p_ypencil</span>
 <a id="ln-94" name="ln-94" href="#ln-94"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccp</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccp</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">acc4_zpencil</span>
 <a id="ln-95" name="ln-95" href="#ln-95"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpp</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpp</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">acp4_zpencil</span>
-<a id="ln-96" name="ln-96" href="#ln-96"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-96" name="ln-96" href="#ln-96"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-97" name="ln-97" href="#ln-97"></a><span class="c">!   one repeat on nodes: 1&#39;-2&#39;-3&#39;-4&#39;-5&#39;          no repeat of cells 1--2--3--4--5-</span>
 <a id="ln-98" name="ln-98" href="#ln-98"></a><span class="c">!                                    1&#39;-2&#39;-3&#39;-4&#39;-5&#39;                               -1--2--3--4--5</span>
 <a id="ln-99" name="ln-99" href="#ln-99"></a><span class="c">!                                 f2 f1 f2                                   f2 f1 f1 f2</span>
 <a id="ln-100" name="ln-100" href="#ln-100"></a><span class="c">!   iside = 122, 1--&gt;2  : |-domain-1----3-1|-domain-2-----|</span>
 <a id="ln-101" name="ln-101" href="#ln-101"></a><span class="c">!   iside = 221, 1&lt;--2  : |-domain-1---|-2-4-domain-2-----|</span>
-<a id="ln-102" name="ln-102" href="#ln-102"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-102" name="ln-102" href="#ln-102"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-103" name="ln-103" href="#ln-103"></a><span class="w">    </span><span class="k">select case</span><span class="w"> </span><span class="p">(</span><span class="n">bc_type</span><span class="p">)</span>
 <a id="ln-104" name="ln-104" href="#ln-104"></a><span class="w">    </span><span class="k">case</span><span class="w"> </span><span class="p">(</span><span class="s1">&#39;x&#39;</span><span class="p">)</span>
 <a id="ln-105" name="ln-105" href="#ln-105"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="p">(</span><span class="n">iside</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_INTERIOR</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
@@ -352,8 +356,8 @@
 <a id="ln-180" name="ln-180" href="#ln-180"></a><span class="w">      </span><span class="k">end if</span>
 <a id="ln-181" name="ln-181" href="#ln-181"></a><span class="k">    end select</span>
 <a id="ln-182" name="ln-182" href="#ln-182"></a><span class="k">  end subroutine </span><span class="n">apply_fbc_2dm_flow_halo</span>
-<a id="ln-183" name="ln-183" href="#ln-183"></a><span class="c">!==========================================================================================================</span>
-<a id="ln-184" name="ln-184" href="#ln-184"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-183" name="ln-183" href="#ln-183"></a><span class="c">!==============================================================================</span>
+<a id="ln-184" name="ln-184" href="#ln-184"></a><span class="c">!==============================================================================</span>
 <a id="ln-185" name="ln-185" href="#ln-185"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">update_fbc_2dm_flow_halo</span><span class="p">(</span><span class="n">dm1</span><span class="p">,</span><span class="w"> </span><span class="n">fl1</span><span class="p">,</span><span class="w"> </span><span class="n">dm2</span><span class="p">,</span><span class="w"> </span><span class="n">fl2</span><span class="p">)</span>
 <a id="ln-186" name="ln-186" href="#ln-186"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm1</span><span class="p">,</span><span class="w"> </span><span class="n">dm2</span>
 <a id="ln-187" name="ln-187" href="#ln-187"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_flow</span><span class="p">),</span><span class="w">   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">fl1</span><span class="p">,</span><span class="w"> </span><span class="n">fl2</span>
@@ -411,8 +415,8 @@
 <a id="ln-239" name="ln-239" href="#ln-239"></a><span class="k">    return</span>
 <a id="ln-240" name="ln-240" href="#ln-240"></a><span class="k">  end subroutine</span>
 <a id="ln-241" name="ln-241" href="#ln-241"></a>
-<a id="ln-242" name="ln-242" href="#ln-242"></a><span class="c">!==========================================================================================================</span>
-<a id="ln-243" name="ln-243" href="#ln-243"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-242" name="ln-242" href="#ln-242"></a><span class="c">!==============================================================================</span>
+<a id="ln-243" name="ln-243" href="#ln-243"></a><span class="c">!==============================================================================</span>
 <a id="ln-244" name="ln-244" href="#ln-244"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">update_fbc_2dm_thermo_halo</span><span class="p">(</span><span class="n">dm1</span><span class="p">,</span><span class="w"> </span><span class="n">tm1</span><span class="p">,</span><span class="w"> </span><span class="n">dm2</span><span class="p">,</span><span class="w"> </span><span class="n">tm2</span><span class="p">)</span>
 <a id="ln-245" name="ln-245" href="#ln-245"></a><span class="w">    </span><span class="k">use </span><span class="n">thermo_info_mod</span>
 <a id="ln-246" name="ln-246" href="#ln-246"></a><span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm1</span><span class="p">,</span><span class="w"> </span><span class="n">dm2</span>
@@ -422,9 +426,9 @@
 <a id="ln-250" name="ln-250" href="#ln-250"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm1</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm1</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm1</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">accc0_zpencil</span>
 <a id="ln-251" name="ln-251" href="#ln-251"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm2</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm2</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm2</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">accc1_ypencil</span>
 <a id="ln-252" name="ln-252" href="#ln-252"></a><span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm2</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm2</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm2</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">accc1_zpencil</span>
-<a id="ln-253" name="ln-253" href="#ln-253"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-253" name="ln-253" href="#ln-253"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-254" name="ln-254" href="#ln-254"></a><span class="c">!   bc in x - direction</span>
-<a id="ln-255" name="ln-255" href="#ln-255"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-255" name="ln-255" href="#ln-255"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-256" name="ln-256" href="#ln-256"></a><span class="w">    </span><span class="c">! thermal field, dm1-dm2</span>
 <a id="ln-257" name="ln-257" href="#ln-257"></a><span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm2</span><span class="p">%</span><span class="n">ibcx_Tm</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_INTERIOR</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-258" name="ln-258" href="#ln-258"></a><span class="k">      </span><span class="n">dm2</span><span class="p">%</span><span class="n">fbcx_ftp</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)%</span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tm1</span><span class="p">%</span><span class="n">tTemp</span><span class="p">(</span><span class="n">dm1</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w">     </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
@@ -437,9 +441,9 @@
 <a id="ln-265" name="ln-265" href="#ln-265"></a><span class="w">      </span><span class="n">dm1</span><span class="p">%</span><span class="n">fbcx_ftp</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)%</span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tm2</span><span class="p">%</span><span class="n">tTemp</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
 <a id="ln-266" name="ln-266" href="#ln-266"></a><span class="w">      </span><span class="k">call </span><span class="n">ftp_refresh_thermal_properties_from_T_undim_3Dftp</span><span class="p">(</span><span class="n">dm1</span><span class="p">%</span><span class="n">fbcx_ftp</span><span class="p">)</span>
 <a id="ln-267" name="ln-267" href="#ln-267"></a><span class="w">    </span><span class="k">end if</span>
-<a id="ln-268" name="ln-268" href="#ln-268"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-268" name="ln-268" href="#ln-268"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-269" name="ln-269" href="#ln-269"></a><span class="c">!   bc in y - direction</span>
-<a id="ln-270" name="ln-270" href="#ln-270"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-270" name="ln-270" href="#ln-270"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-271" name="ln-271" href="#ln-271"></a><span class="w">    </span><span class="c">! thermal field, dm1-dm2</span>
 <a id="ln-272" name="ln-272" href="#ln-272"></a><span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm2</span><span class="p">%</span><span class="n">ibcy_Tm</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_INTERIOR</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-273" name="ln-273" href="#ln-273"></a><span class="k">      call </span><span class="n">transpose_x_to_y</span><span class="p">(</span><span class="n">tm1</span><span class="p">%</span><span class="n">tTemp</span><span class="p">,</span><span class="w"> </span><span class="n">accc0_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm1</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span>
@@ -454,9 +458,9 @@
 <a id="ln-282" name="ln-282" href="#ln-282"></a><span class="w">      </span><span class="n">dm1</span><span class="p">%</span><span class="n">fbcy_ftp</span><span class="p">(:,</span><span class="w"> </span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="p">:)%</span><span class="n">t</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">accc1_ypencil</span><span class="p">(:,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:)</span>
 <a id="ln-283" name="ln-283" href="#ln-283"></a><span class="w">      </span><span class="k">call </span><span class="n">ftp_refresh_thermal_properties_from_T_undim_3Dftp</span><span class="p">(</span><span class="n">dm1</span><span class="p">%</span><span class="n">fbcy_ftp</span><span class="p">)</span>
 <a id="ln-284" name="ln-284" href="#ln-284"></a><span class="w">    </span><span class="k">end if</span>
-<a id="ln-285" name="ln-285" href="#ln-285"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-285" name="ln-285" href="#ln-285"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-286" name="ln-286" href="#ln-286"></a><span class="c">!   bc in z - direction</span>
-<a id="ln-287" name="ln-287" href="#ln-287"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-287" name="ln-287" href="#ln-287"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-288" name="ln-288" href="#ln-288"></a><span class="w">    </span><span class="c">! thermal field, dm1-dm2</span>
 <a id="ln-289" name="ln-289" href="#ln-289"></a><span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm2</span><span class="p">%</span><span class="n">ibcz_Tm</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_INTERIOR</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-290" name="ln-290" href="#ln-290"></a><span class="k">      call </span><span class="n">transpose_x_to_y</span><span class="p">(</span><span class="n">tm1</span><span class="p">%</span><span class="n">tTemp</span><span class="p">,</span><span class="w">     </span><span class="n">accc0_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm1</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span>
@@ -491,8 +495,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

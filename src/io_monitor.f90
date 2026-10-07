@@ -3,7 +3,7 @@
 !> Provides the compact metric set consumed by the shell regression tests and
 !> writes rank-0 JSON files for comparison against reference values.
 module regression_test_mod
-  use precision_mod, only: WP
+  use precision_mod, only: WP, MPI_REAL_WP
   implicit none
   private
   !
@@ -12,6 +12,13 @@ module regression_test_mod
     ! mass metrics
     real(wp) :: mass_balance
     real(wp) :: mass_residual(3)
+    real(wp) :: projected_mass_residual(3)
+    real(wp) :: physical_poisson_compatibility_defect
+    real(wp) :: uniform_poisson_source_correction
+    real(wp) :: poisson_projected_source_amplitude
+    real(wp) :: poisson_zero_mode_rhs_projection
+    real(wp) :: total_mass
+    real(wp) :: total_mass_drift
     ! flow metrics
     real(wp) :: kinetic_energy
     real(wp) :: bulk_velocity(3)
@@ -22,26 +29,229 @@ module regression_test_mod
     real(wp) :: bulk_massflux(3)
     real(wp) :: bulk_enthalpy
     real(wp) :: bulk_temperature
+    ! mhd metrics
+    real(wp) :: max_div_j
+    real(wp) :: current_imbalance
+    ! les metrics
+    real(wp) :: max_strain_rate_mag2_init
+    real(wp) :: sgs_coef_face_min
+    real(wp) :: sgs_visc_face_min
+    real(wp) :: sgs_wall_coef_peak
+    real(wp) :: sgs_inout_coef_peak
+    real(wp) :: sgs_enthalpy_flux_peak
   end type t_metrics
   public :: t_metrics
+  !----------------------------------------------------------------------------
+  ! Subgrid-coefficient boundary and positivity diagnostics.
+  !
+  ! The momentum and energy subgrid blocks push the *production* face arrays
+  ! through the recorders below, so these numbers describe the coefficients the
+  ! stress and flux terms actually multiplied, not a reimplementation of the
+  ! interpolation. They are running extrema over the whole run and are reduced
+  ! across ranks once, when the metric file is written, so they do not depend on
+  ! the pencil decomposition.
+  !
+  ! What each one gates:
+  !   sgs coefficient face minimum  >= 0  the C2P interpolation of a non-negative
+  !                                       coefficient must not undershoot.
+  !   face viscosity minimum        >= 1  molecular floor; isothermal flow has
+  !                                       mu/mu0 = 1 identically.
+  !   wall subgrid coefficient peak == 0  no subgrid momentum stress and no
+  !                                       subgrid enthalpy flux through a
+  !                                       physical no-slip wall.
+  !   inlet/outlet coefficient peak >  0  subgrid transport is retained at a
+  !                                       flow-through plane, not switched off.
+  !                                       Reported as 0 when the case has no
+  !                                       inlet or outlet at all.
+  !   subgrid enthalpy flux peak    >  0  the magnitude of the subgrid heat
+  !                                       transport the case actually carries,
+  !                                       so that a case with a negligible
+  !                                       enthalpy gradient cannot read green
+  !                                       on the wall check by default.
+  !
+  ! Non-negativity of the coefficient is a necessary property, not a proof of
+  ! stability or of conservation; neither is claimed here.
+  !----------------------------------------------------------------------------
+  real(WP), save :: sgs_coef_face_min   = huge(1.0_WP)
+  real(WP), save :: sgs_visc_face_min   = huge(1.0_WP)
+  real(WP), save :: sgs_wall_coef_peak  = 0.0_WP
+  real(WP), save :: sgs_inout_coef_peak = 0.0_WP
+  real(WP), save :: sgs_enth_flux_peak  = 0.0_WP
+  ! Coverage counters. A zero reference is legitimate for several of the gates
+  ! above - a periodic case has no wall and no inlet/outlet, and a correct wall
+  ! closure reports exactly zero - so a zero value cannot by itself distinguish
+  ! "the gate sampled its locations and found zero" from "the gate was never
+  ! reached". These count recorder invocations, not values, and make that
+  ! distinction explicit: the values stay untouched, and only the absence of
+  ! sampling is an error. Reduced with MPI_MAX, so a rank owning no boundary
+  ! plane does not look like missing instrumentation.
+  integer,  save :: n_sgs_coef_face_calls = 0
+  integer,  save :: n_sgs_visc_face_calls = 0
+  integer,  save :: n_sgs_coef_bc_calls   = 0
+  integer,  save :: n_sgs_enth_flux_calls = 0
   !
   private :: write_json_real
-  public :: write_metrics_json
+  public  :: reduce_sgs_diagnostics
+  public  :: write_metrics_json
+  public  :: record_sgs_coef_face
+  public  :: record_sgs_visc_face
+  public  :: record_sgs_coef_bc
+  public  :: record_sgs_enthalpy_flux
 contains
+  !> Record the peak magnitude of an assembled subgrid enthalpy flux component.
+  !> - arr (in): face-located c_sgs * dh/dx_i.
+  subroutine record_sgs_enthalpy_flux(arr)
+    implicit none
+    real(WP), intent(in) :: arr(:, :, :)
+    ! max|arr| without abs(arr), which would materialise a temporary of
+    ! the whole field on every substep.
+    sgs_enth_flux_peak = max(sgs_enth_flux_peak, maxval(arr), -minval(arr))
+    n_sgs_enth_flux_calls = n_sgs_enth_flux_calls + 1
+    return
+  end subroutine record_sgs_enthalpy_flux
+!==============================================================================
+  !> Record the minimum of an interpolated subgrid coefficient on a face set.
+  !> - arr (in): face-located subgrid coefficient.
+  subroutine record_sgs_coef_face(arr)
+    implicit none
+    real(WP), intent(in) :: arr(:, :, :)
+    sgs_coef_face_min = min(sgs_coef_face_min, minval(arr))
+    n_sgs_coef_face_calls = n_sgs_coef_face_calls + 1
+    return
+  end subroutine record_sgs_coef_face
+!==============================================================================
+  !> Record the minimum of a total (molecular + subgrid) face viscosity.
+  !> - arr (in): face-located viscosity ratio mu/mu0.
+  subroutine record_sgs_visc_face(arr)
+    implicit none
+    real(WP), intent(in) :: arr(:, :, :)
+    sgs_visc_face_min = min(sgs_visc_face_min, minval(arr))
+    n_sgs_visc_face_calls = n_sgs_visc_face_calls + 1
+    return
+  end subroutine record_sgs_visc_face
+!==============================================================================
+  !> Record the subgrid coefficient on the two physical boundary planes of a
+  !> face set, classified by the coefficient boundary codes.
+  !>
+  !> arr must be staggered in idir AND held in the pencil aligned with idir, so
+  !> that planes 1 and size(arr, idir) are the two global boundary planes on
+  !> every rank. A wall plane is required to be exactly zero, a flow-through
+  !> plane is required to stay positive; both are extrema over all ranks and
+  !> substeps.
+  !>
+  !> - arr (in): face-located subgrid coefficient, aligned pencil.
+  !> - idir (in): stagger direction, 1 = x, 2 = y, 3 = z.
+  !> - ibc_sgs (in): coefficient boundary codes from get_ibc_for_sgs_coef_c2p.
+  subroutine record_sgs_coef_bc(arr, idir, ibc_sgs)
+    use parameters_constant_mod, only: IBC_DIRICHLET, IBC_NEUMANN
+    implicit none
+    real(WP), intent(in) :: arr(:, :, :)
+    integer,  intent(in) :: idir
+    integer,  intent(in) :: ibc_sgs(2)
+
+    integer  :: side, ip
+    real(WP) :: pmax, pmin
+
+    n_sgs_coef_bc_calls = n_sgs_coef_bc_calls + 1
+
+    ! The plane is reduced where it lies. An array section passed to maxval or
+    ! minval needs no temporary, whereas returning the plane from a helper, or
+    ! taking abs() of it, allocates one on every substep. pmax/pmin hold the
+    ! plane extrema so that the wall branch gets max|.| as max(pmax, -pmin)
+    ! without ever forming abs() of an array.
+    do side = 1, 2
+      ip = 1
+      if(side == 2) ip = size(arr, idir)
+      if(ibc_sgs(side) /= IBC_DIRICHLET .and. ibc_sgs(side) /= IBC_NEUMANN) cycle
+      select case(idir)
+      case(1)
+        pmax = maxval(arr(ip, :, :)); pmin = minval(arr(ip, :, :))
+      case(2)
+        pmax = maxval(arr(:, ip, :)); pmin = minval(arr(:, ip, :))
+      case default
+        pmax = maxval(arr(:, :, ip)); pmin = minval(arr(:, :, ip))
+      end select
+      select case(ibc_sgs(side))
+      case(IBC_DIRICHLET)   ! physical wall
+        sgs_wall_coef_peak  = max(sgs_wall_coef_peak, pmax, -pmin)
+      case(IBC_NEUMANN)     ! inlet or outlet
+        sgs_inout_coef_peak = max(sgs_inout_coef_peak, pmax)
+      end select
+    end do
+
+    return
+  end subroutine record_sgs_coef_bc
+!==============================================================================
+  !> Reduce the subgrid diagnostics across ranks and copy them into the metrics.
+  !> - metrics (inout): metric container to fill.
+  !> - is_thermo (in): require the enthalpy-flux gate to have sampled as well.
+  subroutine reduce_sgs_diagnostics(metrics, is_thermo)
+    use mpi_mod
+    use print_msg_mod, only : Print_error_msg
+    implicit none
+    type(t_metrics), intent(inout) :: metrics
+    logical,         intent(in)    :: is_thermo
+    real(WP) :: sbuf(2), rbuf(2)
+    real(WP) :: sbuf3(3), rbuf3(3)
+    integer  :: cbuf(4), crbuf(4)
+
+    ! Coverage first: if a gate never sampled, its value below is meaningless
+    ! and would otherwise be published as a zero that compares clean against a
+    ! zero reference. MPI_MAX, so one rank having sampled is enough.
+    cbuf = [n_sgs_coef_face_calls, n_sgs_visc_face_calls, &
+            n_sgs_coef_bc_calls,   n_sgs_enth_flux_calls]
+    call mpi_allreduce(cbuf, crbuf, 4, MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD, ierror)
+    if(crbuf(1) == 0) call Print_error_msg('SGS gate coverage: '//&
+         'record_sgs_coef_face was never called, so "min. sgs coefficient on '//&
+         'stress/flux faces" would be published unsampled.')
+    if(crbuf(2) == 0) call Print_error_msg('SGS gate coverage: '//&
+         'record_sgs_visc_face was never called, so "min. total face '//&
+         'viscosity (molecular+sgs)" would be published unsampled.')
+    if(crbuf(3) == 0) call Print_error_msg('SGS gate coverage: '//&
+         'record_sgs_coef_bc was never called, so the wall and inlet/outlet '//&
+         'coefficient gates would be published unsampled.')
+    if(is_thermo .and. crbuf(4) == 0) call Print_error_msg('SGS gate coverage: '//&
+         'record_sgs_enthalpy_flux was never called in a thermal LES run, so '//&
+         '"max. |sgs enthalpy flux|" would be published unsampled.')
+
+    sbuf = [sgs_coef_face_min, sgs_visc_face_min]
+    call mpi_allreduce(sbuf, rbuf, 2, MPI_REAL_WP, MPI_MIN, MPI_COMM_WORLD, ierror)
+    ! Coverage above guarantees both recorders ran, so the huge() initialiser
+    ! cannot survive; the guard stays as a defensive assertion.
+    metrics%sgs_coef_face_min = rbuf(1)
+    metrics%sgs_visc_face_min = rbuf(2)
+    if(rbuf(1) > 0.5_WP * huge(1.0_WP)) call Print_error_msg('SGS gate coverage: '//&
+         'sgs_coef_face_min was reduced but never written.')
+    if(rbuf(2) > 0.5_WP * huge(1.0_WP)) call Print_error_msg('SGS gate coverage: '//&
+         'sgs_visc_face_min was reduced but never written.')
+
+    sbuf3 = [sgs_wall_coef_peak, sgs_inout_coef_peak, sgs_enth_flux_peak]
+    call mpi_allreduce(sbuf3, rbuf3, 3, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    metrics%sgs_wall_coef_peak     = rbuf3(1)
+    metrics%sgs_inout_coef_peak    = rbuf3(2)
+    metrics%sgs_enthalpy_flux_peak = rbuf3(3)
+
+    return
+  end subroutine reduce_sgs_diagnostics
+!==============================================================================
   !> Write regression metrics to a JSON file on rank 0.
   !> - filename (in): Output JSON file name.
   !> - metrics (in): Metrics to write.
   !> - is_thermo (in): Include thermal metrics when true.
-  subroutine write_metrics_json(filename, metrics, is_thermo)
+  !> - is_mhd (in): Include MHD charge-conservation metrics when true.
+  !> - is_les (in): Include LES metrics when true.
+  subroutine write_metrics_json(filename, metrics, is_thermo, is_mhd, is_les)
     use mpi_mod, only: nrank
     implicit none
     !
     character(len=*), intent(in) :: filename
     type(t_metrics),  intent(in) :: metrics
     logical, intent(in) :: is_thermo
+    logical, intent(in) :: is_mhd
+    logical, intent(in) :: is_les
     !
     integer :: unit
-    logical :: exists, is_last
+    logical :: exists
     !----------------------------------------------------------
     ! Only rank 0 writes
     !----------------------------------------------------------
@@ -54,21 +264,35 @@ contains
     write(unit,'(a)') '{'
     ! mass
     call write_json_real(unit, 'global mass balance',               metrics%mass_balance,        last=.false.)
-    call write_json_real(unit, 'max. mass conservation (interior)', metrics%mass_residual(1),    last=.false.)
-    call write_json_real(unit, 'max. mass conservation (inlet)',    metrics%mass_residual(2),    last=.false.)
-    call write_json_real(unit, 'max. mass conservation (outlet)',   metrics%mass_residual(3),    last=.false.)
+    ! Preserve the established regression meaning: these keys measure the
+    ! continuity residual achieved by the pressure projection.
+    call write_json_real(unit, 'max. mass conservation (interior)', metrics%projected_mass_residual(1), last=.false.)
+    call write_json_real(unit, 'max. mass conservation (inlet)',    metrics%projected_mass_residual(2), last=.false.)
+    call write_json_real(unit, 'max. mass conservation (outlet)',   metrics%projected_mass_residual(3), last=.false.)
+    call write_json_real(unit, 'max. physical mass conservation (interior)', metrics%mass_residual(1), last=.false.)
+    call write_json_real(unit, 'max. physical mass conservation (inlet)',    metrics%mass_residual(2), last=.false.)
+    call write_json_real(unit, 'max. physical mass conservation (outlet)',   metrics%mass_residual(3), last=.false.)
+    call write_json_real(unit, 'max. projected mass conservation (interior)', metrics%projected_mass_residual(1), last=.false.)
+    call write_json_real(unit, 'max. projected mass conservation (inlet)',    metrics%projected_mass_residual(2), last=.false.)
+    call write_json_real(unit, 'max. projected mass conservation (outlet)',   metrics%projected_mass_residual(3), last=.false.)
+    call write_json_real(unit, 'physical Poisson compatibility defect', metrics%physical_poisson_compatibility_defect, last=.false.)
+    call write_json_real(unit, 'explicit uniform Poisson-source correction', &
+                         metrics%uniform_poisson_source_correction, last=.false.)
+    call write_json_real(unit, 'Poisson projected-source amplitude', metrics%poisson_projected_source_amplitude, last=.false.)
+    call write_json_real(unit, 'Poisson zero-mode projection (scaled solver RHS)', &
+                         metrics%poisson_zero_mode_rhs_projection, last=.false.)
+    call write_json_real(unit, 'total mass', metrics%total_mass, last=.false.)
+    call write_json_real(unit, 'total mass drift from run start', metrics%total_mass_drift, last=.false.)
     call write_json_real(unit, 'global pressure drop',  metrics%pressure_drop,    last=.false.)
     call write_json_real(unit, 'mean dpdx',             metrics%mean_dpdx,        last=.false.)
     ! momentum
     call write_json_real(unit, 'total kinetic energy',  metrics%kinetic_energy,   last=.false.)
     call write_json_real(unit, 'bulk velocity ux',      metrics%bulk_velocity(1), last=.false.)
     !call write_json_real(unit, 'bulk velocity uy',      metrics%bulk_velocity(2), last=.false.)
-    if(is_thermo) then
-      is_last = .false.
-    else
-      is_last = .true.
-    end if
-    call write_json_real(unit, 'bulk velocity uz',      metrics%bulk_velocity(3), last=is_last)
+    ! JSON forbids a trailing comma, so whichever optional block comes last has to
+    ! close the object. The order is flow -> thermal -> mhd -> les.
+    call write_json_real(unit, 'bulk velocity uz',      metrics%bulk_velocity(3), &
+                         last = (.not. is_thermo) .and. (.not. is_mhd) .and. (.not. is_les))
     !call write_json_real(unit, 'wall shear integral',  metrics%wall_shear_integral, last=.false.)
 
     if(is_thermo) then
@@ -77,15 +301,47 @@ contains
       !call write_json_real(unit, 'bulk massflux gy',      metrics%bulk_massflux(2), last=.false.)
       call write_json_real(unit, 'bulk massflux gz',      metrics%bulk_massflux(3), last=.false.)
       call write_json_real(unit, 'bulk enthalpy',         metrics%bulk_enthalpy,    last=.false.)
-      call write_json_real(unit, 'bulk temperature',      metrics%bulk_temperature, last=.true.)
+      call write_json_real(unit, 'bulk temperature',      metrics%bulk_temperature, &
+                           last = (.not. is_mhd) .and. (.not. is_les))
      !call write_json_real(unit, 'wall_heat_flux',                    metrics%wall_heat_flux,      last=.false.)
+    end if
+
+    if(is_mhd) then
+      ! Charge conservation. j = -grad(ep) + u x B is solenoidal only if the
+      ! discrete D.G reproduces the Poisson operator the solver inverts, so these
+      ! two numbers are the MHD analogue of the mass-conservation residual above.
+      call write_json_real(unit, 'max. |div(current density)|', metrics%max_div_j, last=.false.)
+      call write_json_real(unit, 'global electric current imbalance', metrics%current_imbalance, &
+                           last = .not. is_les)
+    end if
+
+    if(is_les) then
+      ! Taken on the initial field, never on an advanced one: a solid-body rotation
+      ! has S_ij = 0 exactly, so a cylindrical case initialised that way turns this
+      ! key into a machine-zero gate on the velocity-gradient assembly. For any
+      ! other initial condition it is simply the peak resolved strain.
+      call write_json_real(unit, 'max. initial strain rate S_ijS_ij', &
+                           metrics%max_strain_rate_mag2_init, last=.false.)
+      ! The four subgrid-coefficient gates; see the block comment on the module
+      ! accumulators for what each one has to satisfy.
+      call write_json_real(unit, 'min. sgs coefficient on stress/flux faces', &
+                           metrics%sgs_coef_face_min,   last=.false.)
+      call write_json_real(unit, 'min. total face viscosity (molecular+sgs)', &
+                           metrics%sgs_visc_face_min,   last=.false.)
+      call write_json_real(unit, 'max. sgs coefficient on physical walls', &
+                           metrics%sgs_wall_coef_peak,  last=.false.)
+      call write_json_real(unit, 'max. sgs coefficient at inlet/outlet', &
+                           metrics%sgs_inout_coef_peak, last=.not. is_thermo)
+      if(is_thermo) &
+      call write_json_real(unit, 'max. |sgs enthalpy flux|', &
+                           metrics%sgs_enthalpy_flux_peak, last=.true.)
     end if
     ! other
     write(unit,'(a)') '}'
     close(unit)
     return
   end subroutine write_metrics_json
-!==========================================================================================================
+!==============================================================================
   subroutine write_json_real(unit, key, value, last)
     implicit none
     integer,          intent(in) :: unit
@@ -101,8 +357,8 @@ contains
     return
   end subroutine write_json_real
 end module
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================
 !> Monitor-history output for mass, bulk, probe, and regression diagnostics.
 !>
 !> This module writes the `3_monitor` history files used to track run health and
@@ -147,9 +403,9 @@ contains
     integer, allocatable :: probeid(:, :)
 
     if(nrank == 0) call Print_debug_start_msg("Writing monitor initial files ...")
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! create history file for total variables
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(nrank == 0 .and. (.not. is_IO_off)) then
       call generate_pathfile_name(flname, dm%idom, trim(fl_bulk), dir_moni, 'log')
       inquire(file = trim(flname), exist = exist)
@@ -189,26 +445,32 @@ contains
       else
         open(newunit = myunit, file = trim(flname), status="new", action="write")
         write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
-        write(myunit, *) "# time, mass drift, mass error at bulk, inlet, outlet, total mass change rate, kinetic energy change rate" ! to add more instantanous or statistics
+        write(myunit, *) "# columns: time; physical mass residual at bulk, inlet, outlet;"
+        write(myunit, *) "#          projected mass residual at bulk, inlet, outlet; global mass flux imbalance;"
+        write(myunit, *) "#          physical Poisson compatibility defect; explicit uniform Poisson-source correction;"
+        write(myunit, *) "#          Poisson projected-source amplitude C;"
+        write(myunit, *) "#          projected correction is C in Cartesian coordinates and C/r^2 in cylindrical coordinates;"
+        write(myunit, *) "#          Poisson zero-mode projection in scaled solver-RHS units;"
+        write(myunit, *) "#          total mass; total mass drift from run start; kinetic energy change rate"
         close(myunit)
       end if
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(dm%proben <= 0) return
 
     if(nrank == 0) then
       call Print_debug_inline_msg("  Probed points for monitoring ...")
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     allocate( dm%probe_is_in(dm%proben) )
     dm%probe_is_in(:) = .false.
 
     allocate( probeid(3, dm%proben) )
     nplc = 0
     do i = 1, dm%proben
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! probe points find the nearest cell centre, global index info, then convert to local index in x-pencil
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       idgb(1:3) = 0
 
       idgb(1) = ceiling ( dm%probexyz(1, i) / dm%h(1) )
@@ -222,9 +484,9 @@ contains
       if( dm%probexyz(2, i) >= dm%yp(dm%np(2)) .and. dm%probexyz(2, i) < dm%lyt) then
         idgb(2) = dm%nc(2)
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! convert global id to local, based on x-pencil
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       is_y = .false.
       is_z = .false.
       if( idgb(2) >= dm%dccc%xst(2) .and. idgb(2) <= dm%dccc%xen(2) ) is_y = .true.
@@ -246,9 +508,9 @@ contains
     end do
 
     deallocate (probeid)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! create probe history file for flow
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     nplc = 0
     do i = 1, dm%proben
       if(dm%probe_is_in(i)) then
@@ -259,9 +521,9 @@ contains
       end if
     end do
     call mpi_barrier(MPI_COMM_WORLD, ierror)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! create probe history file for flow
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if (.not. is_IO_off) then
     do i = 1, dm%proben
       if(.not. dm%probe_is_in(i)) cycle
@@ -290,7 +552,7 @@ contains
     if(nrank == 0) call Print_debug_end_msg()
     return
   end subroutine
-!==========================================================================================================
+!==============================================================================
   !> Append bulk-flow, mass, pressure, and optional thermal monitor values.
   !> - fl (in): Flow state.
   !> - dm (inout): Domain descriptor.
@@ -301,6 +563,7 @@ contains
     use find_max_min_ave_mod
     use io_files_mod
     use io_tools_mod
+    use math_mod, only : safe_divide
     use operations
     use parameters_constant_mod
     use regression_test_mod
@@ -321,8 +584,7 @@ contains
     character(200) :: iotxt
     integer :: ioerr, myunit
 
-    real(WP) :: bulk_MKE, bulk_q(3), bulk_g(3), bulk_m, bulk_h, mean_dpdx, pressure_drop, &
-                mass_balance(8)
+    real(WP) :: bulk_MKE, bulk_q(3), bulk_g(3), bulk_m, bulk_h, mean_dpdx, pressure_drop
     real(WP) :: bulk_fbcx(2), bulk_fbcy(2), bulk_fbcz(2)
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: apcc_xpencil
     real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc
@@ -343,9 +605,9 @@ contains
     real(WP) :: dMKEdt
     type(t_fluidThermoProperty) :: ftp_bulk
 
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !   kinetic energy = 1/2*rho * (uu+vv+ww)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     ! ux
     call Get_x_midp_P2C_3D(fl%qx, accc1, dm, dm%iAccuracy, dm%ibcx_qx(:), dm%fbcx_qx)
     ! uy = qy/r
@@ -368,14 +630,18 @@ contains
     call Get_volumetric_average_3d(dm, dm%dccc, fenergy, bulk_MKE, SPACE_AVERAGE, 'MKE')
     dMKEdt = (bulk_MKE - fl%tt_kinetic_energy)/dm%dt
     fl%tt_kinetic_energy = bulk_MKE
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !   mass balance = density change + net mass flux through boundaries
-!----------------------------------------------------------------------------------------------------------
-    call check_global_mass_balance(mass_balance, fl%drhodt, dm)
-    fl%tt_mass_change = mass_balance(8)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+    if(dm%is_thermo) then
+      call Get_volumetric_average_3d(dm, dm%dccc, fl%dDens, fl%total_mass, SPACE_INTEGRAL, 'total mass')
+    else
+      fl%total_mass = dm%vol
+    end if
+    fl%total_mass_drift = fl%total_mass - fl%total_mass_reference
+!------------------------------------------------------------------------------
 !   Bulk quantities
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     ! mean dp/dx pressure gradient
     call Get_x_1der_C2C_3D(fl%pres, accc1, dm, dm%iAccuracy, dm%ibcx_pr(:), dm%fbcx_pr)
     call Get_volumetric_average_3d(dm, dm%dccc, accc1, mean_dpdx,  SPACE_AVERAGE, 'dpdx')
@@ -399,20 +665,35 @@ contains
       bulk_g = ZERO
       call Get_volumetric_average_3d(dm, dm%dpcc, fl%gx, bulk_g(1), SPACE_AVERAGE, 'rho*ux')
       call Get_volumetric_average_3d(dm, dm%dccp, fl%gz, bulk_g(3), SPACE_AVERAGE, 'rho*uz')
-      ! Mass-flux-weighted enthalpy = energy
-      call Get_x_1der_C2C_3D(fl%gx, accc1, dm, dm%iAccuracy, dm%ibcx_qx(:), dm%fbcx_qx)
+      ! Mass-flux-weighted (bulk) enthalpy, h_b = <gx*h> / <gx>. gx lives on dpcc,
+      ! so it has to be *interpolated* onto the cell centres where hEnth lives -
+      ! P2C, not a derivative and not C2C. This used to call Get_x_1der_C2C_3D,
+      ! which formed <d(gx)/dx * h> with a C2C stencil on a P-located array: the
+      ! wrong quantity evaluated at the wrong points.
+      call Get_x_midp_P2C_3D(fl%gx, accc1, dm, dm%iAccuracy, dm%ibcx_qx(:), dm%fbcx_gx)
       accc2 = accc1 * tm%hEnth
       call Get_volumetric_average_3d(dm, dm%dccc, accc2, bulk_h,  SPACE_AVERAGE, 'h')
-      ftp_bulk%h = bulk_h / bulk_g(1)
+      ! A bulk enthalpy is only meaningful where there is a net mass flux to
+      ! weight by. In a zero-net-flow case (TGV) <gx> is at round-off, ~1e-19, and
+      ! an unguarded divide turned this diagnostic into ~1e15 and then fed that
+      ! through the property table. Report zero instead.
+      ftp_bulk%h = safe_divide(bulk_h, bulk_g(1))
       call ftp_refresh_thermal_properties_from_H(ftp_bulk)
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !   save regression test metrics at the end of flow simulation
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(fl%iteration == fl%nIterFlowEnd) then
       ! universal matrics
       metrics%mass_balance     = fl%tt_mass_change
       metrics%mass_residual(1:3) = fl%mcon(1:3) !
+      metrics%projected_mass_residual(1:3) = fl%mcon_projected(1:3)
+      metrics%physical_poisson_compatibility_defect = fl%physical_poisson_compatibility_defect
+      metrics%uniform_poisson_source_correction = fl%uniform_poisson_source_correction
+      metrics%poisson_projected_source_amplitude = fl%poisson_projected_source_amplitude
+      metrics%poisson_zero_mode_rhs_projection = fl%poisson_zero_mode_rhs_projection
+      metrics%total_mass = fl%total_mass
+      metrics%total_mass_drift = fl%total_mass_drift
       metrics%kinetic_energy   = fl%tt_kinetic_energy
       metrics%bulk_velocity(:) = bulk_q(:)
       metrics%pressure_drop    = pressure_drop
@@ -422,12 +703,36 @@ contains
         metrics%bulk_enthalpy    = ftp_bulk%h
         metrics%bulk_temperature = ftp_bulk%t
       end if
+      ! The charge-conservation diagnostics are carried on t_flow rather than t_mhd
+      ! because mhd(:) is only allocated for an MHD run, while this monitor is called
+      ! for every case; check_current_conservation refreshes them each step.
+      metrics%max_div_j         = ZERO
+      metrics%current_imbalance = ZERO
+      if(dm%is_mhd) then
+        metrics%max_div_j         = fl%max_div_j
+        metrics%current_imbalance = fl%current_imbalance
+      end if
+      ! Recorded once by initialise_flow_fields and never overwritten, so this is
+      ! the strain of the initial field however many steps the case has run.
+      metrics%max_strain_rate_mag2_init = ZERO
+      metrics%sgs_coef_face_min   = ZERO
+      metrics%sgs_visc_face_min   = ZERO
+      metrics%sgs_wall_coef_peak  = ZERO
+      metrics%sgs_inout_coef_peak = ZERO
+      metrics%sgs_enthalpy_flux_peak = ZERO
+      if(dm%LES_model /= ILES_NONE) then
+        metrics%max_strain_rate_mag2_init = fl%max_strain_rate_mag2_init
+        ! collective: every rank must reach this, so it sits outside the nrank==0
+        ! guard of write_metrics_json.
+        call reduce_sgs_diagnostics(metrics, dm%is_thermo)
+      end if
       !
-      call write_metrics_json(trim('regression_test_metrics.json'), metrics, dm%is_thermo)
+      call write_metrics_json(trim('regression_test_metrics.json'), metrics, &
+                              dm%is_thermo, dm%is_mhd, dm%LES_model /= ILES_NONE)
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! open file
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(nrank == 0) then
       ! write out history of key conservative variables
       call generate_pathfile_name(flname, dm%idom, trim(fl_mass), dir_moni, 'log')
@@ -436,7 +741,10 @@ contains
       if(ioerr /= 0) then
         call Print_error_msg('Problem openning conservation file')
       end if
-      write(myunit, '(6ES16.8)') fl%time, fl%mcon(1:3), fl%tt_mass_change, dMKEdt
+      write(myunit, '(15ES16.8)') fl%time, fl%mcon(1:3), fl%mcon_projected(1:3), fl%tt_mass_change, &
+                                  fl%physical_poisson_compatibility_defect, fl%uniform_poisson_source_correction, &
+                                  fl%poisson_projected_source_amplitude, fl%poisson_zero_mode_rhs_projection, &
+                                  fl%total_mass, fl%total_mass_drift, dMKEdt
       close(myunit)
       ! write out history of bulk variables
       call generate_pathfile_name(flname, dm%idom, trim(fl_bulk), dir_moni, 'log')
@@ -459,7 +767,7 @@ contains
     return
   end subroutine
 
-!==========================================================================================================
+!==============================================================================
   !> Write configured point-probe histories.
   !> - fl (in): Flow state.
   !> - dm (in): Domain descriptor containing probe locations.
@@ -485,16 +793,16 @@ contains
     integer :: i, nplc
 
     if(dm%proben <= 0) return
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! based on x-pencil
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     nplc = 0
     do i = 1, dm%proben
       if( .not. dm%probe_is_in(i) ) cycle
       nplc = nplc + 1
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! open file
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
         keyword = "monitor_pt"//trim(int2str(i))//"_flow"
         call generate_pathfile_name(flname, dm%idom, keyword, dir_moni, 'dat')
         open(newunit = myunit, file = trim(flname), status = "old", action = "write", position = "append", &
@@ -504,9 +812,9 @@ contains
           !write (*, *) 'Message: ', trim (iotxt)
           call Print_error_msg('Problem opening probing file')
         end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! write out local data
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
         ix = dm%probexid(1, nplc)
         iy = dm%probexid(2, nplc)
         iz = dm%probexid(3, nplc)
@@ -523,8 +831,8 @@ contains
 
     return
   end subroutine
-!==========================================================================================================
+!==============================================================================
 end module
 
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================

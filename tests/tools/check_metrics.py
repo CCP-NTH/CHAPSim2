@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import sys
 import math
 
 SAFE_REL_THRESHOLD = 1e-10
+
+# Key in tolerances.json holding per-case overrides, keyed by case directory name.
+# Needed because a few metrics are not expected to be near zero in every
+# configuration, so one global tolerance cannot be right for all of them.
+CASE_OVERRIDE_KEY = "cases"
 
 
 def die(msg):
@@ -23,6 +29,22 @@ try:
         tol = json.load(f)
 except Exception as e:
     die(f"Failed to load JSON files: {e}")
+
+
+# -------------------------------------------------
+# Per-case tolerance overrides
+# -------------------------------------------------
+# The case name is the directory holding reference.json. Overrides replace the
+# global entry for that metric outright rather than merging field by field, so a
+# case can drop the absolute check (by supplying "rel" only) for a quantity that
+# has no reason to be zero. Every override applied is printed, so a loosened
+# tolerance can never pass silently.
+case_overrides = tol.pop(CASE_OVERRIDE_KEY, {})
+case_name = os.path.basename(os.path.dirname(os.path.abspath(sys.argv[2])))
+
+for key, entry in case_overrides.get(case_name, {}).items():
+    tol[key] = entry
+    print(f"[TOLER] {key:35s} case override for '{case_name}': {entry}")
 
 
 FAILED = False

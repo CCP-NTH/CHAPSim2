@@ -449,6 +449,34 @@ else
     fi
 fi
 
+# Force a library rebuild when the requested FFT backend differs from the one the
+# existing library was compiled with. The backend lives inside libdecomp2d.a, and
+# build/Makefile links whatever the recorded marker says, so without this check
+# CHAPSIM_FFT=fftw on a tree that already holds a generic library would be
+# accepted and then quietly ignored - the silent downgrade this is here to stop.
+# See docs/guidance/docs/fft-backend.md.
+export CHAPSIM_FFT="${CHAPSIM_FFT:-generic}"
+FFT_MARKER="$REL_PATH_LIB_BUILD/opt/chapsim_fft_backend.mk"
+REQUESTED_FFT="$(echo "$CHAPSIM_FFT" | tr '[:upper:]' '[:lower:]')"
+[[ "$REQUESTED_FFT" == "fftw" ]] && REQUESTED_FFT="fftw_f03"
+BUILT_FFT=""
+FFT_BACKEND_CHANGED="no"
+if [ -f "$FFT_MARKER" ]; then
+    BUILT_FFT=$(sed -n 's/^CHAPSIM_FFT_BACKEND *= *//p' "$FFT_MARKER" | tr -d '[:space:]')
+fi
+if [[ "$REQUESTED_FFT" != "${BUILT_FFT:-generic}" ]]; then
+    echo "FFT backend change requested."
+    echo "   library was built with : ${BUILT_FFT:-generic (no marker recorded)}"
+    echo "   requested              : $REQUESTED_FFT"
+    echo "   -> rebuilding 2decomp-fft, and the solver from clean, so that the"
+    echo "      library, its .mod files and the link flags all agree."
+    echo ""
+    LIB_REBUILD="yes"
+    # The 2decomp .mod files differ between backends, so stale solver objects
+    # cannot be reused across a switch.
+    FFT_BACKEND_CHANGED="yes"
+fi
+
 # Check if build_cmake_2decomp.sh exists
 BUILD_CMAKE_LIB="$REL_PATH_LIB_BUILD/build_cmake_2decomp.sh"
 BUILD_CMAKE_BUILD="$REL_PATH_BUILD/build_cmake_2decomp.sh"
@@ -573,7 +601,7 @@ case "$BUILD_MODE" in
 esac
 
 # Add clean if requested
-if [[ "$CLEAN_BUILD" =~ ^(yes|y)$ ]]; then
+if [[ "$CLEAN_BUILD" =~ ^(yes|y)$ ]] || [[ "$FFT_BACKEND_CHANGED" == "yes" ]]; then
     MAKE_TARGET="make clean && $MAKE_TARGET"
 fi
 

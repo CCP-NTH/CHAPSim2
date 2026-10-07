@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>t_flow &ndash; Fortran Program </title>
+    <title>t_flow &ndash; CHAPSim2 </title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>t_flow
       <small>Derived Type</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p>20.3% of total for derived types.</p>Including implementation: 74 statements, 20.3% of total for derived types.">74 statements</a>
+                 title="<p>19.8% of total for derived types.</p>Including implementation: 95 statements, 19.8% of total for derived types.">95 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,12 +124,12 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#vars-0"
          aria-expanded="false" aria-controls="vars-0">
@@ -133,31 +137,41 @@
       </a>
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/t_flow.html#variable-idriven">idriven</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-idriven~2">idriven</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-igravity">igravity</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-inittype">inittype</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-iterfrom">iterfrom</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-iterfrom~3">iterfrom</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-initreto">initReTo</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-niterflowstart">nIterFlowStart</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-niterflowend">nIterFlowEnd</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-iteration">iteration</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-iteration~2">iteration</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-time">time</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-ren">ren</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-rre">rre</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-init_velo3d">init_velo3d</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-reninit">reninit</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-drvfc">drvfc</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-fgravity~2">fgravity</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-fgravity">fgravity</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-is_active_tripping">is_active_tripping</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-is_compact_restart_startup">is_compact_restart_startup</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-noiselevel">noiselevel</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-mcon">mcon</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-mcon_projected">mcon_projected</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tt_mass_change">tt_mass_change</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-total_mass">total_mass</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-total_mass_reference">total_mass_reference</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-total_mass_drift">total_mass_drift</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tt_kinetic_energy">tt_kinetic_energy</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-qx">qx</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-qy">qy</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-qz">qz</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-gx">gx</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-gy">gy</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-gz">gz</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-physical_poisson_compatibility_defect">physical_poisson_compatibility_defect</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-uniform_poisson_source_correction">uniform_poisson_source_correction</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-poisson_projected_source_amplitude">poisson_projected_source_amplitude</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-poisson_zero_mode_rhs_projection~2">poisson_zero_mode_rhs_projection</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-qx~3">qx</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-qy~3">qy</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-qz~3">qz</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-gx~4">gx</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-gy~4">gy</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-gz~4">gz</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-gx0">gx0</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-gy0">gy0</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-gz0">gz0</a>
@@ -168,13 +182,14 @@
             <a class="list-group-item" href="../type/t_flow.html#variable-pcor">pcor</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-pcor_zpencil_ggg">pcor_zpencil_ggg</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-ddens">dDens</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-drhodt~3">drhodt</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-drhodt~4">drhodt</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-mvisc">mVisc</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-tvisc~2">tVisc</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-ddens0">dDens0</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-mvisc0">mVisc0</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-mx_rhs">mx_rhs</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-my_rhs">my_rhs</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-mz_rhs">mz_rhs</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-mx_rhs~2">mx_rhs</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-my_rhs~2">my_rhs</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-mz_rhs~2">mz_rhs</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-mx_rhs0">mx_rhs0</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-my_rhs0">my_rhs0</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-mz_rhs0">mz_rhs0</a>
@@ -187,6 +202,9 @@
             <a class="list-group-item" href="../type/t_flow.html#variable-lrfx">lrfx</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-lrfy">lrfy</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-lrfz">lrfz</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-max_div_j">max_div_j</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-current_imbalance">current_imbalance</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-max_strain_rate_mag2_init">max_strain_rate_mag2_init</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_u">tavg_u</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_pr">tavg_pr</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_pru">tavg_pru</a>
@@ -194,6 +212,8 @@
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_uuu">tavg_uuu</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_prdu">tavg_prdu</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_dudx">tavg_dudx</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-tavg_vort">tavg_vort</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-tavg_vortvort">tavg_vortvort</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_dudu">tavg_dudu</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_f">tavg_f</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_fu">tavg_fu</a>
@@ -201,42 +221,53 @@
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_fuuu">tavg_fuuu</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_fh">tavg_fh</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_fuh">tavg_fuh</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-tavg_tu">tavg_Tu</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-tavg_fuuh">tavg_fuuh</a>
-            <a class="list-group-item" href="../type/t_flow.html#variable-tavg_eu">tavg_eu</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-spec_uu_kx">spec_uu_kx</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-spec_uu_kz">spec_uu_kz</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-spec_fft_wx">spec_fft_wx</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-spec_fft_wz">spec_fft_wz</a>
+            <a class="list-group-item" href="../type/t_flow.html#variable-nspec_samples">nspec_samples</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-rre_sponge_p">rre_sponge_p</a>
             <a class="list-group-item" href="../type/t_flow.html#variable-rre_sponge_c">rre_sponge_c</a>
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../type/t_flow.html#src">t_flow</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
       <h2 id="type-def-statement">
         type, public :: t_flow</h2>
-
+    
     <br>
 
     <section>
@@ -253,36 +284,36 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-idriven"></span>
+              <span class="anchor" id="variable-idriven~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>idriven</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
               <span class="anchor" id="variable-igravity"></span>
-              integer,
+              real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
-            <td><strong>igravity</strong></td>
+            <td><strong>igravity</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -292,31 +323,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>inittype</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iterfrom"></span>
+              <span class="anchor" id="variable-iterfrom~3"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iterfrom</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -326,14 +357,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>initReTo</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -343,14 +374,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nIterFlowStart</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -360,31 +391,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nIterFlowEnd</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iteration"></span>
+              <span class="anchor" id="variable-iteration~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iteration</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -394,14 +425,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>time</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -411,14 +442,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ren</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -428,14 +459,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>rre</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -445,14 +476,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>init_velo3d</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -462,14 +493,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>reninit</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -479,31 +510,65 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>drvfc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fgravity~2"></span>
+              <span class="anchor" id="variable-fgravity"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fgravity</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_active_tripping"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_active_tripping</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_compact_restart_startup"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_compact_restart_startup</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -513,14 +578,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>noiselevel</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -530,14 +595,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mcon</strong>(3)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mcon_projected"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mcon_projected</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -547,14 +629,65 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tt_mass_change</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-total_mass"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>total_mass</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-total_mass_reference"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>total_mass_reference</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-total_mass_drift"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>total_mass_drift</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -564,19 +697,87 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tt_kinetic_energy</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qx"></span>
+              <span class="anchor" id="variable-physical_poisson_compatibility_defect"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>physical_poisson_compatibility_defect</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-uniform_poisson_source_correction"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>uniform_poisson_source_correction</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-poisson_projected_source_amplitude"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>poisson_projected_source_amplitude</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-poisson_zero_mode_rhs_projection~2"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>poisson_zero_mode_rhs_projection</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qx~3"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -588,12 +789,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qy"></span>
+              <span class="anchor" id="variable-qy~3"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -605,12 +806,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qz"></span>
+              <span class="anchor" id="variable-qz~3"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -622,12 +823,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-gx"></span>
+              <span class="anchor" id="variable-gx~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -639,12 +840,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-gy"></span>
+              <span class="anchor" id="variable-gy~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -656,12 +857,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-gz"></span>
+              <span class="anchor" id="variable-gz~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -673,7 +874,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -690,7 +891,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -707,7 +908,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -724,7 +925,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -741,7 +942,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -758,7 +959,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -775,7 +976,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -792,7 +993,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -809,7 +1010,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -826,7 +1027,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -843,12 +1044,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-drhodt~3"></span>
+              <span class="anchor" id="variable-drhodt~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -860,7 +1061,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -877,7 +1078,24 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tvisc~2"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tVisc</strong>(:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -894,7 +1112,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -911,12 +1129,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mx_rhs"></span>
+              <span class="anchor" id="variable-mx_rhs~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -928,12 +1146,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-my_rhs"></span>
+              <span class="anchor" id="variable-my_rhs~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -945,12 +1163,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mz_rhs"></span>
+              <span class="anchor" id="variable-mz_rhs~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -962,7 +1180,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -979,7 +1197,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -996,7 +1214,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1013,7 +1231,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1030,7 +1248,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1047,7 +1265,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1064,7 +1282,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1081,7 +1299,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1098,7 +1316,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1115,7 +1333,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1132,7 +1350,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1149,7 +1367,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1166,7 +1384,58 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-max_div_j"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>max_div_j</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-current_imbalance"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>current_imbalance</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-max_strain_rate_mag2_init"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>max_strain_rate_mag2_init</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1183,7 +1452,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1200,7 +1469,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1217,7 +1486,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1234,7 +1503,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1251,7 +1520,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1268,7 +1537,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1285,7 +1554,41 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tavg_vort"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_vort</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tavg_vortvort"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_vortvort</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1302,7 +1605,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1319,7 +1622,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1336,7 +1639,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1353,7 +1656,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1370,7 +1673,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1387,7 +1690,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1404,7 +1707,24 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tavg_tu"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_Tu</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1421,12 +1741,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tavg_eu"></span>
+              <span class="anchor" id="variable-spec_uu_kx"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1434,11 +1754,79 @@
               allocatable
             </td>
             <td>::</td>
-            <td><strong>tavg_eu</strong>(:,:,:,:)</td>
+            <td><strong>spec_uu_kx</strong>(:,:)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-spec_uu_kz"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>spec_uu_kz</strong>(:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-spec_fft_wx"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>spec_fft_wx</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-spec_fft_wz"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>spec_fft_wz</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nspec_samples"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nspec_samples</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1455,7 +1843,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1472,7 +1860,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -1480,11 +1868,158 @@
 
     </section>
     <br>
+    
 
 
 
+    <section>
+    <h3><span class="anchor" id="src"></span>Source Code</h3>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">type </span><span class="n">t_flow</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">idriven</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">igravity</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">inittype</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">iterfrom</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">initReTo</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">nIterFlowStart</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">nIterFlowEnd</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">iteration</span>
 
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="nb">time</span>
+<span class="nb">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ren</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rre</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">init_velo3d</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">reninit</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">drvfc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fgravity</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">is_active_tripping</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">is_compact_restart_startup</span>
 
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">noiselevel</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mcon</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mcon_projected</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tt_mass_change</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">total_mass</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">total_mass_reference</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">total_mass_drift</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tt_kinetic_energy</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">physical_poisson_compatibility_defect</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">uniform_poisson_source_correction</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">poisson_projected_source_amplitude</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">poisson_zero_mode_rhs_projection</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">qx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! qx = u_x,     axial direction</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">qy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! qy = u_r * r, radial direction</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">qz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! qz = u_theta, azimuthal direction</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">gx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! gx = rho * q_x</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">gy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! gy = rho * q_y</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">gz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! gz = rho * q_z</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">gx0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">gy0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">gz0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">qx0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">qy0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">qz0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">pres</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">pcor</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">pcor_zpencil_ggg</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dDens</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">drhodt</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mVisc</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tVisc</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dDens0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mVisc0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mx_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! current step rhs in x</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">my_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! current step rhs in y</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mz_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! current step rhs in z</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mx_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="c">! last step rhs in x</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">my_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="c">! last step rhs in y</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mz_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="c">! last step rhs in z</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_a0cc_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">!</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_a0pc_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_a0cp_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_apc0_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">!</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_acp0_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_acc0_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lrfx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! Lorentz force  !</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lrfy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! Lorentz force</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lrfz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! Lorentz force</span>
+<span class="w">    </span><span class="c">! Charge-conservation diagnostics, refreshed by check_current_conservation and</span>
+<span class="w">    </span><span class="c">! exported to regression_test_metrics.json so that a broken div(j) fails a test</span>
+<span class="w">    </span><span class="c">! rather than only appearing in the run log. They live here, beside the Lorentz</span>
+<span class="w">    </span><span class="c">! force, because t_mhd is only allocated for an MHD run while the monitor that</span>
+<span class="w">    </span><span class="c">! writes the metrics always receives t_flow.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">max_div_j</span><span class="w">         </span><span class="c">! max |div(j_vec)| over the domain</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">current_imbalance</span><span class="w"> </span><span class="c">! volume source + net current through the boundaries</span>
+<span class="w">    </span><span class="c">! LES diagnostic, taken once on the initial field by initialise_flow_fields and</span>
+<span class="w">    </span><span class="c">! never overwritten afterwards. A solid-body rotation has S_ij = 0 identically,</span>
+<span class="w">    </span><span class="c">! so this is the gate on the cylindrical velocity-gradient assembly: a Cartesian</span>
+<span class="w">    </span><span class="c">! tensor differentiating qy = r*u_r instead of u_r leaves S_r,theta = Omega/2.</span>
+<span class="w">    </span><span class="c">! It must be the *initial* field - one RK3 step from solid-body rotation already</span>
+<span class="w">    </span><span class="c">! carries O(dt) discretisation error, because the discrete centrifugal term is</span>
+<span class="w">    </span><span class="c">! not exactly a discrete gradient.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">max_strain_rate_mag2_init</span><span class="w"> </span><span class="c">! max S_ij S_ij over the initial field</span>
+<span class="w">    </span><span class="c">! post processing - sharing</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_u</span><span class="w">   </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! 3  = u, v, w</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_pr</span><span class="w">  </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_pru</span><span class="w"> </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! 3  = pu, pv, pw</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_uu</span><span class="w">  </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! 6  = uu, uv, uw, vv, vw, ww</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_uuu</span><span class="w"> </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_prdu</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! 9  = pr * dui/dxk</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_dudx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! 9  = dui/dxj</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_vort</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! 3  = vort_x, vort_r, vort_theta</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_vortvort</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! 6  = vort_i * vort_j</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_dudu</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! storage keeps 45 slots for future full extensions</span>
+<span class="w">                                                    </span><span class="c">! current post-processing uses first 6 symmetric contracted components only</span>
+<span class="w">    </span><span class="c">! du/dx * du/dx, du/dx * du/dy, du/dx * du/dz (1 2 3)</span>
+<span class="w">    </span><span class="c">! du/dx * dv/dx, du/dx * dv/dy, du/dx * dv/dz (4 5 6)</span>
+<span class="w">    </span><span class="c">! du/dx * dw/dz, du/dx * dw/dy, du/dx * dw/dz (7 8 9)</span>
+<span class="w">    </span><span class="c">!                du/dy * du/dy, du/dy * du/dz, (10, 11)</span>
+<span class="w">    </span><span class="c">! du/dy * dv/dx, du/dy * dv/dy, du/dy * dv/dz (12, 13, 14)</span>
+<span class="w">    </span><span class="c">! du/dy * dw/dx, du/dy * dw/dy, du/dy * dw/dz (15, 16, 27)</span>
+<span class="w">    </span><span class="c">!                               du/dz * du/dz, (18)</span>
+<span class="w">    </span><span class="c">!                du/dz * dv/dy, du/dz * dv/dz, (19, 20, 21)</span>
+<span class="w">    </span><span class="c">! du/dz * dw/dx, du/dz * dw/dy, du/dz * dw/dy, (22, 23, 24)</span>
+<span class="w">    </span><span class="c">! dv/dx * dv/dx, dv/dx * dv/dy, dv/dx * dv/dz, (25, 26, 27)</span>
+<span class="w">    </span><span class="c">! dv/dx * dw/dx, dv/dx * dw/dy, dv/dx * dw/dz, (28, 29, 30)</span>
+<span class="w">    </span><span class="c">!                dv/dy * dv/dy, dv/dy * dv/dz, (30, 31)</span>
+<span class="w">    </span><span class="c">! dv/dy * dw/dx, dv/dy * dw/dy, dv/dy * dw/dz, (32, 33, 34)</span>
+<span class="w">    </span><span class="c">!                               dv/dy * dw/dz, (35)</span>
+<span class="w">    </span><span class="c">!                               dv/dz * dv/dz, (36)</span>
+<span class="w">    </span><span class="c">! dv/dz * dw/dx, dv/dz * dw/dy, dv/dz * dw/dz, (37, 38, 39)</span>
+<span class="w">    </span><span class="c">! dw/dx * dw/dx, dw/dx * dw/dy, dw/dx * dw/dz, (40, 41, 42)</span>
+<span class="w">    </span><span class="c">!                dw/dy * dw/dy, dw/dy * dw/dz, (43, 44)</span>
+<span class="w">    </span><span class="c">!                               dw/dw * dw/dz, (45)</span>
+<span class="w">    </span><span class="c">! post processing - thermal</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_f</span><span class="w">   </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">    </span><span class="c">! f = rho</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_fu</span><span class="w">  </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! 3 = rhou, rhov, rhow</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_fuu</span><span class="w"> </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! 6 = rho*uu, rho*uv, rho*uw, rho*vv, rho*vw, rho*ww</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_fuuu</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_fh</span><span class="w">  </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">    </span><span class="c">! fh= rho * h</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_fuh</span><span class="w"> </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! 3 = rho*u*h, rho*v*h, rho*w*h</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_Tu</span><span class="w">  </span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! 3 = T*u, T*v, T*w</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tavg_fuuh</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! 6 = rho*uu*h, rho*uv*h, rho*uw*h, rho*vv*h, rho*vw*h, rho*ww*h</span>
+<span class="w">    </span><span class="c">! One-dimensional streamwise-velocity spectra accumulated online.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">spec_uu_kx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! (kx, local y in x-pencil)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">spec_uu_kz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! (kz, local y in z-pencil)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">spec_fft_wx</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">spec_fft_wz</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nspec_samples</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rre_sponge_p</span><span class="p">(:)</span><span class="w">         </span><span class="c">! vis=1/Re_sponge at centre in sponge layer</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rre_sponge_c</span><span class="p">(:)</span><span class="w">         </span><span class="c">! vis=1/Re_sponge at node in sponge layer</span>
+
+<span class="w">  </span><span class="k">end type </span><span class="n">t_flow</span>
+</pre></div>
+
+    </section>
+    
     </div>
   </div>
 
@@ -1495,8 +2030,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

@@ -132,9 +132,9 @@
     </div>
     <div class="layout">
       <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
-<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a></div>
-<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Example Cases</a></div>
-<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
 <div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
 <div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
 <div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
@@ -174,6 +174,9 @@
 </tr>
 </tbody></table>
 <p>Pipe and annular cases use cylindrical-coordinate constraints internally. Several domain values are reset by the input-reading logic for these cases, so always check the run log for final interpreted values.</p>
+<h2>MHD Model Scope</h2>
+<p>The MHD model uses the quasi-static approximation with an imposed magnetic field. The user input <code>B_static = Bx,By,Bz</code> is interpreted as a global Cartesian vector; cylindrical cases decompose that vector into local radial and azimuthal components before forming the Lorentz force.</p>
+<p>Electrical conductivity is currently treated as constant in the MHD electric-potential solve. For the liquid-metal resistivity relation currently under review, a 20% temperature increase of about 114 K corresponds to an estimated electrical-conductivity decrease of about 6.9%. This gives a useful scale for the constant-conductivity approximation, while temperature-dependent conductivity remains a planned future extension.</p>
 <h2>Mesh and Stretching</h2>
 <p>Wall-normal or radial resolution is controlled by the <code>[mesh]</code> section. Available options include:</p>
 <ul>

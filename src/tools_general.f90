@@ -7,7 +7,7 @@ module print_msg_mod
   public :: Print_debug_end_msg
   public :: Print_3d_array
 contains
-!==========================================================================================================
+!==============================================================================
   subroutine Print_error_msg(msg)
     !use iso_fortran_env
     implicit none
@@ -19,7 +19,7 @@ contains
 
     return
   end subroutine Print_error_msg
-!==========================================================================================================
+!==============================================================================
   subroutine Print_warning_msg(msg)
     !use iso_fortran_env
     implicit none
@@ -29,7 +29,7 @@ contains
 
     return
   end subroutine Print_warning_msg
-  !==========================================================================================================
+  !==============================================================================
   subroutine Print_note_msg(msg)
     !use iso_fortran_env
     implicit none
@@ -39,7 +39,7 @@ contains
 
     return
   end subroutine Print_note_msg
-  !==========================================================================================================
+  !==============================================================================
   subroutine Print_debug_start_msg(msg)
     !use iso_fortran_env
     implicit none
@@ -50,7 +50,7 @@ contains
 
     return
   end subroutine Print_debug_start_msg
-!==========================================================================================================
+!==============================================================================
   subroutine Print_debug_inline_msg(msg)
     !use iso_fortran_env
     implicit none
@@ -59,7 +59,7 @@ contains
     write (*, *) "    "//msg
     return
   end subroutine Print_debug_inline_msg
-  !==========================================================================================================
+  !==============================================================================
   subroutine Print_debug_mid_msg(msg)
     !use iso_fortran_env
     implicit none
@@ -68,7 +68,7 @@ contains
     write (*, *) "  ------ "//msg//" ------"
     return
   end subroutine Print_debug_mid_msg
-!==========================================================================================================
+!==============================================================================
   subroutine Print_debug_end_msg
     !use iso_fortran_env
     implicit none
@@ -76,7 +76,7 @@ contains
     write (*, *) "        ... done."
     return
   end subroutine Print_debug_end_msg
-!==========================================================================================================
+!==============================================================================
   subroutine Print_3d_array(var, nx, ny, nz, str)
     use precision_mod
     !use iso_fortran_env
@@ -100,7 +100,7 @@ contains
   end subroutine Print_3d_array
 end module
 
-!==========================================================================================================
+!==============================================================================
 module decomp_operation_mod
   implicit none
 contains
@@ -123,7 +123,7 @@ contains
   end function
 end module
 
-!==========================================================================================================
+!==============================================================================
 module code_performance_mod
   use mpi_mod
   use parameters_constant_mod
@@ -151,7 +151,7 @@ module code_performance_mod
   real(wp), save :: t_iter_io
   real(wp), save :: t_step_end
   real(wp), save :: t_code_end
-  integer :: cpu_nfre
+  integer :: cpu_nfre = 10
 
   private :: Convert_sec_to_hms
   public :: call_cpu_time
@@ -182,62 +182,62 @@ module code_performance_mod
     integer :: hrs, mins
     real(wp) :: secs, t(4), t_work(4)
     real(wp) :: t_now
-    real(WP) :: t_total, t_elaspsed, t_remaining, t_aveiter, t_this_iter, t_preparation, t_postprocessing
-    real(WP) :: t_total0, t_elaspsed0,t_remaining0, t_aveiter0, t_this_iter0, t_preparation0, t_postprocessing0
+    real(WP) :: t_total, t_elapsed, t_remaining, t_aveiter, t_this_iter, t_preparation, t_postprocessing
+    real(WP) :: t_total0, t_elapsed0,t_remaining0, t_aveiter0, t_this_iter0, t_preparation0, t_postprocessing0
     real(WP) :: t_iter_solver0, t_iter_monitor0, t_iter_io0
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(itype == CPU_TIME_CODE_START) then
-      call cpu_time(t_code_start)
-!----------------------------------------------------------------------------------------------------------
+      t_code_start = MPI_Wtime()
+!------------------------------------------------------------------------------
     else if (itype == CPU_TIME_STEP_START) then
-      call cpu_time(t_step_start)
+      t_step_start = MPI_Wtime()
       t_preparation = t_step_start - t_code_start
       !call mpi_barrier(MPI_COMM_WORLD, ierror)
       call mpi_allreduce(t_preparation, t_preparation0, 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
       if(nrank == 0 .and. .not. is_IO_off) call Print_debug_mid_msg ("Code Performance Info")
       if(nrank == 0 .and. .not. is_IO_off) call Print_debug_inline_msg ("    Time for code preparation : " // &
           trim(real2str(t_preparation0))//' s')
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     else if (itype == CPU_TIME_ITER_START) then
-      call cpu_time(t_iter_start)
+      t_iter_start = MPI_Wtime()
       t_iter_mark = t_iter_start
       t_iter_solver = ZERO
       t_iter_monitor = ZERO
       t_iter_io = ZERO
       if(nrank == 0 .and. .not. is_IO_off) call Print_debug_start_msg ("Time Step = "//trim(int2str(iter))// &
           '/'//trim(int2str(niter))) !trim(int2str(niter-iterfrom)))
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     else if (itype == CPU_TIME_ITER_SOLVER) then
-      call cpu_time(t_now)
+      t_now = MPI_Wtime()
       t_iter_solver = t_iter_solver + t_now - t_iter_mark
       t_iter_mark = t_now
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     else if (itype == CPU_TIME_ITER_MONITOR) then
-      call cpu_time(t_now)
+      t_now = MPI_Wtime()
       t_iter_monitor = t_iter_monitor + t_now - t_iter_mark
       t_iter_mark = t_now
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     else if (itype == CPU_TIME_ITER_IO) then
-      call cpu_time(t_now)
+      t_now = MPI_Wtime()
       t_iter_io = t_iter_io + t_now - t_iter_mark
       t_iter_mark = t_now
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     else if (itype == CPU_TIME_ITER_END) then
       if(.not.present(iter)) call Print_error_msg("Error in calculating CPU Time.")
-      call cpu_time(t_iter_end)
+      t_iter_end = MPI_Wtime()
 
       t_this_iter = t_iter_end - t_iter_start
-      t_elaspsed  = t_iter_end - t_step_start
-      t_aveiter   = t_elaspsed / real(iter - iterfrom, WP)
+      t_elapsed  = t_iter_end - t_step_start
+      t_aveiter   = t_elapsed / real(iter - iterfrom, WP)
       t_remaining = t_aveiter * real(niter - iter, wp)
 
       t(1) = t_this_iter
-      t(2) = t_elaspsed
+      t(2) = t_elapsed
       t(3) = t_aveiter
       t(4) = t_remaining
       call mpi_allreduce(t, t_work, 4, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
       t_this_iter0 = t_work(1)
-      t_elaspsed0  = t_work(2)
+      t_elapsed0  = t_work(2)
       t_aveiter0   = t_work(3)
       t_remaining0 = t_work(4)
 
@@ -264,25 +264,25 @@ module code_performance_mod
         end if
       end if
 
-      call Convert_sec_to_hms (t_elaspsed0, hrs, mins, secs)
-      if(nrank == 0 .and. .not. is_IO_off) call Print_debug_inline_msg ("    Elaspsed Wallclock Time : "// &
+      call Convert_sec_to_hms (t_elapsed0, hrs, mins, secs)
+      if(nrank == 0 .and. .not. is_IO_off) call Print_debug_inline_msg ("    Elapsed Wallclock Time : "// &
            trim(int2str(hrs)) // ' h ' // &
            trim(int2str(mins)) // ' m ' // &
            trim(real2str(secs)) // ' s ')
 
       call Convert_sec_to_hms (t_remaining0, hrs, mins, secs)
       if(nrank == 0 .and. .not. is_IO_off) then
-        call Print_debug_inline_msg ("    Remaning Wallclock Time : "// &
+        call Print_debug_inline_msg ("    Remaining Wallclock Time : "// &
            trim(int2str(hrs)) // ' h ' // &
            trim(int2str(mins)) // ' m ' // &
            trim(real2str(secs)) // ' s ')
 
       !if(nrank == 0) call Print_debug_mid_msg ("Code Performance Info")
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     else if (itype == CPU_TIME_STEP_END) then
 
-      call cpu_time(t_step_end)
+      t_step_end = MPI_Wtime()
       t_total = t_step_end - t_step_start
       t_aveiter= t_total / real(niter - iterfrom, WP)
       !call mpi_barrier(MPI_COMM_WORLD, ierror)
@@ -304,10 +304,10 @@ module code_performance_mod
            trim(int2str(mins)) // ' m ' // &
            trim(real2str(secs)) // ' s ')
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     else if (itype == CPU_TIME_CODE_END) then
 
-      call cpu_time(t_code_end)
+      t_code_end = MPI_Wtime()
       t_total  = t_code_end - t_code_start
       t_postprocessing = t_code_end - t_step_end
 
@@ -482,9 +482,9 @@ contains
 end module
 
 
-!==========================================================================================================
+!==============================================================================
 
-!==========================================================================================================
+!==============================================================================
 module random_number_generation_mod
   use precision_mod
   implicit none
@@ -851,7 +851,7 @@ end module random_number_generation_mod
   !public :: local2global_yid
 
   !contains
-!==========================================================================================================
+!==============================================================================
 !   function which_pencil(dtmp) result(a)
 !     use parameters_constant_mod
 !     use decomp_2d
@@ -873,7 +873,7 @@ end module random_number_generation_mod
 
 !   end function
 
-!==========================================================================================================
+!==============================================================================
   ! function local2global_3indices(a, dtmp) result(b)
   !   use decomp_2d
   !   use parameters_constant_mod
@@ -926,7 +926,7 @@ end module random_number_generation_mod
 !end module
 
 
-!==========================================================================================================
+!==============================================================================
 module wrt_debug_field_mod
   public :: wrt_3d_all_debug
   public :: wrt_3d_pt_debug
@@ -991,7 +991,7 @@ contains
 
   end subroutine
 
-  !==========================================================================================================
+  !==============================================================================
   subroutine wrt_3d_all_debug(var, dtmp, iter, str, loc)
     use io_files_mod
     use precision_mod
@@ -1188,7 +1188,7 @@ module decomp_extended_mod
   public :: zpencil_index_ggg2llg
 
   contains
-!==========================================================================================================
+!==============================================================================
   subroutine ypencil_index_lgl2ggl(vin, vou, dtmp)
     use decomp_2d
     implicit none
@@ -1209,7 +1209,7 @@ module decomp_extended_mod
     end do
     return
   end subroutine
-!==========================================================================================================
+!==============================================================================
   subroutine zpencil_index_llg2ggg(vin, vou, dtmp)
     use decomp_2d
 
@@ -1233,7 +1233,7 @@ module decomp_extended_mod
     end do
     return
   end subroutine
-!==========================================================================================================
+!==============================================================================
   subroutine zpencil_index_ggg2llg(vin, vou, dtmp)
     use decomp_2d
 
@@ -1365,7 +1365,11 @@ contains
       call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
       ! First estimate the axis value from the first off-axis ring, then
       ! reconstruct the regular axis-limit value by projecting that ring
-      ! onto Cartesian components and averaging azimuthally.
+      ! onto its m=1 Fourier pair and averaging azimuthally. uy/uz below are
+      ! those two coefficients, not components in a particular Cartesian frame:
+      ! project onto cos/sin and sum the same pair back and you have an identity,
+      ! so this block is independent of the (r,theta) -> (y,z) mapping convention
+      ! and must not be swapped along with the mapping sites.
       var_ypencil(:, 1, :) = (var_ypencil1(:, 2, :) + var_ypencil(:, 2, :)) * HALF
       call transpose_y_to_z(var_ypencil, var_zpencil1, dtmp)
       if(dtmp%zst(2) == 1) then
@@ -1487,6 +1491,14 @@ contains
 
   !============================================================================
   ! Multiply cylindrical variable by r^n (specific for x4x configuration)
+  !
+  ! WALL SIDES ONLY. This scales slots 1 and 2 by the radius at the first and last
+  ! y positions and then duplicates them into slots 3 and 4. That duplication is
+  ! the right thing for a Dirichlet or Neumann side, where buildup_ghost_cells_*
+  ! reads slot 1 or 2 alone, but it destroys a genuine second ghost layer. At a
+  ! pipe axis it is worse still: r(1) = 0, so slot 1 is zeroed and slot 3 with it.
+  ! Callers that scale an fbc array whose lower side is IBC_INTERIOR must rebuild
+  ! both axis slots afterwards - see the y-momentum diffusion terms in eq_momentum2.
   !============================================================================
   subroutine multiple_cylindrical_rn_x4x(var, dtmp, r, n, pencil)
     type(DECOMP_INFO), intent(in) :: dtmp
@@ -1525,8 +1537,8 @@ contains
   end subroutine multiple_cylindrical_rn_x4x
 
 end module cylindrical_rn_mod
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================
   subroutine profile_interpolation(nin, yin, uin, nout, ycase, ucase)
     use cubic_spline_interpolation
     use precision_mod
@@ -1560,7 +1572,7 @@ end module cylindrical_rn_mod
   end subroutine
 
 
-  !==========================================================================================================
+  !==============================================================================
 
 
 module find_max_min_ave_mod
@@ -1575,7 +1587,7 @@ module find_max_min_ave_mod
   public  :: Get_area_average_2d_for_fbcy
   public  :: Get_area_average_2d_for_fbcz
 contains
-!==========================================================================================================
+!==============================================================================
   subroutine is_valid_number_3D(var, varname)
     use ieee_arithmetic
     use parameters_constant_mod
@@ -1603,7 +1615,7 @@ contains
     end if
 
   end subroutine is_valid_number_3D
-!==========================================================================================================
+!==============================================================================
   subroutine Find_maximum_absvar3d_loc(var, varmax_work, dtmp, str, nxst0)
     use math_mod
     use mpi_mod
@@ -1684,7 +1696,7 @@ contains
     return
   end subroutine
 
-  !==========================================================================================================
+  !==============================================================================
   subroutine Find_max_min_3d(var, opt_abs, opt_calc, opt_work, opt_name)
     use math_mod
     use mpi_mod
@@ -1791,7 +1803,7 @@ contains
     return
   end subroutine
 
-!   !==========================================================================================================
+!   !==============================================================================
 !   subroutine Find_max_min_1d(var,  str, fmt)
 !     use precision_mod
 !     use math_mod
@@ -1831,7 +1843,7 @@ contains
 !     return
 !   end subroutine
 
-! !==========================================================================================================
+! !==============================================================================
 !   subroutine Find_max_min_absvar3d(var,  str, fmt)
 !     use precision_mod
 !     use math_mod
@@ -1876,7 +1888,7 @@ contains
 
 !     return
 !   end subroutine
-!==========================================================================================================
+!==============================================================================
   subroutine Get_volumetric_average_3d(dm, dtmp, var, fo_work, itype, str)
     use decomp_2d
     use mpi_mod
@@ -1899,11 +1911,11 @@ contains
     integer :: i, j, k, jj
     real(WP) :: dx, dy, dz, ymapping
 
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
     ! default: x-pencil
     ! use the chain rule to get integral in the stretching function
     ! integral(f(y), dy) = integral(f(y(s)), dy(s)) = integral(f(y(s)) * dy/ds, ds)
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
       if (dtmp%ysz(2)==dm%np_geo(2)) then
         call Print_error_msg('Get_volumetric_average_3d only supports input of dxcx')
       end if
@@ -1952,7 +1964,7 @@ contains
 #endif
     return
   end subroutine
-!==========================================================================================================
+!==============================================================================
   subroutine Get_area_average_2d_for_fbcx(dm, dtmp, var, fo_work, itype, str)
     use decomp_2d
     use mpi_mod
@@ -1978,11 +1990,11 @@ contains
     !if(dtmp /= dm%dpcc) call Print_error_msg("Error: Get_area_average_2d_for_yz_pcc is for pcc only.")
     if(dtmp%xsz(1) /= dtmp%xen(1)) call Print_error_msg("Error. This is not x-pencil.")
     ! x pencil only
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
     ! default: x-pencil
     ! use the chain rule to get integral in the stretching function
     ! integral(f(y), dy) = integral(f(y(s)), dy(s)) = integral(f(y(s)) * dy/ds, ds)
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
       area = ZERO
       fo  = ZERO
       dy = dm%h(2)
@@ -2025,8 +2037,8 @@ contains
 
     return
   end subroutine
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================
   subroutine Get_area_average_2d_for_fbcz(dm, dtmp, var, fo_work, itype, str)
     use decomp_2d
     use mpi_mod
@@ -2051,11 +2063,11 @@ contains
 
     !if(dtmp /= dm%dccp) call Print_error_msg("Error: Get_area_average_2d_for_yz_pcc is for ccp only.")
     if(dtmp%zsz(3) /= dtmp%zen(3)) call Print_error_msg("Error. This is not z-pencil.")
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
     ! default: x-pencil
     ! use the chain rule to get integral in the stretching function
     ! integral(f(y), dy) = integral(f(y(s)), dy(s)) = integral(f(y(s)) * dy/ds, ds)
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
       area = ZERO
       fo  = ZERO
       dy = dm%h(2)
@@ -2094,7 +2106,7 @@ contains
 
     return
   end subroutine
-!==========================================================================================================
+!==============================================================================
   subroutine Get_area_average_2d_for_fbcy(dm, dtmp, var, fo_work, itype, str, is_rf)
     use decomp_2d
     use mpi_mod
@@ -2120,11 +2132,11 @@ contains
 
     !if(dtmp /= dm%dcpc) call Print_error_msg("Error: Get_area_average_2d_for_yz_pcc is for pcc only.")
     if(dtmp%ysz(2) /= dtmp%yen(2)) call Print_error_msg("Error. This is not y-pencil.")
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
     ! default: x-pencil
     ! use the chain rule to get integral in the stretching function
     ! integral(f(y), dy) = integral(f(y(s)), dy(s)) = integral(f(y(s)) * dy/ds, ds)
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
       area = ZERO
       fo  = ZERO
 

@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>visualisation_xdmf_io_mod &ndash; Fortran Program</title>
+    <title>visualisation_xdmf_io_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>visualisation_xdmf_io_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.5% of total for modules and submodules.">107 statements</a>
+                 title=" 0.5% of total for modules and submodules.">138 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,17 +128,17 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#funcs-0"
          aria-expanded="false" aria-controls="funcs-0">
@@ -142,6 +146,8 @@
       </a>
       <div id="funcs-0" class="collapse">
         <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/visualisation_xdmf_io_mod.html#proc-xdmf_seek_bytes_int32">xdmf_seek_bytes_int32</a>
+            <a class="list-group-item" href="../module/visualisation_xdmf_io_mod.html#proc-xdmf_seek_bytes_int64">xdmf_seek_bytes_int64</a>
             <a class="list-group-item" href="../module/visualisation_xdmf_io_mod.html#proc-xdmf_dims_kji_string">xdmf_dims_kji_string</a>
         </div>
       </div>
@@ -155,6 +161,7 @@
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/visualisation_xdmf_io_mod.html#proc-xdmf_begin_grid_cart">xdmf_begin_grid_cart</a>
+            <a class="list-group-item" href="../module/visualisation_xdmf_io_mod.html#proc-xdmf_write_dataitem_1d">xdmf_write_dataitem_1d</a>
             <a class="list-group-item" href="../module/visualisation_xdmf_io_mod.html#proc-xdmf_begin_grid_cyl">xdmf_begin_grid_cyl</a>
             <a class="list-group-item" href="../module/visualisation_xdmf_io_mod.html#proc-xdmf_write_attribute_scalar">xdmf_write_attribute_scalar</a>
             <a class="list-group-item" href="../module/visualisation_xdmf_io_mod.html#proc-xdmf_end_grid">xdmf_end_grid</a>
@@ -162,13 +169,13 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -194,7 +201,7 @@ references for ParaView/VisIt-compatible XDMF files.</p>
       </div>
     </div>
 
-
+      
       <br>
 
 
@@ -206,10 +213,100 @@ references for ParaView/VisIt-compatible XDMF files.</p>
         <section>
           <h2>Functions</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_dims_kji_string"></span> <h3>public pure function <a href='../proc/xdmf_dims_kji_string.html'>xdmf_dims_kji_string</a>(nijk) result(s)
+    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_seek_bytes_int32"></span> <h3>private pure function <a href='../proc/xdmf_seek_bytes_int32.html'>xdmf_seek_bytes_int32</a>(n_int32) result(seekstr)  
 </h3></div>
     <div class="card-body">
+          
+  
 
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_int32"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>n_int32</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>character(len=32)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_seek_bytes_int64"></span> <h3>private pure function <a href='../proc/xdmf_seek_bytes_int64.html'>xdmf_seek_bytes_int64</a>(nbytes) result(seekstr)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nbytes"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nbytes</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>character(len=32)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_dims_kji_string"></span> <h3>public pure function <a href='../proc/xdmf_dims_kji_string.html'>xdmf_dims_kji_string</a>(nijk) result(s)  
+</h3></div>
+    <div class="card-body">
+          
   <p>Convert CHAPSim <code>i,j,k</code> dimensions to the XDMF <code>k,j,i</code> ordering.
 - nijk (in): Dimensions in solver order.
 Return: Dimension string used by XDMF topology and attribute records.</p>
@@ -232,7 +329,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nijk</strong>(NDIM)</td>
@@ -247,7 +344,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
     Return Value
     <small>character(len=64)</small>
     </h4>
-
+    
 
     </div>
   </div>
@@ -258,10 +355,10 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_begin_grid_cart"></span> <h3>public  subroutine <a href='../proc/xdmf_begin_grid_cart.html'>xdmf_begin_grid_cart</a>(unit, grid_name, nnode, grid_files_1d)
+    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_begin_grid_cart"></span> <h3>public  subroutine <a href='../proc/xdmf_begin_grid_cart.html'>xdmf_begin_grid_cart</a>(unit, grid_name, nnode, grid_files_1d, opt_fragment)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Start an XDMF rectilinear Cartesian grid.
 - unit (in): Open Fortran unit for the XDMF file.
 - grid_name (in): Name of the XDMF grid.
@@ -281,12 +378,12 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-unit"></span>
+              <span class="anchor" id="variable-unit~2"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>unit</strong></td>
@@ -301,7 +398,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>grid_name</strong></td>
@@ -316,7 +413,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nnode</strong>(NDIM)</td>
@@ -331,10 +428,25 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>grid_files_1d</strong>(NDIM)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_fragment"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_fragment</strong></td>
             <td>
 
             </td>
@@ -347,15 +459,11 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_begin_grid_cyl"></span> <h3>public  subroutine <a href='../proc/xdmf_begin_grid_cyl.html'>xdmf_begin_grid_cyl</a>(unit, grid_name, nnode, grid_file)
+    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_write_dataitem_1d"></span> <h3>private  subroutine <a href='../proc/xdmf_write_dataitem_1d.html'>xdmf_write_dataitem_1d</a>(unit, filename, npts)  
 </h3></div>
     <div class="card-body">
-
-  <p>Start an XDMF curvilinear grid for cylindrical cases.
-- unit (in): Open Fortran unit for the XDMF file.
-- grid_name (in): Name of the XDMF grid.
-- nnode (in): Node counts in solver order.
-- grid_file (in): Binary XYZ coordinate file.</p>
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -375,7 +483,81 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>unit</strong></td>
+            <td>
 
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-filename~3"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>filename</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-npts"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>npts</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_begin_grid_cyl"></span> <h3>public  subroutine <a href='../proc/xdmf_begin_grid_cyl.html'>xdmf_begin_grid_cyl</a>(unit, grid_name, nnode, grid_file, opt_fragment)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Start an XDMF curvilinear grid for cylindrical cases.
+- unit (in): Open Fortran unit for the XDMF file.
+- grid_name (in): Name of the XDMF grid.
+- nnode (in): Node counts in solver order.
+- grid_file (in): Binary XYZ coordinate file.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-unit~4"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
             </td>
             <td>::</td>
             <td><strong>unit</strong></td>
@@ -390,7 +572,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>grid_name</strong></td>
@@ -405,7 +587,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nnode</strong>(NDIM)</td>
@@ -420,10 +602,25 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>grid_file</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_fragment~2"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_fragment</strong></td>
             <td>
 
             </td>
@@ -436,10 +633,10 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_write_attribute_scalar"></span> <h3>public  subroutine <a href='../proc/xdmf_write_attribute_scalar.html'>xdmf_write_attribute_scalar</a>(unit, name, center, dims_kji, data_file_rel)
+    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_write_attribute_scalar"></span> <h3>public  subroutine <a href='../proc/xdmf_write_attribute_scalar.html'>xdmf_write_attribute_scalar</a>(unit, name, center, dims_kji, data_file_rel, opt_precision, opt_seek_bytes)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Add a scalar field attribute to the current XDMF grid.
 - unit (in): Open Fortran unit for the XDMF file.
 - name (in): Attribute name shown in visualisation tools.
@@ -460,12 +657,12 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-unit~4"></span>
+              <span class="anchor" id="variable-unit~5"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>unit</strong></td>
@@ -480,7 +677,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>name</strong></td>
@@ -495,7 +692,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>center</strong></td>
@@ -510,7 +707,7 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dims_kji</strong></td>
@@ -525,10 +722,40 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>data_file_rel</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_precision"></span>
+              integer,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_precision</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_seek_bytes"></span>
+              integer(kind=int64),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_seek_bytes</strong></td>
             <td>
 
             </td>
@@ -541,10 +768,10 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_end_grid"></span> <h3>public  subroutine <a href='../proc/xdmf_end_grid.html'>xdmf_end_grid</a>(unit)
+    <div class="card-header codesum"><span class="anchor" id="proc-xdmf_end_grid"></span> <h3>public  subroutine <a href='../proc/xdmf_end_grid.html'>xdmf_end_grid</a>(unit, opt_fragment)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Close the current XDMF grid, domain, and document.
 - unit (in): Open Fortran unit for the XDMF file.</p>
 
@@ -561,15 +788,30 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-unit~5"></span>
+              <span class="anchor" id="variable-unit~6"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>unit</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_fragment~3"></span>
+              logical,
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_fragment</strong></td>
             <td>
 
             </td>
@@ -596,8 +838,8 @@ Return: Dimension string used by XDMF topology and attribute records.</p>
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

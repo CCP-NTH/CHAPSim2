@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>bc_ndomain_interior_mod &ndash; Fortran Program</title>
+    <title>bc_ndomain_interior_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>bc_ndomain_interior_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.0% of total for modules and submodules.">230 statements</a>
+                 title=" 0.8% of total for modules and submodules.">230 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,18 +128,29 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/bc_ndomain_interior_mod.html#variable-ifbc">IFBC</a>
+        </div>
+      </div>
+    </div>
 
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
          aria-expanded="false" aria-controls="subs-0">
@@ -143,19 +158,23 @@
       </a>
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/bc_ndomain_interior_mod.html#proc-apply_fbcx_2dm_halo">apply_fbcx_2dm_halo</a>
+            <a class="list-group-item" href="../module/bc_ndomain_interior_mod.html#proc-apply_fbcy_2dm_halo">apply_fbcy_2dm_halo</a>
+            <a class="list-group-item" href="../module/bc_ndomain_interior_mod.html#proc-apply_fbcz_2dm_halo">apply_fbcz_2dm_halo</a>
+            <a class="list-group-item" href="../module/bc_ndomain_interior_mod.html#proc-apply_fbc_2dm_flow_halo">apply_fbc_2dm_flow_halo</a>
             <a class="list-group-item" href="../module/bc_ndomain_interior_mod.html#proc-update_fbc_2dm_flow_halo">update_fbc_2dm_flow_halo</a>
             <a class="list-group-item" href="../module/bc_ndomain_interior_mod.html#proc-update_fbc_2dm_thermo_halo">update_fbc_2dm_thermo_halo</a>
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -163,27 +182,61 @@
     </div>
 
     <div class="col-md-9" id='text'>
-
+      
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
+                  <li class="list-inline-item"><a href='udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item">decomp_2d</li>
                   <li class="list-inline-item"><a href='parameters_constant_mod.html'>parameters_constant_mod</a></li>
-                  <li class="list-inline-item"><a href='udf_type_mod.html'>udf_type_mod</a></li>
+                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
               </ul>
             </li>
         </ul>
       </div>
     </div>
 
-
+      
       <br>
 
 
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ifbc"></span>
+              integer,
+            </td>
+              <td>private,</td>
+            <td>
+parameter               
+            </td>
+            <td>::</td>
+            <td><strong>IFBC</strong>(1:2)</td>
+<td> =</td>
+                <td>(/1, 2/)</td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
 
 
 
@@ -193,11 +246,351 @@
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbc_2dm_flow_halo"></span> <h3>public  subroutine <a href='../proc/update_fbc_2dm_flow_halo.html'>update_fbc_2dm_flow_halo</a>(dm1, fl1, dm2, fl2)
+    <div class="card-header codesum"><span class="anchor" id="proc-apply_fbcx_2dm_halo"></span> <h3>private  subroutine <a href='../proc/apply_fbcx_2dm_halo.html'>apply_fbcx_2dm_halo</a>(fbcx, var, iside, dtmp)  
 </h3></div>
     <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fbcx~4"></span>
+              real(kind=WP),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fbcx</strong>(:,:,:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-var~24"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>var</strong>(dtmp%xsz(1),dtmp%xsz(2),dtmp%xsz(3))</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iside"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iside</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dtmp~33"></span>
+              type(DECOMP_INFO),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dtmp</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
 
 
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-apply_fbcy_2dm_halo"></span> <h3>private  subroutine <a href='../proc/apply_fbcy_2dm_halo.html'>apply_fbcy_2dm_halo</a>(fbcy, var, iside, dtmp)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fbcy~6"></span>
+              real(kind=WP),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fbcy</strong>(:,:,:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-var~25"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>var</strong>(dtmp%ysz(1),dtmp%ysz(2),dtmp%ysz(3))</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iside~2"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iside</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dtmp~34"></span>
+              type(DECOMP_INFO),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dtmp</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-apply_fbcz_2dm_halo"></span> <h3>private  subroutine <a href='../proc/apply_fbcz_2dm_halo.html'>apply_fbcz_2dm_halo</a>(fbcz, var, iside, dtmp)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fbcz~4"></span>
+              real(kind=WP),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fbcz</strong>(:,:,:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-var~26"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>var</strong>(dtmp%zsz(1),dtmp%zsz(2),dtmp%zsz(3))</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iside~3"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iside</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dtmp~35"></span>
+              type(DECOMP_INFO),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dtmp</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-apply_fbc_2dm_flow_halo"></span> <h3>private  subroutine <a href='../proc/apply_fbc_2dm_flow_halo.html'>apply_fbc_2dm_flow_halo</a>(dm, fl, iside, bc_type)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~147"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~38"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iside~4"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iside</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bc_type"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>bc_type</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbc_2dm_flow_halo"></span> <h3>public  subroutine <a href='../proc/update_fbc_2dm_flow_halo.html'>update_fbc_2dm_flow_halo</a>(dm1, fl1, dm2, fl2)  
+</h3></div>
+    <div class="card-body">
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -217,7 +610,7 @@
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm1</strong></td>
@@ -232,7 +625,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl1</strong></td>
@@ -247,7 +640,7 @@
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm2</strong></td>
@@ -262,7 +655,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl2</strong></td>
@@ -278,11 +671,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbc_2dm_thermo_halo"></span> <h3>public  subroutine <a href='../proc/update_fbc_2dm_thermo_halo.html'>update_fbc_2dm_thermo_halo</a>(dm1, tm1, dm2, tm2)
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbc_2dm_thermo_halo"></span> <h3>public  subroutine <a href='../proc/update_fbc_2dm_thermo_halo.html'>update_fbc_2dm_thermo_halo</a>(dm1, tm1, dm2, tm2)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -302,7 +695,7 @@
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm1</strong></td>
@@ -317,7 +710,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm1</strong></td>
@@ -332,7 +725,7 @@
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm2</strong></td>
@@ -347,7 +740,7 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm2</strong></td>
@@ -377,8 +770,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

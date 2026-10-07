@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>t_mhd &ndash; Fortran Program </title>
+    <title>t_mhd &ndash; CHAPSim2 </title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>t_mhd
       <small>Derived Type</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p>17.0% of total for derived types.</p>Including implementation: 62 statements, 17.0% of total for derived types.">62 statements</a>
+                 title="<p>14.0% of total for derived types.</p>Including implementation: 67 statements, 14.0% of total for derived types.">67 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,12 +124,12 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#vars-0"
          aria-expanded="false" aria-controls="vars-0">
@@ -133,8 +137,8 @@
       </a>
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/t_mhd.html#variable-iterfrom~3">iterfrom</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-iteration~3">iteration</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-iterfrom~5">iterfrom</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-iteration~4">iteration</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-is_nstuart">is_NStuart</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-is_nhartmn">is_NHartmn</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-nstuart">NStuart</a>
@@ -144,9 +148,12 @@
             <a class="list-group-item" href="../type/t_mhd.html#variable-jx">jx</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-jy">jy</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-jz">jz</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-bx~3">bx</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-by~3">by</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-bz~3">bz</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-bx~5">bx</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-by~5">by</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-bz~4">bz</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ebcx_nominal">ebcx_nominal</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ebcy_nominal">ebcy_nominal</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ebcz_nominal">ebcz_nominal</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-ibcx_ep">ibcx_ep</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-ibcy_ep">ibcy_ep</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-ibcz_ep">ibcz_ep</a>
@@ -159,15 +166,15 @@
             <a class="list-group-item" href="../type/t_mhd.html#variable-ibcx_jz">ibcx_jz</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-ibcy_jz">ibcy_jz</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-ibcz_jz">ibcz_jz</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcx_bx">ibcx_bx</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcy_bx">ibcy_bx</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcz_bx">ibcz_bx</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcx_by">ibcx_by</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcy_by">ibcy_by</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcz_by">ibcz_by</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcx_bz">ibcx_bz</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcy_bz">ibcy_bz</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcz_bz">ibcz_bz</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcx_bx~2">ibcx_bx</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcy_bx~2">ibcy_bx</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcz_bx~2">ibcz_bx</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcx_by~2">ibcx_by</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcy_by~2">ibcy_by</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcz_by~2">ibcz_by</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcx_bz~2">ibcx_bz</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcy_bz~2">ibcy_bz</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-ibcz_bz~2">ibcz_bz</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-fbcx_ep">fbcx_ep</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-fbcy_ep">fbcy_ep</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-fbcz_ep">fbcz_ep</a>
@@ -180,51 +187,53 @@
             <a class="list-group-item" href="../type/t_mhd.html#variable-fbcx_jz">fbcx_jz</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-fbcy_jz">fbcy_jz</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-fbcz_jz">fbcz_jz</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcx_bx">fbcx_bx</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcy_bx">fbcy_bx</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcz_bx">fbcz_bx</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcx_by">fbcx_by</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcy_by">fbcy_by</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcz_by">fbcz_by</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcx_bz">fbcx_bz</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcy_bz">fbcy_bz</a>
-            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcz_bz">fbcz_bz</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcx_bx~2">fbcx_bx</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcy_bx~2">fbcy_bx</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcz_bx~2">fbcz_bx</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcx_by~2">fbcx_by</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcy_by~2">fbcy_by</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcz_by~2">fbcz_by</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcx_bz~2">fbcx_bz</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcy_bz~2">fbcy_bz</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-fbcz_bz~2">fbcz_bz</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-tavg_e">tavg_e</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-tavg_j">tavg_j</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-tavg_eu">tavg_eu</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-tavg_ej">tavg_ej</a>
+            <a class="list-group-item" href="../type/t_mhd.html#variable-tavg_ju">tavg_ju</a>
             <a class="list-group-item" href="../type/t_mhd.html#variable-tavg_jj">tavg_jj</a>
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
       <h2 id="type-def-statement">
         type, public :: t_mhd</h2>
-
+    
     <br>
 
     <section>
@@ -241,36 +250,36 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-iterfrom~3"></span>
+              <span class="anchor" id="variable-iterfrom~5"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iterfrom</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iteration~3"></span>
+              <span class="anchor" id="variable-iteration~4"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iteration</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -280,14 +289,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_NStuart</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -297,14 +306,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_NHartmn</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -314,14 +323,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>NStuart</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -331,14 +340,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>NHartmn</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -348,14 +357,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>B_static</strong>(3)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -372,7 +381,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -389,7 +398,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -406,7 +415,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -423,12 +432,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bx~3"></span>
+              <span class="anchor" id="variable-bx~5"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -440,12 +449,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-by~3"></span>
+              <span class="anchor" id="variable-by~5"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -457,12 +466,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bz~3"></span>
+              <span class="anchor" id="variable-bz~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -474,7 +483,58 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ebcx_nominal"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebcx_nominal</strong>(2)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ebcy_nominal"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebcy_nominal</strong>(2)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ebcz_nominal"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebcz_nominal</strong>(2)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -484,14 +544,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_ep</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -501,14 +561,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_ep</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -518,14 +578,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_ep</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -535,14 +595,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_jx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -552,14 +612,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_jx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -569,14 +629,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_jx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -586,14 +646,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_jy</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -603,14 +663,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_jy</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -620,14 +680,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_jy</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -637,14 +697,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_jz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -654,14 +714,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_jz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -671,167 +731,167 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_jz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcx_bx"></span>
+              <span class="anchor" id="variable-ibcx_bx~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_bx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcy_bx"></span>
+              <span class="anchor" id="variable-ibcy_bx~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_bx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcz_bx"></span>
+              <span class="anchor" id="variable-ibcz_bx~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_bx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcx_by"></span>
+              <span class="anchor" id="variable-ibcx_by~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_by</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcy_by"></span>
+              <span class="anchor" id="variable-ibcy_by~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_by</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcz_by"></span>
+              <span class="anchor" id="variable-ibcz_by~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_by</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcx_bz"></span>
+              <span class="anchor" id="variable-ibcx_bz~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_bz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcy_bz"></span>
+              <span class="anchor" id="variable-ibcy_bz~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_bz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcz_bz"></span>
+              <span class="anchor" id="variable-ibcz_bz~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_bz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -848,7 +908,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -865,7 +925,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -882,7 +942,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -899,7 +959,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -916,7 +976,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -933,7 +993,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -950,7 +1010,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -967,7 +1027,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -984,7 +1044,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1001,7 +1061,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1018,7 +1078,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1035,12 +1095,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcx_bx"></span>
+              <span class="anchor" id="variable-fbcx_bx~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1052,12 +1112,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcy_bx"></span>
+              <span class="anchor" id="variable-fbcy_bx~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1069,12 +1129,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcz_bx"></span>
+              <span class="anchor" id="variable-fbcz_bx~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1086,12 +1146,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcx_by"></span>
+              <span class="anchor" id="variable-fbcx_by~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1103,12 +1163,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcy_by"></span>
+              <span class="anchor" id="variable-fbcy_by~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1120,12 +1180,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcz_by"></span>
+              <span class="anchor" id="variable-fbcz_by~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1137,12 +1197,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcx_bz"></span>
+              <span class="anchor" id="variable-fbcx_bz~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1154,12 +1214,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcy_bz"></span>
+              <span class="anchor" id="variable-fbcy_bz~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1171,12 +1231,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcz_bz"></span>
+              <span class="anchor" id="variable-fbcz_bz~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -1188,7 +1248,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1205,7 +1265,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1222,7 +1282,24 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tavg_eu"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_eu</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1239,7 +1316,24 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tavg_ju"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_ju</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1256,7 +1350,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -1264,11 +1358,11 @@
 
     </section>
     <br>
+    
 
 
 
-
-
+    
     </div>
   </div>
 
@@ -1279,8 +1373,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

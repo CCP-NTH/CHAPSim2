@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>udf_type_mod &ndash; Fortran Program</title>
+    <title>udf_type_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>udf_type_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.5% of total for modules and submodules.">356 statements</a>
+                 title=" 1.5% of total for modules and submodules.">437 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,7 +128,7 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#vars-0"
          aria-expanded="false" aria-controls="vars-0">
@@ -137,14 +141,14 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#types-0"
          aria-expanded="false" aria-controls="types-0">
@@ -162,15 +166,26 @@
       </div>
     </div>
 
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/udf_type_mod.html#proc-get_projection_accuracy">get_projection_accuracy</a>
+        </div>
+      </div>
+    </div>
 
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -178,7 +193,7 @@
     </div>
 
     <div class="col-md-9" id='text'>
-
+      
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -193,7 +208,7 @@
       </div>
     </div>
 
-
+      
       <br>
 
 
@@ -216,14 +231,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fluidparam</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -243,11 +258,11 @@
       <h3>
         type, public&nbsp;::&nbsp;
         <a href='../type/t_fluidthermoproperty.html'>t_fluidThermoProperty</a>
-
+        
       </h3>
     </div>
     <div class="card-body">
-
+      
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -262,12 +277,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-t"></span>
+              <span class="anchor" id="variable-t~6"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>t</strong></td>
@@ -279,12 +294,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-d~2"></span>
+              <span class="anchor" id="variable-d~7"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>d</strong></td>
@@ -296,12 +311,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-m~4"></span>
+              <span class="anchor" id="variable-m~7"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>m</strong></td>
@@ -313,15 +328,32 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-k~21"></span>
+              <span class="anchor" id="variable-k~81"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>k</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-sigma_e"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>sigma_e</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -335,7 +367,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>h</strong></td>
@@ -347,12 +379,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rhoh"></span>
+              <span class="anchor" id="variable-rhoh~3"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>rhoh</strong></td>
@@ -369,7 +401,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>cp</strong></td>
@@ -381,12 +413,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-b"></span>
+              <span class="anchor" id="variable-b~8"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>b</strong></td>
@@ -398,12 +430,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-alpha~2"></span>
+              <span class="anchor" id="variable-alpha~4"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>alpha</strong></td>
@@ -420,7 +452,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>Pr</strong></td>
@@ -445,11 +477,11 @@
       <h3>
         type, public&nbsp;::&nbsp;
         <a href='../type/t_fluid_parameter.html'>t_fluid_parameter</a>
-
+        
       </h3>
     </div>
     <div class="card-body">
-
+      
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -469,7 +501,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>inputProperty</strong></td>
@@ -481,12 +513,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ifluid"></span>
+              <span class="anchor" id="variable-ifluid~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ifluid</strong></td>
@@ -503,7 +535,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ipropertyState</strong></td>
@@ -515,12 +547,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nlist"></span>
+              <span class="anchor" id="variable-nlist~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nlist</strong></td>
@@ -537,7 +569,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>TM0</strong></td>
@@ -554,10 +586,78 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>TB0</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tp0min"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>TP0min</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tp0max"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>TP0max</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tp0minsrc"></span>
+              character(len=64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>TP0minsrc</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tp0maxsrc"></span>
+              character(len=64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>TP0maxsrc</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -571,7 +671,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>HM0</strong></td>
@@ -588,7 +688,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoD</strong>(0:4)</td>
@@ -605,7 +705,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoK</strong>(0:2)</td>
@@ -622,7 +722,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoB</strong></td>
@@ -639,7 +739,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoCp</strong>(-2:2)</td>
@@ -656,7 +756,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoH</strong>(-1:3)</td>
@@ -673,10 +773,10 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
-            <td><strong>CoM</strong>(-1:3)</td>
+            <td><strong>CoM</strong>(-1:1)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -685,12 +785,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dhmax"></span>
+              <span class="anchor" id="variable-dhmax~2"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dhmax</strong></td>
@@ -702,12 +802,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dhmin"></span>
+              <span class="anchor" id="variable-dhmin~2"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dhmin</strong></td>
@@ -719,12 +819,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ftp0ref"></span>
+              <span class="anchor" id="variable-ftp0ref~2"></span>
               type(<a href='../type/t_fluidthermoproperty.html'>t_fluidThermoProperty</a>),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ftp0ref</strong></td>
@@ -741,7 +841,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ftpini</strong></td>
@@ -766,11 +866,11 @@
       <h3>
         type, public&nbsp;::&nbsp;
         <a href='../type/t_domain.html'>t_domain</a>
-
+        
       </h3>
     </div>
     <div class="card-body">
-
+      
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -785,12 +885,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_periodic"></span>
+              <span class="anchor" id="variable-is_periodic~19"></span>
               logical,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_periodic</strong>(NDIM)</td>
@@ -807,7 +907,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_stretching</strong>(NDIM)</td>
@@ -824,7 +924,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_compact_scheme</strong></td>
@@ -836,12 +936,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_thermo"></span>
+              <span class="anchor" id="variable-is_thermo~3"></span>
               logical,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_thermo</strong></td>
@@ -858,7 +958,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_conv_outlet</strong>(3)</td>
@@ -875,7 +975,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_record_xoutlet</strong></td>
@@ -892,10 +992,27 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_read_xinlet</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-reset_unit_massflux"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>reset_unit_massflux</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -909,7 +1026,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_mhd</strong></td>
@@ -926,7 +1043,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fft_skip_c2c</strong>(3)</td>
@@ -938,15 +1055,15 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-io_mode"></span>
+              <span class="anchor" id="variable-existing_output_policy~3"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
-            <td><strong>io_mode</strong></td>
+            <td><strong>existing_output_policy</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -955,12 +1072,97 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idom"></span>
+              <span class="anchor" id="variable-restart_data_layout_read"></span>
               integer,
             </td>
               <td>public</td>
             <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>restart_data_layout_read</strong></td>
+                <td></td>
+                <td></td>
+            <td>
 
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-restart_data_layout_write"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>restart_data_layout_write</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-restart_history_mode"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>restart_history_mode</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-restart_clock"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>restart_clock</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iteration_start"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iteration_start</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idom~4"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
             </td>
             <td>::</td>
             <td><strong>idom</strong></td>
@@ -972,12 +1174,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-icase"></span>
+              <span class="anchor" id="variable-icase~6"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>icase</strong></td>
@@ -994,7 +1196,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>icoordinate</strong></td>
@@ -1011,10 +1213,44 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ifft_lib</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ipoisson_y_method"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ipoisson_y_method</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-les_model~3"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>LES_model</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -1028,7 +1264,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>icht</strong></td>
@@ -1045,7 +1281,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iTimeScheme</strong></td>
@@ -1057,12 +1293,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iviscous"></span>
+              <span class="anchor" id="variable-iviscous~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iviscous</strong></td>
@@ -1079,7 +1315,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iAccuracy</strong></td>
@@ -1096,7 +1332,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ckpt_nfre</strong></td>
@@ -1113,7 +1349,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>visu_nfre</strong></td>
@@ -1130,10 +1366,27 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>visu_idim</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-visu_precision"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>visu_precision</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -1147,7 +1400,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>visu_nskip</strong>(NDIM)</td>
@@ -1164,7 +1417,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>stat_istart</strong></td>
@@ -1181,10 +1434,44 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>stat_level</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stat_visu_nfre"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stat_visu_nfre</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stat_visu_mode"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stat_visu_mode</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -1198,7 +1485,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>stat_nskip</strong>(NDIM)</td>
@@ -1215,7 +1502,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nsubitr</strong></td>
@@ -1227,12 +1514,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-istret~2"></span>
+              <span class="anchor" id="variable-istret~3"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>istret</strong></td>
@@ -1244,12 +1531,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mstret"></span>
+              <span class="anchor" id="variable-mstret~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mstret</strong></td>
@@ -1266,10 +1553,27 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ndbfre</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ndbbuf"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ndbbuf</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -1283,7 +1587,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ndbend</strong></td>
@@ -1300,7 +1604,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ndbstart</strong></td>
@@ -1312,12 +1616,114 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc"></span>
+              <span class="anchor" id="variable-ndb_file_offset"></span>
               integer,
             </td>
               <td>public</td>
             <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ndb_file_offset</strong></td>
+                <td></td>
+                <td></td>
+            <td>
 
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_checked"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_checked</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_interp_yz"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_interp_yz</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_warning_issued"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_warning_issued</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_nc"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_nc</strong>(2)</td>
+<td> =</td>
+                <td>0</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_np"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_np</strong>(2)</td>
+<td> =</td>
+                <td>0</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nc~11"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
             </td>
             <td>::</td>
             <td><strong>nc</strong>(NDIM)</td>
@@ -1334,7 +1740,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>np_geo</strong>(NDIM)</td>
@@ -1346,12 +1752,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-np"></span>
+              <span class="anchor" id="variable-np~12"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>np</strong>(NDIM)</td>
@@ -1368,7 +1774,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>proben</strong></td>
@@ -1385,7 +1791,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_qx</strong>(2)</td>
@@ -1402,7 +1808,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_qx</strong>(2)</td>
@@ -1419,7 +1825,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_qx</strong>(2)</td>
@@ -1436,7 +1842,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_qy</strong>(2)</td>
@@ -1453,7 +1859,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_qy</strong>(2)</td>
@@ -1470,7 +1876,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_qy</strong>(2)</td>
@@ -1487,7 +1893,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_qz</strong>(2)</td>
@@ -1504,7 +1910,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_qz</strong>(2)</td>
@@ -1521,7 +1927,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_qz</strong>(2)</td>
@@ -1538,7 +1944,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_pr</strong>(2)</td>
@@ -1555,7 +1961,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_pr</strong>(2)</td>
@@ -1572,7 +1978,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_pr</strong>(2)</td>
@@ -1589,7 +1995,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_Tm</strong>(2)</td>
@@ -1606,7 +2012,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_Tm</strong>(2)</td>
@@ -1623,7 +2029,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_Tm</strong>(2)</td>
@@ -1640,7 +2046,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_ftp</strong>(2)</td>
@@ -1657,7 +2063,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_ftp</strong>(2)</td>
@@ -1674,7 +2080,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_ftp</strong>(2)</td>
@@ -1691,7 +2097,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_nominal</strong>(2,NBC)</td>
@@ -1708,7 +2114,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_nominal</strong>(2,NBC)</td>
@@ -1725,7 +2131,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_nominal</strong>(2,NBC)</td>
@@ -1742,7 +2148,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbcx_const</strong>(2,NBC)</td>
@@ -1759,7 +2165,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbcy_const</strong>(2,NBC)</td>
@@ -1776,7 +2182,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbcz_const</strong>(2,NBC)</td>
@@ -1793,7 +2199,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>outlet_sponge_layer</strong>(2)</td>
@@ -1810,7 +2216,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>lxx</strong></td>
@@ -1827,7 +2233,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>lyt</strong></td>
@@ -1844,7 +2250,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>lyb</strong></td>
@@ -1861,7 +2267,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>lzz</strong></td>
@@ -1873,12 +2279,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-vol"></span>
+              <span class="anchor" id="variable-vol~2"></span>
               real(kind=wp),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>vol</strong></td>
@@ -1890,12 +2296,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rstret"></span>
+              <span class="anchor" id="variable-rstret~2"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>rstret</strong></td>
@@ -1912,7 +2318,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dt</strong></td>
@@ -1929,7 +2335,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>h</strong>(NDIM)</td>
@@ -1946,7 +2352,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>h1r</strong>(NDIM)</td>
@@ -1963,7 +2369,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>h2r</strong>(NDIM)</td>
@@ -1980,7 +2386,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tGamma</strong>(0:3)</td>
@@ -1997,7 +2403,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tZeta</strong>(0:3)</td>
@@ -2014,7 +2420,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tAlpha</strong>(0:3)</td>
@@ -2031,7 +2437,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>sigma1p</strong></td>
@@ -2048,7 +2454,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>sigma2p</strong></td>
@@ -2065,7 +2471,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dccc</strong></td>
@@ -2082,7 +2488,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dpcc</strong></td>
@@ -2099,7 +2505,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dcpc</strong></td>
@@ -2116,7 +2522,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dccp</strong></td>
@@ -2133,7 +2539,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dppc</strong></td>
@@ -2150,7 +2556,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dpcp</strong></td>
@@ -2167,7 +2573,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dcpp</strong></td>
@@ -2184,7 +2590,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dppp</strong></td>
@@ -2201,7 +2607,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>d4cc</strong></td>
@@ -2218,10 +2624,78 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>d4pc</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d4cp"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d4cp</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d1cc~2"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d1cc</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d1pc"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d1pc</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d1cp"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d1cp</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -2235,7 +2709,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dxcc</strong></td>
@@ -2252,7 +2726,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dxpc</strong></td>
@@ -2269,10 +2743,61 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dxcp</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dxcc_inl_src"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dxcc_inl_src</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dxpc_inl_src"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dxpc_inl_src</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dxcp_inl_src"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dxcp_inl_src</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -2349,7 +2874,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-yp"></span>
+              <span class="anchor" id="variable-yp~6"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -2366,7 +2891,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-yc"></span>
+              <span class="anchor" id="variable-yc~7"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -2375,6 +2900,40 @@
             </td>
             <td>::</td>
             <td><strong>yc</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_yp_src"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_yp_src</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_yc_src"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_yc_src</strong>(:)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -2681,6 +3240,23 @@
             </td>
             <td>::</td>
             <td><strong>fbcz_qyr</strong>(:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-axisy_qyr"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>axisy_qyr</strong>(:,:)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -3365,11 +3941,11 @@
       <h3>
         type, public&nbsp;::&nbsp;
         <a href='../type/t_flow.html'>t_flow</a>
-
+        
       </h3>
     </div>
     <div class="card-body">
-
+      
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -3384,12 +3960,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-idriven"></span>
+              <span class="anchor" id="variable-idriven~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>idriven</strong></td>
@@ -3402,14 +3978,14 @@
         <tr>
             <td>
               <span class="anchor" id="variable-igravity"></span>
-              integer,
+              real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
-            <td><strong>igravity</strong></td>
+            <td><strong>igravity</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -3423,7 +3999,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>inittype</strong></td>
@@ -3435,12 +4011,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iterfrom"></span>
+              <span class="anchor" id="variable-iterfrom~3"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iterfrom</strong></td>
@@ -3457,7 +4033,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>initReTo</strong></td>
@@ -3474,7 +4050,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nIterFlowStart</strong></td>
@@ -3491,7 +4067,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nIterFlowEnd</strong></td>
@@ -3503,12 +4079,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iteration"></span>
+              <span class="anchor" id="variable-iteration~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iteration</strong></td>
@@ -3525,7 +4101,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>time</strong></td>
@@ -3542,7 +4118,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ren</strong></td>
@@ -3559,7 +4135,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>rre</strong></td>
@@ -3576,7 +4152,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>init_velo3d</strong>(NDIM)</td>
@@ -3593,7 +4169,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>reninit</strong></td>
@@ -3610,7 +4186,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>drvfc</strong></td>
@@ -3622,15 +4198,49 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fgravity~2"></span>
+              <span class="anchor" id="variable-fgravity"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fgravity</strong>(NDIM)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_active_tripping"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_active_tripping</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_compact_restart_startup"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_compact_restart_startup</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -3644,7 +4254,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>noiselevel</strong></td>
@@ -3661,10 +4271,27 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mcon</strong>(3)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mcon_projected"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mcon_projected</strong>(3)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -3678,10 +4305,61 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tt_mass_change</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-total_mass"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>total_mass</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-total_mass_reference"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>total_mass_reference</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-total_mass_drift"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>total_mass_drift</strong></td>
                 <td></td>
                 <td></td>
             <td>
@@ -3695,7 +4373,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tt_kinetic_energy</strong></td>
@@ -3707,7 +4385,75 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qx"></span>
+              <span class="anchor" id="variable-physical_poisson_compatibility_defect"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>physical_poisson_compatibility_defect</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-uniform_poisson_source_correction"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>uniform_poisson_source_correction</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-poisson_projected_source_amplitude"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>poisson_projected_source_amplitude</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-poisson_zero_mode_rhs_projection~2"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>poisson_zero_mode_rhs_projection</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-qx~3"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -3724,7 +4470,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qy"></span>
+              <span class="anchor" id="variable-qy~3"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -3741,7 +4487,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-qz"></span>
+              <span class="anchor" id="variable-qz~3"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -3758,7 +4504,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-gx"></span>
+              <span class="anchor" id="variable-gx~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -3775,7 +4521,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-gy"></span>
+              <span class="anchor" id="variable-gy~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -3792,7 +4538,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-gz"></span>
+              <span class="anchor" id="variable-gz~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -3979,7 +4725,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-drhodt~3"></span>
+              <span class="anchor" id="variable-drhodt~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -4005,6 +4751,23 @@
             </td>
             <td>::</td>
             <td><strong>mVisc</strong>(:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tvisc~2"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tVisc</strong>(:,:,:)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -4047,7 +4810,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mx_rhs"></span>
+              <span class="anchor" id="variable-mx_rhs~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -4064,7 +4827,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-my_rhs"></span>
+              <span class="anchor" id="variable-my_rhs~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -4081,7 +4844,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mz_rhs"></span>
+              <span class="anchor" id="variable-mz_rhs~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -4302,6 +5065,57 @@
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-max_div_j"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>max_div_j</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-current_imbalance"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>current_imbalance</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-max_strain_rate_mag2_init"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>max_strain_rate_mag2_init</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-tavg_u"></span>
               real(kind=WP),
             </td>
@@ -4413,6 +5227,40 @@
             </td>
             <td>::</td>
             <td><strong>tavg_dudx</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tavg_vort"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_vort</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tavg_vortvort"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_vortvort</strong>(:,:,:,:)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -4540,6 +5388,23 @@
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-tavg_tu"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_Tu</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-tavg_fuuh"></span>
               real(kind=WP),
             </td>
@@ -4557,7 +5422,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tavg_eu"></span>
+              <span class="anchor" id="variable-spec_uu_kx"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -4565,9 +5430,77 @@
               allocatable
             </td>
             <td>::</td>
-            <td><strong>tavg_eu</strong>(:,:,:,:)</td>
+            <td><strong>spec_uu_kx</strong>(:,:)</td>
                 <td></td>
                 <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-spec_uu_kz"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>spec_uu_kz</strong>(:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-spec_fft_wx"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>spec_fft_wx</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-spec_fft_wz"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>spec_fft_wz</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nspec_samples"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nspec_samples</strong></td>
+<td> =</td>
+                <td>0</td>
             <td>
 
             </td>
@@ -4621,11 +5554,11 @@
       <h3>
         type, public&nbsp;::&nbsp;
         <a href='../type/t_thermo.html'>t_thermo</a>
-
+        
       </h3>
     </div>
     <div class="card-body">
-
+      
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -4640,12 +5573,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-ifluid~2"></span>
+              <span class="anchor" id="variable-ifluid~3"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ifluid</strong></td>
@@ -4662,7 +5595,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>inittype</strong></td>
@@ -4674,12 +5607,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iterfrom~2"></span>
+              <span class="anchor" id="variable-iterfrom~4"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iterfrom</strong></td>
@@ -4691,12 +5624,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iteration~2"></span>
+              <span class="anchor" id="variable-iteration~3"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iteration</strong></td>
@@ -4713,7 +5646,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nIterThermoStart</strong></td>
@@ -4730,7 +5663,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nIterThermoEnd</strong></td>
@@ -4747,7 +5680,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_rhoh_compensated</strong></td>
@@ -4764,7 +5697,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_use_qw_ramp</strong></td>
@@ -4781,7 +5714,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>istt_qw_ramp</strong></td>
@@ -4798,7 +5731,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iend_qw_ramp</strong></td>
@@ -4815,7 +5748,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ref_l0</strong></td>
@@ -4832,7 +5765,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ref_T0</strong></td>
@@ -4849,7 +5782,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>init_T0</strong></td>
@@ -4866,7 +5799,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>time</strong></td>
@@ -4883,7 +5816,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>phy_time</strong></td>
@@ -4900,7 +5833,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>rPrRen</strong></td>
@@ -4917,7 +5850,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tt_enthalpy</strong></td>
@@ -4934,7 +5867,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>thermo_buffer_layer</strong>(2)</td>
@@ -4946,7 +5879,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rhoh~2"></span>
+              <span class="anchor" id="variable-rhoh~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -4997,6 +5930,23 @@
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-econd"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>eCond</strong>(:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-ttemp"></span>
               real(kind=WP),
             </td>
@@ -5006,6 +5956,23 @@
             </td>
             <td>::</td>
             <td><strong>tTemp</strong>(:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-prsgs"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>prSgs</strong>(:,:,:)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -5138,7 +6105,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ftp_ini</strong></td>
@@ -5163,11 +6130,11 @@
       <h3>
         type, public&nbsp;::&nbsp;
         <a href='../type/t_mhd.html'>t_mhd</a>
-
+        
       </h3>
     </div>
     <div class="card-body">
-
+      
 
         <h4>Components</h4>
           <table class="table table-striped varlist">
@@ -5182,12 +6149,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-iterfrom~3"></span>
+              <span class="anchor" id="variable-iterfrom~5"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iterfrom</strong></td>
@@ -5199,12 +6166,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iteration~3"></span>
+              <span class="anchor" id="variable-iteration~4"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iteration</strong></td>
@@ -5221,7 +6188,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_NStuart</strong></td>
@@ -5238,7 +6205,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_NHartmn</strong></td>
@@ -5255,7 +6222,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>NStuart</strong></td>
@@ -5272,7 +6239,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>NHartmn</strong></td>
@@ -5289,7 +6256,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>B_static</strong>(3)</td>
@@ -5369,7 +6336,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bx~3"></span>
+              <span class="anchor" id="variable-bx~5"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -5386,7 +6353,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-by~3"></span>
+              <span class="anchor" id="variable-by~5"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -5403,7 +6370,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bz~3"></span>
+              <span class="anchor" id="variable-bz~4"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -5420,12 +6387,63 @@
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-ebcx_nominal"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebcx_nominal</strong>(2)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ebcy_nominal"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebcy_nominal</strong>(2)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ebcz_nominal"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebcz_nominal</strong>(2)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-ibcx_ep"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_ep</strong>(2)</td>
@@ -5442,7 +6460,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_ep</strong>(2)</td>
@@ -5459,7 +6477,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_ep</strong>(2)</td>
@@ -5476,7 +6494,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_jx</strong>(2)</td>
@@ -5493,7 +6511,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_jx</strong>(2)</td>
@@ -5510,7 +6528,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_jx</strong>(2)</td>
@@ -5527,7 +6545,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_jy</strong>(2)</td>
@@ -5544,7 +6562,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_jy</strong>(2)</td>
@@ -5561,7 +6579,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_jy</strong>(2)</td>
@@ -5578,7 +6596,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_jz</strong>(2)</td>
@@ -5595,7 +6613,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_jz</strong>(2)</td>
@@ -5612,7 +6630,7 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_jz</strong>(2)</td>
@@ -5624,12 +6642,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcx_bx"></span>
+              <span class="anchor" id="variable-ibcx_bx~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_bx</strong>(2)</td>
@@ -5641,12 +6659,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcy_bx"></span>
+              <span class="anchor" id="variable-ibcy_bx~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_bx</strong>(2)</td>
@@ -5658,12 +6676,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcz_bx"></span>
+              <span class="anchor" id="variable-ibcz_bx~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_bx</strong>(2)</td>
@@ -5675,12 +6693,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcx_by"></span>
+              <span class="anchor" id="variable-ibcx_by~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_by</strong>(2)</td>
@@ -5692,12 +6710,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcy_by"></span>
+              <span class="anchor" id="variable-ibcy_by~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_by</strong>(2)</td>
@@ -5709,12 +6727,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcz_by"></span>
+              <span class="anchor" id="variable-ibcz_by~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_by</strong>(2)</td>
@@ -5726,12 +6744,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcx_bz"></span>
+              <span class="anchor" id="variable-ibcx_bz~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_bz</strong>(2)</td>
@@ -5743,12 +6761,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcy_bz"></span>
+              <span class="anchor" id="variable-ibcy_bz~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_bz</strong>(2)</td>
@@ -5760,12 +6778,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ibcz_bz"></span>
+              <span class="anchor" id="variable-ibcz_bz~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_bz</strong>(2)</td>
@@ -5981,7 +6999,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcx_bx"></span>
+              <span class="anchor" id="variable-fbcx_bx~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -5998,7 +7016,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcy_bx"></span>
+              <span class="anchor" id="variable-fbcy_bx~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -6015,7 +7033,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcz_bx"></span>
+              <span class="anchor" id="variable-fbcz_bx~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -6032,7 +7050,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcx_by"></span>
+              <span class="anchor" id="variable-fbcx_by~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -6049,7 +7067,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcy_by"></span>
+              <span class="anchor" id="variable-fbcy_by~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -6066,7 +7084,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcz_by"></span>
+              <span class="anchor" id="variable-fbcz_by~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -6083,7 +7101,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcx_bz"></span>
+              <span class="anchor" id="variable-fbcx_bz~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -6100,7 +7118,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcy_bz"></span>
+              <span class="anchor" id="variable-fbcy_bz~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -6117,7 +7135,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcz_bz"></span>
+              <span class="anchor" id="variable-fbcz_bz~2"></span>
               real(kind=WP),
             </td>
               <td>public,</td>
@@ -6168,6 +7186,23 @@
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-tavg_eu"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_eu</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-tavg_ej"></span>
               real(kind=WP),
             </td>
@@ -6177,6 +7212,23 @@
             </td>
             <td>::</td>
             <td><strong>tavg_ej</strong>(:,:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tavg_ju"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>tavg_ju</strong>(:,:,:,:)</td>
                 <td></td>
                 <td></td>
             <td>
@@ -6212,6 +7264,60 @@
         </section>
         <br>
 
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_projection_accuracy"></span> <h3>public pure function <a href='../proc/get_projection_accuracy.html'>get_projection_accuracy</a>(dm) result(iacc)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>\brief Scheme used by the pressure projection, one value per direction.
+The three sites that make up the projection - the divergence in eq_continuity, the
+pressure gradient in eq_momentum2 and the Poisson wavenumbers in
+poisson_1stderivcomp_fft2d - must all call this function and must use component i for
+direction i, or the projection stops being exact. It is a function rather than three
+copies of a cascade precisely so they cannot drift apart.</p><a href="../proc/get_projection_accuracy.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~165"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer, (NDIM)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+        </section>
+        <br>
 
 
 
@@ -6226,8 +7332,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

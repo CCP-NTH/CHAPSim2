@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>boundary_conditions_mod &ndash; Fortran Program</title>
+    <title>boundary_conditions_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>boundary_conditions_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 3.1% of total for modules and submodules.">728 statements</a>
+                 title=" 2.7% of total for modules and submodules.">764 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,7 +128,7 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#vars-0"
          aria-expanded="false" aria-controls="vars-0">
@@ -172,15 +176,26 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/boundary_conditions_mod.html#proc-get_name_bc">get_name_bc</a>
+        </div>
+      </div>
+    </div>
 
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
@@ -189,6 +204,8 @@
       </a>
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/boundary_conditions_mod.html#proc-reassign_ibc">reassign_ibc</a>
+            <a class="list-group-item" href="../module/boundary_conditions_mod.html#proc-get_ibc_for_sgs_coef_c2p">get_ibc_for_sgs_coef_c2p</a>
             <a class="list-group-item" href="../module/boundary_conditions_mod.html#proc-config_calc_basic_ibc">config_calc_basic_ibc</a>
             <a class="list-group-item" href="../module/boundary_conditions_mod.html#proc-allocate_fbc_flow">allocate_fbc_flow</a>
             <a class="list-group-item" href="../module/boundary_conditions_mod.html#proc-allocate_fbc_thermo">allocate_fbc_thermo</a>
@@ -205,13 +222,13 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -230,18 +247,18 @@ planes and the special reconstruction rules used at the pipe centreline.</p>
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='bc_dirichlet_mod.html'>bc_dirichlet_mod</a></li>
-                  <li class="list-inline-item"><a href='bc_ndomain_interior_mod.html'>bc_ndomain_interior_mod</a></li>
-                  <li class="list-inline-item"><a href='parameters_constant_mod.html'>parameters_constant_mod</a></li>
                   <li class="list-inline-item"><a href='udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
+                  <li class="list-inline-item"><a href='bc_ndomain_interior_mod.html'>bc_ndomain_interior_mod</a></li>
+                  <li class="list-inline-item"><a href='parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='bc_dirichlet_mod.html'>bc_dirichlet_mod</a></li>
               </ul>
             </li>
         </ul>
       </div>
     </div>
 
-
+      
       <br>
 
 
@@ -264,14 +281,14 @@ planes and the special reconstruction rules used at the pipe centreline.</p>
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>AXIS_RECON_NONE</strong></td>
 <td> =</td>
                 <td>0</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -281,14 +298,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>AXIS_RECON_ZERO</strong></td>
 <td> =</td>
                 <td>1</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -298,14 +315,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>AXIS_RECON_M1</strong></td>
 <td> =</td>
                 <td>2</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -315,14 +332,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>AXIS_RECON_M0</strong></td>
 <td> =</td>
                 <td>3</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -332,14 +349,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>AXIS_RECON_M0_M2</strong></td>
 <td> =</td>
                 <td>4</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -356,7 +373,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -373,7 +390,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -390,7 +407,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -407,7 +424,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -424,7 +441,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -441,7 +458,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -458,7 +475,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -475,7 +492,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -492,7 +509,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -509,7 +526,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -526,7 +543,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -543,7 +560,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -560,7 +577,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -577,7 +594,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -594,7 +611,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -611,7 +628,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -628,7 +645,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -645,7 +662,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -662,7 +679,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -679,7 +696,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -696,7 +713,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -713,7 +730,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -730,7 +747,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -747,7 +764,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -764,7 +781,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -781,7 +798,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -798,7 +815,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -815,7 +832,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -832,7 +849,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -849,7 +866,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -866,7 +883,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -879,14 +896,176 @@ parameter
 
 
 
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_name_bc"></span> <h3>public  function <a href='../proc/get_name_bc.html'>get_name_bc</a>(ibc) result(str)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Return a readable name for a boundary-condition ID.
+- ibc (in): Integer boundary-condition identifier.
+Return: Fixed-length character string used in diagnostic output.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>character(len=14)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+        </section>
+        <br>
 
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-config_calc_basic_ibc"></span> <h3>public  subroutine <a href='../proc/config_calc_basic_ibc.html'>config_calc_basic_ibc</a>(dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-reassign_ibc"></span> <h3>private  subroutine <a href='../proc/reassign_ibc.html'>reassign_ibc</a>(bc_nominal, ibc)  
 </h3></div>
     <div class="card-body">
+          
+  <p>Convert nominal user boundary conditions to calculation boundary conditions.</p><a href="../proc/reassign_ibc.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-bc_nominal"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>bc_nominal</strong>(2,5)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc~2"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc</strong>(2,5)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-get_ibc_for_sgs_coef_c2p"></span> <h3>public  subroutine <a href='../proc/get_ibc_for_sgs_coef_c2p.html'>get_ibc_for_sgs_coef_c2p</a>(ibc_nominal, ibc_coef)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Boundary classification for interpolating a cell-centred subgrid-scale
+coefficient (mu_sgs, or mu_sgs/Pr_sgs) onto the faces where it is used.</p><a href="../proc/get_ibc_for_sgs_coef_c2p.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_nominal"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_nominal</strong>(2,5)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_coef"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_coef</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-config_calc_basic_ibc"></span> <h3>public  subroutine <a href='../proc/config_calc_basic_ibc.html'>config_calc_basic_ibc</a>(dm)  
+</h3></div>
+    <div class="card-body">
+          
   <p>Configure basic field boundary conditions from the user input.</p><a href="../proc/config_calc_basic_ibc.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
@@ -902,12 +1081,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~8"></span>
+              <span class="anchor" id="variable-dm~17"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -923,10 +1102,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-allocate_fbc_flow"></span> <h3>public  subroutine <a href='../proc/allocate_fbc_flow.html'>allocate_fbc_flow</a>(dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-allocate_fbc_flow"></span> <h3>public  subroutine <a href='../proc/allocate_fbc_flow.html'>allocate_fbc_flow</a>(dm)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Allocate flow boundary-condition storage for all active domain faces.
 - dm (inout): Domain descriptor receiving face-boundary arrays.</p>
 
@@ -943,12 +1122,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~9"></span>
+              <span class="anchor" id="variable-dm~18"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -964,10 +1143,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-allocate_fbc_thermo"></span> <h3>public  subroutine <a href='../proc/allocate_fbc_thermo.html'>allocate_fbc_thermo</a>(dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-allocate_fbc_thermo"></span> <h3>public  subroutine <a href='../proc/allocate_fbc_thermo.html'>allocate_fbc_thermo</a>(dm)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Allocate thermal boundary-condition storage for all active domain faces.
 - dm (inout): Domain descriptor receiving thermal face-boundary arrays.</p>
 
@@ -984,12 +1163,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~10"></span>
+              <span class="anchor" id="variable-dm~19"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -1005,10 +1184,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcy_cc_flow_halo"></span> <h3>public  subroutine <a href='../proc/update_fbcy_cc_flow_halo.html'>update_fbcy_cc_flow_halo</a>(fl, dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcy_cc_flow_halo"></span> <h3>public  subroutine <a href='../proc/update_fbcy_cc_flow_halo.html'>update_fbcy_cc_flow_halo</a>(fl, dm)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Update pipe-axis halo values for flow variables stored around the y-axis centreline.
 - fl (inout): Flow variables whose cylindrical-axis halos are reconstructed.
 - dm (in): Domain and symmetry metadata for the pipe axis.</p>
@@ -1026,12 +1205,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~5"></span>
+              <span class="anchor" id="variable-fl~7"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
@@ -1041,12 +1220,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~11"></span>
+              <span class="anchor" id="variable-dm~20"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -1062,10 +1241,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcy_cc_thermo_halo"></span> <h3>public  subroutine <a href='../proc/update_fbcy_cc_thermo_halo.html'>update_fbcy_cc_thermo_halo</a>(tm, dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcy_cc_thermo_halo"></span> <h3>public  subroutine <a href='../proc/update_fbcy_cc_thermo_halo.html'>update_fbcy_cc_thermo_halo</a>(tm, dm)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Update pipe-axis halo values for thermal variables.
 - tm (inout): Thermal variables whose cylindrical-axis halos are reconstructed.
 - dm (in): Domain and symmetry metadata for the pipe axis.</p>
@@ -1083,12 +1262,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~2"></span>
+              <span class="anchor" id="variable-tm~4"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm</strong></td>
@@ -1098,12 +1277,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~12"></span>
+              <span class="anchor" id="variable-dm~21"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -1119,10 +1298,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcy_cc_mhd_halo"></span> <h3>public  subroutine <a href='../proc/update_fbcy_cc_mhd_halo.html'>update_fbcy_cc_mhd_halo</a>(mh, dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcy_cc_mhd_halo"></span> <h3>public  subroutine <a href='../proc/update_fbcy_cc_mhd_halo.html'>update_fbcy_cc_mhd_halo</a>(mh, dm)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Update pipe-axis halo values for MHD variables.
 - mh (inout): MHD variables whose cylindrical-axis halos are reconstructed.
 - dm (in): Domain and symmetry metadata for the pipe axis.</p>
@@ -1145,7 +1324,7 @@ parameter
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mh</strong></td>
@@ -1155,12 +1334,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~13"></span>
+              <span class="anchor" id="variable-dm~22"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -1176,10 +1355,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-axis_mirror_fbcy"></span> <h3>public  subroutine <a href='../proc/axis_mirror_fbcy.html'>axis_mirror_fbcy</a>(var, pencil, fbcy, ksym, dtmp, is_odd, axis_mode, assign_axis_to_var, nr, opt_r, opt_dz, axis_rn_mode)
+    <div class="card-header codesum"><span class="anchor" id="proc-axis_mirror_fbcy"></span> <h3>public  subroutine <a href='../proc/axis_mirror_fbcy.html'>axis_mirror_fbcy</a>(var, pencil, fbcy, ksym, dtmp, is_ynode, is_odd, axis_mode, assign_axis_to_var, nr, opt_r, opt_dz, axis_rn_mode, opt_axis_val)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Reconstruct or mirror a cylindrical field across the pipe centreline.</p><a href="../proc/axis_mirror_fbcy.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
@@ -1195,12 +1374,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-var~4"></span>
+              <span class="anchor" id="variable-var"></span>
               real(kind=WP),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>var</strong>(:,:,:)</td>
@@ -1215,7 +1394,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>pencil</strong></td>
@@ -1225,12 +1404,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcy~3"></span>
+              <span class="anchor" id="variable-fbcy~2"></span>
               real(kind=WP),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbcy</strong>(:,:,:)</td>
@@ -1245,7 +1424,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ksym</strong>(:)</td>
@@ -1255,15 +1434,30 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dtmp~2"></span>
+              <span class="anchor" id="variable-dtmp~3"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dtmp</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_ynode"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_ynode</strong></td>
             <td>
 
             </td>
@@ -1275,7 +1469,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_odd</strong></td>
@@ -1290,7 +1484,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>axis_mode</strong></td>
@@ -1305,7 +1499,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>assign_axis_to_var</strong></td>
@@ -1320,7 +1514,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nr</strong></td>
@@ -1335,7 +1529,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_r</strong>(:)</td>
@@ -1350,7 +1544,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_dz</strong></td>
@@ -1365,10 +1559,25 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>axis_rn_mode</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_axis_val"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_axis_val</strong>(:,:)</td>
             <td>
 
             </td>
@@ -1381,10 +1590,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-build_bc_symm_operation"></span> <h3>public  subroutine <a href='../proc/build_bc_symm_operation.html'>build_bc_symm_operation</a>(ibc, mbc, jbc)
+    <div class="card-header codesum"><span class="anchor" id="proc-build_bc_symm_operation"></span> <h3>public  subroutine <a href='../proc/build_bc_symm_operation.html'>build_bc_symm_operation</a>(ibc, mbc, jbc)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Build symmetry-operation metadata for a pair of boundary-condition IDs.
 - ibc (in): Boundary-condition IDs at the two sides of a direction.
 - mbc (out): Symmetry multiplier or mode information.
@@ -1408,7 +1617,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibc</strong>(2)</td>
@@ -1418,12 +1627,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mbc"></span>
+              <span class="anchor" id="variable-mbc~3"></span>
               integer,
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mbc</strong>(2,3)</td>
@@ -1438,7 +1647,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>jbc</strong>(2)</td>
@@ -1454,10 +1663,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-config_calc_eqs_ibc"></span> <h3>public  subroutine <a href='../proc/config_calc_eqs_ibc.html'>config_calc_eqs_ibc</a>(dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-config_calc_eqs_ibc"></span> <h3>public  subroutine <a href='../proc/config_calc_eqs_ibc.html'>config_calc_eqs_ibc</a>(dm)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Configure equation-specific boundary-condition helper arrays.</p><a href="../proc/config_calc_eqs_ibc.html" class="pull-right"><emph>Read more&hellip;</emph></a>
 
   <h4>Arguments</h4>
@@ -1473,12 +1682,12 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~14"></span>
+              <span class="anchor" id="variable-dm~23"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -1494,10 +1703,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_fbcx_ith"></span> <h3>public  subroutine <a href='../proc/get_fbcx_ith.html'>get_fbcx_iTh</a>(ibc, dm, fbc, tm, opt_k)
+    <div class="card-header codesum"><span class="anchor" id="proc-get_fbcx_ith"></span> <h3>public  subroutine <a href='../proc/get_fbcx_ith.html'>get_fbcx_iTh</a>(ibc, dm, fbc, tm, opt_k)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Fill x-face thermal boundary values from the thermal state.
 - ibc (in): Boundary-condition IDs for the x faces.
 - dm (in): Domain descriptor.
@@ -1522,7 +1731,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibc</strong>(2)</td>
@@ -1532,12 +1741,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~15"></span>
+              <span class="anchor" id="variable-dm~24"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -1547,12 +1756,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbc~2"></span>
+              <span class="anchor" id="variable-fbc"></span>
               real(kind=WP),
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbc</strong>(4,dm%dpcc%xsz(2),dm%dpcc%xsz(3))</td>
@@ -1562,12 +1771,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~3"></span>
+              <span class="anchor" id="variable-tm~5"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm</strong></td>
@@ -1582,7 +1791,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_k</strong>(:,:,:)</td>
@@ -1598,10 +1807,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_fbcy_ith"></span> <h3>public  subroutine <a href='../proc/get_fbcy_ith.html'>get_fbcy_iTh</a>(ibc, dm, fbc, tm, opt_k)
+    <div class="card-header codesum"><span class="anchor" id="proc-get_fbcy_ith"></span> <h3>public  subroutine <a href='../proc/get_fbcy_ith.html'>get_fbcy_iTh</a>(ibc, dm, fbc, tm, opt_k)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Fill y-face thermal boundary values from the thermal state.
 - ibc (in): Boundary-condition IDs for the y faces.
 - dm (in): Domain descriptor.
@@ -1626,7 +1835,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibc</strong>(2)</td>
@@ -1636,12 +1845,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~16"></span>
+              <span class="anchor" id="variable-dm~25"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -1651,12 +1860,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbc~3"></span>
+              <span class="anchor" id="variable-fbc~2"></span>
               real(kind=WP),
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbc</strong>(dm%dcpc%ysz(1),4,dm%dcpc%ysz(3))</td>
@@ -1666,12 +1875,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~4"></span>
+              <span class="anchor" id="variable-tm~6"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm</strong></td>
@@ -1686,7 +1895,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_k</strong>(:,:,:)</td>
@@ -1702,10 +1911,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-get_fbcz_ith"></span> <h3>public  subroutine <a href='../proc/get_fbcz_ith.html'>get_fbcz_iTh</a>(ibc, dm, fbc, tm, opt_k)
+    <div class="card-header codesum"><span class="anchor" id="proc-get_fbcz_ith"></span> <h3>public  subroutine <a href='../proc/get_fbcz_ith.html'>get_fbcz_iTh</a>(ibc, dm, fbc, tm, opt_k)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Fill z-face thermal boundary values from the thermal state.
 - ibc (in): Boundary-condition IDs for the z faces.
 - dm (in): Domain descriptor.
@@ -1730,7 +1939,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibc</strong>(2)</td>
@@ -1740,12 +1949,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~17"></span>
+              <span class="anchor" id="variable-dm~26"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -1755,12 +1964,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbc~4"></span>
+              <span class="anchor" id="variable-fbc~3"></span>
               real(kind=WP),
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbc</strong>(dm%dccp%zsz(1),dm%dccp%zsz(2),4)</td>
@@ -1770,12 +1979,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~5"></span>
+              <span class="anchor" id="variable-tm~7"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm</strong></td>
@@ -1790,7 +1999,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_k</strong>(:,:,:)</td>
@@ -1820,8 +2029,8 @@ parameter
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

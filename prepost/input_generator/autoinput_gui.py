@@ -1,8 +1,16 @@
 #!/usr/bin/env python3
 """CHAPSim2 GUI Auto Input Generator - User-friendly configuration interface."""
 
-import tkinter as tk
-from tkinter import ttk, messagebox
+try:
+    import tkinter as tk
+    from tkinter import ttk, messagebox
+except ImportError as exc:
+    tk = None
+    ttk = None
+    messagebox = None
+    TKINTER_IMPORT_ERROR = exc
+else:
+    TKINTER_IMPORT_ERROR = None
 import configparser
 import math
 from enum import Enum
@@ -12,6 +20,8 @@ from pathlib import Path
 PI = round(math.pi, 6)
 TWO_PI = 2.0 * PI
 DEFAULT_FILENAME = "input_chapsim_gui.ini"
+SCRIPT_DIR = Path(__file__).resolve().parent
+TEMPLATE_PATH = SCRIPT_DIR / "input_chapsim_complete.ini"
 DEFAULT_VISU_SKIP = "1,1,1"
 DEFAULT_STAT_SKIP = "1,1,1"
 WALL_BC_CASES = {1, 3, 5}
@@ -28,13 +38,13 @@ class Case(Enum):
 
 class Init(Enum):
     RESTART = 0
-    INTRPL = 1
     RANDOM = 2
     INLET = 3
     GIVEN = 4
     POISEUILLE = 5
     FUNCTION = 6
     GVBCLN = 7
+    GVBCSMOOTH = 8
 
 
 class Stretching(Enum):
@@ -71,6 +81,13 @@ class Drvfc(Enum):
     ZDPDZ = 6
 
 
+def ensure_template_available():
+    """Return the moved complete input template path, failing clearly if absent."""
+    if not TEMPLATE_PATH.exists():
+        raise FileNotFoundError(f"Template input file not found: {TEMPLATE_PATH}")
+    return TEMPLATE_PATH
+
+
 def bool_to_string(value):
     """Converts 0/1 to Fortran boolean strings."""
     return ".true." if value else ".false."
@@ -81,6 +98,7 @@ class CustomConfigParser(configparser.ConfigParser):
 
     def __init__(self):
         super().__init__(interpolation=None)
+        self.optionxform = str
 
     def write(self, fp):
         for section in self.sections():
@@ -92,10 +110,16 @@ class CustomConfigParser(configparser.ConfigParser):
 
 class CHAPSimGUI:
     def __init__(self, root):
+        if TKINTER_IMPORT_ERROR is not None:
+            raise RuntimeError(
+                "Tkinter is required to run the GUI input generator. "
+                f"Original import error: {TKINTER_IMPORT_ERROR}"
+            )
         self.root = root
         self.root.title("CHAPSim2 Input Generator")
         self.root.geometry("1100x850")
 
+        self.template_path = ensure_template_available()
         self.create_logo_header()
 
         # Create notebook for tabs
@@ -363,10 +387,9 @@ class CHAPSimGUI:
         )
 
         init_options = [
-            "1:Intrpl",
             "2:Random",
             "3:Inlet",
-            "4:Given",
+            "4:Const",
             "5:Poiseuille",
             "6:Function",
         ]
@@ -478,16 +501,13 @@ class CHAPSimGUI:
 
         inittm_options = [
             "0:Restart",
-            "1:Intrpl",
-            "2:Random",
-            "3:Inlet",
-            "4:Given",
-            "5:Poiseuille",
+            "4:Const",
             "6:Function",
-            "7:GivenBCMix",
+            "7:Linear",
+            "8:Smooth",
         ]
         self.inittm, self.inittm_w = self.create_labeled_input(
-            tab, "Thermal initialization", "4:Given", 6, 0, "choice"
+            tab, "Thermal initialization", "4:Const", 6, 0, "choice"
         )
         self.inittm_w["values"] = inittm_options
 
@@ -585,9 +605,11 @@ class CHAPSimGUI:
             "<<ComboboxSelected>>", lambda e: self.on_stretching_changed()
         )
 
+        stretch_method_options = ["uniform", "3fmd", "tanh", "powl"]
         self.rstret1, self.rstret1_w = self.create_labeled_input(
-            tab, "Stretching method", 1, 4
+            tab, "Stretching method", "3fmd", 4, 0, "choice"
         )
+        self.rstret1_w["values"] = stretch_method_options
         self.rstret2, self.rstret2_w = self.create_labeled_input(
             tab, "Stretching factor", 0.12, 5
         )
@@ -604,15 +626,15 @@ class CHAPSimGUI:
         
         if case_num in [Case.CHANNEL.value, Case.DUCT.value, Case.ANNULAR.value]:
             self.istret.set("2:2-sides")
-            self.rstret1.set("1")
+            self.rstret1.set("3fmd")
             self.rstret2.set("0.12")
         elif case_num == Case.PIPE.value:
             self.istret.set("4:Top")
-            self.rstret1.set("2")
+            self.rstret1.set("tanh")
             self.rstret2.set("0.15")
         elif case_num == Case.TGV3D.value:
             self.istret.set("0:None")
-            self.rstret1.set("0")
+            self.rstret1.set("uniform")
             self.rstret2.set("0.0")
         
         self.on_stretching_changed()
@@ -628,13 +650,13 @@ class CHAPSimGUI:
         if enabled:
             case_num = self.icase.get()
             if case_num in [Case.CHANNEL.value, Case.DUCT.value]:
-                if self.rstret1.get() not in ["1", "2", "3"]:
-                    self.rstret1.set("1")
+                if self.rstret1.get() not in ["3fmd", "tanh", "powl"]:
+                    self.rstret1.set("3fmd")
                 if float(self.rstret2.get()) < 0.01:
                     self.rstret2.set("0.12")
             elif case_num in [Case.PIPE.value, Case.ANNULAR.value]:
-                if self.rstret1.get() not in ["1", "2", "3"]:
-                    self.rstret1.set("2")
+                if self.rstret1.get() not in ["3fmd", "tanh", "powl"]:
+                    self.rstret1.set("tanh")
                 if float(self.rstret2.get()) < 0.01:
                     self.rstret2.set("0.15")
 
@@ -1052,6 +1074,7 @@ class CHAPSimGUI:
         self.visu_idim_w["values"] = visu_options
 
         stat_options = [
+            "0:None",
             "1:Mean flow",
             "2:+Reynolds stresses",
             "3:+Turbulent budgets",
@@ -1061,38 +1084,64 @@ class CHAPSimGUI:
         )
         self.stat_level_w["values"] = stat_options
 
-        io_mode_options = ["0:Overwrite", "1:Skip existing", "2:Rename existing"]
-        self.io_mode, self.io_mode_w = self.create_labeled_input(
-            tab, "I/O mode", "0:Overwrite", 6, 0, "choice"
+        self.stat_visu_nfre, _ = self.create_labeled_input(
+            tab, "Visualized statistics frequency", 500, 6
         )
-        self.io_mode_w["values"] = io_mode_options
+
+        stat_visu_mode_options = ["all", "tsp_only"]
+        self.stat_visu_mode, self.stat_visu_mode_w = self.create_labeled_input(
+            tab, "Visualized statistics mode", "all", 7, 0, "choice"
+        )
+        self.stat_visu_mode_w["values"] = stat_visu_mode_options
+
+        output_policy_options = ["overwrite", "skip", "rename_existing"]
+        self.existing_output_policy, self.existing_output_policy_w = self.create_labeled_input(
+            tab, "Existing output policy", "overwrite", 8, 0, "choice"
+        )
+        self.existing_output_policy_w["values"] = output_policy_options
+
+        layout_options = ["per_field", "bundled"]
+        self.restart_data_layout, self.restart_data_layout_w = self.create_labeled_input(
+            tab, "Restart/data output layout", "bundled", 9, 0, "choice"
+        )
+        self.restart_data_layout_w["values"] = layout_options
+
+        self.reset_unit_massflux, self.reset_unit_massflux_w = self.create_labeled_input(
+            tab, "Reset unit mass flux on restart?", 0, 10, 0, "bool"
+        )
+
+        precision_options = ["4:single", "8:double"]
+        self.visu_precision, self.visu_precision_w = self.create_labeled_input(
+            tab, "Visualisation precision", "4:single", 11, 0, "choice"
+        )
+        self.visu_precision_w["values"] = precision_options
 
         ttk.Label(tab, text="Write outlet plane data?").grid(
-            row=7, column=0, sticky=tk.W, padx=5, pady=5
+            row=12, column=0, sticky=tk.W, padx=5, pady=5
         )
         self.is_write_check = ttk.Checkbutton(
             tab, variable=self.is_write, command=self.on_write_changed
         )
-        self.is_write_check.grid(row=7, column=1, sticky=tk.W, padx=5, pady=5)
+        self.is_write_check.grid(row=12, column=1, sticky=tk.W, padx=5, pady=5)
 
         self.wrt_read_nfre1, self.wrt_read_nfre1_w = self.create_labeled_input(
-            tab, "Plane data frequency", 1000, 8
+            tab, "Plane data frequency", 1000, 13
         )
         self.wrt_read_nfre2, self.wrt_read_nfre2_w = self.create_labeled_input(
-            tab, "Start saving from iter", 2001, 9
+            tab, "Start saving from iter", 2001, 14
         )
         self.wrt_read_nfre3, self.wrt_read_nfre3_w = self.create_labeled_input(
-            tab, "Stop saving at iter", 10000, 10
+            tab, "Stop saving at iter", 10000, 15
         )
 
         ttk.Label(tab, text="Read inlet plane data?").grid(
-            row=11, column=0, sticky=tk.W, padx=5, pady=5
+            row=16, column=0, sticky=tk.W, padx=5, pady=5
         )
         self.is_read = tk.BooleanVar(value=False)
         self.is_read_check = ttk.Checkbutton(
             tab, variable=self.is_read, command=self.on_write_changed
         )
-        self.is_read_check.grid(row=11, column=1, sticky=tk.W, padx=5, pady=5)
+        self.is_read_check.grid(row=16, column=1, sticky=tk.W, padx=5, pady=5)
 
         self.on_write_changed()
 
@@ -1195,11 +1244,14 @@ class CHAPSimGUI:
             if self.imhd.get():
                 is_stuart = self.mhd_type.get().startswith("1")
                 config["mhd"] = {
-                    "imhd": bool_to_string(self.imhd.get()),
+                    "imhd_xdom": bool_to_string(self.imhd.get()),
                     "NStuart": f"{bool_to_string(is_stuart)},{float(self.NS.get())}",
                     "NHartmn": f"{bool_to_string(not is_stuart)},{float(self.NH.get())}",
                     "B_static": f"{float(self.b1.get())},{float(self.b2.get())},{float(self.b3.get())}",
                 }
+
+            # LES
+            config["les"] = {"LESmode": "DNS"}
 
             # Mesh
             istret_val = int(self.istret.get().split(":")[0])
@@ -1239,17 +1291,17 @@ class CHAPSimGUI:
                 "ifbcx_v": bc_dict.get("ifbcx_u", "1,1,0.0,0.0"),
                 "ifbcx_w": bc_dict.get("ifbcx_u", "1,1,0.0,0.0"),
                 "ifbcx_p": bc_dict.get("ifbcx_p", "1,1,0.0,0.0"),
-                "ifbcx_T": bc_dict.get("ifbcx_T", "1,1,0.0,0.0"),
+                "ifbcx_t": bc_dict.get("ifbcx_T", "1,1,0.0,0.0"),
                 "ifbcy_u": bc_dict.get("ifbcy_u", "4,4,0.0,0.0"),
                 "ifbcy_v": bc_dict.get("ifbcy_u", "4,4,0.0,0.0"),
                 "ifbcy_w": bc_dict.get("ifbcy_u", "4,4,0.0,0.0"),
                 "ifbcy_p": bc_dict.get("ifbcy_p", "5,5,0.0,0.0"),
-                "ifbcy_T": bc_dict.get("ifbcy_T", "1,1,0.0,0.0"),
+                "ifbcy_t": bc_dict.get("ifbcy_T", "1,1,0.0,0.0"),
                 "ifbcz_u": bc_dict.get("ifbcz_u", "1,1,0.0,0.0"),
                 "ifbcz_v": bc_dict.get("ifbcz_u", "1,1,0.0,0.0"),
                 "ifbcz_w": bc_dict.get("ifbcz_u", "1,1,0.0,0.0"),
                 "ifbcz_p": bc_dict.get("ifbcz_p", "1,1,0.0,0.0"),
-                "ifbcz_T": bc_dict.get("ifbcz_T", "1,1,0.0,0.0"),
+                "ifbcz_t": bc_dict.get("ifbcz_T", "1,1,0.0,0.0"),
                 "idriven": 0
                 if inlet_bc != BC.PERIODIC.value and case_num != Case.TGV3D.value
                 else int(self.idriven.get().split(":")[0]),
@@ -1257,20 +1309,21 @@ class CHAPSimGUI:
             }
 
             # Scheme
+            accuracy_map = {"1": "cd2", "2": "cd4", "3": "cp4", "4": "cp6"}
             config["scheme"] = {
                 "dt": float(self.dt.get()),
-                "iTimeScheme": 3,
-                "iAccuracy": int(self.iAccuracy.get().split(":")[0]),
-                "iviscous": 1,
+                "itimescheme": "rk3",
+                "iaccuracy": accuracy_map[self.iAccuracy.get().split(":")[0]],
+                "iviscous": "explicit",
                 "out_sponge_L_Re": f"{float(self.sponge_length.get())},{float(self.sponge_re.get())}",
             }
 
             # Simulation Control
             config["simcontrol"] = {
-                "nIterFlowFirst": int(self.nIterFlowFirst.get()),
-                "nIterFlowLast": int(self.nIterFlowLast.get()),
-                "nIterThermoFirst": int(self.nIterThermoFirst.get()) if self.ithermo.get() else 0,
-                "nIterThermoLast": int(self.nIterThermoLast.get()) if self.ithermo.get() else 0,
+                "niterflowfirst": int(self.nIterFlowFirst.get()),
+                "niterflowlast": int(self.nIterFlowLast.get()),
+                "niterthermofirst": int(self.nIterThermoFirst.get()) if self.ithermo.get() else 0,
+                "niterthermolast": int(self.nIterThermoLast.get()) if self.ithermo.get() else 0,
             }
 
             # I/O
@@ -1291,9 +1344,16 @@ class CHAPSimGUI:
                 "stat_istart": int(self.stat_istart.get()),
                 "stat_level": int(self.stat_level.get().split(":")[0]),
                 "stat_nskip": DEFAULT_STAT_SKIP,
-                "is_wrt_read_bc": f"{bool_to_string(is_write)},{bool_to_string(is_read)}",
-                "wrt_read_nfre": wrt_read_nfre,
-                "io_mode": int(self.io_mode.get().split(":")[0]),
+                "stat_visu_nfre": int(self.stat_visu_nfre.get()),
+                "stat_visu_mode": self.stat_visu_mode.get(),
+                "is_record_xoutlet_read_xinlet": f"{bool_to_string(is_write)},{bool_to_string(is_read)}",
+                "ndbfre_ndbstart_ndbend": wrt_read_nfre,
+                "existing_output_policy": self.existing_output_policy.get(),
+                "restart_data_layout": self.restart_data_layout.get(),
+                "restart_data_layout_read": self.restart_data_layout.get(),
+                "restart_data_layout_write": self.restart_data_layout.get(),
+                "reset_unit_massflux": bool_to_string(self.reset_unit_massflux.get()),
+                "visu_precision": int(self.visu_precision.get().split(":")[0]),
             }
 
             # Probe - auto-generate 5 points
@@ -1329,6 +1389,12 @@ class CHAPSimGUI:
 
 
 if __name__ == "__main__":
+    ensure_template_available()
+    if TKINTER_IMPORT_ERROR is not None:
+        raise SystemExit(
+            "Tkinter is required to run autoinput_gui.py. "
+            f"Original import error: {TKINTER_IMPORT_ERROR}"
+        )
     root = tk.Tk()
     gui = CHAPSimGUI(root)
     root.mainloop()

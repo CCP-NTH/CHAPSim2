@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>inversion5_v2 &ndash; Fortran Program</title>
+    <title>inversion5_v2 &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,28 +85,29 @@
   <div class="row">
     <h1>inversion5_v2
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.0% of total for procedures.">108 statements</a>
+                 title=" 0.4% of total for procedures.">106 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/poisson_1stderivcomp.f90"> Source File</a>
+              <a href="../src/poisson_1stderivcomp_fft2d.f90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/poisson_1stderivcomp.f90.html'>poisson_1stderivcomp.f90</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/poisson_1stderivcomp_fft2d.f90.html'>poisson_1stderivcomp_fft2d.f90</a></li>
             <li class="breadcrumb-item active" aria-current="page">inversion5_v2</li>
           </ol>
         </nav>
@@ -119,39 +123,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/inversion5_v2.html#src">inversion5_v2</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2> subroutine inversion5_v2(aaa, eee, spI)
+    <h2> subroutine inversion5_v2(aaa, eee, spI)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -159,8 +169,9 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/fft2decomp_interface_mod~2.html'>fft2decomp_interface_mod</a></li>
                   <li class="list-inline-item">decomp_2d</li>
+                  <li class="list-inline-item"><a href='../module/math_mod.html'>math_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -193,7 +204,7 @@
             <td>::</td>
             <td><strong>aaa</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -208,7 +219,7 @@
             <td>::</td>
             <td><strong>eee</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -218,12 +229,12 @@
             </td>
 <td></td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>spI</strong></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -232,16 +243,161 @@
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="k">subroutine </span><span class="n">inversion5_v2</span><span class="p">(</span><span class="n">aaa</span><span class="p">,</span><span class="n">eee</span><span class="p">,</span><span class="n">spI</span><span class="p">)</span>
 
+<span class="w">  </span><span class="k">use </span><span class="n">decomp_2d</span>
+<span class="w">  </span><span class="c">!use decomp_2d_poisson</span>
+<span class="w">  </span><span class="c">!use variables</span>
+<span class="w">  </span><span class="c">!use param</span>
+<span class="w">  </span><span class="c">!use var</span>
+<span class="w">  </span><span class="c">!use MPI</span>
+<span class="w">  </span><span class="c">!use dbg_schemes, only: abs_prec</span>
+<span class="w">  </span><span class="k">use </span><span class="n">fft2decomp_interface_mod</span>
+<span class="w">  </span><span class="k">use </span><span class="n">math_mod</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">cx</span><span class="p">,</span><span class="w"> </span><span class="n">rl</span><span class="p">,</span><span class="w"> </span><span class="n">iy</span>
 
+<span class="w">  </span><span class="k">implicit none</span>
 
+<span class="w">  </span><span class="c">! decomposition object for spectral space</span>
+<span class="w">  </span><span class="k">TYPE</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">spI</span>
 
+<span class="cp">#ifdef DOUBLE_PREC</span>
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">mytype</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="nb">epsilon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.e-16_mytype</span>
+<span class="cp">#else</span>
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">mytype</span><span class="p">),</span><span class="w"> </span><span class="k">parameter</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="nb">epsilon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">1.e-8_mytype</span>
+<span class="cp">#endif</span>
 
+<span class="w">  </span><span class="kt">complex</span><span class="p">(</span><span class="n">mytype</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">nym</span><span class="p">,</span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="mi">5</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">aaa</span>
+<span class="w">  </span><span class="kt">complex</span><span class="p">(</span><span class="n">mytype</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">nym</span><span class="p">,</span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">eee</span>
+<span class="w">  </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">jc</span>
+<span class="w">  </span><span class="kt">integer</span><span class="p">,</span><span class="k">dimension</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ja</span><span class="p">,</span><span class="n">jb</span>
+<span class="w">  </span><span class="kt">complex</span><span class="p">(</span><span class="n">mytype</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">sr</span>
+<span class="w">  </span><span class="kt">complex</span><span class="p">(</span><span class="n">mytype</span><span class="p">),</span><span class="k">dimension</span><span class="p">(</span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">):</span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">):</span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">a1</span><span class="p">,</span><span class="n">b1</span>
 
+<span class="w">  </span><span class="kt">real</span><span class="p">(</span><span class="n">mytype</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tmp1</span><span class="p">,</span><span class="n">tmp2</span><span class="p">,</span><span class="n">tmp3</span><span class="p">,</span><span class="n">tmp4</span>
 
+<span class="w">  </span><span class="c">! complex(mytype) :: cx</span>
+<span class="w">  </span><span class="c">! real(mytype) :: rl, iy</span>
+<span class="w">  </span><span class="c">! external cx, rl, iy</span>
+
+<span class="w">  </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">     </span><span class="n">ja</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span>
+<span class="w">     </span><span class="n">jb</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">5</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">i</span>
+<span class="w">  </span><span class="k">enddo</span>
+<span class="k">  do </span><span class="n">m</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">nym</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">     </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">        </span><span class="n">mi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span>
+<span class="w">        </span><span class="k">do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">           </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">              </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">dabs</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">MINP</span><span class="p">)</span><span class="w"> </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="o">-</span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">              </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">dabs</span><span class="p">(</span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">MINP</span><span class="p">)</span><span class="w"> </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="o">-</span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">              </span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">tmp1</span><span class="p">,</span><span class="w"> </span><span class="n">tmp2</span><span class="p">)</span>
+<span class="w">              </span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tmp1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">)),&amp;</span>
+<span class="w">                               </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tmp2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span>
+<span class="w">           </span><span class="k">enddo</span>
+<span class="k">        enddo</span>
+<span class="k">        do </span><span class="n">jc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ja</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="w"> </span><span class="n">jb</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="w">           </span><span class="k">do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">              </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">                 </span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">jc</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">jc</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">jc</span><span class="o">+</span><span class="n">i</span><span class="p">)),&amp;</span>
+<span class="w">                                     </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">jc</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">jc</span><span class="o">+</span><span class="n">i</span><span class="p">)))</span>
+<span class="w">              </span><span class="k">enddo</span>
+<span class="k">           enddo</span>
+<span class="k">        enddo</span>
+<span class="k">     enddo</span>
+<span class="k">  enddo</span>
+<span class="k">  do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">     </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">           </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="k">           </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">        </span><span class="k">endif</span>
+<span class="k">        if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">           </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="k">           </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">        </span><span class="k">endif</span>
+<span class="k">        </span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">tmp1</span><span class="p">,</span><span class="n">tmp2</span><span class="p">)</span>
+<span class="w">        </span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tmp1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">4</span><span class="p">)),&amp;</span>
+<span class="w">                     </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tmp2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">4</span><span class="p">)))</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">           </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span>
+<span class="w">           </span><span class="n">tmp3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tmp1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">))</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="k">           </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">           </span><span class="n">tmp3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">        </span><span class="k">endif</span>
+<span class="k">        if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">iy</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">           </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span>
+<span class="w">           </span><span class="n">tmp4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tmp2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">))</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="k">           </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">           </span><span class="n">tmp4</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">        </span><span class="k">endif</span>
+<span class="k">        </span><span class="n">a1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">tmp1</span><span class="p">,</span><span class="w"> </span><span class="n">tmp2</span><span class="p">)</span>
+<span class="w">        </span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">tmp3</span><span class="p">,</span><span class="w"> </span><span class="n">tmp4</span><span class="p">)</span>
+
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">           </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="k">           </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">        </span><span class="k">endif</span>
+<span class="k">        if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">           </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="k">           </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">        </span><span class="k">endif</span>
+<span class="k">        </span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">tmp1</span><span class="p">,</span><span class="n">tmp2</span><span class="p">)</span>
+<span class="w">        </span><span class="n">a1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)),&amp;</span>
+<span class="w">                     </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span>
+<span class="w">        </span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">a1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">)),&amp;</span>
+<span class="w">                            </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">a1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">nym</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span>
+<span class="w">     </span><span class="k">enddo</span>
+<span class="k">  enddo</span>
+
+<span class="k">  do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nym</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span>
+<span class="w">     </span><span class="k">do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">           </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">              </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">           </span><span class="k">else</span>
+<span class="k">              </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">           </span><span class="k">endif</span>
+<span class="k">           if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">              </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">           </span><span class="k">else</span>
+<span class="k">              </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">           </span><span class="k">endif</span>
+<span class="k">           </span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">tmp1</span><span class="p">,</span><span class="n">tmp2</span><span class="p">)</span>
+<span class="w">           </span><span class="n">a1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)),&amp;</span>
+<span class="w">                        </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">4</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span>
+<span class="w">           </span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)),&amp;</span>
+<span class="w">                        </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span>
+<span class="w">           </span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">a1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="n">rl</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">k</span><span class="p">)),&amp;</span>
+<span class="w">                           </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">a1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="n">iy</span><span class="p">(</span><span class="n">b1</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">i</span><span class="o">+</span><span class="mi">2</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span>
+<span class="w">        </span><span class="k">enddo</span>
+<span class="k">     enddo</span>
+<span class="k">  enddo</span>
+
+<span class="k">  return</span>
+
+<span class="k">end subroutine </span><span class="n">inversion5_v2</span>
+</pre></div>
+
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -252,8 +408,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

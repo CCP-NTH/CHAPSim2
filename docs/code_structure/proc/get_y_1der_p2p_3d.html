@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>Get_y_1der_P2P_3D &ndash; Fortran Program</title>
+    <title>Get_y_1der_P2P_3D &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>Get_y_1der_P2P_3D
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.3% of total for procedures.">36 statements</a>
+                 title=" 0.1% of total for procedures.">36 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,39 +124,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/get_y_1der_p2p_3d.html#src">Get_y_1der_P2P_3D</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine Get_y_1der_P2P_3D(fi3d, fo3d, dm, iacc, ibc, fbc2d)
+    <h2>public  subroutine Get_y_1der_P2P_3D(fi3d, fo3d, dm, iacc, ibc, fbc2d)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -190,12 +200,12 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fi3d</strong>(:,:,:)</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -205,42 +215,42 @@
             </td>
 <td>intent(out)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fo3d</strong>(:,:,:)</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~174"></span>
+              <span class="anchor" id="variable-dm~56"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iacc~32"></span>
+              <span class="anchor" id="variable-iacc~30"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iacc</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -250,12 +260,12 @@
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibc</strong>(2)</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -265,12 +275,12 @@
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbc2d</strong>(:,:,:)</td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -279,16 +289,67 @@
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">Get_y_1der_P2P_3D</span><span class="p">(</span><span class="n">fi3d</span><span class="p">,</span><span class="w"> </span><span class="n">fo3d</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">iacc</span><span class="p">,</span><span class="w"> </span><span class="n">ibc</span><span class="p">,</span><span class="w"> </span><span class="n">fbc2d</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">parameters_constant_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">tridiagonal_matrix_algorithm</span>
+<span class="w">    </span><span class="k">use </span><span class="n">udf_type_mod</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w">           </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fi3d</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w">           </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="kd">::</span><span class="w"> </span><span class="n">fo3d</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w">     </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">            </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iacc</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">            </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ibc</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbc2d</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">fi</span><span class="p">(</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fi3d</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">fo</span><span class="p">(</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fo3d</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">fbc</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">k</span><span class="p">,</span><span class="w"> </span><span class="n">i</span>
 
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">!  default : y-pencil calculation</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! Check sizes for fo3d and fi3d</span>
+<span class="w">    </span><span class="k">call </span><span class="n">check_size</span><span class="p">(</span><span class="s2">&quot;fo/fi&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fo3d</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fi3d</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;nx mismatch in Get_y_1der_P2P_3D&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">check_size</span><span class="p">(</span><span class="s2">&quot;fo/fi&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fo3d</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fi3d</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;nz mismatch in Get_y_1der_P2P_3D&quot;</span><span class="p">)</span>
 
+<span class="w">    </span><span class="c">! Check sizes for fbc2d if present</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">fbc2d</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      call </span><span class="n">check_size</span><span class="p">(</span><span class="s2">&quot;fbc/fi&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fbc2d</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fi3d</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;nx mismatch in Get_y_1der_P2P_3D&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">check_size</span><span class="p">(</span><span class="s2">&quot;fbc/fi&quot;</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fbc2d</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fi3d</span><span class="p">,</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="s2">&quot;nz mismatch in Get_y_1der_P2P_3D&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">fo3d</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="k">do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fi3d</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">fi3d</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">fi</span><span class="p">(:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fi3d</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">fbc2d</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">          </span><span class="n">fbc</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fbc2d</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">:</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span>
+<span class="w">          </span><span class="k">call </span><span class="n">Get_y_1der_P2P_1D</span><span class="p">(</span><span class="n">fi</span><span class="p">,</span><span class="w"> </span><span class="n">fo</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">iacc</span><span class="p">,</span><span class="w"> </span><span class="n">ibc</span><span class="p">,</span><span class="w"> </span><span class="n">fbc</span><span class="p">)</span>
+<span class="w">        </span><span class="k">else</span>
+<span class="k">          call </span><span class="n">Get_y_1der_P2P_1D</span><span class="p">(</span><span class="n">fi</span><span class="p">,</span><span class="w"> </span><span class="n">fo</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">iacc</span><span class="p">,</span><span class="w"> </span><span class="n">ibc</span><span class="p">)</span>
+<span class="w">        </span><span class="k">end if</span>
+<span class="k">        </span><span class="n">fo3d</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fo</span><span class="p">(:)</span>
+<span class="w">      </span><span class="k">end do</span>
+<span class="k">    end do</span>
 
+<span class="k">    return</span>
+<span class="k">  end subroutine </span><span class="n">Get_y_1der_P2P_3D</span>
+</pre></div>
 
-
-
-
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -299,8 +360,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Benchmark and Example Cases - CHAPSim2 Guidance</title>
+  <title>Benchmark and Validation Cases - CHAPSim2 Guidance</title>
   <style>
     body {
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -132,15 +132,15 @@
     </div>
     <div class="layout">
       <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
-<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a></div>
-<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Example Cases</a></div>
-<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
 <div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
 <div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
 <div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
       <article>
-<h1>Benchmark and Example Cases</h1>
-<p>The recommended approach for creating a new CHAPSim2 configuration is to locate the most similar existing case and duplicate it, then edit <code>input_chapsim.ini</code> according to your requirements. The <code>tests/</code> directory contains compact validation cases designed for smoke and regression testing. The <code>examples/</code> directory contains postprocessing scripts and reference data for selected canonical production-scale cases.</p>
+<h1>Benchmark and Validation Cases</h1>
+<p>The recommended approach for creating a new CHAPSim2 configuration is to locate the most similar existing case and duplicate it, then edit <code>input_chapsim.ini</code> according to your requirements. Runnable cases live in two places: <code>tests/regression/</code> holds the metric-gated cases that form the smoke and regression suites, and <code>tests/functional/</code> holds feature cases. The <code>validation/</code> directory contains case-specific post-processing assets, shared validation tools, suite manifests, and reference databases for selected canonical cases.</p>
 <h2>Case Families</h2>
 <table><thead><tr>
 <th>Family</th>
@@ -197,7 +197,45 @@
 <td><code>qw</code></td>
 <td>Wall-heat-flux thermal boundary condition</td>
 </tr>
+<tr>
+<td><code>cd4</code>, <code>cp4</code>, <code>cp6</code></td>
+<td>Non-default spatial scheme; every other case runs <code>cd2</code></td>
+</tr>
 </tbody></table>
+<h2>Functional Cases</h2>
+<p><code>tests/functional/</code> covers features that the regression suite does not exercise. Each family is a useful starting point when configuring that feature:</p>
+<table><thead><tr>
+<th>Family</th>
+<th>Covers</th>
+<th>How it runs</th>
+</tr></thead><tbody>
+<tr>
+<td><code>LES_*</code></td>
+<td>WALE subgrid model in channel, pipe, annular and duct geometries, isothermal and thermal</td>
+<td>Metric-gated, with the extended regression suite</td>
+</tr>
+<tr>
+<td><code>MHD_*</code></td>
+<td>Magnetohydrodynamics, including wall-normal and tilted (<code>_Btilt</code>) applied fields</td>
+<td>Metric-gated, with the extended regression suite</td>
+</tr>
+<tr>
+<td><code>restart/</code></td>
+<td>Restart write/read across layouts and history modes</td>
+<td><code>tests/run_functional.sh</code></td>
+</tr>
+<tr>
+<td><code>mesh_mapping/</code></td>
+<td>Restarting a developed field onto a different mesh</td>
+<td><code>tests/run_functional.sh</code></td>
+</tr>
+<tr>
+<td><code>inlet_database/</code></td>
+<td>Stored inlet/outlet field data consumed by the inlet-database cases</td>
+<td>Fixture, not run directly</td>
+</tr>
+</tbody></table>
+<p>The <code>LES_*</code> and <code>MHD_*</code> cases are reached through the extended regression suite with functional tests included; <code>tests/run_functional.sh</code> runs only the behavioural <code>restart/</code> and <code>mesh_mapping/</code> sub-suites. See <a href="testing.html">Regression and Smoke Tests</a>.</p>
 <h2>Use Cases and Starting Configurations</h2>
 <table><thead><tr>
 <th>Objective</th>
@@ -205,27 +243,27 @@
 </tr></thead><tbody>
 <tr>
 <td>Initial solver validation</td>
-<td><code>tests/tgv_iso</code></td>
+<td><code>tests/regression/tgv_iso</code></td>
 </tr>
 <tr>
 <td>Periodic channel Direct Numerical Simulation</td>
-<td><code>tests/channel_iso_periodic</code></td>
+<td><code>tests/regression/channel_iso_periodic</code></td>
 </tr>
 <tr>
 <td>Channel with inlet/outlet conditions</td>
-<td><code>tests/channel_iso_inout</code></td>
+<td><code>tests/regression/channel_iso_inout</code></td>
 </tr>
 <tr>
 <td>Periodic pipe Direct Numerical Simulation</td>
-<td><code>tests/pipe_iso_periodic</code></td>
+<td><code>tests/regression/pipe_iso_periodic</code></td>
 </tr>
 <tr>
 <td>Pipe with inlet/outlet conditions</td>
-<td><code>tests/pipe_iso_inout</code></td>
+<td><code>tests/regression/pipe_iso_inout</code></td>
 </tr>
 <tr>
 <td>Annular periodic configuration</td>
-<td><code>tests/annular_iso_periodic</code></td>
+<td><code>tests/regression/annular_iso_periodic</code></td>
 </tr>
 <tr>
 <td>Thermal case with wall-temperature</td>
@@ -244,42 +282,42 @@
 <li><code>[thermo]</code> only when thermal or scalar physics is enabled</li>
 <li><code>[io]</code> and <code>[statistics]</code> output frequencies before executing production simulations</li>
 </ol>
-<h2>Example Postprocessing Assets</h2>
+<h2>Validation Assets</h2>
 <table><thead><tr>
-<th>Example path</th>
+<th>Path</th>
 <th>Content</th>
 </tr></thead><tbody>
 <tr>
-<td><code>examples/channel_iso_periodic/case/2_visu/</code></td>
+<td><code>validation/cases/channel/iso_periodic/post/</code></td>
 <td>Channel velocity/stress plotting and wall-unit postprocessing scripts.</td>
 </tr>
 <tr>
-<td><code>examples/channel_iso_periodic/MKM180_profiles/</code></td>
+<td><code>validation/references/channel/mkm/retau180/</code></td>
 <td>Reference profile data for channel comparison.</td>
 </tr>
 <tr>
-<td><code>examples/channel_iso_periodic/MKM395_profiles/</code></td>
+<td><code>validation/references/channel/mkm/retau395/</code></td>
 <td>Higher-Re channel reference profiles.</td>
 </tr>
 <tr>
-<td><code>examples/pipe_iso_periodic/case/2_visu/</code></td>
+<td><code>validation/cases/pipe/iso_periodic/post/</code></td>
 <td>Pipe velocity/stress plotting scripts.</td>
 </tr>
 <tr>
-<td><code>examples/pipe_iso_periodic/TDL180/</code></td>
+<td><code>validation/references/pipe/tdl/retau180/</code></td>
 <td>Pipe reference data at friction Reynolds number near 180.</td>
 </tr>
 <tr>
-<td><code>examples/pipe_iso_periodic/TDL550/</code></td>
+<td><code>validation/references/pipe/tdl/retau550/</code></td>
 <td>Pipe reference data at higher friction Reynolds number.</td>
 </tr>
 <tr>
-<td><code>examples/3_monitor/</code></td>
-<td>Generic monitor plotting scripts.</td>
+<td><code>validation/tools/scripts/</code></td>
+<td>Shared monitor, mesh-check, and rebuild scripts.</td>
 </tr>
 <tr>
-<td><code>examples/4_check/</code></td>
-<td>Generic mesh-check plotting script.</td>
+<td><code>validation/suites/</code></td>
+<td>Smoke/regression/extended suite manifests.</td>
 </tr>
 </tbody></table>
 <h2>How Benchmarks Fit the Workflow</h2>

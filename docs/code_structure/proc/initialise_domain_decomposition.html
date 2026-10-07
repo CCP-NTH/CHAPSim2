@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>initialise_domain_decomposition &ndash; Fortran Program</title>
+    <title>initialise_domain_decomposition &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>initialise_domain_decomposition
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.7% of total for procedures.">68 statements</a>
+                 title=" 0.3% of total for procedures.">80 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,39 +124,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/initialise_domain_decomposition.html#src">initialise_domain_decomposition</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine initialise_domain_decomposition(dm)
+    <h2>public  subroutine initialise_domain_decomposition(dm)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -160,9 +170,9 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/print_msg_mod.html'>print_msg_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/wtformat_mod.html'>wtformat_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/print_msg_mod.html'>print_msg_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -189,17 +199,17 @@ Scope:  mpi    called-freq    xdomain     module
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~26"></span>
+              <span class="anchor" id="variable-dm~6"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -208,16 +218,135 @@ Scope:  mpi    called-freq    xdomain     module
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">initialise_domain_decomposition</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">udf_type_mod</span>
+<span class="w">    </span><span class="c">!use iso_fortran_env</span>
+<span class="w">    </span><span class="k">use </span><span class="n">print_msg_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">wtformat_mod</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ibuf</span>
 
+<span class="cp">#ifdef DEBUG_STEPS</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dtmp</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span>
+<span class="cp">#endif</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">! basic 2D decompistion API</span>
+<span class="c">! limits: p_row &lt;= min(nx, ny)</span>
+<span class="c">!         p_col &lt;= min(ny, nz)</span>
+<span class="c">! xsize(i), ysize(i), zsize(i), i = 1,2,3 :</span>
+<span class="c">!   sizes of the sub-domains held by the current process.</span>
+<span class="c">!   The first letter refers to the pencil orientation and the three 1D array elements</span>
+<span class="c">!   contain the sub-domain sizes in X, Y and Z directions, respectively.</span>
+<span class="c">!   example: xsize(1:3) means the subdomain size in xyz direction of x-pencil</span>
+<span class="c">!   In a 2D pencil decomposition, there is always one dimension which completely</span>
+<span class="c">!   resides in local memory. So by definition, below relations hold</span>
+<span class="c">!   xsize(1)==nx_global, ysize(2)==ny_global and zsize(3)==nz_global</span>
+<span class="c">! xstart(i), ystart(i), zstart(i), xend(i), yend(i), zend(i), i=1,2,3 : (Global index)</span>
+<span class="c">!   the starting and ending indices for each sub-domain, as in the global coordinate system.</span>
+<span class="c">!   Obviously, it can be seen that xsize(i)=xend(i)-xstart(i)+1.</span>
+<span class="c">!   It may be convenient for certain applications to use global coordinate</span>
+<span class="c">!   (for example when extracting a 2D plane from a 3D domain, it is easier to know which</span>
+<span class="c">!   process owns the plane if global index is used).</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">! initialise decomp</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_debug_start_msg</span><span class="p">(</span><span class="s1">&#39;Initialising decomp_info_init for domain decomposition&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">)</span><span class="w"> </span><span class="c">! for ux, gx</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpc</span><span class="p">)</span><span class="w"> </span><span class="c">! for uy, gy</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccp</span><span class="p">)</span><span class="w"> </span><span class="c">! for uz, gz</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span><span class="w"> </span><span class="c">! for p, T, h</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dppc</span><span class="p">)</span><span class="w"> </span><span class="c">! for intermediate vars</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpp</span><span class="p">)</span><span class="w"> </span><span class="c">! for intermediate vars</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcp</span><span class="p">)</span><span class="w"> </span><span class="c">! for intermediate vars</span>
 
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dppp</span><span class="p">)</span><span class="w"> </span><span class="c">! this is only used in test.</span>
 
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_record_xoutlet</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_read_xinlet</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">dm</span><span class="p">%</span><span class="n">ndbbuf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">      </span><span class="k">do </span><span class="n">ibuf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">min</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ndbfre</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">1</span><span class="p">)),</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="nb">mod</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ndbfre</span><span class="p">,</span><span class="w"> </span><span class="n">ibuf</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">          </span><span class="n">dm</span><span class="p">%</span><span class="n">ndbbuf</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ibuf</span>
+<span class="w">          </span><span class="k">exit</span>
+<span class="k">        end if</span>
+<span class="k">      end do</span>
+<span class="k">      call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ndbbuf</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dxcc</span><span class="p">)</span><span class="w"> </span><span class="c">! for ux, gx</span>
+<span class="w">      </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ndbbuf</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dxpc</span><span class="p">)</span><span class="w"> </span><span class="c">! for uy, gy</span>
+<span class="w">      </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ndbbuf</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dxcp</span><span class="p">)</span><span class="w"> </span><span class="c">! for uz, gz</span>
+<span class="w">    </span><span class="k">end if</span>
 
+<span class="k">    call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">d4cc</span><span class="p">)</span><span class="w"> </span><span class="c">! this is fbcx operation</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">d4pc</span><span class="p">)</span><span class="w"> </span><span class="c">! this is fbcx operation</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">d4cp</span><span class="p">)</span><span class="w"> </span><span class="c">! this is fbcx operation</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">d1cc</span><span class="p">)</span><span class="w"> </span><span class="c">! this is fbcx history</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">d1pc</span><span class="p">)</span><span class="w"> </span><span class="c">! this is fbcx history</span>
+<span class="w">    </span><span class="k">call </span><span class="n">decomp_info_init</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">d1cp</span><span class="p">)</span><span class="w"> </span><span class="c">! this is fbcx history</span>
 
+<span class="cp">#ifdef DEBUG_STEPS</span>
+<span class="w">    </span><span class="k">call </span><span class="n">mpi_barrier</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">ierror</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_debug_inline_msg</span><span class="p">(</span><span class="s1">&#39; domain decomposition info&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">7</span>
+<span class="w">      </span><span class="k">select case</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">dtmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1s</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;In the decomp - pcc grids (for ux, gx) :&#39;</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">        </span><span class="n">dtmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpc</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1s</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;In the decomp - cpc grids (for uy, gy) :&#39;</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="n">dtmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccp</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1s</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;In the decomp - ccp grids (for uz, gz) :&#39;</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">        </span><span class="n">dtmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1s</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;In the decomp - ccc grids (for rho, p) :&#39;</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+<span class="w">        </span><span class="n">dtmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dppc</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1s</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;In the decomp - ppc grids (for dux/dy, duy/dx) :&#39;</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="mi">6</span><span class="p">)</span>
+<span class="w">        </span><span class="n">dtmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpp</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1s</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;In the decomp - cpp grids (for duy/dz, duz/dy) :&#39;</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="mi">7</span><span class="p">)</span>
+<span class="w">        </span><span class="n">dtmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcp</span>
+<span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1s</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;In the decomp - pcp grids (for dux/dz, duz/dx) :&#39;</span>
+<span class="w">      </span><span class="k">case </span><span class="n">default</span>
+<span class="w">      </span><span class="k">end select</span>
+<span class="k">      call </span><span class="n">mpi_barrier</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">ierror</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;x-pencil, x id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xst</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xen</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;x-pencil, y id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xst</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xen</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;x-pencil, z id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xst</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xen</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">mpi_barrier</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">ierror</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;y-pencil, x id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;y-pencil, y id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;y-pencil, z id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">mpi_barrier</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">ierror</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;z-pencil, x id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zst</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zen</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;z-pencil, y id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zst</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zen</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt4i</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;z-pencil, z id in rank &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nrank</span><span class="p">,</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zst</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zen</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">dtmp</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">mpi_barrier</span><span class="p">(</span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">ierror</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end do</span>
+<span class="cp">#endif</span>
 
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_debug_end_msg</span><span class="p">()</span>
+<span class="w">    </span><span class="k">return</span>
+<span class="k">  end subroutine </span><span class="n">initialise_domain_decomposition</span>
+</pre></div>
 
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -228,8 +357,8 @@ Scope:  mpi    called-freq    xdomain     module
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

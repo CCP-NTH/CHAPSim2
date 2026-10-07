@@ -1,0 +1,119 @@
+{
+  "_comment": [
+    "Tolerances for the genuine-mesh-change steps, compared against a stored",
+    "reference.json. Unlike the identity check there is no analytic invariant to",
+    "assert here: interpolating onto a different mesh changes the field, and the",
+    "20 steps that follow are a smoke test that the remapped state is a valid",
+    "initial condition (finite, divergence-free after projection, mass-consistent)",
+    "rather than a statement about the physics.",
+    "",
+    "Values therefore match tests/tools/tolerances.json, which is calibrated to",
+    "survive decomposition and compiler changes while still catching a real",
+    "regression in the remap path by orders of magnitude.",
+    "",
+    "The Poisson and mass-conservation residuals are absolute-only: they are",
+    "round-off quantities whose reproducible content is their magnitude."
+  ],
+
+  "global mass balance": {
+    "abs": 1e-6,
+    "rel": 1e-5
+  },
+  "max. mass conservation (interior)": {
+    "abs": 1e-10,
+    "rel": 1e-3
+  },
+  "max. mass conservation (inlet)": {
+    "abs": 1e-10,
+    "rel": 1e-3
+  },
+  "max. mass conservation (outlet)": {
+    "abs": 1e-10,
+    "rel": 1e-3
+  },
+  "max. physical mass conservation (interior)": {
+    "abs": 1e-8
+  },
+  "max. physical mass conservation (inlet)": {
+    "abs": 1e-8
+  },
+  "max. physical mass conservation (outlet)": {
+    "abs": 1e-8
+  },
+  "max. projected mass conservation (interior)": {
+    "abs": 1e-8
+  },
+  "max. projected mass conservation (inlet)": {
+    "abs": 1e-8
+  },
+  "max. projected mass conservation (outlet)": {
+    "abs": 1e-8
+  },
+  "physical Poisson compatibility defect": {
+    "abs": 1e-8
+  },
+  "explicit uniform Poisson-source correction": {
+    "abs": 1e-8
+  },
+  "Poisson projected-source amplitude": {
+    "abs": 1e-8
+  },
+  "Poisson zero-mode projection (scaled solver RHS)": {
+    "abs": 1e-4
+  },
+  "total mass": {
+    "abs": 1e-6,
+    "rel": 1e-8
+  },
+  "total mass drift from run start": {
+    "abs": 1e-6
+  },
+  "global pressure drop": {
+    "abs": 1e-2,
+    "rel": 1e-3
+  },
+  "mean dpdx": {
+    "abs": 1e-2,
+    "rel": 1e-3
+  },
+  "total kinetic energy": {
+    "abs": 1e-3,
+    "rel": 1e-3
+  },
+  "bulk velocity ux": {
+    "abs": 1e-6,
+    "rel": 1e-4
+  },
+  "bulk velocity uy": {
+    "abs": 1e-4,
+    "rel": 1e-2
+  },
+  "bulk velocity uz": {
+    "abs": 1e-4,
+    "rel": 1e-2
+  },
+  "bulk massflux gx": {
+    "abs": 1e-6,
+    "rel": 1e-4
+  },
+  "bulk massflux gy": {
+    "abs": 1e-4,
+    "rel": 1e-2
+  },
+  "bulk massflux gz": {
+    "abs": 1e-4,
+    "rel": 1e-2
+  },
+  "bulk enthalpy": {
+    "abs": 1e-4,
+    "rel": 1e-2
+  },
+  "bulk temperature": {
+    "abs": 1e-4,
+    "rel": 1e-2
+  },
+  "global energy balance": {
+    "abs": 1e-10,
+    "rel": 1e-5
+  }
+}

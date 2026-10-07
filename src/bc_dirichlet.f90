@@ -21,8 +21,8 @@ module bc_dirichlet_mod
   public :: extract_dirichlet_fbcz
 
 contains
-  !==========================================================================================================
-  !==========================================================================================================
+  !==============================================================================
+  !==============================================================================
   subroutine extract_dirichlet_fbcx(fbc, var, dtmp)
     use parameters_constant_mod
     use udf_type_mod
@@ -38,7 +38,7 @@ contains
 
     return
   end subroutine
-  !==========================================================================================================
+  !==============================================================================
   subroutine extract_dirichlet_fbcy(fbc, var, dtmp, dm, is_reversed)
     use parameters_constant_mod
     use udf_type_mod
@@ -59,6 +59,14 @@ contains
     !------------------------------------------------------------------------------------------------------
     if(dtmp%ysz(2) /= dtmp%yen(2)) call Print_error_msg("Error. This is not y-pencil.")
     !------------------------------------------------------------------------------------------------------
+    ! Every caller passes a y-node decomposition (dcpc/dppc/dcpp), and the pipe-axis
+    ! branch below relies on that: node 1 is the axis itself, so the two ghost layers
+    ! are the mirrors of nodes 2 and 3. A y-cell array would need the mirrors of
+    ! cells 1 and 2 instead, so fail loudly rather than shift the whole line by one.
+    !------------------------------------------------------------------------------------------------------
+    if(dtmp%ysz(2) /= dm%np(2)) &
+      call Print_error_msg("Error. extract_dirichlet_fbcy needs a y-node array.")
+    !------------------------------------------------------------------------------------------------------
     ! Extract Dirichlet boundary conditions in the y-direction
     !------------------------------------------------------------------------------------------------------
     fbc(:, 1, :) = var(:, 1,           :) ! Lower boundary
@@ -66,7 +74,11 @@ contains
     fbc(:, 4, :) = TWO * var(:, dtmp%ysz(2), :) - var(:, dtmp%ysz(2)-1, :)! Upper boundary
     !------------------------------------------------------------------------------------------------------
     ! Handle special treatment of the lower boundary for pipe geometry (ICASE_PIPE)
-    ! this part is the same as axis_mirroring
+    ! this part is the same as axis_mirroring.
+    ! The axis is IBC_INTERIOR, so slots 1 and 3 are read by buildup_ghost_cells_P as
+    ! the ghost nodes 0 and -1, not as a boundary value: they are the mirrors of nodes
+    ! 2 and 3 across r = 0. Slot 1 must be overwritten here - the Dirichlet fill above
+    ! put the axis node itself there, which for an interior side is one node short.
     !------------------------------------------------------------------------------------------------------
     if(dm%icase == ICASE_PIPE) then
       sign = ONE
@@ -78,14 +90,15 @@ contains
         var_zpencil1(:, :, k) = sign * var_zpencil(:, :, dm%knc_sym(k))
       end do
       call transpose_z_to_y(var_zpencil1, var_ypencil1, dtmp)
-      fbc(:, 3, :) = var_ypencil1(:, 2, :)
+      fbc(:, 1, :) = var_ypencil1(:, 2, :)
+      fbc(:, 3, :) = var_ypencil1(:, 3, :)
     else
       fbc(:, 3, :) = TWO * var(:, 1, :) - var(:, 2, :)
     end if
 
     return
   end subroutine
-  !==========================================================================================================
+  !==============================================================================
   subroutine extract_dirichlet_fbcz(fbc, var, dtmp)
     use parameters_constant_mod
     use udf_type_mod
@@ -103,8 +116,8 @@ contains
     return
   end subroutine
 
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================
   subroutine  map_bc_1d_uprofile(filename, n, y, u)
     use io_files_mod
     implicit none
@@ -124,9 +137,9 @@ contains
     real(WP), allocatable :: uprofile(:)
     real(WP), allocatable :: yy(:)
 
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
     ! to read given u-velocity profile, dimensionless, x/H, U/Umean
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
     open ( newunit = inputUnit,     &
           file    = trim(filename), &
           status  = 'old',         &
@@ -147,9 +160,9 @@ contains
       nn = nn + 1
     end do
     rewind(inputUnit)
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
     ! to read given u-velocity profile, dimensionless, x/H, U/Umean
-    !----------------------------------------------------------------------------------------------------------
+    !------------------------------------------------------------------------------
     allocate ( uprofile (nn) )
     allocate ( yy (nn) )
 
@@ -183,8 +196,8 @@ contains
     return
   end subroutine
 
-  !==========================================================================================================
-  !==========================================================================================================
+  !==============================================================================
+  !==============================================================================
   subroutine initialise_fbcx_given_profile(fbcx, var1y, jst, str)
     use io_files_mod
     implicit none
@@ -216,7 +229,7 @@ contains
 
     return
   end subroutine
-  !==========================================================================================================
+  !==============================================================================
   subroutine initialise_fbcx_given_const(fbcx, fbcx_const)
     real(WP), intent(inout) :: fbcx(:, :, :)
     real(WP), intent(in)    :: fbcx_const(2)
@@ -234,7 +247,7 @@ contains
 
     return
   end subroutine
-  !==========================================================================================================
+  !==============================================================================
   subroutine initialise_fbcy_given_const(fbcy, fbcy_const, ri)
     real(WP), intent(inout) :: fbcy(:, :, :)
     real(WP), intent(in)    :: fbcy_const(2)
@@ -263,7 +276,7 @@ contains
 
     return
   end subroutine
-  !==========================================================================================================
+  !==============================================================================
   subroutine initialise_fbcz_given_const(fbcz, fbcz_const, ri, jst)
     real(WP), intent(inout) :: fbcz(:, :, :)
     real(WP), intent(in)    :: fbcz_const(2)
@@ -290,62 +303,65 @@ contains
     return
   end subroutine
 
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================
   subroutine initialise_fbc_flow_given (dm) ! apply once only
+    use mpi_mod
+    use precision_mod
     type(t_domain), intent(inout)   :: dm
 
     real(WP) :: var1y(1:dm%np(2))
 
     integer :: ny, n
-!==========================================================================================================
+    real(WP) :: dref_x(2), dref_y(2), dref_z(2), dref_local
+!==============================================================================
 ! to build up bc with constant values
 ! -3-1-||||-2-4
 ! for constant bc, 3=1= geometric bc, side 1;
 !                  2=4= geometric bc, side 2
-!==========================================================================================================
-!----------------------------------------------------------------------------------------------------------
+!==============================================================================
+!------------------------------------------------------------------------------
 ! x-bc in x-pencil, qx, qy, qz, pr
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     call initialise_fbcx_given_const(dm%fbcx_qx, dm%fbcx_const(:, 1))
     call initialise_fbcx_given_const(dm%fbcx_qy, dm%fbcx_const(:, 2))
     call initialise_fbcx_given_const(dm%fbcx_qz, dm%fbcx_const(:, 3))
     call initialise_fbcx_given_const(dm%fbcx_pr, dm%fbcx_const(:, 4))
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! y-bc in y-pencil, qx, qy, qz, pr
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     call initialise_fbcy_given_const(dm%fbcy_qx, dm%fbcy_const(:, 1))
     call initialise_fbcy_given_const(dm%fbcy_qy, dm%fbcy_const(:, 2))
     call initialise_fbcy_given_const(dm%fbcy_qz, dm%fbcy_const(:, 3)) ! geo_bc, rpi, not rci
     call initialise_fbcy_given_const(dm%fbcy_pr, dm%fbcy_const(:, 4))
     if(dm%icoordinate == ICYLINDRICAL) then
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! y-bc in y-pencil, qyr = qy/r = uy
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       call initialise_fbcy_given_const(dm%fbcy_qyr, dm%fbcy_const(:, 2), dm%rpi)
       call initialise_fbcy_given_const(dm%fbcy_qzr, dm%fbcy_const(:, 3), dm%rci)
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! z-bc in z-pencil, qx, qy, qz, pr
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     call initialise_fbcz_given_const(dm%fbcz_qx, dm%fbcz_const(:, 1))
     call initialise_fbcz_given_const(dm%fbcz_qy, dm%fbcz_const(:, 2))
     call initialise_fbcz_given_const(dm%fbcz_qz, dm%fbcz_const(:, 3))
     call initialise_fbcz_given_const(dm%fbcz_pr, dm%fbcz_const(:, 4))
     if(dm%icoordinate == ICYLINDRICAL) then
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! z-bc in z-pencil, qyr = qy/r = uy
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       call initialise_fbcz_given_const(dm%fbcz_qyr, dm%fbcz_const(:, 2), dm%rpi, dm%dcpc%zst(2))
       call initialise_fbcz_given_const(dm%fbcz_qzr, dm%fbcz_const(:, 3), dm%rci, dm%dccp%zst(2))
     end if
 
-!==========================================================================================================
+!==============================================================================
 ! to build up bc for var(x_const, y, z)
-!==========================================================================================================
-!----------------------------------------------------------------------------------------------------------
+!==============================================================================
+!------------------------------------------------------------------------------
 ! x-bc1, qx(x_c, y, z)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(dm%ibcx_nominal(1, 1) == IBC_PROFILE1D) then
       var1y = ZERO
       ny = dm%nc(2)
@@ -353,9 +369,9 @@ contains
       ! call map_bc_1d_uprofile( filename(1), ny, dm%yc, var1y(1:ny) )
       ! call initialise_fbcx_given_profile(dm%fbcx_qx, var1y, dm%dpcc%xst(2), 'qx')
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! x-bc1, qy(x_c, y, z)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(dm%ibcx_nominal(1, 2) == IBC_PROFILE1D) then
       var1y = ZERO
       ny = dm%np(2)
@@ -364,9 +380,9 @@ contains
       if(dm%icoordinate == ICARTESIAN) var1y(1:ny) =  var1y(1:ny) * dm%rp(1:ny)
       call initialise_fbcx_given_profile(dm%fbcx_qy, var1y, dm%dcpc%xst(2), 'qy')
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! x-bc1, qz(x_c, y, z)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(dm%ibcx_nominal(1, 3) == IBC_PROFILE1D) then
       var1y = ZERO
       ny = dm%nc(2)
@@ -375,9 +391,9 @@ contains
       if(dm%icoordinate == ICARTESIAN) var1y(1:ny) =  var1y(1:ny) * dm%rc(1:ny)
       call initialise_fbcx_given_profile(dm%fbcx_qz, var1y, dm%dccp%xst(2), 'qz')
     end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! x-bc1, pr(x_c, y, z)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(dm%ibcx_nominal(1, 4) == IBC_PROFILE1D) then
       var1y = ZERO
       ny = dm%nc(2)
@@ -387,29 +403,62 @@ contains
     end if
 
     if(dm%is_thermo) then
+!------------------------------------------------------------------------------
+! Provisional q -> g conversion on the boundaries, g = q * rho.
+!
+! Only the three wall-normal-matching arrays can be built exactly here: their
+! shapes conform to fbc*_ftp (see allocate_fbc_flow / allocate_fbc_thermo), so
+! the full boundary density plane is used. The six cross-component arrays sit
+! on nodes staggered off the ftp cell centres and need a density interpolated
+! to that stagger, which is unavailable at this point - this routine is called
+! from chapsim.f90 before Allocate_flow_variables, so no density field exists
+! yet. They are left on a single reference density here.
+!
+! All nine are rebuilt exactly by convert_primary_conservative(IQ2G, IBND)
+! once the density field is available, before the first substep consumes them.
+!
+! That single reference density must not be a rank-local array element. The
+! boundary thermal plane is uniform in most configurations, but not in all:
+! IBC_PROFILE1D gives fbcx_ftp a y-profile, and an inlet thermal buffer ramps
+! fbcy_ftp along x. Reading element (1,1) of the local pencil would then pick a
+! different density on every rank and make these planes depend on the
+! decomposition. Reduce over all ranks instead. MPI_MAX, not a mean: where the
+! plane is uniform - which is every case that ships - the reduction returns that
+! value bit-exactly, so this costs nothing in reproducibility; where it is not,
+! it is at least one well-defined number rather than as many as there are ranks.
+!------------------------------------------------------------------------------
       do n = 1, 2
-!----------------------------------------------------------------------------------------------------------
+        dref_local = maxval(dm%fbcx_ftp(n, :, :)%d)
+        call MPI_ALLREDUCE(dref_local, dref_x(n), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+        dref_local = maxval(dm%fbcy_ftp(:, n, :)%d)
+        call MPI_ALLREDUCE(dref_local, dref_y(n), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+        dref_local = maxval(dm%fbcz_ftp(:, :, n)%d)
+        call MPI_ALLREDUCE(dref_local, dref_z(n), 1, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+      end do
+
+      do n = 1, 2
+!------------------------------------------------------------------------------
 ! x-bc in x-pencil, gx, gy, gz
-!----------------------------------------------------------------------------------------------------------
-        dm%fbcx_gx(n, :, :) = dm%fbcx_qx(n, :, :) * dm%fbcx_ftp(n, 1, 1)%d
-        dm%fbcx_gy(n, :, :) = dm%fbcx_qy(n, :, :) * dm%fbcx_ftp(n, 1, 1)%d
-        dm%fbcx_gz(n, :, :) = dm%fbcx_qz(n, :, :) * dm%fbcx_ftp(n, 1, 1)%d
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+        dm%fbcx_gx(n, :, :) = dm%fbcx_qx(n, :, :) * dm%fbcx_ftp(n, :, :)%d
+        dm%fbcx_gy(n, :, :) = dm%fbcx_qy(n, :, :) * dref_x(n)
+        dm%fbcx_gz(n, :, :) = dm%fbcx_qz(n, :, :) * dref_x(n)
+!------------------------------------------------------------------------------
 ! y-bc in y-pencil, gx, gy, gz, qyr = qy/r = uy
-!----------------------------------------------------------------------------------------------------------
-        dm%fbcy_gx(:, n, :) = dm%fbcy_qx(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
-        dm%fbcy_gy(:, n, :) = dm%fbcy_qy(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
-        dm%fbcy_gz(:, n, :) = dm%fbcy_qz(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
+!------------------------------------------------------------------------------
+        dm%fbcy_gx(:, n, :) = dm%fbcy_qx(:, n, :) * dref_y(n)
+        dm%fbcy_gy(:, n, :) = dm%fbcy_qy(:, n, :) * dm%fbcy_ftp(:, n, :)%d
+        dm%fbcy_gz(:, n, :) = dm%fbcy_qz(:, n, :) * dref_y(n)
         !if(dm%icoordinate == ICYLINDRICAL) then
           !dm%fbcy_gyr(:, n, :) = dm%fbcy_qyr(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
           !dm%fbcy_gzr(:, n, :) = dm%fbcy_qzr(:, n, :) * dm%fbcy_ftp(1, n, 1)%d
         !end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! z-bc in z-pencil, gx, gy, gz, gyr = gy/r
-!----------------------------------------------------------------------------------------------------------
-        dm%fbcz_gx(:, :, n) = dm%fbcz_qx(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
-        dm%fbcz_gy(:, :, n) = dm%fbcz_qy(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
-        dm%fbcz_gz(:, :, n) = dm%fbcz_qz(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
+!------------------------------------------------------------------------------
+        dm%fbcz_gx(:, :, n) = dm%fbcz_qx(:, :, n) * dref_z(n)
+        dm%fbcz_gy(:, :, n) = dm%fbcz_qy(:, :, n) * dref_z(n)
+        dm%fbcz_gz(:, :, n) = dm%fbcz_qz(:, :, n) * dm%fbcz_ftp(:, :, n)%d
         !if(dm%icoordinate == ICYLINDRICAL) then
           !dm%fbcz_gyr(:, :, n) = dm%fbcz_qyr(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
           !dm%fbcz_gzr(:, :, n) = dm%fbcz_qzr(:, :, n) * dm%fbcz_ftp(1, 1, n)%d
@@ -421,8 +470,8 @@ contains
     return
   end subroutine
 
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================
   subroutine initialise_fbc_thermo_given(tm, dm) ! call this after scaling the fbc_ftp values
     use decomp_2d
     use thermo_info_mod
@@ -431,16 +480,17 @@ contains
 
     real(WP) :: var1y(1:dm%np(2))
     real(WP), allocatable :: ac4c_ypencil(:, :, :), ac4c_xpencil(:, :, :)
-    integer :: ny, n, nxst, nxen, nxen1, nxen2
+    integer :: ny, n, i, nxst, nxen, nxen1, nxen2
+    real(WP) :: s, wgt, t_unheated
     type(DECOMP_INFO) :: dtmp
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! to build up bc with constant values
 ! -3-1-||||-2-4
 ! for constant bc, 3=1= geometric bc, side 1;
 !                  2=4= geometric bc, side 2
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! x-bc1, pr(x_c, y, z)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(dm%ibcx_nominal(1, 5) == IBC_PROFILE1D) then !
       var1y = ZERO
       ny = dm%nc(2)
@@ -479,11 +529,22 @@ contains
     else
       dtmp = dm%dccc ! should not be used!
     end if
+!------------------------------------------------------------------------------
+!   Wall state an unheated buffer length relaxes towards. A Neumann wall relaxes
+!   to zero flux; a Dirichlet wall relaxes to the inlet temperature, so that the
+!   fluid entering the domain sees a wall at its own temperature. Both are undim
+!   here - initialise_fbc_thermo_given runs after the fbc values are scaled.
+!------------------------------------------------------------------------------
+    if(dm%ibcx_nominal(1, 5) == IBC_DIRICHLET) then
+      t_unheated = dm%fbcx_const(1, 5)
+    else
+      t_unheated = tm%ftp_ini%t
+    end if
     !
     do n = 1, 2
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! x-bc in x-pencil, ftp, qx, qy, qz, pr
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       if(dm%ibcx_nominal(n, 5) == IBC_DIRICHLET) then
         dm%fbcx_ftp(n, :, :)%t   = dm%fbcx_const(n, 5)
         call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcx_ftp(n:n, :, :))
@@ -493,9 +554,9 @@ contains
       else
         dm%fbcx_ftp(n, :, :) = tm%ftp_ini
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! y-bc in y-pencil, ftp, qx, qy, qz, pr
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       ! -----------------------------
       ! Base BC assignment
       ! -----------------------------
@@ -520,10 +581,50 @@ contains
         call transpose_y_to_x(ac4c_ypencil, ac4c_xpencil, dtmp)
         !
         select case (dm%ibcy_nominal(n, 5))
-        case (IBC_DIRICHLET, IBC_NEUMANN)
-          ! Dirichlet buffer uses bc_val; Neumann buffer uses ZERO
-          if (nxst > 0) ac4c_xpencil(1:nxst,      :, :) = merge(dm%fbcy_const(n, 5), ZERO, dm%ibcy_nominal(n, 5) == IBC_DIRICHLET)
-          if (nxen > 0) ac4c_xpencil(nxen1:nxen2, :, :) = merge(dm%fbcy_const(n, 5), ZERO, dm%ibcy_nominal(n, 5) == IBC_DIRICHLET)
+        case (IBC_NEUMANN)
+!------------------------------------------------------------------------------
+!         An unheated length under an imposed qw is simply no flux, applied as a
+!         step. A step in wall heat flux is a bounded discontinuity in a boundary
+!         gradient, and a sharp onset of heating is the usual experimental
+!         configuration, so it is deliberately left as a step - see the Dirichlet
+!         branch below for why a wall temperature cannot be treated the same way.
+!------------------------------------------------------------------------------
+          if (nxst > 0) ac4c_xpencil(1:nxst,      :, :) = ZERO
+          if (nxen > 0) ac4c_xpencil(nxen1:nxen2, :, :) = ZERO
+        case (IBC_DIRICHLET)
+!------------------------------------------------------------------------------
+!         An unheated length under an imposed Tw holds the wall at the inlet
+!         temperature and blends it up to the requested wall temperature across
+!         the buffer with the smoothstep w(s) = 3s^2 - 2s^3, which is C1 at both
+!         ends (a linear ramp would leave a slope kink at each end):
+!
+!             Tw(x) = T_in + w(s) * (Tw_const - T_in)
+!
+!         A step would be wrong here in a way a qw step is not. A jump in wall
+!         temperature is a jump in wall density through the equation of state,
+!         and drhodt = (dDens - dDens0) / (tAlpha * dt) - eq_energy:73 - divides
+!         that jump by a timestep, putting a very large local source into the
+!         Poisson right-hand side in the corner cell where the inlet plane meets
+!         the wall. The blend keeps the source bounded.
+!
+!         s is cell-centred, matching where these wall values live, so the ends
+!         are approached to within half a cell rather than reached exactly.
+!------------------------------------------------------------------------------
+          do i = 1, nxst
+            s = (real(i, WP) - HALF) / real(nxst, WP)
+            wgt = s * s * (THREE - TWO * s)
+            ac4c_xpencil(i, :, :) = t_unheated + wgt * (dm%fbcy_const(n, 5) - t_unheated)
+          end do
+          ! Mirrored at the outlet. Note that for a Dirichlet wall this is a
+          ! cooling section, not an unheated one - the fluid arrives hot - so it
+          ! is rarely what is wanted; the Neumann outlet buffer is the useful one.
+          if (nxen > 0) then
+            do i = nxen1, nxen2
+              s = (real(nxen2 - i, WP) + HALF) / real(nxen2 - nxen1 + 1, WP)
+              wgt = s * s * (THREE - TWO * s)
+              ac4c_xpencil(i, :, :) = t_unheated + wgt * (dm%fbcy_const(n, 5) - t_unheated)
+            end do
+          end if
         case default
           ! Keep uniform bc_val (already set)
         end select
@@ -541,9 +642,9 @@ contains
         end select
         deallocate(ac4c_ypencil, ac4c_xpencil)
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! z-bc in z-pencil, qx, qy, qz, pr
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       if( dm%ibcz_nominal(n, 5) == IBC_DIRICHLET ) then
         dm%fbcz_ftp(:, :, n)%t   = dm%fbcz_const(n, 5)
         call ftp_refresh_thermal_properties_from_T_undim_3Dftp(dm%fbcz_ftp(:, :, n:n))
@@ -555,6 +656,11 @@ contains
       end if
     end do
 
+    ! Second ghost layer = first. Exact for a Dirichlet or Neumann face, where
+    ! buildup_ghost_cells_* reads slot 1 only, and this is a one-off
+    ! initialisation. On a cylindrical pipe the y(1) face is the axis instead,
+    ! where the two layers genuinely differ; there this only seeds the array and
+    ! update_fbcy_cc_thermo_halo rebuilds both layers every substep.
     dm%fbcx_ftp(3, :, :) = dm%fbcx_ftp(1, :, :)
     dm%fbcx_ftp(4, :, :) = dm%fbcx_ftp(2, :, :)
     dm%fbcy_ftp(:, 3, :) = dm%fbcy_ftp(:, 1, :)
@@ -564,7 +670,7 @@ contains
 
     return
   end subroutine
-!==========================================================================================================
+!==============================================================================
   subroutine enforce_velo_from_fbc(dm, ux, uy, uz, fbcx0, fbcy0, fbcz0)
     use parameters_constant_mod
     use print_msg_mod

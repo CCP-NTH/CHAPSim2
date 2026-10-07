@@ -8,19 +8,19 @@ module domain_decomposition_mod
   public  :: Buildup_mpi_domain_decomposition
 
 contains
-!==========================================================================================================
+!==============================================================================
 !> domain decompistion.
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !> Scope:  mpi    called-freq    xdomain     module
 !>         all    once           specified   priviate
-!----------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! Arguments
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !  mode           name          role
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !> - d (in): domain type
-!==========================================================================================================
+!==============================================================================
   subroutine initialise_domain_decomposition (dm)
     use udf_type_mod
     !use iso_fortran_env
@@ -28,12 +28,13 @@ contains
     use wtformat_mod
     implicit none
     type(t_domain), intent(inout)   :: dm
+    integer :: ibuf
 
 #ifdef DEBUG_STEPS
     type(DECOMP_INFO) :: dtmp
     integer :: i
 #endif
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! basic 2D decompistion API
 ! limits: p_row <= min(nx, ny)
 !         p_col <= min(ny, nz)
@@ -51,10 +52,10 @@ contains
 !   It may be convenient for certain applications to use global coordinate
 !   (for example when extracting a 2D plane from a 3D domain, it is easier to know which
 !   process owns the plane if global index is used).
-!----------------------------------------------------------------------------------------------------------
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! initialise decomp
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
     if(nrank==0) call Print_debug_start_msg('Initialising decomp_info_init for domain decomposition')
     call decomp_info_init(dm%np(1), dm%nc(2), dm%nc(3), dm%dpcc) ! for ux, gx
     call decomp_info_init(dm%nc(1), dm%np(2), dm%nc(3), dm%dcpc) ! for uy, gy
@@ -67,13 +68,24 @@ contains
     call decomp_info_init(dm%np(1), dm%np(2), dm%np(3), dm%dppp) ! this is only used in test.
 
     if(dm%is_record_xoutlet .or. dm%is_read_xinlet) then
-      call decomp_info_init(dm%ndbfre, dm%nc(2), dm%nc(3), dm%dxcc) ! for ux, gx
-      call decomp_info_init(dm%ndbfre, dm%np(2), dm%nc(3), dm%dxpc) ! for uy, gy
-      call decomp_info_init(dm%ndbfre, dm%nc(2), dm%np(3), dm%dxcp) ! for uz, gz
+      dm%ndbbuf = 1
+      do ibuf = min(dm%ndbfre, dm%nc(1)), 1, -1
+        if(mod(dm%ndbfre, ibuf) == 0) then
+          dm%ndbbuf = ibuf
+          exit
+        end if
+      end do
+      call decomp_info_init(dm%ndbbuf, dm%nc(2), dm%nc(3), dm%dxcc) ! for ux, gx
+      call decomp_info_init(dm%ndbbuf, dm%np(2), dm%nc(3), dm%dxpc) ! for uy, gy
+      call decomp_info_init(dm%ndbbuf, dm%nc(2), dm%np(3), dm%dxcp) ! for uz, gz
     end if
 
     call decomp_info_init(4, dm%nc(2), dm%nc(3), dm%d4cc) ! this is fbcx operation
     call decomp_info_init(4, dm%np(2), dm%nc(3), dm%d4pc) ! this is fbcx operation
+    call decomp_info_init(4, dm%nc(2), dm%np(3), dm%d4cp) ! this is fbcx operation
+    call decomp_info_init(1, dm%nc(2), dm%nc(3), dm%d1cc) ! this is fbcx history
+    call decomp_info_init(1, dm%np(2), dm%nc(3), dm%d1pc) ! this is fbcx history
+    call decomp_info_init(1, dm%nc(2), dm%np(3), dm%d1cp) ! this is fbcx history
 
 #ifdef DEBUG_STEPS
     call mpi_barrier(MPI_COMM_WORLD, ierror)
@@ -122,18 +134,18 @@ contains
     if(nrank==0) call Print_debug_end_msg()
     return
   end subroutine initialise_domain_decomposition
-!==========================================================================================================
+!==============================================================================
 !> domain decompistion.
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !> Scope:  mpi    called-freq    xdomain   module
 !>         all    once           all       public
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! Arguments
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !  mode           name          role
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !> - none (in): NA
-!==========================================================================================================
+!==============================================================================
   subroutine Buildup_mpi_domain_decomposition
     use io_monitor_mod
     use io_tools_mod
@@ -148,7 +160,8 @@ contains
     real(WP), allocatable :: id(:, :, :)
 #endif
 
-    call decomp_2d_init(domain(1)%np(1), domain(1)%np(2), domain(1)%np(3), p_row, p_col)
+    call decomp_2d_init(domain(1)%np(1), domain(1)%np(2), domain(1)%np(3), p_row, p_col, &
+                        periodic_bc=domain(1)%is_periodic)
     do i = 1, nxdomain
       call initialise_domain_decomposition(domain(i))
       call initialise_decomp_io(domain(i))
@@ -156,7 +169,7 @@ contains
       call write_visu_ini(domain(i))
       call init_stats_flow(flow(i), domain(i))
       if(domain(i)%is_thermo) call init_stats_thermo(thermo(i), domain(i))
-      if(domain(i)%is_mhd) call init_stats_mhd(mhd(i), domain(i))
+      if(domain(i)%is_mhd) call init_stats_mhd(mhd(i), flow(i), domain(i))
 #ifdef DEBUG_STEPS
       allocate( id ( domain(i)%dccc%xsz(1), domain(i)%dccc%xsz(2), domain(i)%dccc%xsz(3)) )
       id(:, :, :) = real(nrank, WP)

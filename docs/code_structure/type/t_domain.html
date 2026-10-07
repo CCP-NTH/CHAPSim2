@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>t_domain &ndash; Fortran Program </title>
+    <title>t_domain &ndash; CHAPSim2 </title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>t_domain
       <small>Derived Type</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p>41.4% of total for derived types.</p>Including implementation: 151 statements, 41.4% of total for derived types.">151 statements</a>
+                 title="<p>37.4% of total for derived types.</p>Including implementation: 179 statements, 37.4% of total for derived types.">179 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,12 +124,12 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#vars-0"
          aria-expanded="false" aria-controls="vars-0">
@@ -133,40 +137,58 @@
       </a>
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/t_domain.html#variable-is_periodic">is_periodic</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-is_periodic~19">is_periodic</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-is_stretching">is_stretching</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-is_compact_scheme">is_compact_scheme</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-is_thermo">is_thermo</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-is_thermo~3">is_thermo</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-is_conv_outlet">is_conv_outlet</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-is_record_xoutlet">is_record_xoutlet</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-is_read_xinlet">is_read_xinlet</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-reset_unit_massflux">reset_unit_massflux</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-is_mhd">is_mhd</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-fft_skip_c2c">fft_skip_c2c</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-io_mode">io_mode</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-idom">idom</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-icase">icase</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-existing_output_policy~3">existing_output_policy</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-restart_data_layout_read">restart_data_layout_read</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-restart_data_layout_write">restart_data_layout_write</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-restart_history_mode">restart_history_mode</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-restart_clock">restart_clock</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-iteration_start">iteration_start</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-idom~4">idom</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-icase~6">icase</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-icoordinate">icoordinate</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ifft_lib">ifft_lib</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-ipoisson_y_method">ipoisson_y_method</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-les_model~3">LES_model</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-icht">icht</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-itimescheme">iTimeScheme</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-iviscous">iviscous</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-iviscous~2">iviscous</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-iaccuracy">iAccuracy</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ckpt_nfre">ckpt_nfre</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-visu_nfre">visu_nfre</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-visu_idim">visu_idim</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-visu_precision">visu_precision</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-visu_nskip">visu_nskip</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-stat_istart">stat_istart</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-stat_level">stat_level</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-stat_visu_nfre">stat_visu_nfre</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-stat_visu_mode">stat_visu_mode</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-stat_nskip">stat_nskip</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-nsubitr">nsubitr</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-istret~2">istret</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-mstret">mstret</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-istret~3">istret</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-mstret~2">mstret</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ndbfre">ndbfre</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-ndbbuf">ndbbuf</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ndbend">ndbend</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ndbstart">ndbstart</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-nc">nc</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-ndb_file_offset">ndb_file_offset</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-xinlet_database_checked">xinlet_database_checked</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-xinlet_database_interp_yz">xinlet_database_interp_yz</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-xinlet_database_warning_issued">xinlet_database_warning_issued</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-xinlet_database_nc">xinlet_database_nc</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-xinlet_database_np">xinlet_database_np</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-nc~11">nc</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-np_geo">np_geo</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-np">np</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-np~12">np</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-proben">proben</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ibcx_qx">ibcx_qx</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ibcy_qx">ibcy_qx</a>
@@ -197,8 +219,8 @@
             <a class="list-group-item" href="../type/t_domain.html#variable-lyt">lyt</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-lyb">lyb</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-lzz">lzz</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-vol">vol</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-rstret">rstret</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-vol~2">vol</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-rstret~2">rstret</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-dt">dt</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-h~2">h</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-h1r">h1r</a>
@@ -218,15 +240,24 @@
             <a class="list-group-item" href="../type/t_domain.html#variable-dppp">dppp</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-d4cc">d4cc</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-d4pc">d4pc</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-d4cp">d4cp</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-d1cc~2">d1cc</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-d1pc">d1pc</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-d1cp">d1cp</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-dxcc">dxcc</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-dxpc">dxpc</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-dxcp">dxcp</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-dxcc_inl_src">dxcc_inl_src</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-dxpc_inl_src">dxpc_inl_src</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-dxcp_inl_src">dxcp_inl_src</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-xdamping">xdamping</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-zdamping">zdamping</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ymappingpt">yMappingpt</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-ymappingcc">yMappingcc</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-yp">yp</a>
-            <a class="list-group-item" href="../type/t_domain.html#variable-yc">yc</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-yp~6">yp</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-yc~7">yc</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-xinlet_database_yp_src">xinlet_database_yp_src</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-xinlet_database_yc_src">xinlet_database_yc_src</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-rc">rc</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-rp">rp</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-rci">rci</a>
@@ -245,6 +276,7 @@
             <a class="list-group-item" href="../type/t_domain.html#variable-fbcz_qy">fbcz_qy</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-fbcy_qyr">fbcy_qyr</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-fbcz_qyr">fbcz_qyr</a>
+            <a class="list-group-item" href="../type/t_domain.html#variable-axisy_qyr">axisy_qyr</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-fbcx_gy">fbcx_gy</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-fbcy_gy">fbcy_gy</a>
             <a class="list-group-item" href="../type/t_domain.html#variable-fbcz_gy">fbcz_gy</a>
@@ -288,34 +320,40 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../type/t_domain.html#src">t_domain</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
       <h2 id="type-def-statement">
         type, public :: t_domain</h2>
-
+    
     <br>
 
     <section>
@@ -332,19 +370,19 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_periodic"></span>
+              <span class="anchor" id="variable-is_periodic~19"></span>
               logical,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_periodic</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -354,14 +392,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_stretching</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -371,31 +409,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_compact_scheme</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_thermo"></span>
+              <span class="anchor" id="variable-is_thermo~3"></span>
               logical,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_thermo</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -405,14 +443,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_conv_outlet</strong>(3)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -422,14 +460,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_record_xoutlet</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -439,14 +477,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_read_xinlet</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-reset_unit_massflux"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>reset_unit_massflux</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -456,14 +511,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>is_mhd</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -473,65 +528,150 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fft_skip_c2c</strong>(3)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-io_mode"></span>
+              <span class="anchor" id="variable-existing_output_policy~3"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
-            <td><strong>io_mode</strong></td>
+            <td><strong>existing_output_policy</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-idom"></span>
+              <span class="anchor" id="variable-restart_data_layout_read"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
+            </td>
+            <td>::</td>
+            <td><strong>restart_data_layout_read</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-restart_data_layout_write"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>restart_data_layout_write</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-restart_history_mode"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>restart_history_mode</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-restart_clock"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>restart_clock</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iteration_start"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iteration_start</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-idom~4"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
             </td>
             <td>::</td>
             <td><strong>idom</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-icase"></span>
+              <span class="anchor" id="variable-icase~6"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>icase</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -541,14 +681,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>icoordinate</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -558,14 +698,48 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ifft_lib</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ipoisson_y_method"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ipoisson_y_method</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-les_model~3"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>LES_model</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -575,14 +749,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>icht</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -592,31 +766,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iTimeScheme</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iviscous"></span>
+              <span class="anchor" id="variable-iviscous~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iviscous</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -626,14 +800,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iAccuracy</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -643,14 +817,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ckpt_nfre</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -660,14 +834,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>visu_nfre</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -677,14 +851,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>visu_idim</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-visu_precision"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>visu_precision</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -694,14 +885,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>visu_nskip</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -711,14 +902,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>stat_istart</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -728,14 +919,48 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>stat_level</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stat_visu_nfre"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stat_visu_nfre</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-stat_visu_mode"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>stat_visu_mode</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -745,14 +970,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>stat_nskip</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -762,48 +987,48 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nsubitr</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-istret~2"></span>
+              <span class="anchor" id="variable-istret~3"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>istret</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mstret"></span>
+              <span class="anchor" id="variable-mstret~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>mstret</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -813,14 +1038,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ndbfre</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ndbbuf"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ndbbuf</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -830,14 +1072,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ndbend</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -847,31 +1089,133 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ndbstart</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nc"></span>
+              <span class="anchor" id="variable-ndb_file_offset"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
+            </td>
+            <td>::</td>
+            <td><strong>ndb_file_offset</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_checked"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_checked</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_interp_yz"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_interp_yz</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_warning_issued"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_warning_issued</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_nc"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_nc</strong>(2)</td>
+<td> =</td>
+                <td>0</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_np"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_np</strong>(2)</td>
+<td> =</td>
+                <td>0</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nc~11"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
             </td>
             <td>::</td>
             <td><strong>nc</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -881,31 +1225,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>np_geo</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-np"></span>
+              <span class="anchor" id="variable-np~12"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>np</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -915,14 +1259,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>proben</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -932,14 +1276,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_qx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -949,14 +1293,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_qx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -966,14 +1310,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_qx</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -983,14 +1327,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_qy</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1000,14 +1344,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_qy</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1017,14 +1361,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_qy</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1034,14 +1378,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_qz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1051,14 +1395,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_qz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1068,14 +1412,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_qz</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1085,14 +1429,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_pr</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1102,14 +1446,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_pr</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1119,14 +1463,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_pr</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1136,14 +1480,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_Tm</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1153,14 +1497,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_Tm</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1170,14 +1514,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_Tm</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1187,14 +1531,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_ftp</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1204,14 +1548,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_ftp</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1221,14 +1565,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_ftp</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1238,14 +1582,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcx_nominal</strong>(2,NBC)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1255,14 +1599,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcy_nominal</strong>(2,NBC)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1272,14 +1616,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ibcz_nominal</strong>(2,NBC)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1289,14 +1633,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbcx_const</strong>(2,NBC)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1306,14 +1650,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbcy_const</strong>(2,NBC)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1323,14 +1667,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fbcz_const</strong>(2,NBC)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1340,14 +1684,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>outlet_sponge_layer</strong>(2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1357,14 +1701,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>lxx</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1374,14 +1718,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>lyt</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1391,14 +1735,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>lyb</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1408,48 +1752,48 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>lzz</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-vol"></span>
+              <span class="anchor" id="variable-vol~2"></span>
               real(kind=wp),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>vol</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rstret"></span>
+              <span class="anchor" id="variable-rstret~2"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>rstret</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1459,14 +1803,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dt</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1476,14 +1820,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>h</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1493,14 +1837,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>h1r</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1510,14 +1854,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>h2r</strong>(NDIM)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1527,14 +1871,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tGamma</strong>(0:3)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1544,14 +1888,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tZeta</strong>(0:3)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1561,14 +1905,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tAlpha</strong>(0:3)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1578,14 +1922,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>sigma1p</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1595,14 +1939,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>sigma2p</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1612,14 +1956,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dccc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1629,14 +1973,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dpcc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1646,14 +1990,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dcpc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1663,14 +2007,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dccp</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1680,14 +2024,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dppc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1697,14 +2041,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dpcp</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1714,14 +2058,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dcpp</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1731,14 +2075,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dppp</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1748,14 +2092,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>d4cc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1765,14 +2109,82 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>d4pc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d4cp"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d4cp</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d1cc~2"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d1cc</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d1pc"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d1pc</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-d1cp"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>d1cp</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1782,14 +2194,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dxcc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1799,14 +2211,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dxpc</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1816,14 +2228,65 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dxcp</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dxcc_inl_src"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dxcc_inl_src</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dxpc_inl_src"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dxpc_inl_src</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dxcp_inl_src"></span>
+              type(DECOMP_INFO),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dxcp_inl_src</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1840,7 +2303,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1857,7 +2320,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1874,7 +2337,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1891,12 +2354,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-yp"></span>
+              <span class="anchor" id="variable-yp~6"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -1908,12 +2371,12 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-yc"></span>
+              <span class="anchor" id="variable-yc~7"></span>
               real(kind=wp),
             </td>
               <td>public,</td>
@@ -1925,7 +2388,41 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_yp_src"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_yp_src</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-xinlet_database_yc_src"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>xinlet_database_yc_src</strong>(:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -1942,7 +2439,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1959,7 +2456,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1976,7 +2473,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -1993,7 +2490,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2010,7 +2507,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2027,7 +2524,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2044,7 +2541,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2061,7 +2558,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2078,7 +2575,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2095,7 +2592,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2112,7 +2609,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2129,7 +2626,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2146,7 +2643,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2163,7 +2660,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2180,7 +2677,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2197,7 +2694,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2214,7 +2711,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2231,7 +2728,24 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-axisy_qyr"></span>
+              real(kind=wp),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>axisy_qyr</strong>(:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -2248,7 +2762,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2265,7 +2779,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2282,7 +2796,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2299,7 +2813,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2316,7 +2830,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2333,7 +2847,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2350,7 +2864,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2367,7 +2881,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2384,7 +2898,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2401,7 +2915,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2418,7 +2932,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2435,7 +2949,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2452,7 +2966,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2469,7 +2983,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2486,7 +3000,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2503,7 +3017,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2520,7 +3034,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2537,7 +3051,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2554,7 +3068,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2571,7 +3085,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2588,7 +3102,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2605,7 +3119,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2622,7 +3136,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2639,7 +3153,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2656,7 +3170,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2673,7 +3187,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2690,7 +3204,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2707,7 +3221,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2724,7 +3238,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2741,7 +3255,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2758,7 +3272,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2775,7 +3289,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2792,7 +3306,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2809,7 +3323,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2826,7 +3340,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2843,7 +3357,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2860,7 +3374,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2877,7 +3391,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -2894,7 +3408,7 @@
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -2902,11 +3416,229 @@
 
     </section>
     <br>
+    
 
 
 
+    <section>
+    <h3><span class="anchor" id="src"></span>Source Code</h3>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">type </span><span class="n">t_domain</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_periodic</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span><span class="w">       </span><span class="c">! is this direction periodic bc?</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_stretching</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span><span class="w">      </span><span class="c">! is this direction of stretching grids?</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_compact_scheme</span><span class="w">     </span><span class="c">! is compact scheme applied?</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_thermo</span><span class="w">             </span><span class="c">! is thermal field considered?</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_conv_outlet</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_record_xoutlet</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_read_xinlet</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">reset_unit_massflux</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_mhd</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fft_skip_c2c</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">existing_output_policy</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">restart_data_layout_read</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">restart_data_layout_write</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">restart_history_mode</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">restart_clock</span><span class="w">         </span><span class="c">! how a restart maps onto the run timeline</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iteration_start</span><span class="w">       </span><span class="c">! single run-clock origin shared by flow, thermo and mhd</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">idom</span><span class="w">                  </span><span class="c">! domain id</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">icase</span><span class="w">                 </span><span class="c">! case id</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">icoordinate</span><span class="w">           </span><span class="c">! coordinate type</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ifft_lib</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ipoisson_y_method</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">LES_model</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">icht</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iTimeScheme</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iviscous</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iAccuracy</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ckpt_nfre</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">visu_nfre</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">visu_idim</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">visu_precision</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">visu_nskip</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">stat_istart</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">stat_level</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">stat_visu_nfre</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">stat_visu_mode</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">stat_nskip</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nsubitr</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">istret</span><span class="p">,</span><span class="w"> </span><span class="n">mstret</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ndbfre</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ndbbuf</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ndbend</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ndbstart</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ndb_file_offset</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xinlet_database_checked</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xinlet_database_interp_yz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xinlet_database_warning_issued</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xinlet_database_nc</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xinlet_database_np</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nc</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="c">! geometric cell number</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">np_geo</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="c">! geometric points</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">np</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="c">! calculated points</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">proben</span><span class="w">   </span><span class="c">! global number of probed points</span>
+<span class="w">    </span><span class="c">! integer  :: ibcx(2, NBC) ! real bc type, (5 variables, 2 sides), u, v, w, p, T</span>
+<span class="w">    </span><span class="c">! integer  :: ibcy(2, NBC) ! real bc type, (5 variables, 2 sides)</span>
+<span class="w">    </span><span class="c">! integer  :: ibcz(2, NBC) ! real bc type, (5 variables, 2 sides)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcx_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcy_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcz_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcx_qy</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcy_qy</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcz_qy</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcx_qz</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcy_qz</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcz_qz</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcx_pr</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcy_pr</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcz_pr</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcx_Tm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcy_Tm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcz_Tm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcx_ftp</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcy_ftp</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcz_ftp</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcx_nominal</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">NBC</span><span class="p">)</span><span class="w"> </span><span class="c">! nominal (given) bc type, (5 variables, 2 sides), u, v, w, p, T</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcy_nominal</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">NBC</span><span class="p">)</span><span class="w"> </span><span class="c">! nominal (given) bc type, (5 variables, 2 sides)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcz_nominal</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">NBC</span><span class="p">)</span><span class="w"> </span><span class="c">! nominal (given) bc type, (5 variables, 2 sides)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_const</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">NBC</span><span class="p">)</span><span class="w"> </span><span class="c">! bc values, (5 variables, 2 sides)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_const</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">NBC</span><span class="p">)</span><span class="w"> </span><span class="c">! bc values, (5 variables, 2 sides)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_const</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">NBC</span><span class="p">)</span><span class="w"> </span><span class="c">! bc values, (5 variables, 2 sides)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">outlet_sponge_layer</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="c">! outlet_sponge_layer(1) = length of sponge layer, outlet_sponge_layer(2) for min. Re_sponge (max. viscosity)</span>
 
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lxx</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lyt</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lyb</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">lzz</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">vol</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rstret</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dt</span>
 
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">h</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="c">! uniform dx</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">h1r</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="c">! uniform (dx)^(-1)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">h2r</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="c">! uniform (dx)^(-2)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tGamma</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tZeta</span><span class="w"> </span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tAlpha</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">sigma1p</span><span class="p">,</span><span class="w"> </span><span class="n">sigma2p</span>
+
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dccc</span><span class="w"> </span><span class="c">! eg, p</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dpcc</span><span class="w"> </span><span class="c">! eg, ux</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dcpc</span><span class="w"> </span><span class="c">! eg, uy</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dccp</span><span class="w"> </span><span class="c">! eg, uz</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dppc</span><span class="w"> </span><span class="c">! eg, &lt;ux&gt;^y, &lt;uy&gt;^x</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dpcp</span><span class="w"> </span><span class="c">! eg, &lt;ux&gt;^z, &lt;uz&gt;^x</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dcpp</span><span class="w"> </span><span class="c">! eg, &lt;uy&gt;^z, &lt;uz&gt;^y</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dppp</span>
+
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">d4cc</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">d4pc</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">d4cp</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">d1cc</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">d1pc</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">d1cp</span>
+
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dxcc</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dxpc</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dxcp</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dxcc_inl_src</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dxpc_inl_src</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dxcp_inl_src</span>
+<span class="w">    </span><span class="c">! damping func.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xdamping</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">zdamping</span><span class="p">(:)</span>
+<span class="w">    </span><span class="c">! node location, mapping</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">yMappingpt</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! j = 1, first coefficient in first deriviation. 1/h&#39;</span>
+<span class="w">                                              </span><span class="c">! j = 2, first coefficient in second deriviation 1/h&#39;^2</span>
+<span class="w">                                              </span><span class="c">! j = 3, second coefficient in second deriviation -h&quot;/h&#39;^3</span>
+<span class="w">    </span><span class="c">! cell centre location, mapping</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">yMappingcc</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! first coefficient in first deriviation. 1/h&#39;</span>
+<span class="w">                                              </span><span class="c">! first coefficient in second deriviation 1/h&#39;^2</span>
+<span class="w">                                              </span><span class="c">! second coefficient in second deriviation -h&quot;/h&#39;^3</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">yp</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">yc</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xinlet_database_yp_src</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xinlet_database_yc_src</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rc</span><span class="p">(:)</span><span class="w"> </span><span class="c">! =yc * is_cylindrical</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rp</span><span class="p">(:)</span><span class="w"> </span><span class="c">! =yp * is_cylindrical</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rci</span><span class="p">(:)</span><span class="w"> </span><span class="c">! reciprocal of raidus based on cell centre</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rpi</span><span class="p">(:)</span><span class="w"> </span><span class="c">! reciprocal of raidus based on node point</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ijnp_sym</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ijnc_sym</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">knc_sym</span><span class="p">(:)</span><span class="w"> </span><span class="c">! knc_sym = knp_sym</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_qx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_qx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_gx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_gx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_gx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_qy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_qy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_qyr</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! qy/r = ur bc at y dirction</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_qyr</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! qy/r = ur bc at z dirction</span>
+<span class="w">    </span><span class="c">! ur ON the pipe axis (y-pencil plane, no bc-slot index). qy = r*ur is zero</span>
+<span class="w">    </span><span class="c">! at r = 0 but ur is not - the m=1 harmonic survives - so the axis node of</span>
+<span class="w">    </span><span class="c">! qy/r has to be reconstructed and carried separately from the fbcy ghosts.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">axisy_qyr</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_gy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_gy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_gy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="c">!real(wp), allocatable :: fbcy_gyr(:, :, :) ! gy/r = rho * ur bc at y dirction</span>
+<span class="w">    </span><span class="c">!real(wp), allocatable :: fbcz_gyr(:, :, :) ! gy/r = rho * ur bc at z dirction</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_qz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_qz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_qzr</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! qz/r bc at y dirction</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_qzr</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! qz/r bc at z dirction</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_gz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_gz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_gz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="c">!real(wp), allocatable :: fbcy_gzr(:, :, :) ! gz/r bc at y dirction</span>
+<span class="w">    </span><span class="c">!real(wp), allocatable :: fbcz_gzr(:, :, :) ! gz/r bc at z dirction</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_pr</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_pr</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_pr</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qw</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! heat flux at wall x, qw_norm &gt;0 = heating fluid</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_qw</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! heat flux at wall y, qw_norm &lt;0 = cooling fluid</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_qw</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! heat flux at wall z</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qx_outl1</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qx_outl2</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qy_outl1</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qy_outl2</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qz_outl1</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qz_outl2</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_pr_outl1</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_pr_outl2</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qx_inl1</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qx_inl2</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qy_inl1</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qy_inl2</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qz_inl1</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_qz_inl2</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_pr_inl1</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_pr_inl2</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! variable bc</span>
+
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_fluidThermoProperty</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_ftp</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! undim, xbc state</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_fluidThermoProperty</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcy_ftp</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! undim, ybc state</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_fluidThermoProperty</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_ftp</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! undim, zbc state</span>
+
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">probexyz</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! (1:3, xyz coord)</span>
+<span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="w">  </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">probe_is_in</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">  </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">probexid</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! (1:3, local index)</span>
+<span class="w">  </span><span class="k">end type </span><span class="n">t_domain</span>
+</pre></div>
+
+    </section>
+    
     </div>
   </div>
 
@@ -2917,8 +3649,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

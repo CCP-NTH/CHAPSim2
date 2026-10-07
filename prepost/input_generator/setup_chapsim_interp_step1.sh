@@ -195,7 +195,7 @@ cat <<'EOM'
 ==============================================
 
 Step 1: Run source case
-  - Run your ORIGINAL case in SERIAL (1 CPU)
+  - Run your ORIGINAL case with the intended MPI configuration
   - Ensure the simulation finishes successfully
 
 Step 2: Prepare interpolation data

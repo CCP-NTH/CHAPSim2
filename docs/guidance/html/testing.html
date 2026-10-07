@@ -132,15 +132,15 @@
     </div>
     <div class="layout">
       <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
-<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a></div>
-<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Example Cases</a></div>
-<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
 <div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
 <div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
 <div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
       <article>
 <h1>Regression and Smoke Tests</h1>
-<p>The <code>tests/</code> directory contains ready-to-run cases and helper scripts for quick health checks and numerical regression checks.</p>
+<p>The <code>tests/</code> directory contains ready-to-run cases and helper scripts for quick health checks and numerical regression checks. The <code>validation/</code> directory contains the longer-term validation framework: case metadata, reference databases, shared post-processing tools, and suite manifests.</p>
 <p>Use smoke tests for rapid validation after build or input-generation changes. Use regression tests before merging solver, discretization, I/O, or physics modifications.</p>
 <h2>Test Scripts</h2>
 <table><thead><tr>
@@ -149,14 +149,22 @@
 </tr></thead><tbody>
 <tr>
 <td><code>tests/run_smoke.sh</code></td>
-<td>Execute a brief 10-iteration subset of representative cases for rapid validation</td>
+<td>Execute a 10-iteration subset of representative cases for rapid validation</td>
 </tr>
 <tr>
 <td><code>tests/run_regression.sh</code></td>
 <td>Run or validate standard/extended regression suites against reference metrics</td>
 </tr>
 <tr>
-<td><code>tests/update_reference.sh</code></td>
+<td><code>tests/run_functional.sh</code></td>
+<td>Run the behavioural <code>restart/</code> and <code>mesh_mapping/</code> functional sub-suites</td>
+</tr>
+<tr>
+<td><code>tests/regression/case_lists.sh</code></td>
+<td>The single definition of the standard, extended, and functional case lists, shared by the local and ARCHER2 runners</td>
+</tr>
+<tr>
+<td><code>tests/regression/update_reference.sh</code></td>
 <td>Replace <code>reference.json</code> files with newly generated metrics (use only after validated changes)</td>
 </tr>
 <tr>
@@ -167,7 +175,20 @@
 <td><code>tests/tools/tolerances.json</code></td>
 <td>Metric comparison tolerance specifications</td>
 </tr>
+<tr>
+<td><code>tests/tools/check_*.py</code></td>
+<td>Standalone static checkers over inputs, layout, and source wiring; take no arguments and need no build</td>
+</tr>
 </tbody></table>
+<p>The top-level <code>tests/run_smoke.sh</code> and <code>tests/run_regression.sh</code> are thin wrappers that exec the corresponding script in <code>tests/regression/</code>.</p>
+<p>The suite manifests in <code>validation/suites/</code> document the same smoke, standard-regression, and extended-regression case groups in a data-oriented form for future CI and validation tooling. The shell scripts in <code>tests/</code> remain the current execution interface.</p>
+<h2>Static Checks</h2>
+<p>The standalone checkers in <code>tests/tools/</code> need no build and no solver run. They inspect input files, directory layout, and source wiring, and are the cheapest thing to run after editing inputs or test assets:</p>
+<pre><code class="language-bash">for f in tests/tools/check_*.py; do
+  [ &quot;$(basename &quot;$f&quot;)&quot; = check_metrics.py ] &amp;&amp; continue
+  python3 &quot;$f&quot; &gt;/dev/null 2&gt;&amp;1 || echo &quot;FAIL $f&quot;
+done</code></pre>
+<p><code>check_metrics.py</code> is excluded because it is the metric comparator the runners invoke with file paths, not a standalone check.</p>
 <h2>Smoke Tests</h2>
 <p>From the <code>tests/</code> directory:</p>
 <pre><code class="language-bash">cd tests
@@ -198,14 +219,19 @@ bash run_regression.sh</code></pre>
 </tr></thead><tbody>
 <tr>
 <td><code>standard</code></td>
-<td>Compact default set for routine validation</td>
+<td>12 cases: a compact default set for routine validation</td>
 </tr>
 <tr>
 <td><code>extended</code></td>
-<td>Comprehensive set covering thermal, periodic, inlet/outlet, annular, and pipe cases</td>
+<td>23 cases, adding the remaining thermal and inlet/outlet combinations plus three non-default-order cases (<code>cd4</code>, <code>cp4</code>, <code>cp6</code>)</td>
 </tr>
 </tbody></table>
-<p>In continuous integration environments, defaults are applied without interactive user prompts.</p>
+<p>With the extended suite you are also asked whether to include the functional tests, which adds the metric-gated <code>LES_*</code> and <code>MHD_*</code> cases from <code>tests/functional/</code>.</p>
+<p>Each prompt times out after ten seconds and takes its default. To run without any prompts, set <code>CI=true</code> and select the suite through the environment:</p>
+<pre><code class="language-bash">cd tests
+CI=true TEST_MODE=run REGRESSION_SUITE=standard ./run_regression.sh
+CI=true TEST_MODE=run REGRESSION_SUITE=extended INCLUDE_FUNCTIONAL_TESTS=y ./run_regression.sh</code></pre>
+<p>Cases run on four MPI ranks by default; override with <code>NP</code>. As a rough guide on a recent desktop workstation, the standard suite takes on the order of ten minutes and the extended suite around a quarter of an hour.</p>
 <h2>Reference Metrics</h2>
 <p>Each regression case should contain:</p>
 <table><thead><tr>
@@ -231,14 +257,16 @@ bash run_regression.sh</code></pre>
 </tbody></table>
 <p>The comparison is performed by:</p>
 <pre><code class="language-bash">python3 tests/tools/check_metrics.py \
-  tests/&lt;case&gt;/regression_test_metrics.json \
-  tests/&lt;case&gt;/reference.json \
+  tests/regression/&lt;case&gt;/regression_test_metrics.json \
+  tests/regression/&lt;case&gt;/reference.json \
   tests/tools/tolerances.json</code></pre>
+<p><code>tolerances.json</code> holds a global absolute and relative tolerance per metric key, plus per-case overrides under <code>cases</code>. An override replaces the global entry outright, so omitting <code>abs</code> drops the absolute check and leaves only the relative one. The <code>_comment_*</code> blocks in the file explain why individual keys are gated the way they are; read them before relying on a bare number.</p>
 <h2>Updating References</h2>
 <p>Update references only after confirming that any numerical changes are intentional and physically validated.</p>
-<pre><code class="language-bash">cd tests
+<pre><code class="language-bash">cd tests/regression
 bash update_reference.sh</code></pre>
-<p>This operation copies each available <code>regression_test_metrics.json</code> to <code>reference.json</code>. Review the resulting version-control diff before committing.</p>
+<p>This operation copies every available <code>regression_test_metrics.json</code> over its <code>reference.json</code> — all cases at once, not a selected one. Review the resulting version-control diff before committing.</p>
+<p>Record the reasoning in a new <code>tests/reference_update_log_YYYY-MM-DD.md</code>, following the existing files: what changed in the solver, which baselines moved and by how much, and why any related case was left alone.</p>
 <h2>Recommended Testing Policy</h2>
 <ul>
 <li><strong>Input-generation tool modifications</strong>: Execute smoke tests and at least the affected generated cases</li>

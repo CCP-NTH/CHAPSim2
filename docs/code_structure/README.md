@@ -8,19 +8,35 @@ the configuration used to regenerate it.
 Use the single maintained FORD configuration file:
 
 ```text
-docs/code_structure/ford.yaml
+docs/code_structure/ford.md
 ```
+
+It must stay in Markdown form. FORD 7 reads its settings as python-markdown
+metadata — plain `key: value` lines at the top of a Markdown project file,
+continuation lines indented, terminated by a blank line. A `.yaml` project file
+is parsed as Markdown prose instead, every key in it is silently ignored, and
+FORD falls back to its default `src_dir` of `./src`. In this directory that
+default is the source copy FORD itself wrote on a previous run, so the generated
+reference re-documents its own stale output rather than the solver.
 
 ## Generate the Reference
 
-From the repository root, generate into a temporary folder first:
-
 ```bash
-repo="$(pwd)"
-ford -d "$repo/src" -o /tmp/chapsim2_ford_out "$repo/docs/code_structure/ford.yaml"
+cd docs/code_structure
+ford ford.md
 ```
 
-Then copy the completed generated files into `docs/code_structure/`.
+FORD empties its output directory on every run, so the configuration sends the
+output to `doc/`, which is git-ignored scratch. Review `doc/index.html`, then
+copy the generated entries from `doc/` over the published copies in
+`docs/code_structure/`.
+
+`docs/code_structure/` is the only maintained location for the published
+code-structure reference. Do not keep a root-level `code_structure/` directory.
+
+After regenerating, check that `docs/code_structure/src/` lists the same files
+as `src/`. If it does not, FORD read the wrong source directory and the output
+must be discarded.
 
 ## FORD Comment Style
 

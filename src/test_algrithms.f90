@@ -51,13 +51,13 @@ contains
   !==============================================================================
 
   ! example 2 : input alpha * x + beta for inviscid Burgers' equation
-  !==========================================================================================================
+  !==============================================================================
     if(icase == ICASE_BURGERS1D) then
 
 
 
     else if(icase == ICASE_BURGERS1D_VISCOUS) then
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 !   diffusion equation:  du/dt = nu * d(u^2)/dx = 0
 !   For an initial condition of the form: u(x, t=0) = U e^{i k x}, i = image unit, k = wavenumber
 !   The time developing solution is: u(x, t) = U * e^{-nu k^2 t} sin(k*t)
@@ -65,7 +65,7 @@ contains
 !       e^{ikx} = cos(kx) + i sin(kx)
 !       initial u(x, 0) = sin(pi * x), for 0< x < 2
 !       result is :
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       dm%ibcx_qx = IBC_PERIODIC
       dm%ibcy_qx = IBC_PERIODIC
       dm%ibcz_qx = IBC_PERIODIC
@@ -160,7 +160,7 @@ contains
     if(idir == 1) then
 ! xpencil
       fl%mx_rhs = ZERO
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       ! for x-mom convection term : d(qx * qx)/dx at (i', j, k)
       if(icase == ICASE_BURGERS1D_INVISCID) then
         call Get_x_midp_P2C_3D         (fl%qx, qx_ccc, dm, dm%iAccuracy, dm%ibcx_qx(:))
@@ -168,7 +168,7 @@ contains
         call Get_x_1der_C2P_3D(-qx_ccc * qx_ccc * HALF, mx_rhs, dm, dm%iAccuracy, mbc(:, 1), dm%fbcx_qx(:, :, :) * dm%fbcx_qx(:, :, :) * HALF)
         fl%mx_rhs = fl%mx_rhs + mx_rhs
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       if(icase == ICASE_BURGERS1D_WAVEPROPAGATION) then
         call Get_x_midp_P2C_3D         (fl%qx, qx_ccc, dm, dm%iAccuracy, dm%ibcx_qx(:))
         call build_bc_symm_operation(dm%ibcx_qx(:), mbc)
@@ -176,7 +176,7 @@ contains
         fl%mx_rhs = fl%mx_rhs + mx_rhs
 
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       ! for x-mom diffusion term , \mu * Ljj(ux) at (i', j, k)
       if(icase == ICASE_BURGERS1D_VISCOUS) then
         !call Get_x_2der_P2P_3D( fl%qx, mx_rhs, dm, dm%iAccuracy, dm%ibcx(:, 1) )
@@ -185,7 +185,7 @@ contains
         call Get_x_1der_C2P_3D( qx_ccc, mx_rhs, dm, dm%iAccuracy, mbc(:, 2))
         fl%mx_rhs = fl%mx_rhs + fl%rre * mx_rhs
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       if(icase == ICASE_BURGERS1D_WAVEPROPAGATION) then
         call Get_x_midp_P2C_3D         (fl%qx, qx_ccc, dm, dm%iAccuracy, dm%ibcx_qx(:))
         call build_bc_symm_operation(dm%ibcx_qx(:), mbc)
@@ -193,7 +193,7 @@ contains
         fl%mx_rhs = fl%mx_rhs + mx_rhs
 
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       rhsx_dummy(:, :, :) = fl%mx_rhs(:, :, :)
       fl%mx_rhs(:, :, :) = dm%tGamma(isub) * fl%mx_rhs(:, :, :) + &
                            dm%tZeta (isub) * fl%mx_rhs0(:, :, :)
@@ -212,7 +212,7 @@ contains
       my_rhs_ypencil = ZERO
 
       call transpose_x_to_y (fl%qy,  qy_ypencil, dm%dcpc)
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       ! for y-mom convection term : d(qy * qy)/dy at (i, j', k)
       if(icase == ICASE_BURGERS1D_INVISCID) then
         call Get_y_midp_P2C_3D         (qy_ypencil, qy_ccc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:))
@@ -222,14 +222,14 @@ contains
         call transpose_y_to_x (my_rhs_ypencil,  my_rhs)
         fl%my_rhs = fl%my_rhs + my_rhs
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       ! for x-mom diffusion term , \mu * Ljj(ux) at (i', j, k)
       if(icase == ICASE_BURGERS1D_VISCOUS) then
         !call Get_y_2der_P2P_3D(qy_ypencil, my_rhs_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:), dm%fbcy_qy(:, :, :) )
         call transpose_y_to_x (my_rhs_ypencil,  my_rhs)
         fl%my_rhs = fl%my_rhs + fl%rre * my_rhs
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       if(icase == ICASE_BURGERS1D_WAVEPROPAGATION) then
         call Get_y_midp_P2C_3D         (qy_ypencil, qy_ccc_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:))
         call build_bc_symm_operation(dm%ibcy_qy(:), mbc)
@@ -237,7 +237,7 @@ contains
         call transpose_y_to_x (my_rhs_ypencil,  my_rhs)
         fl%my_rhs = fl%my_rhs + my_rhs
       end if
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
       rhsy_dummy(:, :, :) = fl%my_rhs(:, :, :)
       fl%my_rhs(:, :, :)  = dm%tGamma(isub) * fl%my_rhs(:, :, :) + &
                             dm%tZeta (isub) * fl%my_rhs0(:, :, :)
@@ -299,7 +299,7 @@ contains
 
     return
   end subroutine Compute_burgers_rhs
-!==========================================================================================================
+!==============================================================================
   subroutine Validate_burgers_error(fl, dm)
     use input_general_mod
     use io_files_mod
@@ -397,7 +397,7 @@ contains
     end if
 
   end subroutine
-  !==========================================================================================================
+  !==============================================================================
   subroutine Plot_burgers_profile(fl, dm, iter)
     use input_general_mod
     use io_files_mod
@@ -459,7 +459,7 @@ contains
     if(nrank == 0)close(wrt_unit)
 
   end subroutine
-!==========================================================================================================
+!==============================================================================
   subroutine Solve_burgers_eq_iteration
     use code_performance_mod
     use input_general_mod
@@ -492,33 +492,33 @@ contains
     do iter = iterfrom + 1, niter
       call call_cpu_time(CPU_TIME_ITER_START, iterfrom, niter, iter)
       do i = 1, nxdomain
-!==========================================================================================================
+!==============================================================================
 !      setting up 1/re, 1/re/prt, gravity, etc
-!==========================================================================================================
+!==============================================================================
         call Update_Re(iter, flow(i))
         if(domain(i)%is_thermo) &
         call Update_PrGr(flow(i), thermo(i))
-!==========================================================================================================
+!==============================================================================
 !      setting up flow solver
-!==========================================================================================================
+!==============================================================================
         if ( (iter >= flow(i)%nIterFlowStart) .and. (iter <=flow(i)%nIterFlowEnd)) then
           is_flow = .true.
           flow(i)%time = flow(i)%time + domain(i)%dt
           !call Check_cfl_diffusion ( flow(i), domain(i))
           !call Check_cfl_convection(flow(i)%qx, flow(i)%qy, flow(i)%qz, domain(i))
         end if
-!==========================================================================================================
+!==============================================================================
 !     setting up thermo solver
-!==========================================================================================================
+!==============================================================================
         if(domain(i)%is_thermo) then
           if ( (iter >= thermo(i)%nIterThermoStart) .and. (iter <= thermo(i)%nIterThermoEnd)) then
             is_thermo = .true.
             thermo(i)%time = thermo(i)%time  + domain(i)%dt
           end if
         end if
-!==========================================================================================================
+!==============================================================================
 !     main solver
-!==========================================================================================================
+!==============================================================================
         do isub = 1, domain(i)%nsubitr
           !if(is_thermo) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)
           !if(is_flow)   call Solve_momentum_eq(flow(i), domain(i), isub)
@@ -545,13 +545,13 @@ contains
 end module
 
 
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================
 !> In-code independent test code for algorithms and schemes
 !>
 !> This subroutine is only called in the main program for testing.
 !> Please select the test options which you are interested in.
-!----------------------------------------------------------------------------------------------------------
+!------------------------------------------------------------------------------
 ! Arguments
 !______________________________________________________________________________.
 !  mode           name          role                                           !
@@ -651,9 +651,9 @@ subroutine test_poisson(dm)
   call solve_fft_poisson(rhs, dm)
   phi = rhs
 
-!==========================================================================================================
+!==============================================================================
 !   compact scheme from phi to rhs
-!==========================================================================================================
+!==============================================================================
   dm%fbcx_pr(1, :, :) = -TWOPI
   dm%fbcx_pr(2, :, :) =  TWOPI
   dm%fbcx_pr(3, :, :) = dm%fbcx_pr(1, :, :)

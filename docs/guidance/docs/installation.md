@@ -68,7 +68,19 @@ chmod +x build_chapsim.sh
 The script will prompt you for configuration options:
 - Whether to refresh and rebuild the 2decomp-fft library
 - Whether to run `make clean` before compilation
-- Whether to build in debug mode
+- The build mode (default, GNU, Intel, Cray, or NVHPC)
+
+Each prompt times out after ten seconds and takes its default. To skip the prompts
+entirely — in a script, a container, or CI — set `CHAPSIM_MODE`:
+
+```bash
+CHAPSIM_MODE=non-interactive ./build_chapsim.sh
+```
+
+The FFT backend used by the pressure-Poisson solver is chosen here too. The
+default is the generic transform bundled in 2decomp-fft, which needs nothing
+installed; FFTW is an opt-in for production runs. See
+[FFT Backend](fft-backend.md).
 
 Upon successful completion, the compiled executable `CHAPSim` will be available in the `bin/` directory.
 
@@ -81,17 +93,18 @@ The compiled solver from the build tree is used when running test cases under `t
 To execute comprehensive validation of all test cases:
 
 ```bash
+cd tests
 ./run_regression.sh
 ```
 
-This runs automated regression testing with metrics validation. Comparison tolerances are defined in `tests/tools/tolerances.json`.
+This runs automated regression testing with metrics validation. Comparison tolerances are defined in `tests/tools/tolerances.json`. See [Regression and Smoke Tests](testing.md) for the suites, the modes, and how to run without prompts.
 
 ### Manual Test Case
 
 To run a single test case manually:
 
 ```bash
-cd tests/<case_name>
+cd tests/regression/<case_name>
 mpirun -np 4 ../../../bin/CHAPSim
 ```
 
@@ -124,6 +137,6 @@ For input-file details and configuration options, see [CHAPSim Input File Guide]
 Once installation is complete:
 
 1. Review the [Project Structure](../index.md#project-structure) to understand the repository layout
-2. Examine test cases in `tests/` to learn configuration patterns
-3. Use `prepost/autoinput/` for Python scripts to generate input files
-4. Use `prepost/useful_scripts/run_local.sh` to set up and run your own simulations
+2. Examine test cases in `tests/regression/` to learn configuration patterns
+3. Use `prepost/input_generator/` for Python scripts to generate input files
+4. Use `prepost/job_submission/run_local.sh` to set up and run your own simulations

@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>apx_prerun_mod &ndash; Fortran Program</title>
+    <title>apx_prerun_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>apx_prerun_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.1% of total for modules and submodules.">255 statements</a>
+                 title=" 1.3% of total for modules and submodules.">363 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,7 +128,7 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#vars-0"
          aria-expanded="false" aria-controls="vars-0">
@@ -147,15 +151,27 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#funcs-0"
+         aria-expanded="false" aria-controls="funcs-0">
+         <h4 class="card-header bg-primary text-white">Functions</h4>
+      </a>
+      <div id="funcs-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/apx_prerun_mod.html#proc-local_growth_rate">local_growth_rate</a>
+            <a class="list-group-item" href="../module/apx_prerun_mod.html#proc-count_points_near_wall">count_points_near_wall</a>
+        </div>
+      </div>
+    </div>
 
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
@@ -164,19 +180,22 @@
       </a>
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/apx_prerun_mod.html#proc-solve_prandtl_vonkarman_eq_for_cf">solve_Prandtl_vonKarman_eq_for_cf</a>
+            <a class="list-group-item" href="../module/apx_prerun_mod.html#proc-estimate_skin_friction_factor">estimate_skin_friction_factor</a>
+            <a class="list-group-item" href="../module/apx_prerun_mod.html#proc-estimate_friction_and_retau">estimate_friction_and_retau</a>
             <a class="list-group-item" href="../module/apx_prerun_mod.html#proc-estimate_spacial_resolution">estimate_spacial_resolution</a>
             <a class="list-group-item" href="../module/apx_prerun_mod.html#proc-estimate_temporal_resolution">estimate_temporal_resolution</a>
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -194,9 +213,9 @@ layer spacing, and CFL-related time-step guidance.</p>
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
+                  <li class="list-inline-item"><a href='input_general_mod.html'>input_general_mod</a></li>
                   <li class="list-inline-item"><a href='math_mod.html'>math_mod</a></li>
                   <li class="list-inline-item"><a href='parameters_constant_mod.html'>parameters_constant_mod</a></li>
-                  <li class="list-inline-item"><a href='input_general_mod.html'>input_general_mod</a></li>
                   <li class="list-inline-item"><a href='mpi_mod.html'>mpi_mod</a></li>
                   <li class="list-inline-item"><a href='wtformat_mod.html'>wtformat_mod</a></li>
               </ul>
@@ -205,7 +224,7 @@ layer spacing, and CFL-related time-step guidance.</p>
       </div>
     </div>
 
-
+      
       <br>
 
 
@@ -228,14 +247,14 @@ layer spacing, and CFL-related time-step guidance.</p>
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>dxplus_max</strong></td>
 <td> =</td>
                 <td>10.0_WP</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -245,14 +264,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>dzplus_max</strong></td>
 <td> =</td>
                 <td>5.0_WP</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -262,14 +281,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>dyplus_max</strong></td>
 <td> =</td>
                 <td>1.0_WP</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -279,14 +298,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>Cflmax</strong></td>
 <td> =</td>
                 <td>0.714_WP</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -296,14 +315,14 @@ parameter
             </td>
               <td>public,</td>
             <td>
-parameter
+parameter               
             </td>
             <td>::</td>
             <td><strong>Ctmmax</strong></td>
 <td> =</td>
                 <td>0.1_WP</td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -320,7 +339,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -337,7 +356,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -354,7 +373,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -371,7 +390,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -388,7 +407,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -405,7 +424,7 @@ parameter
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -418,14 +437,393 @@ parameter
 
 
 
+        <section>
+          <h2>Functions</h2>
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-local_growth_rate"></span> <h3>private pure function <a href='../proc/local_growth_rate.html'>local_growth_rate</a>(dya, dyb)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dya"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dya</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dyb"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dyb</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>real(kind=wp)</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-count_points_near_wall"></span> <h3>private pure function <a href='../proc/count_points_near_wall.html'>count_points_near_wall</a>(y, wall, dist)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-y~10"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-wall"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>wall</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dist"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dist</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <h4>
+    Return Value
+    <small>integer</small>
+    </h4>
+    
+
+    </div>
+  </div>
+
+        </section>
+        <br>
 
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-estimate_spacial_resolution"></span> <h3>public  subroutine <a href='../proc/estimate_spacial_resolution.html'>estimate_spacial_resolution</a>(fl, dm, opt_mh)
+    <div class="card-header codesum"><span class="anchor" id="proc-solve_prandtl_vonkarman_eq_for_cf"></span> <h3>private  subroutine <a href='../proc/solve_prandtl_vonkarman_eq_for_cf.html'>solve_Prandtl_vonKarman_eq_for_cf</a>(cf, Re, icase)  
 </h3></div>
     <div class="card-body">
+          
+  
 
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cf"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>cf</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-re"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Re</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-icase~4"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>icase</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-estimate_skin_friction_factor"></span> <h3>private  subroutine <a href='../proc/estimate_skin_friction_factor.html'>estimate_skin_friction_factor</a>(cf, Re, icase)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cf~2"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>cf</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-re~2"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Re</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-icase~5"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>icase</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-estimate_friction_and_retau"></span> <h3>private  subroutine <a href='../proc/estimate_friction_and_retau.html'>estimate_friction_and_retau</a>(fl, dm, cf_skin, f_darcy, Re_corr)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~41"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~157"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-cf_skin"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>cf_skin</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-f_darcy"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>f_darcy</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-re_corr"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>Re_corr</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-estimate_spacial_resolution"></span> <h3>public  subroutine <a href='../proc/estimate_spacial_resolution.html'>estimate_spacial_resolution</a>(fl, dm, opt_mh)  
+</h3></div>
+    <div class="card-body">
+          
   <p>Estimate whether the current mesh is adequate for wall-bounded DNS.
 - fl (in): Flow configuration.
 - dm (in): Domain and mesh descriptor.
@@ -449,7 +847,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
@@ -459,12 +857,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~130"></span>
+              <span class="anchor" id="variable-dm~158"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -479,7 +877,7 @@ parameter
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_mh</strong></td>
@@ -495,10 +893,10 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-estimate_temporal_resolution"></span> <h3>public  subroutine <a href='../proc/estimate_temporal_resolution.html'>estimate_temporal_resolution</a>(fl, dm)
+    <div class="card-header codesum"><span class="anchor" id="proc-estimate_temporal_resolution"></span> <h3>public  subroutine <a href='../proc/estimate_temporal_resolution.html'>estimate_temporal_resolution</a>(fl, dm)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>Estimate time-step and CFL suitability before a production run.
 - fl (in): Flow configuration.
 - dm (in): Domain and mesh descriptor.</p>
@@ -521,7 +919,7 @@ parameter
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
@@ -531,12 +929,12 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~131"></span>
+              <span class="anchor" id="variable-dm~159"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -566,8 +964,8 @@ parameter
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

@@ -14,18 +14,26 @@ _e.g._ vX.Y - YYYY-MM-DD and a new "Unreleased" section started above.
 - Add the possibility to combine DFT and r2r DCT / DST transforms when using the backend `fftw_f03` [PR #427](https://github.com/2decomp-fft/2decomp-fft/pull/427)
 - A short halo exchange interface which requires only the array and pencil orientation (with optional halo depth, otherwise default depth is used)
 - Halo exchange subroutines have been separated from the `update_halo` interface - `update_halo` retains the original behaviour of returning a new array with added halo entries, `halo_exchange` takes a halo-extended array and performs the data exchange to fill the halo entries (and is used internally by `update_halo`).
+- Allow the external code to select the node repartition. See [issue 439](https://github.com/2decomp-fft/2decomp-fft/issues/439) and [PR 440](https://github.com/2decomp-fft/2decomp-fft/pull/440).
+- Add a module to read environment variables. See [PR 440](https://github.com/2decomp-fft/2decomp-fft/pull/440).
+- Allow portable MPI IO. See [PR #443](https://github.com/2decomp-fft/2decomp-fft/pull/443).
+- Add a generic profiling capability. See [PR 445](https://github.com/2decomp-fft/2decomp-fft/pull/445).
+- Add pause / resume profiling capability. See [PR 451](https://github.com/2decomp-fft/2decomp-fft/pull/451)
 
 ### Fixed
 
-- Fixed the calculations of the displacement for MPI_ALL_TO_ALLV communication to avoid issue with 03 optimisation with come compilers [PR #422](https://github.com/2decomp-fft/2decomp-fft/pull/422)
+- Fixed the calculations of the displacement for MPI_ALL_TO_ALLV communication to avoid issue with 03 optimisation with some compilers [PR #422](https://github.com/2decomp-fft/2decomp-fft/pull/422)
 - Fixed halo operations in case of periodicity and 1D domain decomposition [PR #426](https://github.com/2decomp-fft/2decomp-fft/pull/426)
 - Fixed the memory pool and the size of the buffers when the number of cells is very high [PR #432](https://github.com/2decomp-fft/2decomp-fft/pull/432). See [issue 431](https://github.com/2decomp-fft/2decomp-fft/issues/431).
+- Restored variable `real2_type` for mpi_maxloc operations. See [PR #441](https://github.com/2decomp-fft/2decomp-fft/pull/441).
+- Update Nvidia compiler CPU flags. See [issue #452](https://github.com/2decomp-fft/2decomp-fft/issues/452) and [PR #453](https://github.com/2decomp-fft/2decomp-fft/pull/453).
 
 ### Changed
 
 - The `decomp_info` object now has per-pencil default halo depths (`0` unless set otherwise), when allocating an array this is used to set the halo depth.
 - The `alloc_*` subroutines can now allocate arrays with space for halo entries using the optional `opt_levels = [hx,hy,hz]` argument.
 - The halo subroutines have been moved to a module `m_halo` - users must now `use m_halo` to access these from their codes.
+- Transpose buffers and CuFFT buffers are only allocated when needed. See [PR #447](https://github.com/2decomp-fft/2decomp-fft/pull/447).
 
 ### Deprecated
 ### Removed

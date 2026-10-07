@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>bc_convective_outlet_mod &ndash; Fortran Program</title>
+    <title>bc_convective_outlet_mod &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>bc_convective_outlet_mod
       <small>Module</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.8% of total for modules and submodules.">427 statements</a>
+                 title=" 1.3% of total for modules and submodules.">362 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -124,18 +128,18 @@
     <div class="col-md-3">
         <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
          aria-expanded="false" aria-controls="subs-0">
@@ -143,8 +147,13 @@
       </a>
       <div id="subs-0" class="collapse">
         <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-get_convective_outlet_velocity">get_convective_outlet_velocity</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-calculate_fbcx_convective_outlet">calculate_fbcx_convective_outlet</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-calculate_fbcz_convective_outlet">calculate_fbcz_convective_outlet</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-enforce_domain_mass_balance_dyn_fbc">enforce_domain_mass_balance_dyn_fbc</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-compute_fbcx_convective_outlet_flow">compute_fbcx_convective_outlet_flow</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-compute_fbcz_convective_outlet_flow">compute_fbcz_convective_outlet_flow</a>
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-compute_convective_outlet_flow">compute_convective_outlet_flow</a>
-            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-correct_convective_outlet_flow">correct_convective_outlet_flow</a>
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-update_fbcx_convective_outlet_thermo">update_fbcx_convective_outlet_thermo</a>
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-update_fbcz_convective_outlet_thermo">update_fbcz_convective_outlet_thermo</a>
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-compute_convective_outlet_thermo">compute_convective_outlet_thermo</a>
@@ -152,13 +161,13 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
 
 
   </div>
@@ -166,7 +175,7 @@
     </div>
 
     <div class="col-md-9" id='text'>
-
+      
 <br>          <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
       <div class="card-body">
@@ -182,7 +191,7 @@
       </div>
     </div>
 
-
+      
       <br>
 
 
@@ -195,11 +204,11 @@
         <section>
           <h2>Subroutines</h2>
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-compute_convective_outlet_flow"></span> <h3>public  subroutine <a href='../proc/compute_convective_outlet_flow.html'>compute_convective_outlet_flow</a>(fl, dm, isub)
+    <div class="card-header codesum"><span class="anchor" id="proc-get_convective_outlet_velocity"></span> <h3>private  subroutine <a href='../proc/get_convective_outlet_velocity.html'>get_convective_outlet_velocity</a>(dm, uxdx)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -214,27 +223,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~48"></span>
-              type(<a href='../type/t_flow.html'>t_flow</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-
-            </td>
-            <td>::</td>
-            <td><strong>fl</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-dm~140"></span>
+              <span class="anchor" id="variable-dm~7"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -244,12 +238,127 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~24"></span>
+              <span class="anchor" id="variable-uxdx"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>uxdx</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-calculate_fbcx_convective_outlet"></span> <h3>private  subroutine <a href='../proc/calculate_fbcx_convective_outlet.html'>calculate_fbcx_convective_outlet</a>(fbcx_var, uxdx, fbc_rhs0, var_xpencil, dm, isub)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fbcx_var"></span>
+              real(kind=WP),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:, :, :), contiguous
+            </td>
+            <td>::</td>
+            <td><strong>fbcx_var</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-uxdx~2"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>uxdx</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fbc_rhs0"></span>
+              real(kind=WP),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:, :), contiguous
+            </td>
+            <td>::</td>
+            <td><strong>fbc_rhs0</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-var_xpencil"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:, :), contiguous
+            </td>
+            <td>::</td>
+            <td><strong>var_xpencil</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~8"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~4"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>isub</strong></td>
@@ -265,11 +374,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-correct_convective_outlet_flow"></span> <h3>public  subroutine <a href='../proc/correct_convective_outlet_flow.html'>correct_convective_outlet_flow</a>(fl, dm, isub)
+    <div class="card-header codesum"><span class="anchor" id="proc-calculate_fbcz_convective_outlet"></span> <h3>private  subroutine <a href='../proc/calculate_fbcz_convective_outlet.html'>calculate_fbcz_convective_outlet</a>(fbcz_var, uzdz, fbc_rhs0, var2d_zpencil, dm, isub)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -284,27 +393,72 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~49"></span>
-              type(<a href='../type/t_flow.html'>t_flow</a>),
+              <span class="anchor" id="variable-fbcz_var"></span>
+              real(kind=WP),
             </td>
-<td>intent(inout)</td>
+<td>intent(inout),</td>
               <td></td>            <td>
-
+              dimension(:, :, :), contiguous
             </td>
             <td>::</td>
-            <td><strong>fl</strong></td>
+            <td><strong>fbcz_var</strong></td>
             <td>
 
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~141"></span>
+              <span class="anchor" id="variable-uzdz"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>uzdz</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fbc_rhs0~2"></span>
+              real(kind=WP),
+            </td>
+<td>intent(inout),</td>
+              <td></td>            <td>
+              dimension(:, :), contiguous
+            </td>
+            <td>::</td>
+            <td><strong>fbc_rhs0</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-var2d_zpencil"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:, :), contiguous
+            </td>
+            <td>::</td>
+            <td><strong>var2d_zpencil</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~9"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
-<td>intent(inout)</td>
+<td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -314,12 +468,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~25"></span>
+              <span class="anchor" id="variable-isub~5"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>isub</strong></td>
@@ -335,11 +489,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcx_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/update_fbcx_convective_outlet_thermo.html'>update_fbcx_convective_outlet_thermo</a>(tm, dm, isub)
+    <div class="card-header codesum"><span class="anchor" id="proc-enforce_domain_mass_balance_dyn_fbc"></span> <h3>private  subroutine <a href='../proc/enforce_domain_mass_balance_dyn_fbc.html'>enforce_domain_mass_balance_dyn_fbc</a>(drhodt, dm)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -354,12 +508,277 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~28"></span>
+              <span class="anchor" id="variable-drhodt"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in),</td>
+              <td></td>            <td>
+              dimension(:,:,:)
+            </td>
+            <td>::</td>
+            <td><strong>drhodt</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~10"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_fbcx_convective_outlet_flow"></span> <h3>private  subroutine <a href='../proc/compute_fbcx_convective_outlet_flow.html'>compute_fbcx_convective_outlet_flow</a>(fl, dm, isub)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~4"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~11"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~6"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_fbcz_convective_outlet_flow"></span> <h3>private  subroutine <a href='../proc/compute_fbcz_convective_outlet_flow.html'>compute_fbcz_convective_outlet_flow</a>(fl, dm, isub)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~5"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~12"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~7"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_convective_outlet_flow"></span> <h3>public  subroutine <a href='../proc/compute_convective_outlet_flow.html'>compute_convective_outlet_flow</a>(fl, dm, isub)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~6"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~13"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~8"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcx_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/update_fbcx_convective_outlet_thermo.html'>update_fbcx_convective_outlet_thermo</a>(tm, dm, isub)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tm"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm</strong></td>
@@ -369,12 +788,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~142"></span>
+              <span class="anchor" id="variable-dm~14"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -384,12 +803,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~26"></span>
+              <span class="anchor" id="variable-isub~9"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>isub</strong></td>
@@ -405,10 +824,10 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcz_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/update_fbcz_convective_outlet_thermo.html'>update_fbcz_convective_outlet_thermo</a>(tm, dm, isub)
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcz_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/update_fbcz_convective_outlet_thermo.html'>update_fbcz_convective_outlet_thermo</a>(tm, dm, isub)  
 </h3></div>
     <div class="card-body">
-
+          
   <p>call enforce_domain_energy_balance_dyn_fbc(fl, dm) ! todo-check necessary?</p>
 
   <h4>Arguments</h4>
@@ -424,12 +843,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~29"></span>
+              <span class="anchor" id="variable-tm~2"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm</strong></td>
@@ -439,12 +858,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~143"></span>
+              <span class="anchor" id="variable-dm~15"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -454,12 +873,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~27"></span>
+              <span class="anchor" id="variable-isub~10"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>isub</strong></td>
@@ -475,11 +894,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-compute_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/compute_convective_outlet_thermo.html'>compute_convective_outlet_thermo</a>(tm, dm, isub)
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/compute_convective_outlet_thermo.html'>compute_convective_outlet_thermo</a>(tm, dm, isub)  
 </h3></div>
     <div class="card-body">
-
-
+          
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -494,12 +913,12 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~30"></span>
+              <span class="anchor" id="variable-tm~3"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm</strong></td>
@@ -509,12 +928,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~144"></span>
+              <span class="anchor" id="variable-dm~16"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
@@ -524,12 +943,12 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~28"></span>
+              <span class="anchor" id="variable-isub~11"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>isub</strong></td>
@@ -559,8 +978,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

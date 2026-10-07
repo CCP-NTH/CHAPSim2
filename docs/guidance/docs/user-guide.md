@@ -9,6 +9,7 @@ This section documents practical workflows employed after solver compilation. Th
 
 ## Case Execution and Continuation
 
+- [Restart I/O Modes](restart-io.md): Restart input switches, exact versus compact history behavior, and restart files written under isothermal, thermal, bundled, and per-field conditions
 - [Mesh-Restart Interpolation](mesh-restart.md): Two-step workflow for field interpolation when restarting from a source case onto a target mesh with equivalent topology
 - [Regression and Smoke Tests](testing.md): Rapid validation procedures, comprehensive regression suites, and reference-metric management
 
@@ -19,7 +20,7 @@ This section documents practical workflows employed after solver compilation. Th
 
 ## Recommended Workflow
 
-1. Select a starting configuration from [Benchmark and Example Cases](benchmark-cases.md)
+1. Select a starting configuration from [Benchmark and Validation Cases](benchmark-cases.md)
 2. Configure the case using the [CHAPSim Input File Guide](input-file.md)
 3. Validate grid stretching with the [Mesh Stretching Reviewer](mesh-reviewer.md) before long simulations
 4. Execute a short diagnostic test case and examine monitor diagnostics

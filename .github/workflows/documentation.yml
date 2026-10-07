@@ -1,48 +1,85 @@
-name: Documentation Generation and Deployment
+name: Documentation
+
+# Builds the two generated documentation trees the way docs/README.md documents
+# building them locally, and fails if the committed output is stale. It does
+# not publish anywhere: no deployment target, no secrets, no write permission.
 
 on:
   push:
-    branches: [main] # Trigger on pushes to your main branch (adjust as needed)
+    branches:
+      - master
+      - dev
   pull_request:
-    branches: [main] # Trigger on pull requests targeting your main branch
+    branches:
+      - master
+      - dev
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   documentation:
+    name: Build and verify documentation
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+
     steps:
-      - name: Checkout Code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.12'
 
       - name: Install FORD
-        run: pip install ford
+        run: pip install ford==7.0.13
 
-      - name: Generate Documentation with FORD
-        run: ford
+      - name: Generate the FORD code-structure reference
+        working-directory: docs/code_structure
+        # The project file must stay in Markdown form. FORD 7 reads its
+        # settings as python-markdown metadata; a bare .yaml project file is
+        # parsed as prose, every key is ignored, and src_dir silently falls
+        # back to ./src - the stale source copy in this directory.
+        run: ford ford.md
 
-      - name: Set up MkDocs
+      - name: Check FORD documented the real solver source
         run: |
-          cd docs/MkDocs/user_guide
-          pip install mkdocs mkdocs-material
+          # The failure mode above is silent: FORD exits 0 and documents the
+          # wrong tree. Compare the sources FORD copied against src/.
+          ls src > /tmp/src_actual.txt
+          ls docs/code_structure/doc/src > /tmp/src_documented.txt
+          if ! diff -u /tmp/src_actual.txt /tmp/src_documented.txt; then
+            echo "::error::FORD documented a different source tree than src/. Check src_dir in docs/code_structure/ford.md."
+            exit 1
+          fi
+          echo "FORD documented $(wc -l < /tmp/src_actual.txt) source files, matching src/."
 
-      - name: Create Symbolic Link for FORD Output
+      - name: Rebuild the static guidance preview
+        run: python3 docs/guidance/build_static.py
+
+      - name: Check the committed guidance HTML is current
         run: |
-          cd docs/MkDocs/user_guide/docs
-          ln -s ../../../ford/ reference
+          # build_static.py is deterministic, so any diff here means the
+          # Markdown under docs/guidance/docs/ was edited without regenerating
+          # docs/guidance/html/.
+          if ! git diff --exit-code -- docs/guidance/html; then
+            echo "::error::docs/guidance/html is stale. Run: python3 docs/guidance/build_static.py, then commit the result."
+            exit 1
+          fi
+          echo "docs/guidance/html matches the committed Markdown."
 
-      - name: Build MkDocs Site
-        run: |
-          cd docs/MKDocs/user_guide
-          mkdocs build --clean
-
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v3
+      - name: Upload generated documentation
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs/MkDocs/user_guide/site
-          publish_branch: gh-pages
-          force_orphan: true # If gh-pages doesn't exist
+          name: documentation
+          path: |
+            docs/code_structure/doc
+            docs/guidance/html
+          if-no-files-found: error

@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>compute_sine_cosine_factors &ndash; Fortran Program</title>
+    <title>compute_sine_cosine_factors &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,28 +85,29 @@
   <div class="row">
     <h1>compute_sine_cosine_factors
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">8 statements</a>
+                 title=" 0.0% of total for procedures.">8 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
               <i class="fa fa-code"></i>
-              <a href="../src/poisson_1stderivcomp_fft2d_refactored.f90"> Source File</a>
+              <a href="../src/.poisson_1stderivcomp_fft2d_refactored.f90"> Source File</a>
             </li>
         </ul>
       </div>
       <div class="col">
         <nav aria-label="breadcrumb">
           <ol class="breadcrumb justify-content-end mb-0">
-                <li class="breadcrumb-item"><a href='../sourcefile/poisson_1stderivcomp_fft2d_refactored.f90.html'>poisson_1stderivcomp_fft2d_refactored.f90</a></li>
+                <li class="breadcrumb-item"><a href='../sourcefile/.poisson_1stderivcomp_fft2d_refactored.f90.html'>.poisson_1stderivcomp_fft2d_refactored.f90</a></li>
                 <li class="breadcrumb-item"><a href='../module/wave_number_mod.html'>wave_number_mod</a></li>
             <li class="breadcrumb-item active" aria-current="page">compute_sine_cosine_factors</li>
           </ol>
@@ -120,41 +124,47 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/compute_sine_cosine_factors.html#src">compute_sine_cosine_factors</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine compute_sine_cosine_factors(ax, ay, az, bx, by, bz, nx, ny, nz, bcx, bcy, bcz)
+    <h2>public  subroutine compute_sine_cosine_factors(ax, ay, az, bx, by, bz, nx, ny, nz, bcx, bcy, bcz)  
 </h2>
-
+    
 
 
 
@@ -171,7 +181,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-ax~6"></span>
+              <span class="anchor" id="variable-ax~5"></span>
               real(kind=mytype),
             </td>
 <td>intent(out),</td>
@@ -181,12 +191,12 @@
             <td>::</td>
             <td><strong>ax</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ay~6"></span>
+              <span class="anchor" id="variable-ay~5"></span>
               real(kind=mytype),
             </td>
 <td>intent(out),</td>
@@ -196,12 +206,12 @@
             <td>::</td>
             <td><strong>ay</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-az~6"></span>
+              <span class="anchor" id="variable-az~4"></span>
               real(kind=mytype),
             </td>
 <td>intent(out),</td>
@@ -211,12 +221,12 @@
             <td>::</td>
             <td><strong>az</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bx~7"></span>
+              <span class="anchor" id="variable-bx~6"></span>
               real(kind=mytype),
             </td>
 <td>intent(out),</td>
@@ -226,12 +236,12 @@
             <td>::</td>
             <td><strong>bx</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-by~7"></span>
+              <span class="anchor" id="variable-by~6"></span>
               real(kind=mytype),
             </td>
 <td>intent(out),</td>
@@ -241,12 +251,12 @@
             <td>::</td>
             <td><strong>by</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bz~7"></span>
+              <span class="anchor" id="variable-bz~5"></span>
               real(kind=mytype),
             </td>
 <td>intent(out),</td>
@@ -256,97 +266,97 @@
             <td>::</td>
             <td><strong>bz</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nx~24"></span>
+              <span class="anchor" id="variable-nx~21"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nx</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ny~23"></span>
+              <span class="anchor" id="variable-ny~22"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ny</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nz~22"></span>
+              <span class="anchor" id="variable-nz~19"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nz</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bcx~5"></span>
+              <span class="anchor" id="variable-bcx~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>bcx</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bcy~5"></span>
+              <span class="anchor" id="variable-bcy~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>bcy</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-bcz~5"></span>
+              <span class="anchor" id="variable-bcz~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>bcz</strong></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -355,16 +365,32 @@
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">compute_sine_cosine_factors</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span><span class="w"> </span><span class="n">ay</span><span class="p">,</span><span class="w"> </span><span class="n">az</span><span class="p">,</span><span class="w"> </span><span class="n">bx</span><span class="p">,</span><span class="w"> </span><span class="n">by</span><span class="p">,</span><span class="w"> </span><span class="n">bz</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                                         </span><span class="n">nx</span><span class="p">,</span><span class="w"> </span><span class="n">ny</span><span class="p">,</span><span class="w"> </span><span class="n">nz</span><span class="p">,</span><span class="w"> </span><span class="n">bcx</span><span class="p">,</span><span class="w"> </span><span class="n">bcy</span><span class="p">,</span><span class="w"> </span><span class="n">bcz</span><span class="p">)</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nx</span><span class="p">,</span><span class="w"> </span><span class="n">ny</span><span class="p">,</span><span class="w"> </span><span class="n">nz</span><span class="p">,</span><span class="w"> </span><span class="n">bcx</span><span class="p">,</span><span class="w"> </span><span class="n">bcy</span><span class="p">,</span><span class="w"> </span><span class="n">bcz</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">mytype</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ax</span><span class="p">,</span><span class="w"> </span><span class="n">bx</span><span class="p">,</span><span class="w"> </span><span class="n">ay</span><span class="p">,</span><span class="w"> </span><span class="n">by</span><span class="p">,</span><span class="w"> </span><span class="n">az</span><span class="p">,</span><span class="w"> </span><span class="n">bz</span>
 
+<span class="w">    </span><span class="k">call </span><span class="n">compute_direction_factors</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span><span class="w"> </span><span class="n">bx</span><span class="p">,</span><span class="w"> </span><span class="n">nx</span><span class="p">,</span><span class="w"> </span><span class="n">bcx</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">compute_direction_factors</span><span class="p">(</span><span class="n">ay</span><span class="p">,</span><span class="w"> </span><span class="n">by</span><span class="p">,</span><span class="w"> </span><span class="n">ny</span><span class="p">,</span><span class="w"> </span><span class="n">bcy</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">compute_direction_factors</span><span class="p">(</span><span class="n">az</span><span class="p">,</span><span class="w"> </span><span class="n">bz</span><span class="p">,</span><span class="w"> </span><span class="n">nz</span><span class="p">,</span><span class="w"> </span><span class="n">bcz</span><span class="p">)</span>
+<span class="w">  </span><span class="k">end subroutine </span><span class="n">compute_sine_cosine_factors</span>
+</pre></div>
 
-
-
-
-
-
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -375,8 +401,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

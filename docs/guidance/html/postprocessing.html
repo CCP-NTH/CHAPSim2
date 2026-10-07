@@ -132,9 +132,9 @@
     </div>
     <div class="layout">
       <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
-<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a></div>
-<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Example Cases</a></div>
-<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
 <div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
 <div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
 <div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
@@ -169,6 +169,7 @@
 </tr>
 </tbody></table>
 <p>Not all simulations produce every folder. Output availability depends on the switches and frequencies defined in <code>[io]</code>, <code>[statistics]</code>, and related input-file sections.</p>
+<p>For the exact restart files written under each restart layout and history mode, see <a href="restart-io.html">Restart I/O Modes</a>.</p>
 <h2>Visualisation Data</h2>
 <p>Visualization is controlled primarily by <code>visu_idim</code>, <code>visu_nfre</code>, and <code>visu_nskip</code> in the input file. Full-domain and plane outputs can be visualized in ParaView or VisIt when XDMF format files are present.</p>
 <p>Common example scripts:</p>
@@ -177,19 +178,19 @@
 <th>Purpose</th>
 </tr></thead><tbody>
 <tr>
-<td><code>examples/channel_iso_periodic/case/2_visu/plot_channel_velo_stress.py</code></td>
+<td><code>validation/cases/channel/iso_periodic/post/2_visu/plot_channel_velo_stress.py</code></td>
 <td>Plot channel mean velocity and Reynolds-stress profiles.</td>
 </tr>
 <tr>
-<td><code>examples/channel_iso_periodic/case/2_visu/postprocess_channel_wall_units.py</code></td>
+<td><code>validation/cases/channel/iso_periodic/post/2_visu/postprocess_channel_wall_units.py</code></td>
 <td>Convert channel output to wall-unit profiles.</td>
 </tr>
 <tr>
-<td><code>examples/pipe_iso_periodic/case/2_visu/plot_pipe_velo_stress_v2.py</code></td>
+<td><code>validation/cases/pipe/iso_periodic/post/2_visu/plot_pipe_velo_stress_v2.py</code></td>
 <td>Plot pipe velocity and stress statistics with robust figure saving.</td>
 </tr>
 <tr>
-<td><code>examples/pipe_iso_periodic/case/2_visu/plot_pipe_velo_stress.py</code></td>
+<td><code>validation/cases/pipe/iso_periodic/post/2_visu/plot_pipe_velo_stress.py</code></td>
 <td>Earlier pipe profile plotting script.</td>
 </tr>
 </tbody></table>
@@ -201,24 +202,16 @@
 <th>Purpose</th>
 </tr></thead><tbody>
 <tr>
-<td><code>examples/3_monitor/plot_monitor_bulk_change_history.py</code></td>
+<td><code>validation/tools/scripts/plot_monitor_bulk_change_history.py</code></td>
 <td>Plot bulk-value evolution.</td>
 </tr>
 <tr>
-<td><code>examples/3_monitor/plot_monitor_points.py</code></td>
+<td><code>validation/tools/scripts/plot_monitor_points.py</code></td>
 <td>Plot monitor-point histories.</td>
 </tr>
 <tr>
-<td><code>examples/3_monitor/plot_monitor_points_seperate.py</code></td>
+<td><code>validation/tools/scripts/plot_monitor_points_seperate.py</code></td>
 <td>Plot monitor points in separate figures.</td>
-</tr>
-<tr>
-<td><code>examples/channel_iso_periodic/case/3_monitor/plot_monitor_bulk_change_history.py</code></td>
-<td>Case-local channel monitor plotting.</td>
-</tr>
-<tr>
-<td><code>examples/pipe_iso_periodic/case/3_monitor/plot_monitor_points.py</code></td>
-<td>Case-local pipe monitor plotting.</td>
 </tr>
 </tbody></table>
 <p>Recommended checks:</p>
@@ -257,14 +250,18 @@
 </tr>
 </tbody></table>
 <p>Control sampling behavior with <code>stat_istart</code>, <code>stat_nskip</code>, and related parameters to ensure statistics are collected only after the transient initial condition phase.</p>
+<h2>Statistics Across a Restart</h2>
+<p>The time-averaged fields (<code>t_avg_*</code>) are checkpointed together with the instantaneous fields and are reloaded on restart, so a run split into several segments gives the same averages as one uninterrupted run. The reload happens when all of the following hold:</p>
+<ul>
+<li>the field is initialised with <code>initfl= restart</code> (and <code>inittm= restart</code> for the thermal field);</li>
+<li><code>irestartfrom</code> is greater than <code>stat_istart</code>;</li>
+<li><code>restart_clock= continue</code> — with <code>restart_clock= reset</code> the timeline starts at zero, so the stored averages belong to a stretch of time the new run does not continue and the accumulators deliberately start empty.</li>
+</ul>
+<p>The number of samples already folded in is stored in the statistics manifest (<code>domain&lt;N&gt;_&lt;group&gt;_stats_meta_&lt;iter&gt;.dat</code>, keys <code>stat_istart</code> and <code>nsamples</code>) and restored with it, so the averaging weight stays correct even when the sample stream has a gap — for example when the flow restarts but the thermal field is initialised afresh, or when a frozen-field window (<code>niterflowfirst</code>/<code>niterthermofirst</code>) suppresses sampling. <code>stat_istart</code> is validated against the value in the manifest and the run stops if it has changed, because the stored average cannot be re-weighted onto a different window. Checkpoints written before these keys existed still load; the sample count then falls back to <code>iter - stat_istart</code> and a warning is printed.</p>
+<p><strong>The <code>Euu</code> spectra are the exception.</strong> They are not checkpointed, so after a restart they average only the post-restart samples while the <code>t_avg_*</code> fields average the whole run. Both windows are stated in the spectrum output header (<code># samples</code> and <code># window_first_iter</code>); read them before comparing a spectrum with a time-averaged profile from the same file set.</p>
 <h2>Mesh and Setup Checks</h2>
 <p>Before trusting a new case, inspect the mesh:</p>
-<pre><code class="language-bash">python3 examples/4_check/plot_check_mesh.py</code></pre>
-<p>Case-local copies also exist, for example:</p>
-<ul>
-<li><code>examples/channel_iso_periodic/case/4_check/plot_check_mesh.py</code></li>
-<li><code>examples/pipe_iso_periodic/case/4_check/plot_check_mesh.py</code></li>
-</ul>
+<pre><code class="language-bash">python3 validation/tools/scripts/plot_check_mesh.py</code></pre>
 <p>Check near-wall spacing, stretching smoothness, and whether the physical domain matches the intended geometry.</p>
 <h2>Recommended Workflow</h2>
 <ol>
@@ -273,7 +270,7 @@
 <li>Inspect mesh and initial condition outputs from <code>4_check/</code></li>
 <li>Open XDMF visualization outputs from <code>2_visu/</code></li>
 <li>Enable statistics collection only after flow development is complete</li>
-<li>Use the closest example plotting script as a template for profile analysis</li>
+<li>Use the closest validation plotting script as a template for profile analysis</li>
 </ol>
 <p><strong>Note on mounted filesystems:</strong> Figure saving can occasionally fail with I/O errors on remote or mounted file systems. A robust approach is to save figures to a local temporary directory first, verify completion, and copy to the case directory when the file system is stable.</p>
 <p>For interactive tuning of the y-direction stretching before a run, see the <a href="mesh-reviewer.html">Mesh Stretching Reviewer</a>.</p>

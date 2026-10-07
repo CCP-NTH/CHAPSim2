@@ -132,9 +132,9 @@
     </div>
     <div class="layout">
       <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
-<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a></div>
-<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Example Cases</a></div>
-<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
 <div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
 <div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
 <div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
@@ -177,18 +177,22 @@ cd CHAPSim2</code></pre>
 <ul>
 <li>Whether to refresh and rebuild the 2decomp-fft library</li>
 <li>Whether to run <code>make clean</code> before compilation</li>
-<li>Whether to build in debug mode</li>
+<li>The build mode (default, GNU, Intel, Cray, or NVHPC)</li>
 </ul>
+<p>Each prompt times out after ten seconds and takes its default. To skip the prompts entirely — in a script, a container, or CI — set <code>CHAPSIM_MODE</code>:</p>
+<pre><code class="language-bash">CHAPSIM_MODE=non-interactive ./build_chapsim.sh</code></pre>
+<p>The FFT backend used by the pressure-Poisson solver is chosen here too. The default is the generic transform bundled in 2decomp-fft, which needs nothing installed; FFTW is an opt-in for production runs. See <a href="fft-backend.html">FFT Backend</a>.</p>
 <p>Upon successful completion, the compiled executable <code>CHAPSim</code> will be available in the <code>bin/</code> directory.</p>
 <p>The compiled solver from the build tree is used when running test cases under <code>tests/</code>.</p>
 <h2>Run Tests</h2>
 <h3>Regression and Smoke Tests</h3>
 <p>To execute comprehensive validation of all test cases:</p>
-<pre><code class="language-bash">./run_regression.sh</code></pre>
-<p>This runs automated regression testing with metrics validation. Comparison tolerances are defined in <code>tests/tools/tolerances.json</code>.</p>
+<pre><code class="language-bash">cd tests
+./run_regression.sh</code></pre>
+<p>This runs automated regression testing with metrics validation. Comparison tolerances are defined in <code>tests/tools/tolerances.json</code>. See <a href="testing.html">Regression and Smoke Tests</a> for the suites, the modes, and how to run without prompts.</p>
 <h3>Manual Test Case</h3>
 <p>To run a single test case manually:</p>
-<pre><code class="language-bash">cd tests/&lt;case_name&gt;
+<pre><code class="language-bash">cd tests/regression/&lt;case_name&gt;
 mpirun -np 4 ../../../bin/CHAPSim</code></pre>
 <p>Inspect <code>input_chapsim.ini</code> in the test directory to understand the case configuration.</p>
 <h3>Quick Smoke Test</h3>
@@ -209,9 +213,9 @@ mpirun -np 4 ../../../bin/CHAPSim</code></pre>
 <p>Once installation is complete:</p>
 <ol>
 <li>Review the <a href="../index.md#project-structure">Project Structure</a> to understand the repository layout</li>
-<li>Examine test cases in <code>tests/</code> to learn configuration patterns</li>
-<li>Use <code>prepost/autoinput/</code> for Python scripts to generate input files</li>
-<li>Use <code>prepost/useful_scripts/run_local.sh</code> to set up and run your own simulations</li>
+<li>Examine test cases in <code>tests/regression/</code> to learn configuration patterns</li>
+<li>Use <code>prepost/input_generator/</code> for Python scripts to generate input files</li>
+<li>Use <code>prepost/job_submission/run_local.sh</code> to set up and run your own simulations</li>
 </ol>
       </article>
     </div>

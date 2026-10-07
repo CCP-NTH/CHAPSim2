@@ -132,9 +132,9 @@
     </div>
     <div class="layout">
       <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
-<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a></div>
-<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Example Cases</a></div>
-<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
 <div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
 <div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
 <div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
@@ -209,7 +209,8 @@ ncy= ...
 ncz= ...
 istret= ...
 rstret= ...</code></pre>
-<p>After script execution, run the source case in serial (single-rank MPI) mode. Upon successful completion, the source case should generate <code>domain0_*</code> files in <code>1_data/</code>.</p>
+<p>After script execution, you can run the source case with MPI. The interpolation pre-run uses the same 2-D pencil decomposition as the solver, exchanges source field halos between neighbouring ranks, and writes distributed target restart files. Upon successful completion, the source case should generate <code>domain0_*</code> files in <code>1_data/</code>.</p>
+<p>For first use on a new topology or mesh-ratio change, compare a small serial pre-run and MPI pre-run before launching a production interpolation.</p>
 <h2>Step 2: Prepare the Target Case</h2>
 <p>Create or enter the target case directory, then run:</p>
 <pre><code class="language-bash">bash /path/to/CHAPSim2/prepost/input_generator/setup_chapsim_interp_step2.sh</code></pre>
@@ -254,7 +255,7 @@ rstret= ...</code></pre>
 <tr>
 <td><code>No domain0_* files found</code></td>
 <td>Source prerun did not complete or wrote output elsewhere.</td>
-<td>Re-run the source case in serial and inspect <code>1_data/</code>.</td>
+<td>Re-run the source pre-run with the intended MPI configuration and inspect the solver log and <code>1_data/</code>.</td>
 </tr>
 <tr>
 <td>Target starts from the wrong mesh</td>

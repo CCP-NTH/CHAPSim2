@@ -1,0 +1,367 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>resolve_electrical_bc &ndash; CHAPSim2</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/chapsim.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>resolve_electrical_bc
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for procedures.">29 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/eq_mhd.f90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/eq_mhd.f90.html'>eq_mhd.f90</a></li>
+                <li class="breadcrumb-item"><a href='../module/mhd_mod.html'>mhd_mod</a></li>
+            <li class="breadcrumb-item active" aria-current="page">resolve_electrical_bc</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/resolve_electrical_bc.html#src">resolve_electrical_bc</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private  subroutine resolve_electrical_bc(ebc, ibc_pr, ibc_ep, dir)  
+</h2>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='../module/print_msg_mod.html'>print_msg_mod</a></li>
+              </ul>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+
+    <p>\brief Map the named electrical boundary condition onto the IBC_* code the
+       operators and the Poisson solver understand.</p>
+<ul>
+<li>EBC_INSULATING is j.n = 0, i.e. d(ep)/dn = (u x B).n. The solve itself carries
+  homogeneous Neumann; compute_Lorentz_force supplies the (u x B).n part by
+  dropping that normal flux, which is the discrete equivalent (see there).</li>
+<li>EBC_CONDUCTING is the perfectly-conducting limit, ep = const on the plane.
+  It maps cleanly onto IBC_DIRICHLET, but no shipped case exercises it and it
+  is untested, so it is rejected rather than run silently.</li>
+<li>
+<p>EBC_INHERIT reproduces the behaviour from before this input existed.</p>
+</li>
+<li>
+<p>ebc     (in ): named condition per side, EBC_*</p>
+</li>
+<li>ibc_pr  (in ): pressure BC of the same direction, used by EBC_INHERIT</li>
+<li>ibc_ep  (out): resolved IBC_* code per side</li>
+<li>dir     (in ): direction label, for error messages only</li>
+</ul>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ebc"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebc</strong>(2)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_pr"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_pr</strong>(2)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_ep"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_ep</strong>(2)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dir"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dir</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">resolve_electrical_bc</span><span class="p">(</span><span class="n">ebc</span><span class="p">,</span><span class="w"> </span><span class="n">ibc_pr</span><span class="p">,</span><span class="w"> </span><span class="n">ibc_ep</span><span class="p">,</span><span class="w"> </span><span class="n">dir</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">print_msg_mod</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">Print_error_msg</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">          </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ebc</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">          </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">ibc_pr</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">          </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ibc_ep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">dir</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span>
+
+<span class="w">    </span><span class="k">do </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">      </span><span class="k">select case</span><span class="p">(</span><span class="n">ebc</span><span class="p">(</span><span class="n">n</span><span class="p">))</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="n">EBC_INHERIT</span><span class="p">)</span>
+<span class="w">        </span><span class="n">ibc_ep</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ibc_pr</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="n">EBC_INSULATING</span><span class="p">)</span>
+<span class="w">        </span><span class="n">ibc_ep</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_NEUMANN</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="n">EBC_PERIODIC</span><span class="p">)</span>
+<span class="w">        </span><span class="n">ibc_ep</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_PERIODIC</span>
+<span class="w">      </span><span class="k">case</span><span class="p">(</span><span class="n">EBC_CONDUCTING</span><span class="p">)</span>
+<span class="w">        </span><span class="n">ibc_ep</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_DIRICHLET</span><span class="w"> </span><span class="c">! the mapping is this, but the path is unverified</span>
+<span class="w">        </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s1">&#39;ebc&#39;</span><span class="o">//</span><span class="n">dir</span><span class="o">//</span><span class="s1">&#39; = conducting is recognised but not implemented: &#39;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">          </span><span class="s1">&#39;the perfectly-conducting (Dirichlet electric potential) path has no test coverage.&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="k">case </span><span class="n">default</span>
+<span class="w">        </span><span class="n">ibc_ep</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ibc_pr</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+<span class="w">        </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s1">&#39;Unresolved electrical bc in direction &#39;</span><span class="o">//</span><span class="n">dir</span><span class="o">//</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end select</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">!     An IBC_INTERIOR side is not a boundary of the physical domain at all - it is</span>
+<span class="c">!     the pipe axis, or a multi-domain join - and carries two ghost layers rather</span>
+<span class="c">!     than a boundary value. Naming an electrical condition there would replace the</span>
+<span class="c">!     axis mirror with a wall, so only inheritance is meaningful.</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">ibc_pr</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_INTERIOR</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">ebc</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">EBC_INHERIT</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s1">&#39;ebc&#39;</span><span class="o">//</span><span class="n">dir</span><span class="o">//</span><span class="s1">&#39; cannot be named on an interior side &#39;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">          </span><span class="s1">&#39;(pipe axis or domain join); leave it to inherit.&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end do</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">!   The Poisson solver transforms a direction as a whole, so a periodic electric</span>
+<span class="c">!   potential and a periodic mesh have to agree; mismatching them would silently</span>
+<span class="c">!   invert the wrong operator.</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="nb">any</span><span class="p">(</span><span class="n">ibc_ep</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="n">neqv</span><span class="p">.</span><span class="w"> </span><span class="nb">any</span><span class="p">(</span><span class="n">ibc_pr</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s1">&#39;ebc&#39;</span><span class="o">//</span><span class="n">dir</span><span class="o">//</span><span class="s1">&#39; periodicity does not match the mesh periodicity in &#39;</span><span class="o">//</span><span class="n">dir</span><span class="o">//</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="p">(</span><span class="n">ibc_ep</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="n">neqv</span><span class="p">.</span><span class="w"> </span><span class="p">(</span><span class="n">ibc_ep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s1">&#39;ebc&#39;</span><span class="o">//</span><span class="n">dir</span><span class="o">//</span><span class="s1">&#39; must be periodic on both sides or neither.&#39;</span><span class="p">)</span>
+
+<span class="w">    </span><span class="k">return</span>
+<span class="k">  end subroutine </span><span class="n">resolve_electrical_bc</span>
+</pre></div>
+
+    </section>
+    <br>
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>

@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>Update_PrGr &ndash; Fortran Program</title>
+    <title>Update_PrGr &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>Update_PrGr
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.4% of total for procedures.">39 statements</a>
+                 title=" 0.1% of total for procedures.">31 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,39 +124,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/update_prgr.html#src">Update_PrGr</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine Update_PrGr(fl, tm)
+    <h2>public  subroutine Update_PrGr(fl, tm)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -160,9 +170,9 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
+                  <li class="list-inline-item"><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></li>
                   <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
                   <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -185,32 +195,32 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~2"></span>
+              <span class="anchor" id="variable-fl~15"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm"></span>
+              <span class="anchor" id="variable-tm~14"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>tm</strong></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -219,16 +229,67 @@
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">Update_PrGr</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">tm</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">parameters_constant_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">thermo_info_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">udf_type_mod</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    type</span><span class="p">(</span><span class="n">t_flow</span><span class="p">),</span><span class="w">   </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fl</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_thermo</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">tm</span>
 
 
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">u0</span><span class="p">,</span><span class="w"> </span><span class="n">rtmp</span><span class="p">,</span><span class="w"> </span><span class="n">gravity_norm</span>
 
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">!  1/(Re*Pr)</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">tm</span><span class="p">%</span><span class="n">rPrRen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">rre</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">ftp0ref</span><span class="p">%</span><span class="n">k</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">ftp0ref</span><span class="p">%</span><span class="n">m</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">ftp0ref</span><span class="p">%</span><span class="n">cp</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">!  gravity force</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">u0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ONE</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">rre</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">ftp0ref</span><span class="p">%</span><span class="n">m</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">ftp0ref</span><span class="p">%</span><span class="n">d</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">ref_l0</span>
+<span class="w">    </span><span class="n">tm</span><span class="p">%</span><span class="n">phy_time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="nb">time</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">ref_l0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">u0</span>
+<span class="w">    </span><span class="n">rtmp</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">ref_l0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">u0</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">u0</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">GRAVITY</span>
+<span class="w">    </span><span class="n">fl</span><span class="p">%</span><span class="n">fgravity</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="n">gravity_norm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">sqrt</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">igravity</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">igravity</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">NDIM</span><span class="p">)))</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">gravity_norm</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">MINP</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">fl</span><span class="p">%</span><span class="n">fgravity</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rtmp</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">igravity</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">NDIM</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">gravity_norm</span>
+<span class="w">    </span><span class="k">end if</span>
 
+<span class="k">    if</span><span class="p">(</span><span class="n">nrank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! Print once, on the first step this run actually solves. The counter is</span>
+<span class="w">      </span><span class="c">! incremented before the substeps, so on a continuation that step is</span>
+<span class="w">      </span><span class="c">! iterfrom + 1, not iterfrom.</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">iterfrom</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">Print_debug_mid_msg</span><span class="p">(</span><span class="s2">&quot;The reference (dimensional) are&quot;</span><span class="p">)</span>
+<span class="w">        </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1e</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Reynolds Number:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">ren</span>
+<span class="w">        </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1e</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Prandtl Number:&#39;</span><span class="p">,</span><span class="w">  </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">ftp0ref</span><span class="p">%</span><span class="n">Pr</span>
+<span class="w">        </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1r</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Length(s):&#39;</span><span class="p">,</span><span class="w">       </span><span class="n">tm</span><span class="p">%</span><span class="n">ref_l0</span>
+<span class="w">        </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1r</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Velocity(m/s):&#39;</span><span class="p">,</span><span class="w">   </span><span class="n">fl</span><span class="p">%</span><span class="n">ren</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">ftp0ref</span><span class="p">%</span><span class="n">m</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">ftp0ref</span><span class="p">%</span><span class="n">d</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">ref_l0</span>
+<span class="w">        </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt3r</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Gravity unit vector:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">igravity</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">igravity</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">igravity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1r</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Gravity coefficient gL0/U0^2:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">rtmp</span>
+<span class="w">        </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt3r</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Nondim gravity vector:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">fgravity</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">fgravity</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">fgravity</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">    end if</span>
 
+<span class="k">    return</span>
+<span class="k">  end subroutine </span><span class="n">Update_PrGr</span>
+</pre></div>
 
-
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -239,8 +300,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

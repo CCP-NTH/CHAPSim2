@@ -1,7 +1,7 @@
 
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!==========================================================================================================
+!==============================================================================
 module poisson_interface_mod
   use decomp_2d_poisson
   use fft2decomp_interface_mod
@@ -14,8 +14,8 @@ module poisson_interface_mod
   public :: solve_fft_poisson
 
 contains
-!==========================================================================================================
-!==========================================================================================================
+!==============================================================================
+!==============================================================================
   subroutine initialise_fft(dm)
     use udf_type_mod
     implicit none
@@ -36,32 +36,41 @@ contains
 
     return
   end subroutine
-!==========================================================================================================
-!==========================================================================================================
-  subroutine solve_fft_poisson(rhs_xpencil, dm)
+!==============================================================================
+!==============================================================================
+  subroutine solve_fft_poisson(rhs_xpencil, dm, opt_poisson_zero_mode_rhs_projection)
     use decomp_extended_mod
+    use mpi_mod
     use udf_type_mod
     implicit none
     type(t_domain), intent(in) :: dm
     integer :: i, j, k
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(INOUT) :: rhs_xpencil
+    real(WP), intent(out), optional :: opt_poisson_zero_mode_rhs_projection
     real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: rhs_ypencil
     real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: rhs_zpencil
     real(WP), dimension( dm%dccc%zst(1) : dm%dccc%zen(1), &
                          dm%dccc%zst(2) : dm%dccc%zen(2), &
                          dm%dccc%zst(3) : dm%dccc%zen(3) ) :: rhs_zpencil_ggg
+    real(WP) :: projection_local, projection_global
 
     if(dm%ifft_lib == FFT_2DECOMP_3DFFT ) then
+      call reset_poisson_zero_mode_rhs_projection()
       call transpose_x_to_y (rhs_xpencil, rhs_ypencil, dm%dccc)
       call transpose_y_to_z (rhs_ypencil, rhs_zpencil, dm%dccc)
       call zpencil_index_llg2ggg(rhs_zpencil, rhs_zpencil_ggg, dm%dccc)
 
       call poisson(rhs_zpencil_ggg)
+      call get_poisson_zero_mode_rhs_projection(projection_local)
+      call mpi_allreduce(projection_local, projection_global, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+      if(present(opt_poisson_zero_mode_rhs_projection)) &
+        opt_poisson_zero_mode_rhs_projection = projection_global
 
       call zpencil_index_ggg2llg(rhs_zpencil_ggg, rhs_zpencil, dm%dccc)
       call transpose_z_to_y (rhs_zpencil, rhs_ypencil, dm%dccc)
       call transpose_y_to_x (rhs_ypencil, rhs_xpencil, dm%dccc)
     else if(dm%ifft_lib == FFT_FISHPACK_2DFFT) then
+      if(present(opt_poisson_zero_mode_rhs_projection)) opt_poisson_zero_mode_rhs_projection = ZERO
       call fishpack_fft_simple(rhs_xpencil, dm)
     else
       call Print_error_msg('Error in selecting FFT libs')

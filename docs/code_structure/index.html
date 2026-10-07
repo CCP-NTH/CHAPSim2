@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="./favicon.png">
 
-    <title> Fortran Program </title>
+    <title> CHAPSim2 </title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="./index.html">Fortran Program </a>
+          <a class="navbar-brand" href="./index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="./lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="./lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="./lists/types.html">Derived Types</a>
@@ -80,83 +83,61 @@
 
     <div class="container">
   <!-- Main component for a primary marketing message or call to action -->
+    <div class="p-5 mb-4 bg-light border rounded-3" id="jumbotron">
+      <p>A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.</p>
+      </p>
+    </div>
 
       <div class="row" id='text'>
-        <div class=col-md-12>
-          <h1>Fortran Program</h1>
-          <h1>-------------------------------------------------------------------</h1>
-<h1>Project Metadata</h1>
-<h1>-------------------------------------------------------------------</h1>
-<p>project: CHAPSim2
-summary: A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.
-description: &gt;
-  CHAPSim2 is a finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.
-  It is designed to be easy to use and extend, making it suitable for a wide range of applications in computational fluid dynamics.
-author: Wei Wang
-author_description: Senior Computational Scientist, Scientific Computing Department, UKRI-STFC
-email: wei.wang@stfc.ac.uk
-website: ""
-github: https://github.com/CHAPSim/CHAPSim2</p>
-<h1>-------------------------------------------------------------------</h1>
-<h1>Source Configuration</h1>
-<h1>-------------------------------------------------------------------</h1>
-<p>src_dir: ../../src</p>
-<p>exclude_dir:
-  - ../../build
-  - ../../tests
-  - ../../bin
-  - ../../obj
-  - ../../prepost
-  - ../../src/.obsolete</p>
-<p>exclude: []</p>
-<h1>-------------------------------------------------------------------</h1>
-<h1>Output Configuration</h1>
-<h1>-------------------------------------------------------------------</h1>
-<p>output_dir: .</p>
-<p>output:
-  html: true
-  latex: false
-  pdf: false</p>
-<h1>-------------------------------------------------------------------</h1>
-<h1>Documentation Markers</h1>
-<h1>-------------------------------------------------------------------</h1>
-<p>predocmark: "&gt;"
-docmark: "!"
-predocmark_alt: ""
-docmark_alt: ""</p>
-<h1>-------------------------------------------------------------------</h1>
-<h1>Display Options</h1>
-<h1>-------------------------------------------------------------------</h1>
-<p>display:
-  - public
-  - protected
-  - private</p>
-<h1>-------------------------------------------------------------------</h1>
-<h1>Features</h1>
-<h1>-------------------------------------------------------------------</h1>
-<p>source: true
-graph: false
-search: true
-creation_date: true
-coloured_edges: true
-graph_maxdepth: 10000
-show_proc_parent: true</p>
-<h1>-------------------------------------------------------------------</h1>
-<h1>Other Settings</h1>
-<h1>-------------------------------------------------------------------</h1>
-<p>warn: true
-page: true
-debug: true</p>
-<p>macro: VERSION=2.0.0</p>
-<p>license: BSD-3-Clause</p>
+        <div class=col-md-8>
+          <h1>CHAPSim2</h1>
+          <p>CHAPSim2 is a finite difference-based incompressible DNS solver with heat transfer for
+fluids with variable properties. It uses a fully staggered (MAC) grid in Cartesian or
+cylindrical coordinates, optional 2nd- to 6th-order compact and explicit schemes, and a
+2-D pencil decomposition via 2decomp&amp;FFT.</p>
+<p>These pages are generated from the source annotations in <code>src/</code>. For installation, the
+input-file reference, testing and workflow guidance, see the user guide under
+<code>docs/guidance/</code>.</p>
+<h2>Regenerating</h2>
+<div class="codehilite"><pre><span></span><code>cd docs/code_structure
+ford ford.md
+</code></pre></div>
+
+<p>FORD empties <code>output_dir</code> on every run, so the output goes to the git-ignored <code>doc/</code>
+subdirectory rather than into this directory. Copy <code>doc/</code> over the published copy in this
+directory when the result is good.</p>
+<p>FORD 7 reads these settings as python-markdown metadata: plain <code>key: value</code> lines at the
+top of a Markdown project file, continuation lines indented, terminated by a blank line.
+A bare <code>.yaml</code> project file is parsed as Markdown prose and every key in it is silently
+ignored, which leaves <code>src_dir</code> at its default of <code>./src</code> — the stale source copy FORD
+itself wrote into this directory on a previous run. That made the generated reference
+re-document its own output instead of the solver. Keep this file in Markdown form.</p>
         </div>
+          <div class="col-md-4">
+            <div class="card card-body bg-light">
+              <h2 class="card-title">Developer Info</h2>
+              <h4 class="card-text">Wei Wang</h4>
+              <p class="card-text"><p>Senior Computational Scientist, Scientific Computing Department, UKRI-STFC</p></p>
+                <div class="text-center"><div class="btn-group" role="group">
+                      <a class="btn btn-lg btn-primary" href="mailto:wei.wang@stfc.ac.uk"><i class="fa fa-envelope fa-lg"></i></a>
+                    
+                    <a class="btn btn-lg btn-primary" href="https://github.com/CHAPSim/CHAPSim2"><i class="fa fa-github fa-lg"></i></a>
+                    
+                    
+                    
+                    
+                    
+                    
+                </div></div>
+            </div>
+          </div>
       </div>
         <div class="row">
           <hr>
           <div class="col-xs-6 col-sm-3">
             <div>
               <h3>Source Files</h3>
-              <ul><li><a href='sourcefile/basics_algorithms.f90.html'>basics_algorithms.f90</a></li><li><a href='sourcefile/basics_operations2.f90.html'>basics_operations2.f90</a></li><li><a href='sourcefile/bc_convective_outlet.f90.html'>bc_convective_outlet.f90</a></li><li><a href='sourcefile/bc_dirichlet.f90.html'>bc_dirichlet.f90</a></li><li><a href='sourcefile/bc_general.f90.html'>bc_general.f90</a></li><li><a href='sourcefile/bc_ndomain_interior.f90.html'>bc_ndomain_interior.f90</a></li><li><a href='sourcefile/chapsim.f90.html'>chapsim.f90</a></li><li><a href='sourcefile/domain_decomposition.f90.html'>domain_decomposition.f90</a></li><li><a href='sourcefile/eq_continuity.f90.html'>eq_continuity.f90</a></li><li><a href='sourcefile/eq_energy.f90.html'>eq_energy.f90</a></li></ul>
+              <ul><li><a href='sourcefile/.poisson_1stderivcomp_fft2d_refactored.f90.html'>.poisson_1stderivcomp_fft2d_refactored.f90</a></li><li><a href='sourcefile/basics_algorithms.f90.html'>basics_algorithms.f90</a></li><li><a href='sourcefile/basics_operations2.f90.html'>basics_operations2.f90</a></li><li><a href='sourcefile/bc_convective_outlet.f90.html'>bc_convective_outlet.f90</a></li><li><a href='sourcefile/bc_dirichlet.f90.html'>bc_dirichlet.f90</a></li><li><a href='sourcefile/bc_general.f90.html'>bc_general.f90</a></li><li><a href='sourcefile/bc_ndomain_interior.f90.html'>bc_ndomain_interior.f90</a></li><li><a href='sourcefile/chapsim.f90.html'>chapsim.f90</a></li><li><a href='sourcefile/domain_decomposition.f90.html'>domain_decomposition.f90</a></li><li><a href='sourcefile/eq_continuity.f90.html'>eq_continuity.f90</a></li></ul>
             </div>
             <div>
               <ul>
@@ -167,7 +148,7 @@ debug: true</p>
           <div class="col-xs-6 col-sm-3">
             <div>
               <h3>Modules</h3>
-              <ul><li><a href='module/apx_prerun_mod.html'>apx_prerun_mod</a></li><li><a href='module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></li><li><a href='module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></li><li><a href='module/bc_ndomain_interior_mod.html'>bc_ndomain_interior_mod</a></li><li><a href='module/boundary_conditions_mod.html'>boundary_conditions_mod</a></li><li><a href='module/burgers_eq_mod.html'>burgers_eq_mod</a></li><li><a href='module/code_performance_mod.html'>code_performance_mod</a></li><li><a href='module/continuity_eq_mod.html'>continuity_eq_mod</a></li><li><a href='module/convert_primary_conservative_mod.html'>convert_primary_conservative_mod</a></li><li><a href='module/cubic_spline_interpolation.html'>cubic_spline_interpolation</a></li></ul>
+              <ul><li><a href='module/apx_prerun_mod.html'>apx_prerun_mod</a></li><li><a href='module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></li><li><a href='module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></li><li><a href='module/bc_ndomain_interior_mod.html'>bc_ndomain_interior_mod</a></li><li><a href='module/boundary_conditions_mod.html'>boundary_conditions_mod</a></li><li><a href='module/burgers_eq_mod.html'>burgers_eq_mod</a></li><li><a href='module/checkpoint_metadata_mod.html'>checkpoint_metadata_mod</a></li><li><a href='module/code_performance_mod.html'>code_performance_mod</a></li><li><a href='module/continuity_eq_mod.html'>continuity_eq_mod</a></li><li><a href='module/convert_primary_conservative_mod.html'>convert_primary_conservative_mod</a></li></ul>
             </div>
             <div>
               <ul>
@@ -178,7 +159,7 @@ debug: true</p>
           <div class="col-xs-6 col-sm-3">
             <div>
               <h3>Procedures</h3>
-              <ul><li><a href='proc/abs_cdp.html'>abs_cdp</a></li><li><a href='proc/abs_csp.html'>abs_csp</a></li><li><a href='proc/abs_dp.html'>abs_dp</a></li><li><a href='interface/abs_prec.html'>abs_prec</a></li><li><a href='proc/abs_sp.html'>abs_sp</a></li><li><a href='interface/abs_wp.html'>abs_wp</a></li><li><a href='proc/acos_dp.html'>acos_dp</a></li><li><a href='proc/acos_sp.html'>acos_sp</a></li><li><a href='interface/acos_wp.html'>acos_wp</a></li><li><a href='proc/adjust_to_xzmean_zero.html'>Adjust_to_xzmean_zero</a></li></ul>
+              <ul><li><a href='proc/abs_cdp.html'>abs_cdp</a></li><li><a href='proc/abs_csp.html'>abs_csp</a></li><li><a href='proc/abs_dp.html'>abs_dp</a></li><li><a href='interface/abs_prec.html'>abs_prec</a></li><li><a href='proc/abs_sp.html'>abs_sp</a></li><li><a href='interface/abs_wp.html'>abs_wp</a></li><li><a href='proc/abxyz.html'>abxyz</a></li><li><a href='proc/accumulate_spectrum_dir.html'>accumulate_spectrum_dir</a></li><li><a href='proc/accumulate_spectrum_uu.html'>accumulate_spectrum_uu</a></li><li><a href='proc/acos_dp.html'>acos_dp</a></li></ul>
             </div>
             <div>
               <ul>
@@ -189,7 +170,7 @@ debug: true</p>
           <div class="col-xs-6 col-sm-3">
             <div>
               <h3>Derived Types</h3>
-              <ul><li><a href='type/fd_coeffs.html'>fd_coeffs</a></li><li><a href='type/t_domain.html'>t_domain</a></li><li><a href='type/t_flow.html'>t_flow</a></li><li><a href='type/t_fluid_parameter.html'>t_fluid_parameter</a></li><li><a href='type/t_fluidthermoproperty.html'>t_fluidThermoProperty</a></li><li><a href='type/t_metrics.html'>t_metrics</a></li><li><a href='type/t_mhd.html'>t_mhd</a></li><li><a href='type/t_thermo.html'>t_thermo</a></li></ul>
+              <ul><li><a href='type/fd_coeffs.html'>fd_coeffs</a></li><li><a href='type/t_domain.html'>t_domain</a></li><li><a href='type/t_flow.html'>t_flow</a></li><li><a href='type/t_fluid_parameter.html'>t_fluid_parameter</a></li><li><a href='type/t_fluidthermoproperty.html'>t_fluidThermoProperty</a></li><li><a href='type/t_metrics.html'>t_metrics</a></li><li><a href='type/t_mhd.html'>t_mhd</a></li><li><a href='type/t_profile_bundle_record.html'>t_profile_bundle_record</a></li><li><a href='type/t_thermo.html'>t_thermo</a></li><li><a href='type/t_visu_slice_xdmf_record.html'>t_visu_slice_xdmf_record</a></li></ul>
             </div>
             <div>
               <ul>
@@ -205,8 +186,8 @@ debug: true</p>
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

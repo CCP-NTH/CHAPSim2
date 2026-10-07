@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>t_fluid_parameter &ndash; Fortran Program </title>
+    <title>t_fluid_parameter &ndash; CHAPSim2 </title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>t_fluid_parameter
       <small>Derived Type</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 5.2% of total for derived types.</p>Including implementation: 19 statements,  5.2% of total for derived types.">19 statements</a>
+                 title="<p> 4.8% of total for derived types.</p>Including implementation: 23 statements,  4.8% of total for derived types.">23 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,12 +124,12 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#vars-0"
          aria-expanded="false" aria-controls="vars-0">
@@ -134,11 +138,15 @@
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-inputproperty">inputProperty</a>
-            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-ifluid">ifluid</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-ifluid~2">ifluid</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-ipropertystate">ipropertyState</a>
-            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-nlist">nlist</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-nlist~2">nlist</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-tm0">TM0</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-tb0">TB0</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-tp0min">TP0min</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-tp0max">TP0max</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-tp0minsrc">TP0minsrc</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-tp0maxsrc">TP0maxsrc</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-hm0">HM0</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-cod">CoD</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-cok">CoK</a>
@@ -146,42 +154,48 @@
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-cocp">CoCp</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-coh">CoH</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-com">CoM</a>
-            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-dhmax">dhmax</a>
-            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-dhmin">dhmin</a>
-            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-ftp0ref">ftp0ref</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-dhmax~2">dhmax</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-dhmin~2">dhmin</a>
+            <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-ftp0ref~2">ftp0ref</a>
             <a class="list-group-item" href="../type/t_fluid_parameter.html#variable-ftpini">ftpini</a>
         </div>
       </div>
     </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../type/t_fluid_parameter.html#src">t_fluid_parameter</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
       <h2 id="type-def-statement">
         type, public :: t_fluid_parameter</h2>
-
+    
     <br>
 
     <section>
@@ -203,31 +217,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>inputProperty</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ifluid"></span>
+              <span class="anchor" id="variable-ifluid~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ifluid</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -237,31 +251,31 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ipropertyState</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-nlist"></span>
+              <span class="anchor" id="variable-nlist~2"></span>
               integer,
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>nlist</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -271,14 +285,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>TM0</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -288,14 +302,82 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>TB0</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tp0min"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>TP0min</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tp0max"></span>
+              real(kind=WP),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>TP0max</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tp0minsrc"></span>
+              character(len=64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>TP0minsrc</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tp0maxsrc"></span>
+              character(len=64),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>TP0maxsrc</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
             </td>
         </tr>
         <tr>
@@ -305,14 +387,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>HM0</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -322,14 +404,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoD</strong>(0:4)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -339,14 +421,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoK</strong>(0:2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -356,14 +438,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoB</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -373,14 +455,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoCp</strong>(-2:2)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -390,14 +472,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>CoH</strong>(-1:3)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -407,65 +489,65 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
-            <td><strong>CoM</strong>(-1:3)</td>
+            <td><strong>CoM</strong>(-1:1)</td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dhmax"></span>
+              <span class="anchor" id="variable-dhmax~2"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dhmax</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dhmin"></span>
+              <span class="anchor" id="variable-dhmin~2"></span>
               real(kind=WP),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dhmin</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-ftp0ref"></span>
+              <span class="anchor" id="variable-ftp0ref~2"></span>
               type(<a href='t_fluidthermoproperty.html'>t_fluidThermoProperty</a>),
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ftp0ref</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -475,14 +557,14 @@
             </td>
               <td>public</td>
             <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>ftpini</strong></td>
                 <td></td>
                 <td></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -490,11 +572,42 @@
 
     </section>
     <br>
+    
 
 
 
+    <section>
+    <h3><span class="anchor" id="src"></span>Source Code</h3>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">type </span><span class="n">t_fluid_parameter</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">inputProperty</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ifluid</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ipropertyState</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nlist</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">TM0</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">TB0</span>
+<span class="w">    </span><span class="c">! the interval the property table spans: the phase range narrowed by every</span>
+<span class="w">    </span><span class="c">! property correlation that is valid over less than it, with the binding</span>
+<span class="w">    </span><span class="c">! property named so the diagnostics can report what restricts the run.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">TP0min</span><span class="w"> </span><span class="c">! lowest  T at which the property correlations are evaluated</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">TP0max</span><span class="w"> </span><span class="c">! highest T at which the property correlations are evaluated</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">TP0minsrc</span><span class="w"> </span><span class="c">! what sets TP0min</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">64</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">TP0maxsrc</span><span class="w"> </span><span class="c">! what sets TP0max</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">HM0</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">CoD</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">4</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">CoK</span><span class="p">(</span><span class="mi">0</span><span class="p">:</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">CoB</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">CoCp</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">:</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">CoH</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">CoM</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dhmax</span><span class="w"> </span><span class="c">! undim</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dhmin</span><span class="w"> </span><span class="c">! undim</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_fluidThermoProperty</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ftp0ref</span><span class="w">    </span><span class="c">! dim, reference state</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_fluidThermoProperty</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ftpini</span><span class="w">     </span><span class="c">! dim, initial state</span>
+<span class="w">  </span><span class="k">end type </span><span class="n">t_fluid_parameter</span>
+</pre></div>
 
-
+    </section>
+    
     </div>
   </div>
 
@@ -505,8 +618,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

@@ -9,10 +9,13 @@ eliminating manual file creation errors and enhancing simulation reproducibility
 import configparser
 import math
 from enum import Enum
+from pathlib import Path
 
 # Constants
 MESSAGE_SEP = "=" * 22
 DEFAULT_FILENAME = "input_chapsim_auto.ini"
+SCRIPT_DIR = Path(__file__).resolve().parent
+TEMPLATE_PATH = SCRIPT_DIR / "input_chapsim_complete.ini"
 PI = round(math.pi, 6)
 TWO_PI = 2.0 * PI
 DEFAULT_PROBE_COUNT = 5
@@ -21,8 +24,9 @@ DEFAULT_STAT_SKIP = "1,1,1"
 YES_NO_CHOICES = [0, 1]
 SIGN_CHOICES = [1, -1]
 INLET_BC_CHOICES = [4, 9, 10]
-STAT_LEVEL_CHOICES = [1, 2, 3]
-IO_MODE_CHOICES = [0, 1, 2]
+STAT_LEVEL_CHOICES = [0, 1, 2, 3]
+OUTPUT_POLICY_CHOICES = ["overwrite", "skip", "rename_existing"]
+RESTART_LAYOUT_CHOICES = ["per_field", "bundled"]
 WALL_BC_CASES = {1, 3, 5}
 PIPELIKE_CASES = {2, 3}
 WALL_FLOW_CASES = {1, 2, 3, 5}
@@ -52,13 +56,13 @@ class Drvfc(Enum):
 
 class Init(Enum):
     RESTART = 0
-    INTRPL = 1
     RANDOM = 2
     INLET = 3
     GIVEN = 4
     POISEUILLE = 5
     FUNCTION = 6
     GVBCLN = 7
+    GVBCSMOOTH = 8
 
 
 class Stretching(Enum):
@@ -90,6 +94,13 @@ def reset_runtime_state():
     global icase, ithermo, iinlet, imhd, has_convective_outlet
     icase = ithermo = iinlet = imhd = 0
     has_convective_outlet = False
+
+
+def ensure_template_available():
+    """Return the moved complete input template path, failing clearly if absent."""
+    if not TEMPLATE_PATH.exists():
+        raise FileNotFoundError(f"Template input file not found: {TEMPLATE_PATH}")
+    return TEMPLATE_PATH
 
 
 # Input Functions
@@ -245,11 +256,10 @@ def get_flow_settings():
     else:
         if icase in WALL_FLOW_CASES:
             initfl = get_input(
-                "Flow initialization (1:Intrpl, 2:Random, 3:Inlet, 4:Given, 5:Poiseuille, 6:Function)",
+                "Flow initialization (2:Random, 3:Inlet, 4:Given, 5:Poiseuille, 6:Function)",
                 Init.POISEUILLE.value,
                 int,
                 valid_choices=[
-                    Init.INTRPL.value,
                     Init.RANDOM.value,
                     Init.INLET.value,
                     Init.GIVEN.value,
@@ -261,7 +271,7 @@ def get_flow_settings():
             initfl = Init.FUNCTION.value
         else:
             initfl = get_input(
-                "Flow initialization (0:Restart, 1:Intrpl, 2:Random, 3:Inlet, 4:Given, 5:Poiseuille, 6:Function)",
+                "Flow initialization (0:Restart, 2:Random, 3:Inlet, 4:Given, 5:Poiseuille, 6:Function)",
                 5,
                 int,
             )
@@ -315,7 +325,7 @@ def get_thermo_settings():
     refl0 = get_input("Reference length (meter)", 0.001, float)
     refT0 = get_input("Reference Temperature (Kelvin)", 645.15, float)
     inittm = get_input(
-        "Thermal initialization (0:Restart, 1:Intrpl, 2:Random, 3:Inlet, 4:Given, 5:Poiseuille, 6:Function, 7:GivenBCMix)",
+        "Thermal initialization (0:Restart, 4:Const, 6:Function, 7:Linear, 8:Smooth)",
         4,
         int,
     )
@@ -377,7 +387,7 @@ def get_mhd_settings():
     b3 = get_input("Static magnetic field in Z", 0.0, float)
 
     return {
-        "imhd": bool_to_string(imhd),
+        "imhd_xdom": bool_to_string(imhd),
         "NStuart": format_csv(bool_to_string(iStuart), NS),
         "NHartmn": format_csv(bool_to_string(iHartmn), NH),
         "B_static": format_csv(b1, b2, b3),
@@ -411,21 +421,21 @@ def get_mesh_settings():
     if istret != Stretching.NONE.value:
         if icase in [Case.CHANNEL.value, Case.DUCT.value]:
             rstret1, rstret2 = (
-                1,
+                "3fmd",
                 get_input(
                     "Stretching factor (0.1-0.3, smaller=more clustered)", 0.12, float
                 ),
             )
         elif icase in [Case.PIPE.value, Case.ANNULAR.value]:
             rstret1, rstret2 = (
-                2,
+                "tanh",
                 get_input(
                     "Stretching factor (0.1-0.3, greater=more clustered)", 0.15, float
                 ),
             )
         else:
             rstret1 = get_input(
-                "Stretching method (1:Five-mode spectral, 2:tanh, 3:power law)", 1, int
+                "Stretching method (uniform, 3fmd, tanh, powl)", "3fmd", str
             )
             rstret2 = get_input("Stretching factor (0.1-0.3)", 0.15, float)
     else:
@@ -437,6 +447,7 @@ def get_mesh_settings():
         "ncz": ncz,
         "istret": istret,
         "rstret": format_csv(rstret1, rstret2),
+        "poisson_y_method": "auto",
     }
 
 
@@ -599,17 +610,17 @@ def get_bc_settings():
         "ifbcx_v": format_bc_entry(bc_dict["ifbcx_u"]),
         "ifbcx_w": format_bc_entry(bc_dict["ifbcx_u"]),
         "ifbcx_p": format_bc_entry(bc_dict["ifbcx_p"]),
-        "ifbcx_T": format_bc_entry(bc_dict["ifbcx_T"]),
+        "ifbcx_t": format_bc_entry(bc_dict["ifbcx_T"]),
         "ifbcy_u": format_bc_entry(bc_dict["ifbcy_u"]),
         "ifbcy_v": format_bc_entry(bc_dict["ifbcy_u"]),
         "ifbcy_w": format_bc_entry(bc_dict["ifbcy_u"]),
         "ifbcy_p": format_bc_entry(bc_dict["ifbcy_p"]),
-        "ifbcy_T": format_bc_entry(bc_dict["ifbcy_T"]),
+        "ifbcy_t": format_bc_entry(bc_dict["ifbcy_T"]),
         "ifbcz_u": format_bc_entry(bc_dict["ifbcz_u"]),
         "ifbcz_v": format_bc_entry(bc_dict["ifbcz_u"]),
         "ifbcz_w": format_bc_entry(bc_dict["ifbcz_u"]),
         "ifbcz_p": format_bc_entry(bc_dict["ifbcz_p"]),
-        "ifbcz_T": format_bc_entry(bc_dict["ifbcz_T"]),
+        "ifbcz_t": format_bc_entry(bc_dict["ifbcz_T"]),
         "idriven": idriven,
         "drivenfc": drivenCf,
     }
@@ -629,8 +640,8 @@ def get_scheme_settings():
 
     dt = get_input("Time step size", 0.00001, float)
     iAccuracy = get_input(
-        "Spatial accuracy (1:2nd CD, 2:4th CD, 3:4th CP, 4:6th CP)", 1, int
-    )
+        "Spatial accuracy", "cd2", str, valid_choices=["cd2", "cd4", "cp4", "cp6"]
+    ).lower()
     if has_convective_outlet:
         sponge_length = get_input("Outlet sponge layer length", 0.0, float)
         sponge_re = get_input("Reynolds number in sponge layer", 100.0, float)
@@ -640,9 +651,9 @@ def get_scheme_settings():
 
     return {
         "dt": dt,
-        "iTimeScheme": 3,
-        "iAccuracy": iAccuracy,
-        "iviscous": 1,
+        "itimescheme": "rk3",
+        "iaccuracy": iAccuracy,
+        "iviscous": "explicit",
         "out_sponge_L_Re": format_csv(sponge_length, sponge_re),
     }
 
@@ -662,10 +673,10 @@ def get_simcontrol_settings():
         nIterThermoFirst = nIterThermoLast = 0
 
     return {
-        "nIterFlowFirst": nIterFlowFirst,
-        "nIterFlowLast": nIterFlowLast,
-        "nIterThermoFirst": nIterThermoFirst,
-        "nIterThermoLast": nIterThermoLast,
+        "niterflowfirst": nIterFlowFirst,
+        "niterflowlast": nIterFlowLast,
+        "niterthermofirst": nIterThermoFirst,
+        "niterthermolast": nIterThermoLast,
     }
 
 
@@ -688,13 +699,32 @@ def get_io_settings():
         "Statistics level (1: mean flow, 2: +Reynolds stresses, 3: +turbulent budget dynamics)",
         3,
         int,
-        valid_choices=[1, 2, 3],
+        valid_choices=[0, 1, 2, 3],
     )
-    io_mode = get_input(
-        "I/O mode (0:overwrite, 1:skip existing, 2:rename existing then write)",
-        0,
-        int,
-        valid_choices=[0, 1, 2],
+    stat_visu_nfre = get_input("Visualized statistics frequency", visu_nfre, int)
+    stat_visu_mode = get_input(
+        "Visualized statistics mode (all, tsp_only)",
+        "all",
+        str,
+        valid_choices=["all", "tsp_only"],
+    )
+    existing_output_policy = get_input(
+        "Existing output policy (overwrite, skip, rename_existing)",
+        "overwrite",
+        str,
+        valid_choices=OUTPUT_POLICY_CHOICES,
+    )
+    restart_data_layout = get_input(
+        "Restart/output data layout (per_field, bundled)",
+        "bundled",
+        str,
+        valid_choices=RESTART_LAYOUT_CHOICES,
+    )
+    reset_unit_massflux = get_yes_no(
+        "Reset restored streamwise bulk velocity to 1.0? (0:No, 1:Yes)", default=0
+    )
+    visu_precision = get_input(
+        "Visualisation precision bytes (4:single, 8:double)", 4, int, valid_choices=[4, 8]
     )
 
     is_write = get_yes_no("Write outlet plane data? (0:No, 1:Yes)", default=0)
@@ -702,10 +732,12 @@ def get_io_settings():
 
     if is_write == 0 and is_read == 0:
         wrt_read_nfre1 = wrt_read_nfre2 = wrt_read_nfre3 = 0
+        ndb_file_offset = 0
     else:
         wrt_read_nfre1 = get_input("Plane data save frequency (iterations)", 1000, int)
         wrt_read_nfre2 = get_input("Start saving from iteration", 2001, int)
         wrt_read_nfre3 = get_input("Stop saving at iteration", 10000, int)
+        ndb_file_offset = get_input("Plane database file iteration offset", 0, int)
 
         total_steps = wrt_read_nfre3 - wrt_read_nfre2 + 1
         if total_steps % wrt_read_nfre1 != 0:
@@ -726,9 +758,17 @@ def get_io_settings():
         "stat_istart": stat_istart,
         "stat_level": stat_level,
         "stat_nskip": DEFAULT_STAT_SKIP,
-        "is_wrt_read_bc": format_csv(bool_to_string(is_write), bool_to_string(is_read)),
-        "wrt_read_nfre": format_csv(wrt_read_nfre1, wrt_read_nfre2, wrt_read_nfre3),
-        "io_mode": io_mode,
+        "stat_visu_nfre": stat_visu_nfre,
+        "stat_visu_mode": stat_visu_mode,
+        "is_record_xoutlet_read_xinlet": format_csv(bool_to_string(is_write), bool_to_string(is_read)),
+        "ndbfre_ndbstart_ndbend": format_csv(wrt_read_nfre1, wrt_read_nfre2, wrt_read_nfre3),
+        "ndb_file_offset": ndb_file_offset,
+        "existing_output_policy": existing_output_policy,
+        "restart_data_layout": restart_data_layout,
+        "restart_data_layout_read": restart_data_layout,
+        "restart_data_layout_write": restart_data_layout,
+        "reset_unit_massflux": bool_to_string(reset_unit_massflux),
+        "visu_precision": visu_precision,
     }
 
 
@@ -766,6 +806,7 @@ class CustomConfigParser(configparser.ConfigParser):
 
     def __init__(self):
         super().__init__(interpolation=None)
+        self.optionxform = str
 
     def write(self, fp):
         for section in self.sections():
@@ -778,6 +819,7 @@ class CustomConfigParser(configparser.ConfigParser):
 def generate_ini(filename=DEFAULT_FILENAME):
     """Generate CHAPSim2 input file by collecting user inputs."""
     reset_runtime_state()
+    ensure_template_available()
     config = CustomConfigParser()
 
     # Collect all settings
@@ -788,6 +830,7 @@ def generate_ini(filename=DEFAULT_FILENAME):
         ("flow", get_flow_settings),
         ("thermo", get_thermo_settings),
         ("mhd", get_mhd_settings),
+        ("les", lambda: {"LESmode": "DNS"}),
         ("mesh", get_mesh_settings),
         ("bc", get_bc_settings),
         ("scheme", get_scheme_settings),

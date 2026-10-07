@@ -30,6 +30,20 @@ Pipe and annular cases use cylindrical-coordinate constraints internally.
 Several domain values are reset by the input-reading logic for these cases, so
 always check the run log for final interpreted values.
 
+## MHD Model Scope
+
+The MHD model uses the quasi-static approximation with an imposed magnetic
+field. The user input `B_static = Bx,By,Bz` is interpreted as a global Cartesian
+vector; cylindrical cases decompose that vector into local radial and azimuthal
+components before forming the Lorentz force.
+
+Electrical conductivity is currently treated as constant in the MHD
+electric-potential solve. For the liquid-metal resistivity relation currently
+under review, a 20% temperature increase of about 114 K corresponds to an
+estimated electrical-conductivity decrease of about 6.9%. This gives a useful
+scale for the constant-conductivity approximation, while temperature-dependent
+conductivity remains a planned future extension.
+
 ## Mesh and Stretching
 
 Wall-normal or radial resolution is controlled by the `[mesh]` section. Available options include:

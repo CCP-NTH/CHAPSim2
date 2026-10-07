@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>test_algrithms.f90 &ndash; Fortran Program</title>
+    <title>test_algrithms.f90 &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>test_algrithms.f90
       <small>Source File</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.9% of total for source files.">451 statements</a>
+                 title=" 1.6% of total for source files.">451 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -122,11 +126,11 @@
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
         <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#mods-0"
          aria-expanded="false" aria-controls="mods-0">
@@ -139,12 +143,12 @@
       </div>
     </div>
 
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
       <div class="card mb-4">
       <a data-bs-toggle="collapse" href="#subs-0"
          aria-expanded="false" aria-controls="subs-0">
@@ -158,13 +162,13 @@
       </div>
     </div>
 
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
     <div class="card card-primary">
       <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
       <div class="list-group">
@@ -177,7 +181,7 @@
 
     </div>
     <div class="col-md-9" id='text'>
-
+      
       <br>
 
       <section>
@@ -234,13 +238,13 @@
 <a id="ln-50" name="ln-50" href="#ln-50"></a><span class="w">  </span><span class="c">!==============================================================================</span>
 <a id="ln-51" name="ln-51" href="#ln-51"></a>
 <a id="ln-52" name="ln-52" href="#ln-52"></a><span class="w">  </span><span class="c">! example 2 : input alpha * x + beta for inviscid Burgers&#39; equation</span>
-<a id="ln-53" name="ln-53" href="#ln-53"></a><span class="w">  </span><span class="c">!==========================================================================================================</span>
+<a id="ln-53" name="ln-53" href="#ln-53"></a><span class="w">  </span><span class="c">!==============================================================================</span>
 <a id="ln-54" name="ln-54" href="#ln-54"></a><span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-55" name="ln-55" href="#ln-55"></a>
 <a id="ln-56" name="ln-56" href="#ln-56"></a>
 <a id="ln-57" name="ln-57" href="#ln-57"></a>
 <a id="ln-58" name="ln-58" href="#ln-58"></a><span class="k">    else if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D_VISCOUS</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
-<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-59" name="ln-59" href="#ln-59"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-60" name="ln-60" href="#ln-60"></a><span class="c">!   diffusion equation:  du/dt = nu * d(u^2)/dx = 0</span>
 <a id="ln-61" name="ln-61" href="#ln-61"></a><span class="c">!   For an initial condition of the form: u(x, t=0) = U e^{i k x}, i = image unit, k = wavenumber</span>
 <a id="ln-62" name="ln-62" href="#ln-62"></a><span class="c">!   The time developing solution is: u(x, t) = U * e^{-nu k^2 t} sin(k*t)</span>
@@ -248,7 +252,7 @@
 <a id="ln-64" name="ln-64" href="#ln-64"></a><span class="c">!       e^{ikx} = cos(kx) + i sin(kx)</span>
 <a id="ln-65" name="ln-65" href="#ln-65"></a><span class="c">!       initial u(x, 0) = sin(pi * x), for 0&lt; x &lt; 2</span>
 <a id="ln-66" name="ln-66" href="#ln-66"></a><span class="c">!       result is :</span>
-<a id="ln-67" name="ln-67" href="#ln-67"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-67" name="ln-67" href="#ln-67"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-68" name="ln-68" href="#ln-68"></a><span class="w">      </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_PERIODIC</span>
 <a id="ln-69" name="ln-69" href="#ln-69"></a><span class="w">      </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcy_qx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_PERIODIC</span>
 <a id="ln-70" name="ln-70" href="#ln-70"></a><span class="w">      </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcz_qx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_PERIODIC</span>
@@ -343,7 +347,7 @@
 <a id="ln-159" name="ln-159" href="#ln-159"></a><span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">idir</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-160" name="ln-160" href="#ln-160"></a><span class="c">! xpencil</span>
 <a id="ln-161" name="ln-161" href="#ln-161"></a><span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
-<a id="ln-162" name="ln-162" href="#ln-162"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-162" name="ln-162" href="#ln-162"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-163" name="ln-163" href="#ln-163"></a><span class="w">      </span><span class="c">! for x-mom convection term : d(qx * qx)/dx at (i&#39;, j, k)</span>
 <a id="ln-164" name="ln-164" href="#ln-164"></a><span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D_INVISCID</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-165" name="ln-165" href="#ln-165"></a><span class="k">        call </span><span class="n">Get_x_midp_P2C_3D</span><span class="w">         </span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="p">,</span><span class="w"> </span><span class="n">qx_ccc</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="p">(:))</span>
@@ -351,7 +355,7 @@
 <a id="ln-167" name="ln-167" href="#ln-167"></a><span class="w">        </span><span class="k">call </span><span class="n">Get_x_1der_C2P_3D</span><span class="p">(</span><span class="o">-</span><span class="n">qx_ccc</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">qx_ccc</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">HALF</span><span class="p">,</span><span class="w"> </span><span class="n">mx_rhs</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">mbc</span><span class="p">(:,</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">HALF</span><span class="p">)</span>
 <a id="ln-168" name="ln-168" href="#ln-168"></a><span class="w">        </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">mx_rhs</span>
 <a id="ln-169" name="ln-169" href="#ln-169"></a><span class="w">      </span><span class="k">end if</span>
-<a id="ln-170" name="ln-170" href="#ln-170"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-170" name="ln-170" href="#ln-170"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-171" name="ln-171" href="#ln-171"></a><span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D_WAVEPROPAGATION</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-172" name="ln-172" href="#ln-172"></a><span class="k">        call </span><span class="n">Get_x_midp_P2C_3D</span><span class="w">         </span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="p">,</span><span class="w"> </span><span class="n">qx_ccc</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="p">(:))</span>
 <a id="ln-173" name="ln-173" href="#ln-173"></a><span class="w">        </span><span class="k">call </span><span class="n">build_bc_symm_operation</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="p">(:),</span><span class="w"> </span><span class="n">mbc</span><span class="p">)</span>
@@ -359,7 +363,7 @@
 <a id="ln-175" name="ln-175" href="#ln-175"></a><span class="w">        </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">mx_rhs</span>
 <a id="ln-176" name="ln-176" href="#ln-176"></a>
 <a id="ln-177" name="ln-177" href="#ln-177"></a><span class="w">      </span><span class="k">end if</span>
-<a id="ln-178" name="ln-178" href="#ln-178"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-178" name="ln-178" href="#ln-178"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-179" name="ln-179" href="#ln-179"></a><span class="w">      </span><span class="c">! for x-mom diffusion term , \mu * Ljj(ux) at (i&#39;, j, k)</span>
 <a id="ln-180" name="ln-180" href="#ln-180"></a><span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D_VISCOUS</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-181" name="ln-181" href="#ln-181"></a><span class="w">        </span><span class="c">!call Get_x_2der_P2P_3D( fl%qx, mx_rhs, dm, dm%iAccuracy, dm%ibcx(:, 1) )</span>
@@ -368,7 +372,7 @@
 <a id="ln-184" name="ln-184" href="#ln-184"></a><span class="w">        </span><span class="k">call </span><span class="n">Get_x_1der_C2P_3D</span><span class="p">(</span><span class="w"> </span><span class="n">qx_ccc</span><span class="p">,</span><span class="w"> </span><span class="n">mx_rhs</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">mbc</span><span class="p">(:,</span><span class="w"> </span><span class="mi">2</span><span class="p">))</span>
 <a id="ln-185" name="ln-185" href="#ln-185"></a><span class="w">        </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">rre</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">mx_rhs</span>
 <a id="ln-186" name="ln-186" href="#ln-186"></a><span class="w">      </span><span class="k">end if</span>
-<a id="ln-187" name="ln-187" href="#ln-187"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-187" name="ln-187" href="#ln-187"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-188" name="ln-188" href="#ln-188"></a><span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D_WAVEPROPAGATION</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-189" name="ln-189" href="#ln-189"></a><span class="k">        call </span><span class="n">Get_x_midp_P2C_3D</span><span class="w">         </span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="p">,</span><span class="w"> </span><span class="n">qx_ccc</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="p">(:))</span>
 <a id="ln-190" name="ln-190" href="#ln-190"></a><span class="w">        </span><span class="k">call </span><span class="n">build_bc_symm_operation</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="p">(:),</span><span class="w"> </span><span class="n">mbc</span><span class="p">)</span>
@@ -376,7 +380,7 @@
 <a id="ln-192" name="ln-192" href="#ln-192"></a><span class="w">        </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">mx_rhs</span>
 <a id="ln-193" name="ln-193" href="#ln-193"></a>
 <a id="ln-194" name="ln-194" href="#ln-194"></a><span class="w">      </span><span class="k">end if</span>
-<a id="ln-195" name="ln-195" href="#ln-195"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-195" name="ln-195" href="#ln-195"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-196" name="ln-196" href="#ln-196"></a><span class="w">      </span><span class="n">rhsx_dummy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
 <a id="ln-197" name="ln-197" href="#ln-197"></a><span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">tGamma</span><span class="p">(</span><span class="n">isub</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">&amp;</span>
 <a id="ln-198" name="ln-198" href="#ln-198"></a><span class="w">                           </span><span class="n">dm</span><span class="p">%</span><span class="n">tZeta</span><span class="w"> </span><span class="p">(</span><span class="n">isub</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
@@ -395,7 +399,7 @@
 <a id="ln-211" name="ln-211" href="#ln-211"></a><span class="w">      </span><span class="n">my_rhs_ypencil</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
 <a id="ln-212" name="ln-212" href="#ln-212"></a>
 <a id="ln-213" name="ln-213" href="#ln-213"></a><span class="w">      </span><span class="k">call </span><span class="n">transpose_x_to_y</span><span class="w"> </span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">qy</span><span class="p">,</span><span class="w">  </span><span class="n">qy_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpc</span><span class="p">)</span>
-<a id="ln-214" name="ln-214" href="#ln-214"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-214" name="ln-214" href="#ln-214"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-215" name="ln-215" href="#ln-215"></a><span class="w">      </span><span class="c">! for y-mom convection term : d(qy * qy)/dy at (i, j&#39;, k)</span>
 <a id="ln-216" name="ln-216" href="#ln-216"></a><span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D_INVISCID</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-217" name="ln-217" href="#ln-217"></a><span class="k">        call </span><span class="n">Get_y_midp_P2C_3D</span><span class="w">         </span><span class="p">(</span><span class="n">qy_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">qy_ccc_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcy_qy</span><span class="p">(:))</span>
@@ -405,14 +409,14 @@
 <a id="ln-221" name="ln-221" href="#ln-221"></a><span class="w">        </span><span class="k">call </span><span class="n">transpose_y_to_x</span><span class="w"> </span><span class="p">(</span><span class="n">my_rhs_ypencil</span><span class="p">,</span><span class="w">  </span><span class="n">my_rhs</span><span class="p">)</span>
 <a id="ln-222" name="ln-222" href="#ln-222"></a><span class="w">        </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">my_rhs</span>
 <a id="ln-223" name="ln-223" href="#ln-223"></a><span class="w">      </span><span class="k">end if</span>
-<a id="ln-224" name="ln-224" href="#ln-224"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-224" name="ln-224" href="#ln-224"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-225" name="ln-225" href="#ln-225"></a><span class="w">      </span><span class="c">! for x-mom diffusion term , \mu * Ljj(ux) at (i&#39;, j, k)</span>
 <a id="ln-226" name="ln-226" href="#ln-226"></a><span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D_VISCOUS</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-227" name="ln-227" href="#ln-227"></a><span class="w">        </span><span class="c">!call Get_y_2der_P2P_3D(qy_ypencil, my_rhs_ypencil, dm, dm%iAccuracy, dm%ibcy_qy(:), dm%fbcy_qy(:, :, :) )</span>
 <a id="ln-228" name="ln-228" href="#ln-228"></a><span class="w">        </span><span class="k">call </span><span class="n">transpose_y_to_x</span><span class="w"> </span><span class="p">(</span><span class="n">my_rhs_ypencil</span><span class="p">,</span><span class="w">  </span><span class="n">my_rhs</span><span class="p">)</span>
 <a id="ln-229" name="ln-229" href="#ln-229"></a><span class="w">        </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">rre</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">my_rhs</span>
 <a id="ln-230" name="ln-230" href="#ln-230"></a><span class="w">      </span><span class="k">end if</span>
-<a id="ln-231" name="ln-231" href="#ln-231"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-231" name="ln-231" href="#ln-231"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-232" name="ln-232" href="#ln-232"></a><span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_BURGERS1D_WAVEPROPAGATION</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-233" name="ln-233" href="#ln-233"></a><span class="k">        call </span><span class="n">Get_y_midp_P2C_3D</span><span class="w">         </span><span class="p">(</span><span class="n">qy_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">qy_ccc_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcy_qy</span><span class="p">(:))</span>
 <a id="ln-234" name="ln-234" href="#ln-234"></a><span class="w">        </span><span class="k">call </span><span class="n">build_bc_symm_operation</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcy_qy</span><span class="p">(:),</span><span class="w"> </span><span class="n">mbc</span><span class="p">)</span>
@@ -420,7 +424,7 @@
 <a id="ln-236" name="ln-236" href="#ln-236"></a><span class="w">        </span><span class="k">call </span><span class="n">transpose_y_to_x</span><span class="w"> </span><span class="p">(</span><span class="n">my_rhs_ypencil</span><span class="p">,</span><span class="w">  </span><span class="n">my_rhs</span><span class="p">)</span>
 <a id="ln-237" name="ln-237" href="#ln-237"></a><span class="w">        </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">my_rhs</span>
 <a id="ln-238" name="ln-238" href="#ln-238"></a><span class="w">      </span><span class="k">end if</span>
-<a id="ln-239" name="ln-239" href="#ln-239"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-239" name="ln-239" href="#ln-239"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-240" name="ln-240" href="#ln-240"></a><span class="w">      </span><span class="n">rhsy_dummy</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
 <a id="ln-241" name="ln-241" href="#ln-241"></a><span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">tGamma</span><span class="p">(</span><span class="n">isub</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="p">&amp;</span>
 <a id="ln-242" name="ln-242" href="#ln-242"></a><span class="w">                            </span><span class="n">dm</span><span class="p">%</span><span class="n">tZeta</span><span class="w"> </span><span class="p">(</span><span class="n">isub</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
@@ -482,7 +486,7 @@
 <a id="ln-298" name="ln-298" href="#ln-298"></a>
 <a id="ln-299" name="ln-299" href="#ln-299"></a><span class="k">    return</span>
 <a id="ln-300" name="ln-300" href="#ln-300"></a><span class="k">  end subroutine </span><span class="n">Compute_burgers_rhs</span>
-<a id="ln-301" name="ln-301" href="#ln-301"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-301" name="ln-301" href="#ln-301"></a><span class="c">!==============================================================================</span>
 <a id="ln-302" name="ln-302" href="#ln-302"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">Validate_burgers_error</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
 <a id="ln-303" name="ln-303" href="#ln-303"></a><span class="w">    </span><span class="k">use </span><span class="n">input_general_mod</span>
 <a id="ln-304" name="ln-304" href="#ln-304"></a><span class="w">    </span><span class="k">use </span><span class="n">io_files_mod</span>
@@ -580,7 +584,7 @@
 <a id="ln-396" name="ln-396" href="#ln-396"></a><span class="w">    </span><span class="k">end if</span>
 <a id="ln-397" name="ln-397" href="#ln-397"></a>
 <a id="ln-398" name="ln-398" href="#ln-398"></a><span class="k">  end subroutine</span>
-<a id="ln-399" name="ln-399" href="#ln-399"></a><span class="w">  </span><span class="c">!==========================================================================================================</span>
+<a id="ln-399" name="ln-399" href="#ln-399"></a><span class="w">  </span><span class="c">!==============================================================================</span>
 <a id="ln-400" name="ln-400" href="#ln-400"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">Plot_burgers_profile</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
 <a id="ln-401" name="ln-401" href="#ln-401"></a><span class="w">    </span><span class="k">use </span><span class="n">input_general_mod</span>
 <a id="ln-402" name="ln-402" href="#ln-402"></a><span class="w">    </span><span class="k">use </span><span class="n">io_files_mod</span>
@@ -642,7 +646,7 @@
 <a id="ln-458" name="ln-458" href="#ln-458"></a><span class="k">    if</span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="k">close</span><span class="p">(</span><span class="n">wrt_unit</span><span class="p">)</span>
 <a id="ln-459" name="ln-459" href="#ln-459"></a>
 <a id="ln-460" name="ln-460" href="#ln-460"></a><span class="w">  </span><span class="k">end subroutine</span>
-<a id="ln-461" name="ln-461" href="#ln-461"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-461" name="ln-461" href="#ln-461"></a><span class="c">!==============================================================================</span>
 <a id="ln-462" name="ln-462" href="#ln-462"></a><span class="w">  </span><span class="k">subroutine </span><span class="n">Solve_burgers_eq_iteration</span>
 <a id="ln-463" name="ln-463" href="#ln-463"></a><span class="w">    </span><span class="k">use </span><span class="n">code_performance_mod</span>
 <a id="ln-464" name="ln-464" href="#ln-464"></a><span class="w">    </span><span class="k">use </span><span class="n">input_general_mod</span>
@@ -675,33 +679,33 @@
 <a id="ln-491" name="ln-491" href="#ln-491"></a><span class="k">    do </span><span class="n">iter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iterfrom</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">niter</span>
 <a id="ln-492" name="ln-492" href="#ln-492"></a><span class="w">      </span><span class="k">call </span><span class="n">call_cpu_time</span><span class="p">(</span><span class="n">CPU_TIME_ITER_START</span><span class="p">,</span><span class="w"> </span><span class="n">iterfrom</span><span class="p">,</span><span class="w"> </span><span class="n">niter</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
 <a id="ln-493" name="ln-493" href="#ln-493"></a><span class="w">      </span><span class="k">do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">nxdomain</span>
-<a id="ln-494" name="ln-494" href="#ln-494"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-494" name="ln-494" href="#ln-494"></a><span class="c">!==============================================================================</span>
 <a id="ln-495" name="ln-495" href="#ln-495"></a><span class="c">!      setting up 1/re, 1/re/prt, gravity, etc</span>
-<a id="ln-496" name="ln-496" href="#ln-496"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-496" name="ln-496" href="#ln-496"></a><span class="c">!==============================================================================</span>
 <a id="ln-497" name="ln-497" href="#ln-497"></a><span class="w">        </span><span class="k">call </span><span class="n">Update_Re</span><span class="p">(</span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">flow</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
 <a id="ln-498" name="ln-498" href="#ln-498"></a><span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">domain</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
 <a id="ln-499" name="ln-499" href="#ln-499"></a><span class="w">        </span><span class="k">call </span><span class="n">Update_PrGr</span><span class="p">(</span><span class="n">flow</span><span class="p">(</span><span class="n">i</span><span class="p">),</span><span class="w"> </span><span class="n">thermo</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
-<a id="ln-500" name="ln-500" href="#ln-500"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-500" name="ln-500" href="#ln-500"></a><span class="c">!==============================================================================</span>
 <a id="ln-501" name="ln-501" href="#ln-501"></a><span class="c">!      setting up flow solver</span>
-<a id="ln-502" name="ln-502" href="#ln-502"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-502" name="ln-502" href="#ln-502"></a><span class="c">!==============================================================================</span>
 <a id="ln-503" name="ln-503" href="#ln-503"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="p">(</span><span class="n">iter</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">flow</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">nIterFlowStart</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">(</span><span class="n">iter</span><span class="w"> </span><span class="o">&lt;=</span><span class="n">flow</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">nIterFlowEnd</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-504" name="ln-504" href="#ln-504"></a><span class="k">          </span><span class="n">is_flow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
 <a id="ln-505" name="ln-505" href="#ln-505"></a><span class="w">          </span><span class="n">flow</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="nb">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">flow</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="nb">time</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">domain</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">dt</span>
 <a id="ln-506" name="ln-506" href="#ln-506"></a><span class="w">          </span><span class="c">!call Check_cfl_diffusion ( flow(i), domain(i))</span>
 <a id="ln-507" name="ln-507" href="#ln-507"></a><span class="w">          </span><span class="c">!call Check_cfl_convection(flow(i)%qx, flow(i)%qy, flow(i)%qz, domain(i))</span>
 <a id="ln-508" name="ln-508" href="#ln-508"></a><span class="w">        </span><span class="k">end if</span>
-<a id="ln-509" name="ln-509" href="#ln-509"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-509" name="ln-509" href="#ln-509"></a><span class="c">!==============================================================================</span>
 <a id="ln-510" name="ln-510" href="#ln-510"></a><span class="c">!     setting up thermo solver</span>
-<a id="ln-511" name="ln-511" href="#ln-511"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-511" name="ln-511" href="#ln-511"></a><span class="c">!==============================================================================</span>
 <a id="ln-512" name="ln-512" href="#ln-512"></a><span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">domain</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-513" name="ln-513" href="#ln-513"></a><span class="k">          if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="p">(</span><span class="n">iter</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="n">thermo</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">nIterThermoStart</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">(</span><span class="n">iter</span><span class="w"> </span><span class="o">&lt;=</span><span class="w"> </span><span class="n">thermo</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">nIterThermoEnd</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <a id="ln-514" name="ln-514" href="#ln-514"></a><span class="k">            </span><span class="n">is_thermo</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
 <a id="ln-515" name="ln-515" href="#ln-515"></a><span class="w">            </span><span class="n">thermo</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="nb">time</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">thermo</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="nb">time</span><span class="w">  </span><span class="o">+</span><span class="w"> </span><span class="n">domain</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">dt</span>
 <a id="ln-516" name="ln-516" href="#ln-516"></a><span class="w">          </span><span class="k">end if</span>
 <a id="ln-517" name="ln-517" href="#ln-517"></a><span class="k">        end if</span>
-<a id="ln-518" name="ln-518" href="#ln-518"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-518" name="ln-518" href="#ln-518"></a><span class="c">!==============================================================================</span>
 <a id="ln-519" name="ln-519" href="#ln-519"></a><span class="c">!     main solver</span>
-<a id="ln-520" name="ln-520" href="#ln-520"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-520" name="ln-520" href="#ln-520"></a><span class="c">!==============================================================================</span>
 <a id="ln-521" name="ln-521" href="#ln-521"></a><span class="w">        </span><span class="k">do </span><span class="n">isub</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">domain</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">nsubitr</span>
 <a id="ln-522" name="ln-522" href="#ln-522"></a><span class="w">          </span><span class="c">!if(is_thermo) call Solve_energy_eq  (flow(i), thermo(i), domain(i), isub)</span>
 <a id="ln-523" name="ln-523" href="#ln-523"></a><span class="w">          </span><span class="c">!if(is_flow)   call Solve_momentum_eq(flow(i), domain(i), isub)</span>
@@ -728,13 +732,13 @@
 <a id="ln-544" name="ln-544" href="#ln-544"></a><span class="k">end module</span>
 <a id="ln-545" name="ln-545" href="#ln-545"></a>
 <a id="ln-546" name="ln-546" href="#ln-546"></a>
-<a id="ln-547" name="ln-547" href="#ln-547"></a><span class="c">!==========================================================================================================</span>
-<a id="ln-548" name="ln-548" href="#ln-548"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-547" name="ln-547" href="#ln-547"></a><span class="c">!==============================================================================</span>
+<a id="ln-548" name="ln-548" href="#ln-548"></a><span class="c">!==============================================================================</span>
 <a id="ln-549" name="ln-549" href="#ln-549"></a><span class="c">!&gt; In-code independent test code for algorithms and schemes</span>
 <a id="ln-550" name="ln-550" href="#ln-550"></a><span class="c">!&gt;</span>
 <a id="ln-551" name="ln-551" href="#ln-551"></a><span class="c">!&gt; This subroutine is only called in the main program for testing.</span>
 <a id="ln-552" name="ln-552" href="#ln-552"></a><span class="c">!&gt; Please select the test options which you are interested in.</span>
-<a id="ln-553" name="ln-553" href="#ln-553"></a><span class="c">!----------------------------------------------------------------------------------------------------------</span>
+<a id="ln-553" name="ln-553" href="#ln-553"></a><span class="c">!------------------------------------------------------------------------------</span>
 <a id="ln-554" name="ln-554" href="#ln-554"></a><span class="c">! Arguments</span>
 <a id="ln-555" name="ln-555" href="#ln-555"></a><span class="c">!______________________________________________________________________________.</span>
 <a id="ln-556" name="ln-556" href="#ln-556"></a><span class="c">!  mode           name          role                                           !</span>
@@ -834,9 +838,9 @@
 <a id="ln-650" name="ln-650" href="#ln-650"></a><span class="k">  call </span><span class="n">solve_fft_poisson</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
 <a id="ln-651" name="ln-651" href="#ln-651"></a><span class="w">  </span><span class="n">phi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rhs</span>
 <a id="ln-652" name="ln-652" href="#ln-652"></a>
-<a id="ln-653" name="ln-653" href="#ln-653"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-653" name="ln-653" href="#ln-653"></a><span class="c">!==============================================================================</span>
 <a id="ln-654" name="ln-654" href="#ln-654"></a><span class="c">!   compact scheme from phi to rhs</span>
-<a id="ln-655" name="ln-655" href="#ln-655"></a><span class="c">!==========================================================================================================</span>
+<a id="ln-655" name="ln-655" href="#ln-655"></a><span class="c">!==============================================================================</span>
 <a id="ln-656" name="ln-656" href="#ln-656"></a><span class="w">  </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_pr</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">TWOPI</span>
 <a id="ln-657" name="ln-657" href="#ln-657"></a><span class="w">  </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_pr</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="n">TWOPI</span>
 <a id="ln-658" name="ln-658" href="#ln-658"></a><span class="w">  </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_pr</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_pr</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
@@ -875,8 +879,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

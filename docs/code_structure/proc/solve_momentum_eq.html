@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>Solve_momentum_eq &ndash; Fortran Program</title>
+    <title>Solve_momentum_eq &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>Solve_momentum_eq
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.6% of total for procedures.">57 statements</a>
+                 title=" 0.3% of total for procedures.">81 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,39 +124,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/solve_momentum_eq.html#src">Solve_momentum_eq</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine Solve_momentum_eq(fl, dm, isub)
+    <h2>public  subroutine Solve_momentum_eq(fl, dm, isub)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -160,20 +170,21 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/io_restart_mod.html'>io_restart_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/mpi_mod.html'>mpi_mod</a></li>
                   <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
                   <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
                   <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/les_mod.html'>les_mod</a></li>
                   <li class="list-inline-item"><a href='../module/io_tools_mod.html'>io_tools_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/convert_primary_conservative_mod.html'>convert_primary_conservative_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/mpi_mod.html'>mpi_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/io_restart_mod.html'>io_restart_mod</a></li>
                   <li class="list-inline-item"><a href='../module/wtformat_mod.html'>wtformat_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/convert_primary_conservative_mod.html'>convert_primary_conservative_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -206,47 +217,47 @@ Advance the momentum equations for one substep.</li>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~9"></span>
+              <span class="anchor" id="variable-fl~88"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~23"></span>
+              <span class="anchor" id="variable-dm~299"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~6"></span>
+              <span class="anchor" id="variable-isub~22"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>isub</strong></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -255,16 +266,146 @@ Advance the momentum equations for one substep.</li>
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">Solve_momentum_eq</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">bc_convective_outlet_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">boundary_conditions_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">continuity_eq_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">convert_primary_conservative_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">eq_energy_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">find_max_min_ave_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">io_restart_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">les_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">mpi_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">parameters_constant_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">solver_tools_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">typeconvert_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">udf_type_mod</span>
+<span class="cp">#ifdef DEBUG_STEPS</span>
+<span class="w">    </span><span class="k">use </span><span class="n">io_tools_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">wtformat_mod</span>
+<span class="cp">#endif</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="w">    </span><span class="c">! arguments</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_flow</span><span class="p">),</span><span class="w">   </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fl</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">        </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w">    </span><span class="kd">::</span><span class="w"> </span><span class="n">isub</span>
+<span class="w">    </span><span class="c">! local variables</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">flg_bc_conv</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">pres_bulk</span><span class="p">,</span><span class="w"> </span><span class="n">mass_imbalance</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span><span class="w"> </span><span class="n">trip_factor</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dens</span><span class="p">,</span><span class="w"> </span><span class="n">visc</span><span class="p">,</span><span class="w"> </span><span class="n">visc_sgs</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="c">! set up thermo info based on different time stepping</span>
+<span class="w">    </span><span class="c">! drho/dt is updated here as it is used in balancing mass in convective outlet</span>
+<span class="w">    </span><span class="n">visc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ONE</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">dens</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">dDens</span>
+<span class="w">      </span><span class="n">visc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mVisc</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Calculate_drhodt</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
 
+<span class="w">    </span><span class="c">! The molecular and the subgrid viscosity are kept apart and handed to</span>
+<span class="w">    </span><span class="c">! Compute_momentum_rhs separately: they are interpolated to the stress faces</span>
+<span class="w">    </span><span class="c">! with different operators (the subgrid one with CD2, for positivity) and</span>
+<span class="w">    </span><span class="c">! with different boundary values (zero subgrid stress at a wall).</span>
+<span class="w">    </span><span class="c">! fl%ren * fl%tVisc is mu_sgs/mu0: the viscous term carries 1/Re, so nu_sgs</span>
+<span class="w">    </span><span class="c">! must be scaled by Re to enter as a viscosity ratio.</span>
+<span class="w">    </span><span class="k">select case</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">LES_model</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="p">(</span><span class="n">ILES_NONE</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="p">(</span><span class="n">ILES_WALE</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">calculate_les_wale</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+<span class="w">      </span><span class="n">visc_sgs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">ren</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tVisc</span>
+<span class="w">    </span><span class="k">case </span><span class="n">default</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s1">&#39;The required LES model is not supported.&#39;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end select</span>
 
+<span class="w">    </span><span class="c">! to set up convective outlet b.c.</span>
+<span class="w">    </span><span class="k">call </span><span class="n">compute_convective_outlet_flow</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">)</span>
+<span class="w">    </span><span class="c">! Main Momentum RHS</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="p">.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! to calculate the rhs of the momenturn equation in stepping method</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">LES_model</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">ILES_NONE</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">        </span><span class="c">! isothermal: mu/mu0 = ONE identically, so no opt_visc is needed - the</span>
+<span class="w">        </span><span class="c">! face viscosities default to ONE and the subgrid part is added on top</span>
+<span class="w">        </span><span class="k">call </span><span class="n">Compute_momentum_rhs</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">,</span><span class="w"> </span><span class="n">opt_visc_sgs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">visc_sgs</span><span class="p">)</span>
+<span class="w">      </span><span class="k">else</span>
+<span class="k">        call </span><span class="n">Compute_momentum_rhs</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="w">      </span><span class="c">! to update intermediate (\hat{q}) or (\hat{g})</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">qy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">qz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qz</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mz_rhs</span>
+<span class="w">      </span><span class="k">call </span><span class="n">enforce_velo_from_fbc</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qy</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qz</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcy_qy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcz_qz</span><span class="p">)</span>
+<span class="w">    </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! to calculate the rhs of the momenturn equation in stepping method</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">LES_model</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">ILES_NONE</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">Compute_momentum_rhs</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">,</span><span class="w"> </span><span class="n">dens</span><span class="p">,</span><span class="w"> </span><span class="n">visc</span><span class="p">,</span><span class="w"> </span><span class="n">opt_visc_sgs</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">visc_sgs</span><span class="p">)</span>
+<span class="w">      </span><span class="k">else</span>
+<span class="k">        call </span><span class="n">Compute_momentum_rhs</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">,</span><span class="w"> </span><span class="n">dens</span><span class="p">,</span><span class="w"> </span><span class="n">visc</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="w">      </span><span class="c">! to update intermediate (\hat{q}) or (\hat{g})</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">gx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gx</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mx_rhs</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">gy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gy</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">my_rhs</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">gz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gz</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mz_rhs</span>
+<span class="w">      </span><span class="k">call </span><span class="n">enforce_velo_from_fbc</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gx</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gy</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gz</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_gx</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcy_gy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcz_gz</span><span class="p">)</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Error in velocity updating&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
 
+<span class="k">    if</span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">is_active_tripping</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">trip_factor</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">Get_pipe_active_tripping_factor</span><span class="p">(</span><span class="n">fl</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">trip_factor</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">MINP</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">Apply_pipe_active_tripping</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">trip_factor</span><span class="p">,</span><span class="w"> </span><span class="n">ONE</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">    end if</span>
 
+<span class="k">    if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_PIPE</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">update_fbcy_cc_flow_halo</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! Poisson eq and velocity correction</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_RK_proj</span><span class="p">(</span><span class="n">isub</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! to solve Poisson equation</span>
+<span class="w">      </span><span class="c">!if(nrank == 0) call Print_debug_inline_msg(&quot;  Solving Poisson Equation ...&quot;)</span>
+<span class="w">      </span><span class="c">!call solve_poisson_x2z(fl, dm, isub) !</span>
+<span class="w">      </span><span class="k">call </span><span class="n">solve_pressure_poisson</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">)</span><span class="w"> </span><span class="c">! test show above two methods gave the same results.</span>
+<span class="w">      </span><span class="c">!</span>
+<span class="w">      </span><span class="c">! to update velocity/massflux correction</span>
+<span class="w">      </span><span class="c">!if(nrank == 0) call Print_debug_inline_msg(&quot;  Updating velocity/mass flux ...&quot;)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Correct_massflux</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">pcor</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">enforce_velo_from_fbc</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gx</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gy</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gz</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_gx</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcy_gy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcz_gz</span><span class="p">)</span>
+<span class="w">        </span><span class="k">call </span><span class="n">convert_primary_conservative</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">dDens</span><span class="p">,</span><span class="w"> </span><span class="n">IG2Q</span><span class="p">,</span><span class="w"> </span><span class="nb">IALL</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qy</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qz</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gx</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gy</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">gz</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">      call </span><span class="n">enforce_velo_from_fbc</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qy</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qz</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcy_qy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcz_qz</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_PIPE</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">update_fbcy_cc_flow_halo</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+<span class="w">      </span><span class="c">!</span>
+<span class="w">      </span><span class="c">! Verification (Cases 1 &amp; 2): Check_element_mass_conservation is called once</span>
+<span class="w">      </span><span class="c">! per timestep from the main loop (chapsim.f90) and reports:</span>
+<span class="w">      </span><span class="c">!   fl%mcon(1) : physical max |drhodt + div(g^{n+1})| in bulk</span>
+<span class="w">      </span><span class="c">!   fl%mcon_projected(1) : max residual relative to the compatible source</span>
+<span class="w">      </span><span class="c">!   fl%mcon(2) : max residual near inlet               [Case 2 only]</span>
+<span class="w">      </span><span class="c">!   fl%mcon(3) : max residual near outlet              [Case 2 only]</span>
+<span class="w">      </span><span class="c">!   fl%tt_mass_change : global mass flux imbalance      [Case 2: physical]</span>
+<span class="w">    </span><span class="k">end if</span>
 
+<span class="k">    return</span>
+<span class="k">  end subroutine </span><span class="n">Solve_momentum_eq</span>
+</pre></div>
 
-
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -275,8 +416,8 @@ Advance the momentum equations for one substep.</li>
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

@@ -134,41 +134,85 @@ setup_archer2_cray_env() {
 }
 
 # -----------------------------------------------------------------------------
-# Choose FFT backend:
-# - if FFTW_ROOT exists and looks valid (include + lib), use FFTW_F03
-# - else fallback to generic
+# Choose FFT backend.
+#
+# Default is the generic transform bundled inside 2decomp-fft: it needs nothing
+# beyond the vendored sources, so a clean checkout always builds, which is what
+# CI relies on. FFTW is opt-in via CHAPSIM_FFT=fftw and is the faster choice for
+# production runs. See docs/guidance/docs/fft-backend.md.
+#
+# Opting in is explicit rather than automatic, and a failed opt-in is fatal
+# rather than a silent downgrade. Both of those are deliberate: this function
+# used to select FFTW whenever FFTW_ROOT merely looked plausible, and it passed
+# -DFFT_Choice=FFTW_F03 where the library matches "fftw_f03" case-sensitively
+# (lib/2decomp-fft/cmake/fft/fft.cmake:34). The value was accepted, the match
+# failed, and every such build announced an FFTW backend while compiling the
+# generic one. A loud failure is worth more here than a working-but-wrong build.
 # -----------------------------------------------------------------------------
-choose_fft_backend() {
-    # allow user override; else fall back to your mac path
-    local fftw_root="${FFTW_ROOT:-/usr/local/}"
 
+# Echo the directory under $1 that holds libfftw3, or return 1. Handles lib,
+# lib64 and Debian/Ubuntu multiarch (lib/x86_64-linux-gnu, lib/aarch64-...).
+find_fftw_libdir() {
+    local root="$1" d
+    for d in "$root/lib" "$root/lib64" "$root"/lib/*-linux-gnu; do
+        if compgen -G "$d/libfftw3.*" >/dev/null 2>&1; then
+            echo "$d"
+            return 0
+        fi
+    done
+    return 1
+}
+
+choose_fft_backend() {
     FFT_CHOICE="generic"
     FFTW_CMAKE_ARGS=""
+    FFTW_LINK_FLAGS=""
 
-    local inc_ok=false
-    local lib_ok=false
+    local want
+    want="$(echo "${CHAPSIM_FFT:-generic}" | tr '[:upper:]' '[:lower:]')"
 
-    if [[ -d "$fftw_root" ]]; then
-        if [[ -d "$fftw_root/include" ]] && \
-           ([[ -f "$fftw_root/include/fftw3.f03" ]] || [[ -f "$fftw_root/include/fftw3.h" ]]); then
-            inc_ok=true
+    local fftw_root="${FFTW_ROOT:-/usr/local}"
+    fftw_root="${fftw_root%/}"
+
+    local inc_ok=false libdir=""
+    if [[ -f "$fftw_root/include/fftw3.f03" ]] || [[ -f "$fftw_root/include/fftw3.h" ]]; then
+        inc_ok=true
+    fi
+    libdir="$(find_fftw_libdir "$fftw_root" || true)"
+
+    if [[ "$want" != "fftw" && "$want" != "fftw_f03" ]]; then
+        echo "   -> Using FFT backend: generic (bundled in 2decomp-fft)"
+        if [[ "$inc_ok" == true && -n "$libdir" ]]; then
+            echo "      FFTW is installed at $fftw_root but is not enabled."
+            echo "      To use it:  CHAPSIM_FFT=fftw ./build_chapsim.sh"
         fi
-        if compgen -G "$fftw_root/lib/libfftw3*" >/dev/null 2>&1 || \
-           compgen -G "$fftw_root/lib64/libfftw3*" >/dev/null 2>&1; then
-            lib_ok=true
-        fi
+        echo ""
+        return 0
     fi
 
-    if [[ "$inc_ok" == true && "$lib_ok" == true ]]; then
-        FFT_CHOICE="FFTW_F03"
-        FFTW_CMAKE_ARGS="-DFFT_Choice=FFTW_F03 -DFFTW_ROOT=$fftw_root"
-        echo "✅ FFTW detected at: $fftw_root"
-        echo "   -> Using FFT backend: FFTW_F03"
-    else
-        echo "ℹ️  FFTW not found / incomplete at: $fftw_root"
-        echo "   include ok? $inc_ok   lib ok? $lib_ok"
-        echo "   -> Using FFT backend: generic"
+    if [[ "$inc_ok" != true ]] || [[ -z "$libdir" ]]; then
+        echo "❌ CHAPSIM_FFT=$want was requested, but no usable FFTW was found."
+        echo "   Looked under FFTW_ROOT: $fftw_root"
+        echo "   header (include/fftw3.h or fftw3.f03): $inc_ok"
+        echo "   library (lib, lib64 or lib/<arch>-linux-gnu): ${libdir:-not found}"
+        echo ""
+        echo "   Install FFTW and point FFTW_ROOT at its prefix, for example:"
+        echo "     Ubuntu/Debian : sudo apt install libfftw3-dev && export FFTW_ROOT=/usr"
+        echo "     from source   : export FFTW_ROOT=/usr/local"
+        echo "     ARCHER2/Cray  : module load cray-fftw   (FFTW_ROOT is then set for you)"
+        echo ""
+        echo "   Not falling back to generic: you asked for FFTW, so a generic"
+        echo "   build here would be the silent downgrade this check exists to stop."
+        return 1
     fi
+
+    # Lower case is required - the library matches it case-sensitively.
+    FFT_CHOICE="fftw_f03"
+    FFTW_CMAKE_ARGS="-DFFT_Choice=fftw_f03 -DFFTW_ROOT=$fftw_root"
+    FFTW_LINK_FLAGS="-L$libdir -lfftw3"
+    echo "✅ FFTW found at: $fftw_root"
+    echo "   library directory: $libdir"
+    echo "   -> Using FFT backend: fftw_f03"
     echo ""
 }
 
@@ -232,6 +276,26 @@ install_library() {
     echo "Installing library..."
     cmake --install ./ || { echo "❌ Installation failed"; return 1; }
     echo "✅ Installation complete"
+    echo ""
+}
+
+# -----------------------------------------------------------------------------
+# Record the backend for the solver build.
+#
+# build/Makefile includes this fragment to decide whether to link FFTW. Writing
+# it here keeps one source of truth: the flags that link the solver are the ones
+# the library was actually configured with, even if the user later runs `make`
+# on its own without re-running this script.
+# -----------------------------------------------------------------------------
+write_backend_fragment() {
+    local out="$(pwd)/opt/chapsim_fft_backend.mk"
+    cat > "$out" <<EOF
+# Generated by build/build_cmake_2decomp.sh - do not edit.
+# FFT backend that lib/2decomp-fft was built with.
+CHAPSIM_FFT_BACKEND = ${FFT_CHOICE}
+CHAPSIM_FFT_LDFLAGS = ${FFTW_LINK_FLAGS}
+EOF
+    echo "Recorded FFT backend for the solver build: $out"
     echo ""
 }
 
@@ -316,13 +380,15 @@ set_compiler_flags "$ARCH" "$PLATFORM"
 # ARCHER2/Cray optional setup (loads cray-fftw and sets FFTW_ROOT automatically)
 setup_archer2_cray_env
 
-# Decide FFT backend (FFTW_F03 if FFTW_ROOT is valid; else generic)
-choose_fft_backend
+# Decide FFT backend (generic unless CHAPSIM_FFT=fftw; fatal if FFTW is asked
+# for and missing, rather than downgrading silently)
+choose_fft_backend || exit 1
 
 clean_build
 configure_cmake || exit 1
 build_library || exit 1
 install_library || exit 1
+write_backend_fragment || exit 1
 verify_installation || exit 1
 
 echo "========================================================================="

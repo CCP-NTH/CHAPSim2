@@ -1,0 +1,35 @@
+id: pipe_iso_periodic
+title: Isothermal periodic pipe validation
+geometry: pipe
+physics: isothermal
+boundary_condition: periodic
+regression_case: tests/pipe_iso_periodic
+input_file: tests/pipe_iso_periodic/input_chapsim.ini
+run_script: tests/pipe_iso_periodic/run_chapsim.sh
+reference_metrics: tests/pipe_iso_periodic/reference.json
+solver_output_dirs:
+  - 1_data
+  - 2_visu
+  - 3_monitor
+  - 4_check
+references:
+  - id: tdl_retau180
+    path: validation/references/pipe/tdl/retau180
+    source: TDL pipe DNS database
+  - id: tdl_retau550
+    path: validation/references/pipe/tdl/retau550
+    source: TDL pipe DNS database
+  - id: eggels_reb5300
+    path: validation/references/pipe/eggels/reb5300
+    source: Eggels pipe DNS profile
+case_specific_postprocessing:
+  - post/2_visu/plot_pipe_velo_stress.py
+  - post/2_visu/plot_pipe_velo_stress_v2.py
+shared_tools:
+  - validation/tools/scripts/plot_monitor_bulk_change_history.py
+  - validation/tools/scripts/plot_monitor_points.py
+  - validation/tools/scripts/plot_monitor_points_seperate.py
+  - validation/tools/scripts/plot_check_mesh.py
+suites:
+  - regression_standard
+  - regression_extended

@@ -1,0 +1,360 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>get_ibc_for_sgs_coef_c2p &ndash; CHAPSim2</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/chapsim.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>get_ibc_for_sgs_coef_c2p
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.1% of total for procedures.">25 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/bc_general.f90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/bc_general.f90.html'>bc_general.f90</a></li>
+                <li class="breadcrumb-item"><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></li>
+            <li class="breadcrumb-item active" aria-current="page">get_ibc_for_sgs_coef_c2p</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/get_ibc_for_sgs_coef_c2p.html#src">get_ibc_for_sgs_coef_c2p</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>public  subroutine get_ibc_for_sgs_coef_c2p(ibc_nominal, ibc_coef)  
+</h2>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></li>
+              </ul>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+
+    <p>Boundary classification for interpolating a cell-centred subgrid-scale
+coefficient (mu_sgs, or mu_sgs/Pr_sgs) onto the faces where it is used.</p>
+<p>The classification is taken from the <em>nominal</em> velocity boundary IDs rather
+than from the pressure or temperature class, because only the velocity IDs
+separate a wall from a flow-through plane. Pressure is IBC_NEUMANN at a
+no-slip wall and at an inlet/outlet alike, and temperature is Dirichlet both
+at an isothermal wall and at a prescribed inflow; neither discriminates.
+The nominal velocity table does: a physical wall sets all three components
+Dirichlet, an inflow sets IBC_PROFILE1D/IBC_POISEUILLE/IBC_DATABASE, and an
+outflow sets IBC_CONVECTIVE. The nominal table survives config_calc_basic_ibc
+intact (only the wall-normal symmetric component is promoted to asymmetric
+there) and is therefore still readable at RHS-assembly time. No new mask is
+introduced.</p>
+<p>Per side the resulting treatment is:</p>
+<p>periodic / interior / symmetric - passed through. None is a physical
+   boundary: a periodic side needs no boundary value; an interior side (the
+   cylindrical axis, or a multi-domain join) is a regularity boundary whose
+   halo is reconstructed from the field itself; a symmetry plane is even for
+   a scalar, so the mirror stencil in the C2P operator gives the face value.
+   IBC_ASYMMETRIC maps to IBC_SYMMETRIC: parity does not pass from a field to
+   its diffusion coefficient. An odd field satisfies f(-y) = -f(y), but the
+   coefficient is a non-negative scalar function of the local state and so is
+   even whatever the parity of the field it multiplies. Odd parity would
+   force it to zero on the plane and negative on one side of it.</p>
+<p>physical wall (all three velocity components nominally Dirichlet) -
+   IBC_DIRICHLET, with the caller supplying the known face value as fbc. For
+   wall-resolved LES the WALE eddy viscosity vanishes as nu_sgs ~ y^3, so the
+   callers pass fbc = 0: no subgrid momentum stress and no subgrid enthalpy
+   flux at the wall, molecular transport only. (A wall model would not have
+   a zero wall value; none exists in this code.) Marking the side Dirichlet
+   is what makes Prepare_TDMA_interp_C2P_RHS_array assign that value to the
+   face exactly. Dropping the fbc instead demotes the side to IBC_INTRPL
+   (reduce_bc_to_interp, basics_operations2), a one-sided extrapolation that
+   overshoots the convex y^3 profile and can return a negative coefficient.</p>
+<p>inlet / outlet - IBC_NEUMANN, with the caller supplying fbc = 0. There is
+   no established boundary prescription for mu_sgs on a flow-through plane:
+   the inflow database carries velocity and temperature, not a subgrid
+   coefficient, and the convective outlet advects the resolved field only.
+   Zero normal gradient is a provisional numerical choice, selected so that
+   the turbulent subgrid transport is <em>retained</em> at the plane instead of
+   being switched off by a spurious wall condition. Under bc_ghost_cd the
+   Neumann row uses the interior stencil with ghost cells built as
+   fc(0) = fi(1) - fbc*dp (buildup_ghost_cells_C), so with fbc = 0 the ghost
+   copies its neighbour and the cd2 face value reduces to the adjacent cell
+   value - non-negative, and preserving the incoming subgrid activity.
+   It is first order at the plane and is not a physical closure; it affects
+   one face layer at the inlet and the outlet.</p>
+<p>Anything else is rejected rather than silently treated as one of the above.</p>
+<p>Limitation: the wall test is "all three components nominally Dirichlet", so
+an inflow prescribed as a plain constant Dirichlet velocity triple would be
+read as a wall and lose its subgrid coefficient at that plane. Every inflow
+in tests/ uses PROFILE1D, POISEUILLE or DATABASE, which are distinguishable;
+a mixed side (one component Dirichlet, another a flow-through class) already
+falls to the inlet/outlet branch below.
+- ibc_nominal (in): nominal BC table for this direction, (side, variable),
+  variables ordered u, v, w, p, T. Only the three velocity columns are read.
+- ibc_coef (out): BC pair to use for the coefficient's C2P interpolation.</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_nominal"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_nominal</strong>(2,5)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc_coef"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc_coef</strong>(2)</td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">get_ibc_for_sgs_coef_c2p</span><span class="p">(</span><span class="n">ibc_nominal</span><span class="p">,</span><span class="w"> </span><span class="n">ibc_coef</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">typeconvert_mod</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="w"> </span><span class="p">:</span><span class="w"> </span><span class="n">int2str</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ibc_nominal</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="mi">5</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ibc_coef</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ibcv</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+<span class="w">    </span><span class="k">do </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">      </span><span class="n">ibcv</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ibc_nominal</span><span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="w">    </span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">ibc_coef</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_PERIODIC</span>
+<span class="w">      </span><span class="k">else if</span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_INTERIOR</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">ibc_coef</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_INTERIOR</span>
+<span class="w">      </span><span class="k">else if</span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_SYMMETRIC</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_ASYMMETRIC</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">ibc_coef</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_SYMMETRIC</span>
+<span class="w">      </span><span class="k">else if</span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_DIRICHLET</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">ibc_coef</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_DIRICHLET</span><span class="w">   </span><span class="c">! physical wall, fbc = 0 supplied by caller</span>
+<span class="w">      </span><span class="k">else if</span><span class="p">(</span><span class="k">all</span><span class="p">(</span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PROFILE1D</span><span class="w">  </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_POISEUILLE</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                  </span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_DATABASE</span><span class="w">   </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_CONVECTIVE</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                  </span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_DIRICHLET</span><span class="w">  </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_NEUMANN</span><span class="w">    </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                  </span><span class="n">ibcv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_INTRPL</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">ibc_coef</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IBC_NEUMANN</span><span class="w">     </span><span class="c">! inlet/outlet, fbc = 0 supplied by caller</span>
+<span class="w">      </span><span class="k">else</span>
+<span class="k">        call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s1">&#39;get_ibc_for_sgs_coef_c2p: cannot classify a side &#39;</span><span class="o">//</span><span class="p">&amp;</span>
+<span class="w">             </span><span class="s1">&#39;with nominal velocity bc &#39;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">ibcv</span><span class="p">(</span><span class="mi">1</span><span class="p">)))</span><span class="o">//</span><span class="s1">&#39; &#39;</span><span class="o">//</span><span class="p">&amp;</span>
+<span class="w">             </span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">ibcv</span><span class="p">(</span><span class="mi">2</span><span class="p">)))</span><span class="o">//</span><span class="s1">&#39; &#39;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">ibcv</span><span class="p">(</span><span class="mi">3</span><span class="p">))))</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">    end do</span>
+
+<span class="k">    return</span>
+<span class="k">  end subroutine </span><span class="n">get_ibc_for_sgs_coef_c2p</span>
+</pre></div>
+
+    </section>
+    <br>
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>

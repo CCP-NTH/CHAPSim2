@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>Check_element_mass_conservation &ndash; Fortran Program</title>
+    <title>Check_element_mass_conservation &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>Check_element_mass_conservation
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.7% of total for procedures.">76 statements</a>
+                 title=" 0.4% of total for procedures.">104 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,39 +124,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/check_element_mass_conservation.html#src">Check_element_mass_conservation</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine Check_element_mass_conservation(fl, dm, opt_isub, opt_str)
+    <h2>public  subroutine Check_element_mass_conservation(fl, dm, opt_isub, opt_str)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -160,16 +170,17 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/math_mod.html'>math_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/input_general_mod.html'>input_general_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/mpi_mod.html'>mpi_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/math_mod.html'>math_mod</a></li>
                   <li class="list-inline-item"><a href='../module/precision_mod.html'>precision_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/mpi_mod.html'>mpi_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
                   <li class="list-inline-item"><a href='../module/wtformat_mod.html'>wtformat_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -203,32 +214,32 @@ Check and report element-wise mass-conservation residuals.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~23"></span>
+              <span class="anchor" id="variable-fl~45"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>fl</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~72"></span>
+              <span class="anchor" id="variable-dm~164"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -238,12 +249,12 @@ Check and report element-wise mass-conservation residuals.
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_isub</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -253,12 +264,12 @@ Check and report element-wise mass-conservation residuals.
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_str</strong></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -267,16 +278,165 @@ Check and report element-wise mass-conservation residuals.
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">Check_element_mass_conservation</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">opt_isub</span><span class="p">,</span><span class="w"> </span><span class="n">opt_str</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">cylindrical_rn_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">input_general_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">math_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">mpi_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">parameters_constant_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">precision_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">solver_tools_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">udf_type_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">wtformat_mod</span>
+<span class="w">    </span><span class="c">!use visualisation_field_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">find_max_min_ave_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">typeconvert_mod</span>
+<span class="w">    </span><span class="k">implicit none</span>
 
+<span class="k">    type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="w"> </span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
+<span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_flow</span><span class="p">),</span><span class="w">   </span><span class="k">intent</span><span class="p">(</span><span class="w"> </span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fl</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">opt_isub</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="o">*</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">opt_str</span>
 
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="mi">32</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">str</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">nlayer</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mm</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">mm_projected</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">mass_balance</span><span class="p">(</span><span class="mi">8</span><span class="p">),</span><span class="w"> </span><span class="n">safety_mass_residual</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">div</span><span class="p">,</span><span class="w"> </span><span class="n">div_projected</span><span class="p">,</span><span class="w"> </span><span class="n">drhodt</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! safe-proof</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">opt_str</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">opt_str</span><span class="p">)</span><span class="o">//</span><span class="s1">&#39;_iter_&#39;</span><span class="o">//</span><span class="n">int2str</span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="p">)</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">str</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;at iter = &#39;</span><span class="o">//</span><span class="n">int2str</span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
 
+<span class="k">    if</span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">opt_isub</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">isub</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">opt_isub</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">isub</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! Calculate mass conservation residual</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! $d\rho / dt$ at cell centre</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">drhodt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">drhodt</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">drhodt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="c">! $d(\rho u_i)) / dx_i $ at cell centre</span>
+<span class="w">    </span><span class="n">div</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="k">call </span><span class="n">Get_divergence_flow</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">div</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+<span class="w">    </span><span class="n">div</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">div</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">drhodt</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">icoordinate</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICYLINDRICAL</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="nb">any</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(:)))</span><span class="w"> </span><span class="k">then</span>
+<span class="w">      </span><span class="c">! The cylindrical zero-mode correction represented by amplitude C is C/r^2.</span>
+<span class="w">      </span><span class="n">div_projected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="n">fl</span><span class="p">%</span><span class="n">poisson_projected_source_amplitude</span>
+<span class="w">      </span><span class="k">call </span><span class="n">multiple_cylindrical_rn</span><span class="p">(</span><span class="n">div_projected</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">rci</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">IPENCIL</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">      </span><span class="n">div_projected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">div</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">div_projected</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="w">      </span><span class="c">! The Cartesian zero-mode correction represented by amplitude C is uniform.</span>
+<span class="w">      </span><span class="n">div_projected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">div</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">poisson_projected_source_amplitude</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="c">!#ifdef DEBUG_STEPS</span>
+<span class="w">    </span><span class="c">!if(MOD(fl%iteration, dm%visu_nfre) == 0) &amp;</span>
+<span class="w">    </span><span class="c">!call write_visu_any3darray(div, &#39;masserror&#39;, &#39;debug&#39;, dm%dccc, dm, fl%iteration)</span>
+<span class="c">!#endif</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! Find Max. mass conservation residual</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="c">!mm0 = fl%mcon(1)</span>
+<span class="w">    </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon_projected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="n">mm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="n">mm_projected</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_periodic</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">nlayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">nlayer</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">4</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Find_max_min_3d</span><span class="p">(</span><span class="n">div</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nlayer</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:),</span><span class="w"> </span><span class="n">opt_abs</span><span class="o">=</span><span class="s1">&#39;ABS&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">opt_calc</span><span class="o">=</span><span class="s1">&#39;MAXI&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">            </span><span class="n">opt_work</span><span class="o">=</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">opt_name</span><span class="o">=</span><span class="s2">&quot;Physical- Mass Consv. (inlet  4):&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Find_max_min_3d</span><span class="p">(</span><span class="n">div_projected</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">nlayer</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:),</span><span class="w"> </span><span class="n">opt_abs</span><span class="o">=</span><span class="s1">&#39;ABS&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">opt_calc</span><span class="o">=</span><span class="s1">&#39;MAXI&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">            </span><span class="n">opt_work</span><span class="o">=</span><span class="n">mm_projected</span><span class="p">,</span><span class="w"> </span><span class="n">opt_name</span><span class="o">=</span><span class="s2">&quot;Projected Mass Consv. (inlet  4):&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon_projected</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm_projected</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Find_max_min_3d</span><span class="p">(</span><span class="n">div</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">nlayer</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:),</span><span class="w"> </span><span class="n">opt_abs</span><span class="o">=</span><span class="s1">&#39;ABS&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">opt_calc</span><span class="o">=</span><span class="s1">&#39;MAXI&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">            </span><span class="n">opt_work</span><span class="o">=</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">opt_name</span><span class="o">=</span><span class="s2">&quot;Physical- Mass Consv. (outlet 4):&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 
+<span class="w">      </span><span class="k">call </span><span class="n">Find_max_min_3d</span><span class="p">(</span><span class="n">div_projected</span><span class="p">(</span><span class="n">n</span><span class="o">-</span><span class="n">nlayer</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:),</span><span class="w"> </span><span class="n">opt_abs</span><span class="o">=</span><span class="s1">&#39;ABS&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">opt_calc</span><span class="o">=</span><span class="s1">&#39;MAXI&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">            </span><span class="n">opt_work</span><span class="o">=</span><span class="n">mm_projected</span><span class="p">,</span><span class="w"> </span><span class="n">opt_name</span><span class="o">=</span><span class="s2">&quot;Projected Mass Consv. (outlet 4):&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon_projected</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm_projected</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="k">    call </span><span class="n">Find_max_min_3d</span><span class="p">(</span><span class="n">div</span><span class="p">(</span><span class="n">nlayer</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="o">-</span><span class="n">nlayer</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:),</span><span class="w"> </span><span class="n">opt_abs</span><span class="o">=</span><span class="s1">&#39;ABS&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">opt_calc</span><span class="o">=</span><span class="s1">&#39;MAXI&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="n">opt_work</span><span class="o">=</span><span class="n">mm</span><span class="p">,</span><span class="w"> </span><span class="n">opt_name</span><span class="o">=</span><span class="s2">&quot;Physical- Mass Consv. (bulk    ):&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">Find_max_min_3d</span><span class="p">(</span><span class="n">div_projected</span><span class="p">(</span><span class="n">nlayer</span><span class="o">+</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="o">-</span><span class="n">nlayer</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:),</span><span class="w"> </span><span class="n">opt_abs</span><span class="o">=</span><span class="s1">&#39;ABS&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">opt_calc</span><span class="o">=</span><span class="s1">&#39;MAXI&#39;</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="n">opt_work</span><span class="o">=</span><span class="n">mm_projected</span><span class="p">,</span><span class="w"> </span><span class="n">opt_name</span><span class="o">=</span><span class="s2">&quot;Projected Mass Consv. (bulk    ):&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon_projected</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mm_projected</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">check_global_mass_balance</span><span class="p">(</span><span class="n">mass_balance</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">drhodt</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+<span class="w">    </span><span class="n">fl</span><span class="p">%</span><span class="n">tt_mass_change</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mass_balance</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(:)))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">safety_mass_residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon_projected</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">safety_mass_residual</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">mcon</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="w">    </span><span class="c">!fl%mcon(4) = safe_divide(fl%mcon(1)-mm0, dabs(mm0))</span>
+<span class="w">    </span><span class="c">!if(nrank==0) write(*, &#39;(A,1F9.2,A)&#39;) &#39; &#39;, fl%mcon(4)*100.0_WP, &#39;%&#39;</span>
+<span class="w">    </span><span class="c">! terminate code once too large</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      if</span><span class="p">(</span><span class="n">safety_mass_residual</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">2.0_WP</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">10000</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Mass conservation error exceeds tolerance. Terminate run and investigate.&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="k">    if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1el</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;global mass flux imbalance :&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tt_mass_change</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1el</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;physical Poisson compatibility defect:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">physical_poisson_compatibility_defect</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1el</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;explicit uniform Poisson-source correction:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">uniform_poisson_source_correction</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1el</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Poisson projected-source amplitude:&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">poisson_projected_source_amplitude</span>
+<span class="w">      </span><span class="k">write</span><span class="w"> </span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">wrtfmt1el</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Poisson zero-mode projection (scaled solver RHS):&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">poisson_zero_mode_rhs_projection</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! turn on numerical tricks based on mass conservation residual</span>
+<span class="w">    </span><span class="c">!----------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="w"> </span><span class="o">&gt;=</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">isub</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_damping_drhodt</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">          if</span><span class="p">(</span><span class="n">safety_mass_residual</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">1.0_WP</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">            </span><span class="n">is_damping_drhodt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<span class="w">            </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_warning_msg</span><span class="p">(</span><span class="s1">&#39;drho/dt damping function is on.&#39;</span><span class="p">)</span>
+<span class="w">          </span><span class="k">end if</span>
+<span class="k">        end if</span>
+<span class="k">      else</span>
+<span class="k">        if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_global_mass_correction</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">          if</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">tt_mass_change</span><span class="p">)</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">1.0e-2_WP</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">            </span><span class="n">is_global_mass_correction</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span><span class="w"> </span><span class="c">! scaled convective b.c. has already met this.</span>
+<span class="w">            </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_warning_msg</span><span class="p">(</span><span class="s1">&#39;is_global_mass_correction is True for RHS of Pression Poisson Eq.&#39;</span><span class="p">)</span>
+<span class="w">          </span><span class="k">end if</span>
+<span class="k">        end if</span>
+<span class="k">      end if</span>
+<span class="k">    end if</span>
+<span class="k">    return</span>
+<span class="k">  end subroutine </span><span class="n">Check_element_mass_conservation</span>
+</pre></div>
 
-
-
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -287,8 +447,8 @@ Check and report element-wise mass-conservation residuals.
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

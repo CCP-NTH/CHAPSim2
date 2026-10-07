@@ -132,9 +132,9 @@
     </div>
     <div class="layout">
       <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
-<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a></div>
-<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Example Cases</a></div>
-<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
 <div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
 <div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
 <div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
@@ -151,8 +151,12 @@
 <td>Variable meanings, Fortran types, IDs, and common setup rules for <code>input_chapsim.ini</code>.</td>
 </tr>
 <tr>
-<td><a href="benchmark-cases.html">Benchmark and Example Cases</a></td>
+<td><a href="benchmark-cases.html">Benchmark and Validation Cases</a></td>
 <td>Case naming conventions and recommended starting cases.</td>
+</tr>
+<tr>
+<td><a href="restart-io.html">Restart I/O Modes</a></td>
+<td>Restart field lists, metadata files, exact/compact history behavior, and recommended input combinations.</td>
 </tr>
 <tr>
 <td><a href="postprocessing.html">Postprocessing and Output Data</a></td>
@@ -169,16 +173,44 @@
 <td>Main Fortran solver source.</td>
 </tr>
 <tr>
+<td><code>bin/</code></td>
+<td>Compiled solver, <code>bin/CHAPSim</code>.</td>
+</tr>
+<tr>
+<td><code>lib/</code></td>
+<td>Bundled third-party libraries: 2decomp-fft and fishpack.</td>
+</tr>
+<tr>
 <td><code>tests/</code></td>
-<td>Smoke/regression cases and metric-checking tools.</td>
+<td>Smoke/regression/functional entry points and shared tools.</td>
+</tr>
+<tr>
+<td><code>tests/regression/</code></td>
+<td>Metric-gated cases, the case lists, and the reference-update script.</td>
+</tr>
+<tr>
+<td><code>tests/functional/</code></td>
+<td>Feature cases: LES, MHD, restart, mesh mapping, inlet database.</td>
+</tr>
+<tr>
+<td><code>tests/tools/</code></td>
+<td>Static checkers, <code>check_metrics.py</code>, and <code>tolerances.json</code>.</td>
+</tr>
+<tr>
+<td><code>validation/</code></td>
+<td>Validation cases, reference databases, shared post-processing tools, and suite manifests.</td>
 </tr>
 <tr>
 <td><code>examples/</code></td>
-<td>Example postprocessing scripts, reference data, and case-local plotting utilities.</td>
+<td>Case-specific example inputs.</td>
 </tr>
 <tr>
 <td><code>prepost/input_generator/</code></td>
 <td>Python and shell tools for generating or modifying input files.</td>
+</tr>
+<tr>
+<td><code>prepost/job_submission/</code></td>
+<td>Local run wrapper and HPC submission scripts.</td>
 </tr>
 <tr>
 <td><code>prepost/mesh_reviewer/</code></td>
@@ -191,6 +223,10 @@
 <tr>
 <td><code>docs/guidance/html/</code></td>
 <td>Dependency-free static HTML preview generated from the Markdown source.</td>
+</tr>
+<tr>
+<td><code>docs/diagrams/</code></td>
+<td>Source diagrams used by documentation and architecture notes.</td>
 </tr>
 <tr>
 <td><code>docs/code_structure/</code></td>

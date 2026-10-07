@@ -102,7 +102,15 @@ else
     DECOMP_LIB =
 endif
 
-LIBS = $(DECOMP_LIB) $(HDF5_LIB)
+# FFT backend, as recorded by build_cmake_2decomp.sh when the library was built.
+# Empty CHAPSIM_FFT_LDFLAGS for the default generic backend, which needs no
+# external library; -L<dir> -lfftw3 when the build opted in with CHAPSIM_FFT=fftw.
+# Reading it rather than re-detecting keeps the link consistent with the library:
+# an FFTW-configured libdecomp2d.a that is linked without -lfftw3 fails on about
+# forty undefined fftw_* references.
+-include ../lib/2decomp-fft/build/opt/chapsim_fft_backend.mk
+
+LIBS = $(DECOMP_LIB) $(HDF5_LIB) $(CHAPSIM_FFT_LDFLAGS)
 
 OBJS1 = $(addprefix $(DIR_OBJ)/, \
       modules.o \
@@ -114,10 +122,12 @@ OBJS1 = $(addprefix $(DIR_OBJ)/, \
       input_general.o \
       basics_algorithms.o \
       basics_operations2.o \
+      flow_gradient.o \
       tools_solver.o \
       para_conversion.o \
       geometry.o \
       io_tools.o \
+      io_metadata.o \
       io_monitor.o \
       io_visulisation.o \
       post_statistics.o \
@@ -127,10 +137,10 @@ OBJS1 = $(addprefix $(DIR_OBJ)/, \
       poisson_interface.o \
       eq_continuity.o \
       bc_convective_outlet.o \
-      eq_les.o \
       eq_energy.o \
       eq_mhd.o \
       io_restart.o \
+      eq_les.o \
       eq_momentum2.o \
       initialisation.o \
       test_algrithms.o \

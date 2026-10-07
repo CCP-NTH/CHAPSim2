@@ -6,11 +6,11 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="description" content="Documentation for Fortran Program">
-    <meta name="author" content="" >
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
     <link rel="icon" href="../favicon.png">
 
-    <title>write_visu_file_begin &ndash; Fortran Program</title>
+    <title>write_visu_file_begin &ndash; CHAPSim2</title>
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
@@ -44,7 +44,7 @@
     <div class="container-fluid mb-sm-4 mb-xl-2">
       <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
         <div class="container">
-          <a class="navbar-brand" href="../index.html">Fortran Program </a>
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
           <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
                   aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
                   <span class="navbar-toggler-icon">
@@ -60,6 +60,9 @@
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
                 </li>
                 <li class="nav-item">
                   <a class="nav-link" href="../lists/types.html">Derived Types</a>
@@ -82,16 +85,17 @@
   <div class="row">
     <h1>write_visu_file_begin
       <small>Subroutine</small>
-
+      
     </h1>
       <div class="container p-2 mb-4 bg-light border rounded-3">
     <div class="row align-items-center justify-content-between" id="info-bar">
       <div class="col">
         <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.6% of total for procedures.">60 statements</a>
+                 title=" 0.2% of total for procedures.">66 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -120,39 +124,45 @@
   </script>
 
   </div>
-
+  
   <div class="row">
     <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
       <div id="sidebar">
       <h3>Contents</h3>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/write_visu_file_begin.html#src">write_visu_file_begin</a>
+      </div>
+    </div>
 
 
   </div>
 
     </div>
-
+    
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine write_visu_file_begin(dm, visuname, iter, opt_is_savg)
+    <h2>public  subroutine write_visu_file_begin(dm, visuname, iter, opt_is_savg)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -189,47 +199,47 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~60"></span>
+              <span class="anchor" id="variable-dm~137"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-visuname~6"></span>
+              <span class="anchor" id="variable-visuname~13"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>visuname</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iter~13"></span>
+              <span class="anchor" id="variable-iter~20"></span>
               integer,
             </td>
 <td>intent(in)</td>
               <td></td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>iter</strong></td>
             <td>
-
+                
             </td>
         </tr>
         <tr>
@@ -239,12 +249,12 @@
             </td>
 <td>intent(in),</td>
               <td>optional</td>            <td>
-
+              
             </td>
             <td>::</td>
             <td><strong>opt_is_savg</strong></td>
             <td>
-
+                
             </td>
         </tr>
     </tbody>
@@ -253,16 +263,95 @@
     <br>
 
 
+    
+    
+
+    
+    
 
 
 
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">write_visu_file_begin</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">opt_is_savg</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">parameters_constant_mod</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">ICARTESIAN</span><span class="p">,</span><span class="w"> </span><span class="n">ICYLINDRICAL</span>
+<span class="w">    </span><span class="k">use </span><span class="n">typeconvert_mod</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">int2str</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="o">*</span><span class="p">),</span><span class="w">   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">visuname</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">        </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iter</span>
+<span class="w">    </span><span class="kt">logical</span><span class="p">,</span><span class="w">        </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">opt_is_savg</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">nnode</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">n2node</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">u</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dir</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">,</span><span class="w"> </span><span class="n">npl</span><span class="p">,</span><span class="w"> </span><span class="n">nst</span><span class="p">,</span><span class="w"> </span><span class="n">nen</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">xdmf_file</span><span class="p">,</span><span class="w"> </span><span class="n">fullname</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="nb">len</span><span class="o">=</span><span class="mi">256</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">g1d</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_savg</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="n">is_savg</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">present</span><span class="p">(</span><span class="n">opt_is_savg</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">begin_visu_bundle</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">is_savg</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">begin_visu_slice_bundle</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">is_savg</span><span class="p">)</span>
 
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">return</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_savg</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">    if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">visu_idim</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Ivisu_3D</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">visu_idim</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Ivisu_3D2D</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      call </span><span class="n">generate_pathfile_name</span><span class="p">(</span><span class="n">xdmf_file</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">dir_visu_xdmf</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;xdmf&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
+<span class="w">      </span><span class="k">open</span><span class="p">(</span><span class="n">newunit</span><span class="o">=</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="k">file</span><span class="o">=</span><span class="nb">trim</span><span class="p">(</span><span class="n">xdmf_file</span><span class="p">),</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;write&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="n">nnode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nnd_visu</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">icoordinate</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICARTESIAN</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">xdmf_begin_grid_cart</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="n">xdmf_file</span><span class="p">,</span><span class="w"> </span><span class="n">nnode</span><span class="p">,</span><span class="w"> </span><span class="n">grid_cart_3d_fl</span><span class="p">)</span>
+<span class="w">      </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">icoordinate</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICYLINDRICAL</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">xdmf_begin_grid_cyl</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="n">xdmf_file</span><span class="p">,</span><span class="w"> </span><span class="n">nnode</span><span class="p">,</span><span class="w"> </span><span class="n">grid_cyl_3d_fl</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">      close</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="k">    end if</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">is_savg</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">nen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">      </span><span class="n">nst</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">nst</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">visu_idim</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Ivisu_2D</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">visu_idim</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">Ivisu_3D2D</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">nen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NSLICE</span>
+<span class="w">      </span><span class="k">else</span>
+<span class="k">        </span><span class="n">nen</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">    end if</span>
 
+<span class="k">    if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">visu_slice_bundle_active</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      do </span><span class="n">n</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nst</span><span class="p">,</span><span class="w"> </span><span class="n">nen</span>
+<span class="w">        </span><span class="k">do </span><span class="n">dir</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">NDIM</span>
+<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">n</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">dir</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">nave_plane</span><span class="p">(</span><span class="n">dir</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">            cycle</span>
+<span class="k">          end if</span>
+<span class="k">          </span><span class="n">n2node</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">nnd_visu</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">          </span><span class="n">n2node</span><span class="p">(</span><span class="n">dir</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">          </span><span class="n">npl</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">slice_idx</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="w"> </span><span class="n">n</span><span class="p">)</span>
+<span class="w">          </span><span class="n">fullname</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">visuname</span><span class="p">)</span><span class="o">//</span><span class="s1">&#39;_&#39;</span><span class="o">//</span><span class="n">slice_prefix</span><span class="p">(</span><span class="n">dir</span><span class="p">)</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">npl</span><span class="p">))</span>
+<span class="w">          </span><span class="k">call </span><span class="n">generate_pathfile_name</span><span class="p">(</span><span class="n">xdmf_file</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="p">,</span><span class="w"> </span><span class="n">fullname</span><span class="p">,</span><span class="w"> </span><span class="n">dir_visu_xdmf</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;xdmf&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
+<span class="w">          </span><span class="k">open</span><span class="p">(</span><span class="n">newunit</span><span class="o">=</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="k">file</span><span class="o">=</span><span class="nb">trim</span><span class="p">(</span><span class="n">xdmf_file</span><span class="p">),</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">&#39;replace&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;write&#39;</span><span class="p">)</span>
+<span class="w">          </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">icoordinate</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICARTESIAN</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">            </span><span class="n">g1d</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">grid_cart_slice</span><span class="p">(:,</span><span class="w"> </span><span class="n">dir</span><span class="p">,</span><span class="w"> </span><span class="n">find_n_from_npl</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">npl</span><span class="p">))</span>
+<span class="w">            </span><span class="k">call </span><span class="n">xdmf_begin_grid_cart</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="n">fullname</span><span class="p">,</span><span class="w"> </span><span class="n">n2node</span><span class="p">,</span><span class="w"> </span><span class="n">g1d</span><span class="p">)</span>
+<span class="w">          </span><span class="k">else</span>
+<span class="k">            call </span><span class="n">xdmf_begin_grid_cyl</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="n">fullname</span><span class="p">,</span><span class="w"> </span><span class="n">n2node</span><span class="p">,</span><span class="w"> </span><span class="n">grid_cyl_slice</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="w"> </span><span class="n">find_n_from_npl</span><span class="p">(</span><span class="n">dir</span><span class="p">,</span><span class="n">npl</span><span class="p">)))</span>
+<span class="w">          </span><span class="k">end if</span>
+<span class="k">          close</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+<span class="w">        </span><span class="k">end do</span>
+<span class="k">      end do</span>
+<span class="k">    end if</span>
 
+<span class="k">    return</span>
+<span class="k">  end subroutine </span><span class="n">write_visu_file_begin</span>
+</pre></div>
 
-
-
-
+    </section>
+    <br>
+    
     </div>
   </div>
 
@@ -273,8 +362,8 @@
         <div class="row justify-content-between">
           <div class="col">
             <p>
-              Fortran Program
-              &copy; 2026
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
 </p>
           </div>
           <div class="col">

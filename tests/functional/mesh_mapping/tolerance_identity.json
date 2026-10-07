@@ -1,0 +1,124 @@
+{
+  "_comment": [
+    "Tolerances for the IDENTITY remap check: target mesh == source mesh, so",
+    "remap-then-run must reproduce a plain restart of the same field. Both runs",
+    "are the same solver on the same mesh with the same rank layout; the only",
+    "difference is that one state travelled through the interpolation path.",
+    "",
+    "The path is not bit-exact by construction. build_up_interp_target_field_thermo",
+    "rebuilds h/T/k/sigma/d/mu from (rhoh, d) via the property table, which snaps",
+    "the density onto the table manifold and moves it by ~6e-9 relative. That is a",
+    "deliberate choice (the remapped state is put back on the equation of state),",
+    "and it shows up as a first-step drho/dt transient that has decayed by step 2.",
+    "Measured agreement after 20 steps is 9-10 significant digits, so 1e-7 relative",
+    "leaves two to three decades of margin while still being four to twelve orders",
+    "of magnitude tighter than the O(1) errors a broken remap produces.",
+    "",
+    "Poisson and mass-conservation residuals are absolute-only where their",
+    "reproducible content is their magnitude rather than their digits: they sit at",
+    "round-off when the projection is consistent, so a relative check on 1e-16",
+    "would fail for no physical reason."
+  ],
+  "global mass balance": {
+    "abs": 1e-09,
+    "rel": 1e-06
+  },
+  "max. mass conservation (interior)": {
+    "abs": 1e-09,
+    "rel": 0.001
+  },
+  "max. mass conservation (inlet)": {
+    "abs": 1e-09,
+    "rel": 0.001
+  },
+  "max. mass conservation (outlet)": {
+    "abs": 1e-09,
+    "rel": 0.001
+  },
+  "max. physical mass conservation (interior)": {
+    "abs": 1e-09
+  },
+  "max. physical mass conservation (inlet)": {
+    "abs": 1e-09
+  },
+  "max. physical mass conservation (outlet)": {
+    "abs": 1e-09
+  },
+  "max. projected mass conservation (interior)": {
+    "abs": 1e-09
+  },
+  "max. projected mass conservation (inlet)": {
+    "abs": 1e-09
+  },
+  "max. projected mass conservation (outlet)": {
+    "abs": 1e-09
+  },
+  "physical Poisson compatibility defect": {
+    "abs": 1e-09
+  },
+  "explicit uniform Poisson-source correction": {
+    "abs": 1e-09
+  },
+  "Poisson projected-source amplitude": {
+    "abs": 1e-09
+  },
+  "Poisson zero-mode projection (scaled solver RHS)": {
+    "abs": 1e-06
+  },
+  "total mass": {
+    "abs": 1e-08,
+    "rel": 1e-09
+  },
+  "total mass drift from run start": {
+    "abs": 1e-07,
+    "rel": 0.001
+  },
+  "global pressure drop": {
+    "abs": 0.001,
+    "rel": 1e-06
+  },
+  "mean dpdx": {
+    "abs": 0.0001,
+    "rel": 1e-06
+  },
+  "total kinetic energy": {
+    "abs": 1e-08,
+    "rel": 1e-08
+  },
+  "bulk velocity ux": {
+    "abs": 1e-09,
+    "rel": 1e-07
+  },
+  "bulk velocity uy": {
+    "abs": 1e-09,
+    "rel": 1e-07
+  },
+  "bulk velocity uz": {
+    "abs": 1e-09,
+    "rel": 1e-07
+  },
+  "bulk massflux gx": {
+    "abs": 1e-09,
+    "rel": 1e-07
+  },
+  "bulk massflux gy": {
+    "abs": 1e-09,
+    "rel": 1e-07
+  },
+  "bulk massflux gz": {
+    "abs": 1e-09,
+    "rel": 1e-07
+  },
+  "bulk enthalpy": {
+    "abs": 1e-09,
+    "rel": 1e-07
+  },
+  "bulk temperature": {
+    "abs": 1e-09,
+    "rel": 1e-07
+  },
+  "global energy balance": {
+    "abs": 1e-09,
+    "rel": 1e-06
+  }
+}

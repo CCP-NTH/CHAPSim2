@@ -15,7 +15,7 @@ The input file establishes the primary interface between user specifications and
 - **Output specification**: Restart checkpoint frequency, visualization output frequency, statistics accumulation parameters, and database plane I/O
 - **Diagnostics**: Probe location definitions and monitoring-output frequency
 
-For new configurations, begin with the most similar existing `tests/*/input_chapsim.ini` template or generate a file using `prepost/autoinput/autoinput_script.py` or `autoinput_gui.py`, then edit accordingly.
+For new configurations, begin with the most similar existing `tests/regression/*/input_chapsim.ini` template or generate a file using `prepost/input_generator/autoinput_script.py` or `autoinput_gui.py`, then edit accordingly.
 
 ## Basic Rules
 
@@ -49,6 +49,13 @@ Controls MPI/domain decomposition.
 | `nxdomain` | `integer` | Number of domains in `x`. Current production inputs should use `1`. |
 | `p_row` | `integer` | MPI process grid rows, usually aligned with `y`. Use `0` for automatic decomposition. |
 | `p_col` | `integer` | MPI process grid columns, usually aligned with `z`. Use `0` for automatic decomposition. |
+
+`p_row= 0, p_col= 0` is the recommended setting and the only one the test suite
+exercises. 2decomp&FFT then chooses the process grid itself, and every regression,
+functional and decomposition-independence check in `tests/` has been run that way.
+Results should not depend on the process grid — that is a solver invariant — but a
+hand-chosen `p_row`/`p_col` is outside the tested matrix, so verify such a run against
+the automatic layout before trusting it for production.
 
 ## `[domain]`
 
@@ -103,8 +110,6 @@ Initialisation IDs:
 | 4 | Given constant values |
 | 5 | Poiseuille profile |
 | 6 | Analytic function, used for Taylor-Green vortex |
-| 7 | Given/mixed boundary-condition initialisation |
-
 Common choices are `initfl=5` for periodic channel, pipe, and annular cases;
 `initfl=3` for inlet/outlet cases; and `initfl=6` for Taylor-Green vortex.
 
@@ -122,10 +127,10 @@ isothermal cases because the input format is shared.
 | `ifluid` | `integer` | Working-fluid property model ID. |
 | `ref_l0` | `real` | Dimensional reference length in metres. |
 | `ref_t0` | `real` | Reference temperature in Kelvin. |
-| `inittm` | `integer` | Thermal-field initialisation method ID. Uses the same IDs as `initfl`. |
+| `inittm` | `integer` | Thermal-field initialisation method ID: `0` restart, `4` constant, `6` analytic/function, `7` linear interpolation from boundary conditions, or `8` smooth interpolation from boundary conditions. `8` matches `7` when both y sides are Dirichlet, and is quadratic with zero gradient on the lower side otherwise — the regular shape for a pipe axis or an adiabatic wall. Both fall back to `4` for an inlet-outlet configuration, where the inlet plane prescribes the temperature instead. |
 | `irestartfrom` | `integer` | Restart iteration for thermal field when `inittm=0`. |
 | `tini` | `real` | Initial temperature in Kelvin. |
-| `inout_buffer` | `real(2)` | Inlet and outlet thermal buffer lengths as `inlet,outlet`, scaled by `L0`. |
+| `inout_buffer` | `real(2)` | Inlet and outlet thermal buffer lengths as `inlet,outlet`, scaled by `L0`. Over the inlet buffer the y-wall Dirichlet temperature is smoothstepped from the inlet value to the prescribed wall value, so the wall matches the inlet plane exactly at the corner and reaches the wall value with zero slope. This is a *gradually heated* entry, not an unheated one. |
 | `qw_ramp` | `logical,integer,integer` | Heat-flux ramp as `enabled,start_iter,end_iter`. |
 
 Gravity IDs:
@@ -150,10 +155,42 @@ Fluid IDs:
 | 4 | Liquid lead |
 | 5 | Liquid bismuth |
 | 6 | Liquid LBE |
-| 7 | Liquid water |
 | 8 | Liquid lithium |
 | 9 | Liquid FLiBe |
 | 10 | Liquid PbLi eutectic |
+
+ID 7 is reserved for ordinary liquid water, which has no property correlation in
+the code; the solver rejects it. Use ID 1 (`scp_water`) and its NIST table
+instead.
+
+For IDs 3-10 the properties come from correlations evaluated over a single
+temperature interval, printed in the log at startup. That interval is the liquid
+range (melting to boiling) narrowed by the validity range of any correlation
+that holds over less than it; the log names whichever property sets each end,
+and `ref_t0` or `tini` outside the interval stops the run with that name in the
+message.
+
+PbLi is the only fluid currently narrowed this way. Its dynamic viscosity is the
+Arrhenius expression measured by Jauch, Haase and Schulz, *Thermophysical
+Properties in the System Li-Pb*, report KfK-4144 (Kernforschungszentrum
+Karlsruhe, 1986), Part II section 4.3, which prints
+`eta = 0.187 * exp(11640 / (R T))` mPa s, i.e.
+`mu = 1.87e-4 * exp(11640 / (8.314 T))` Pa s. It is evaluated over
+**521-625 K** only. That interval is an implementation policy, not an
+established physical validity range: the report prints no range beside the
+equation, the INL MOOSE implementation of the same expression restricts it to
+melting point-625 K, the liquid-breeder compilation quoting it lists 521-900 K,
+and 521-625 K is their overlap. The report's own section 5 discusses
+extrapolating its properties to 1250 K, but that is a statement about the whole
+property set rather than a viscosity bound, so it is not used to widen the
+interval.
+
+The PbLi heat capacity is the same report's `cp = 0.195 - 9.116e-6 T` J/(g K),
+stated there for 508-800 K; that range is recorded but binds nothing, because
+508 K is already the melting point and the viscosity cuts the top to 625 K. The
+PbLi density and thermal conductivity fits used here do not match that report
+and carry no other identified source range, so they do not narrow the interval
+further.
 
 ## `[mhd]`
 
@@ -168,6 +205,17 @@ contain placeholder values.
 | `B_static` | `real(3)` | Static magnetic-field vector `Bx,By,Bz`. |
 
 Exactly one of `NStuart` or `NHartmn` should be enabled for an MHD run.
+`B_static` is always interpreted as a global Cartesian vector. For cylindrical
+pipe and annular cases, the solver decomposes this vector into local radial and
+azimuthal components internally.
+
+The current MHD implementation assumes constant electrical conductivity in the
+electric-potential solve. This is appropriate for isothermal cases and is used
+as the present approximation for thermal MHD cases. For the liquid-metal
+property relation currently under review, a 20% temperature increase of about
+114 K gives an estimated electrical-conductivity decrease of about 6.9% through
+the corresponding resistivity change. Temperature-dependent conductivity is
+therefore a known future extension rather than part of the current MHD model.
 
 ## `[mesh]`
 
@@ -182,6 +230,7 @@ mapping before running an expensive case.
 | `ncz` | `integer` | Number of cells in `z` or azimuthal direction. For cylindrical cases, odd values are increased to the next even value. |
 | `istret` | `integer` | Mesh stretching type ID. |
 | `rstret` | `integer,real` | Stretching method and factor as `method,factor`. |
+| `poisson_y_method` | `string` | Optional wall-normal Poisson method: `auto` (default), `fft`, or `tdma`. |
 
 Stretching type IDs for `istret`:
 
@@ -197,6 +246,7 @@ Stretching method IDs for the first value of `rstret`:
 
 | ID | Meaning |
 |---:|---|
+| 0 | Uniform mesh; use with `istret=0` and factor `0.0` |
 | 1 | Five-mode spectral stretching |
 | 2 | Tanh stretching method |
 | 3 | Power-law stretching method |
@@ -208,6 +258,12 @@ convolution in the FFT spectral domain.
 
 Recommended defaults are two-side clustering for channel and annular flow,
 top-side clustering for pipe flow, and no stretching for Taylor-Green vortex.
+
+`poisson_y_method=auto` preserves the validated solver selection: it uses the
+y-skip TDMA path for non-periodic-y thermal cases and cylindrical cases, and
+the full FFT path otherwise. Explicit `fft` is available for Cartesian cases
+using a uniform mesh or the spectral stretching method; thermal inlet/outlet use is experimental.
+Explicit `tdma` requires a non-periodic y direction.
 
 ## `[bc]`
 
@@ -227,7 +283,7 @@ lower/start boundary, and the second belongs to the upper/end boundary.
 |---|---|---|
 | `ifbcx_u`, `ifbcx_v`, `ifbcx_w` | `integer,integer,real,real` | Velocity BCs on x boundaries. |
 | `ifbcx_p` | `integer,integer,real,real` | Pressure BC on x boundaries. |
-| `ifbcx_t` | `integer,integer,real,real` | Temperature BC on x boundaries. Temperature values are Kelvin for Dirichlet; heat flux values are W/m² before nondimensionalisation for Neumann. |
+| `ifbcx_t` | `integer,integer,real,real` | Temperature BC on x boundaries. Temperature values are Kelvin for Dirichlet; heat flux values are W/m² before nondimensionalisation for Neumann. **The inlet Dirichlet value is not a free parameter:** `input_general.f90:1694-1698` overwrites it with `tini`, so the third field is ignored whenever the inlet is Dirichlet. Set the inlet temperature through `tini`. |
 | `ifbcy_u`, `ifbcy_v`, `ifbcy_w` | `integer,integer,real,real` | Velocity BCs on y/radial boundaries. |
 | `ifbcy_p` | `integer,integer,real,real` | Pressure BC on y/radial boundaries. |
 | `ifbcy_t` | `integer,integer,real,real` | Temperature BC on y/radial boundaries. |
@@ -329,9 +385,65 @@ Defines iteration ranges.
 | `niterflowlast` | `integer` | Last flow iteration to run. |
 | `niterthermofirst` | `integer` | First thermal iteration; use `0` when thermal is disabled. |
 | `niterthermolast` | `integer` | Last thermal iteration; use `0` when thermal is disabled. |
+| `restart_clock` | `string` | Optional. How a restart maps onto the run timeline: `continue` (default) or `reset`. |
+
+All four `niter*` values are **absolute iteration numbers on the run clock**, not
+offsets from the restart point.
 
 The environment variable `CHAPSIM_NITER` can override the final iteration for
 short smoke tests.
+
+### `restart_clock`
+
+A restart carries two distinct numbers that are easy to confuse. `irestartfrom`
+in `[flow]` and `[thermo]` selects **which checkpoint file to read**;
+`restart_clock` selects **where the run then sits on the timeline**. They are
+the same number under `continue` and deliberately differ under `reset`.
+
+| Value | Run starts at | Stored RHS history | Stored statistics |
+|---|---|---|---|
+| `continue` (default) | the checkpoint iteration and its time | kept | read, and accumulation continues |
+| `reset` | iteration `0`, time `0` | discarded | not read; accumulators start empty |
+
+Use `continue` to extend a simulation — this is the normal case and reproduces
+the behaviour of a run that was never interrupted. Use `reset` to treat a stored
+field as an initial condition for a new experiment, for example when restarting
+from a developed field under a changed Reynolds number, wall temperature, or
+body force.
+
+The clock is a property of the **run**, not of one field, so it is set once and
+both the flow and the thermal field adopt it. This matters in the common case of
+restarting the flow from a developed field while starting the thermal field
+fresh:
+
+```ini
+[flow]
+initfl= restart
+irestartfrom= 2000
+[thermo]
+inittm= const
+[simcontrol]
+niterflowfirst= 2001
+niterthermofirst= 2001
+niterflowlast= 5000
+niterthermolast= 5000
+```
+
+Under `continue` the run clock is 2000, the fresh thermal field is injected at
+that same iteration, and both fields advance together from 2001. The flow and
+thermal output files therefore carry matching iteration numbers.
+
+Two constraints follow from there being one clock:
+
+- If **both** fields restart, they must restart from the **same**
+  `irestartfrom`. A mismatch is rejected at input-parsing time rather than
+  producing a run in which one field silently idles while the other catches up.
+- Under `reset` the run starts at iteration 0, so `niterflowfirst` and
+  `niterthermofirst` must be set to `1`, not to `irestartfrom + 1`. Every other
+  iteration-numbered input — `stat_istart`, `ndbstart`, `ndbend`, `initReTo` and
+  the wall-heat-flux ramp bounds — is likewise read on the new clock. The solver
+  warns if a field's last iteration is at or before the iteration the run starts
+  from, since that field would never be advanced.
 
 ## `[io]`
 
@@ -347,9 +459,16 @@ Controls monitor, restart, visualisation, statistics, and plane-database I/O.
 | `stat_istart` | `integer` | Iteration at which statistics begin. |
 | `stat_level` | `integer` | Statistics level. |
 | `stat_nskip` | `integer(3)` | Cell skip for statistics in `x,y,z`. |
+| `stat_visu_nfre` | `integer` | Optional visualised-statistics output frequency. Defaults to `visu_nfre` when absent. |
+| `stat_visu_mode` | `string` | Optional visualised-statistics mode: `all` or `tsp_only`. Defaults to `all`. |
 | `is_wrt_read_bc` | `logical,logical` | Pair `write_outlet,read_inlet` for plane database files. |
 | `wrt_read_nfre` | `integer(3)` | Plane database frequency and range as `frequency,start,end`. |
-| `io_mode` | `integer` | Existing-file handling mode ID. |
+| `existing_output_policy` | `string` | Action when an output file already exists: `overwrite` (default), `skip`, or `rename_existing`. |
+| `restart_data_layout` | `string` | Backward-compatible alias that sets both restart input and output layouts: `per_field` (default) or `bundled`. |
+| `restart_data_layout_read` | `string` | Layout used when reading existing restart and inlet-database files. Overrides `restart_data_layout` for input only. |
+| `restart_data_layout_write` | `string` | Layout used when writing future restart, outlet-database, statistics, and visualisation bundle-capable outputs. Overrides `restart_data_layout` for output only. |
+| `restart_history_mode` | `string` | Restart history policy: `exact` (default) or `compact`. `exact` stores/reads RHS history and derived thermal properties; `compact` reduces restart size and rebuilds history on the first restarted step. `compact` is isothermal only and is rejected for thermal runs. |
+| `reset_unit_massflux` | `logical` | Optional restart restore control. Default `false`; when `true`, rescale the restored streamwise velocity component so its volume-average bulk value is 1.0. |
 
 Visualisation mode IDs for `visu_idim`:
 
@@ -368,13 +487,38 @@ Statistics levels for `stat_level`:
 | 2 | Second moments |
 | 3 | Extended/turbulent budget statistics where supported |
 
-I/O mode IDs for `io_mode`:
+Visualised-statistics modes for `stat_visu_mode`:
 
-| ID | Meaning |
-|---:|---|
-| 0 | Overwrite existing files |
-| 1 | Skip write if file exists |
-| 2 | Rename existing file before writing |
+| Mode | Meaning |
+|---|---|
+| `all` | Write both `t_avg_*` and `tsp_avg_*` visualisation/post-processing statistics. |
+| `tsp_only` | Write only `tsp_avg_*` visualisation/post-processing statistics. This requires at least one periodic direction. Checkpoint/restart `t_avg_*` statistics are still written with `ckpt_nfre`. |
+
+Existing-output policies:
+
+| Value | Meaning |
+|---|---|
+| `overwrite` | Overwrite existing files |
+| `skip` | Skip writing when the target file exists |
+| `rename_existing` | Rename the existing file before writing |
+
+Restart-data layouts:
+
+| Value | Meaning |
+|---|---|
+| `per_field` | Store one restart file per field |
+| `bundled` | Store one restart bundle per field group |
+
+Restart-history modes:
+
+| Value | Meaning |
+|---|---|
+| `exact` | Store and read restart history needed for continuous-run restart equivalence. This is the default. |
+| `compact` | Store only primary restart fields plus required boundary state. RHS history is rebuilt with startup handling after restart, so exact continuous-run equivalence is not expected. |
+
+For the complete restart file lists under isothermal, thermal,
+bundled/per-field, and convective-outlet conditions, see
+[Restart I/O Modes](restart-io.md).
 
 For database inlet cases, set `is_wrt_read_bc= .false.,.true.` and make sure
 the requested inlet database files exist.
@@ -406,7 +550,8 @@ Probe coordinates use the same nondimensional coordinate system as the domain.
 ### Case Setup Checks
 
 - Keep `nxdomain= 1` unless the solver is extended to support multiple x-domains.
-- Use `p_row= 0` and `p_col= 0` unless a specific MPI decomposition is required.
+- Use `p_row= 0` and `p_col= 0`. This is the recommended and the only tested setting;
+  a hand-chosen process grid is untested and should be checked against it first.
 - For periodic channel, pipe, and annular cases, use periodic streamwise BCs and
   a driving method such as `idriven=1`.
 - For open inlet/outlet cases, use `initfl=3`, `idriven=0`, and database reading

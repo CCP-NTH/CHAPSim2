@@ -61,5 +61,167 @@
   "global energy balance": {
     "abs": 1e-10,
     "rel": 1e-5
+  },
+
+  "_comment_les": [
+    "'max. initial strain rate S_ijS_ij' is max(S_ij S_ij) over the *initial* field,",
+    "recorded once by initialise_flow_fields and never overwritten. It is written by",
+    "every LES case but only gated where a reference.json lists it.",
+    "",
+    "The pairing below is deliberate and gives the key two different meanings",
+    "depending on the reference value, because a metric only fails when every",
+    "applicable check fails. Where the reference is zero - LES_pipe_solidrotation,",
+    "whose initial field is u_theta = Omega*r, an exactly zero-strain state - the",
+    "relative check is skipped as ref is approximately 0 and the absolute 1e-20",
+    "stands alone as a hard machine-zero gate on the cylindrical velocity-gradient",
+    "assembly. A Cartesian assembly there differentiates the stored qy = r*u_r",
+    "instead of u_r and returns Omega^2/2 = 0.5, twenty orders above the bound.",
+    "Where the reference is a real nonzero strain, 1e-20 can never be met and the",
+    "relative check carries the test, as for any other flow quantity."
+  ],
+  "max. initial strain rate S_ijS_ij": {
+    "abs": 1e-20,
+    "rel": 1e-3
+  },
+
+  "_comment_sgs_boundaries": [
+    "The five keys below gate the subgrid coefficient where it is consumed - the",
+    "face sets the stress and enthalpy-flux terms actually multiply - not where it",
+    "is produced. They use the same dual-meaning abs/rel pairing documented above:",
+    "a metric fails only when every applicable check fails, so with a zero",
+    "reference the relative check is skipped and the 1e-20 absolute bound stands",
+    "alone as a hard machine-zero gate, while with a nonzero reference 1e-20 can",
+    "never be met and the relative check carries the test.",
+    "",
+    "'max. sgs coefficient on physical walls' is the wall closure itself. For",
+    "wall-resolved LES at a no-slip wall the subgrid stress and enthalpy flux are",
+    "zero - WALE gives nu_sgs ~ y^3 as y->0 - so this is referenced at exactly 0",
+    "and gated at 1e-20. The molecular wall flux is unaffected and is not zero.",
+    "Note this is a wall-resolved statement; a wall model would not satisfy it.",
+    "",
+    "'max. sgs coefficient at inlet/outlet' is the opposite gate. The inlet and",
+    "outlet are not walls, so subgrid transport must be *retained* there; the",
+    "zero-normal-gradient coefficient closure preserves the adjacent value. A",
+    "nonzero reference means a regression that zeroed the inflow coefficient along",
+    "with the wall one would fail the relative check. In a fully periodic case",
+    "there is no such plane and the reference is 0, where 1e-20 applies instead.",
+    "",
+    "'min. sgs coefficient on stress/flux faces' is the positivity gate for the",
+    "cd2 coefficient interpolation. The compact C2P stencils undershoot a unit",
+    "peak by up to -0.36 (cp6) and can hand a negative eddy viscosity to the",
+    "stress terms; cd2 has both weights at +1/2 and cannot. Referenced at 0 - the",
+    "wall faces are exactly zero and no face may go below them. Non-negativity is",
+    "necessary, not sufficient: it does not on its own prove stability or",
+    "conservation and is not claimed to.",
+    "",
+    "'min. total face viscosity (molecular+sgs)' checks the floor the momentum",
+    "stresses see. Isothermal flow must sit at exactly 1.0, the non-dimensional",
+    "molecular value, which is what proves the sgs part is added to a preserved",
+    "molecular interpolation rather than folded into one interpolation of the",
+    "total. Under variable properties the floor is the fluid's own min mu/mu0 and",
+    "is below 1, so this is relative-only: an absolute bound would encode one",
+    "fluid's property table.",
+    "",
+    "'max. |sgs enthalpy flux|' gates the magnitude of subgrid heat transport, not",
+    "just its presence. It is relative-carried in a thermal case and pinned to",
+    "zero in an isothermal one."
+  ],
+
+  "min. sgs coefficient on stress/flux faces": {
+    "abs": 1e-20,
+    "rel": 1e-3
+  },
+
+  "min. total face viscosity (molecular+sgs)": {
+    "rel": 1e-3
+  },
+
+  "max. sgs coefficient on physical walls": {
+    "abs": 1e-20,
+    "rel": 1e-3
+  },
+
+  "max. sgs coefficient at inlet/outlet": {
+    "abs": 1e-20,
+    "rel": 1e-3
+  },
+
+  "max. |sgs enthalpy flux|": {
+    "abs": 1e-20,
+    "rel": 1e-3
+  },
+
+  "_comment_mhd": [
+    "The two MHD entries below are absolute-only on purpose. Both are round-off",
+    "residuals of the electric-potential projection, so their reproducible part is",
+    "their magnitude, not their digits: a relative check would fail across",
+    "decompositions for no physical reason. max|div(j)| sits near 1e-10 when the",
+    "projection is consistent and near 1e+2 when it is not, so 1e-8 separates the",
+    "two by ten orders of magnitude and still catches any real regression.",
+    "Both keys are now gated in the inlet-outlet case too. They were not before: its",
+    "all-Neumann electric-potential problem was incompatible at the outlet, where",
+    "(u x B).n is nonzero, so the solver projected that constant out and left a",
+    "uniform div(j) = (1/V) * closed_integral (u x B).n of 3.3e-3. Imposing the",
+    "insulating condition j.n = 0 on the cut planes removed it; the key is the",
+    "guard that stops it coming back.",
+    "",
+    "Reading these keys for a case whose B has a nonzero z (or x) component at an",
+    "x cut plane: every case shipped today is wall-normal only, B = (0, By, 0). The",
+    "insulating condition is imposed pointwise, j_x = 0 at every face, which for a",
+    "wall-normal field is essentially exact - z-mirror symmetry gives <u_z> = 0, so",
+    "no mean axial current wants to cross. For an inclined field it is only an",
+    "approximation: a nonzero Bz can drive a real mean secondary flow <u_z>(y) /= 0",
+    "and recirculating current may legitimately cross the plane, where the only",
+    "guaranteed property is the integral one, closed_surface j_x dA = 0.",
+    "",
+    "The trap is that these two metrics cannot tell the difference. div(j) = 0 is",
+    "enforced by construction once the face fluxes are dropped, so both stay at",
+    "round-off whatever B does - measured 2.9e-12 for B = (0,10,0) and 3.2e-10 for",
+    "B = (0,10,5) in MHD_channel_scp_inout_Tw. A green result here is therefore not",
+    "evidence that an inclined-field case is physically right; judge that on the",
+    "flow, not on these keys."
+  ],
+  "max. |div(current density)|": {
+    "abs": 1e-8
+  },
+  "global electric current imbalance": {
+    "abs": 1e-10
+  },
+
+  "cases": {
+    "_comment": [
+      "Per-case overrides, keyed by case directory name. An override replaces the",
+      "global entry for that metric outright, so omitting \"abs\" drops the absolute",
+      "check and leaves only the relative one.",
+      "",
+      "'global mass balance' is fl%tt_mass_change, the volume integral of drho/dt.",
+      "In a periodic thermal case there is no boundary to carry mass in or out, so",
+      "as the fluid heats this integral is genuinely non-zero - 0.28 in",
+      "pipe_scp_periodic_Tw - and the global 1e-6 absolute tolerance can never be",
+      "met. Only its reproducibility is meaningful, so these cases keep the relative",
+      "check and drop the absolute one. Isothermal and inlet-outlet cases keep the",
+      "tight global tolerance, where a non-zero value really would be a defect.",
+      "",
+      "'max. |div(current density)|' is an absolute residual, so its floor scales",
+      "with the size of j itself, and j scales with |B|. The two *_Btilt cases carry",
+      "B_static = (10, 20, 5), |B| = 22.9, and measure 2.0e-9 and 2.4e-9 against a",
+      "global tolerance of 1e-8 - passing, but with only four-fold headroom, which is",
+      "thin for a round-off quantity that moves with the decomposition. Dividing the",
+      "measured value by |B| recovers the same 1e-10 floor as the |B| = 1 parent",
+      "cases, so the global tolerance is scaled by |B| here rather than relaxed on a",
+      "hunch. That still leaves ten orders of magnitude between a consistent",
+      "projection and a broken one."
+    ],
+
+    "tgv_scp":                  { "global mass balance": { "rel": 1e-3 } },
+    "channel_scp_periodic_Tw":  { "global mass balance": { "rel": 1e-3 } },
+    "channel_scp_periodic_qw":  { "global mass balance": { "rel": 1e-3 } },
+    "annular_scp_periodic_Tw":  { "global mass balance": { "rel": 1e-3 } },
+    "annular_scp_periodic_qw":  { "global mass balance": { "rel": 1e-3 } },
+    "pipe_scp_periodic_Tw":     { "global mass balance": { "rel": 1e-3 } },
+    "pipe_scp_periodic_qw":     { "global mass balance": { "rel": 1e-3 } },
+
+    "MHD_channel_iso_periodic_Btilt": { "max. |div(current density)|": { "abs": 2.3e-7 } },
+    "MHD_pipe_iso_periodic_Btilt":    { "max. |div(current density)|": { "abs": 2.3e-7 } }
   }
 }
