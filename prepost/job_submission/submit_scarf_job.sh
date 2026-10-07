@@ -28,8 +28,9 @@ if [[ "$regenerate" == "y" || "$regenerate" == "Y" ]]; then
     read -p "Enter number of procs [default: 1]: " job_procs
     job_procs=${job_procs:-1}
 
-    # Prompt user for CHAPSim executable path
-    default_exec_path="/work4/scd/scarf909/CHAPSim/CHAPSim2"
+    # Prompt user for CHAPSim executable path. Export CHAPSIM_DIR to turn your
+    # own installation into the offered default.
+    default_exec_path="${CHAPSIM_DIR:-/path/to/CHAPSim2}"
     read -p "Enter CHAPSim executable path [default: ${default_exec_path}]: " user_exec_path
     exec_path=${user_exec_path:-$default_exec_path}
 

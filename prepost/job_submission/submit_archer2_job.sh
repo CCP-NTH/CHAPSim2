@@ -28,13 +28,14 @@ if [[ "$regenerate" == "y" || "$regenerate" == "Y" ]]; then
     read -p "Enter number of nodes [default: 1]: " job_nodes
     job_nodes=${job_nodes:-1}
 
-    # Prompt user for SLURM account
-    default_account="e01-dares-wang"
+    # Prompt user for SLURM account. Export CHAPSIM_ACCOUNT and CHAPSIM_DIR
+    # to turn your own site settings into the offered defaults.
+    default_account="${CHAPSIM_ACCOUNT:-your-archer2-project}"
     read -p "Enter SLURM account [default: ${default_account}]: " user_account
     account=${user_account:-$default_account}
 
     # Prompt user for CHAPSim executable path
-    default_exec_path="/work/e01/e01/wwange01/CHAPSim2"
+    default_exec_path="${CHAPSIM_DIR:-/path/to/CHAPSim2}"
     read -p "Enter CHAPSim executable path [default: ${default_exec_path}]: " user_exec_path
     exec_path=${user_exec_path:-$default_exec_path}
 
@@ -68,7 +69,7 @@ read -p "Do you want to back up source code from CHAPSim2/src to local ./0_src/?
 backup_answer=${backup_answer:-n}
 
 if [[ "$backup_answer" =~ ^[Yy]$ ]]; then
-    SRC_DIR="/work/e01/e01/wwange01/CHAPSim2/src"
+    SRC_DIR="${CHAPSIM_DIR:-/path/to/CHAPSim2}/src"
     DEST_DIR="./0_src"
 
     echo "Backing up source code from $SRC_DIR to $DEST_DIR..."

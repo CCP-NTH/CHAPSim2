@@ -455,8 +455,8 @@ module parameters_constant_mod
   ! own value is self-consistent -- its thermal diffusivity, density and cp give
   ! 13.2 W/mK at 550 K independently -- so the gap is not a misread equation.
   ! Published PbLi conductivities genuinely scatter over roughly this range, so
-  ! this is recorded as an open question (see docs/superpowers/BACKLOG.md), not
-  ! corrected here: changing it would move every PbLi thermal baseline.
+  ! this is left as an open question rather than corrected here: changing it
+  ! would move every PbLi thermal baseline.
 
   ! B = 1 / (CoB - T), which is -(1/rho)*drho/dT rewritten for a density that is
   ! linear in T, so CoB = -CoD(0) / CoD(1).

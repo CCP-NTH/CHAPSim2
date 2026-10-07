@@ -78,7 +78,9 @@ Zeroing `drho/dt` in the Poisson right-hand side also makes the pressure drop
 reasonable, but for the wrong reason: it suppresses the symptom of an
 inconsistent initial condition. With the initial condition made consistent, the
 pressure drop is reasonable **with `drho/dt` intact**. No change to the Poisson
-solver is warranted — see AGENTS.md section 2 and failure mode 10.
+solver is warranted: the constant-coefficient FFT solver with a `drho/dt`
+correction is a deliberate design choice, and the `(0,0)` Fourier-mode
+compatibility condition it has to satisfy is global mass conservation.
 
 ## Verification
 

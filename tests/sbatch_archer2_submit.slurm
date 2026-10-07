@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# ARCHER2 example. Before submitting, set the account on the --account line
+# to your own project allocation and point CHAPSIM_DIR at your installation.
+#
 #SBATCH --job-name=job
 #SBATCH --output=job%j.out
 #SBATCH --error=job%j.err
@@ -6,10 +10,12 @@
 #SBATCH --nodes=1
 #SBATCH --tasks-per-node=128
 #SBATCH --cpus-per-task=1
-#SBATCH --account=c01-eng
+#SBATCH --account=your-archer2-project
 #SBATCH --partition=standard
 #SBATCH --qos=short
 
 export OMP_NUM_THREADS=1
 
-srun --distribution=block:block --hint=nomultithread /work/c01/c01/wwangdl/CHAPSim2/bin/CHAPSim < input_chapsim.ini
+CHAPSIM_DIR=${CHAPSIM_DIR:-/path/to/CHAPSim2}
+
+srun --distribution=block:block --hint=nomultithread ${CHAPSIM_DIR}/bin/CHAPSim < input_chapsim.ini
