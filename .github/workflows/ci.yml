@@ -280,7 +280,12 @@ jobs:
             mpich \
             cmake \
             make \
-            python3
+            python3 \
+            python3-numpy
+          # python3-numpy is for tests/tools/compare_stats_restart.py, which the
+          # restart functional suite calls to compare time-averaged fields. From
+          # apt rather than pip, so PEP 668 on the runner image cannot bite.
+          #
           # No libfftw3-dev: CI builds the generic backend bundled in
           # 2decomp-fft, so the runner stays dependency-free. To test FFTW here,
           # add libfftw3-dev back and build with CHAPSIM_FFT=fftw FFTW_ROOT=/usr
@@ -326,3 +331,17 @@ jobs:
         env:
           TEST_MODE: run
         run: ./run_functional.sh
+
+      # Both runners put solver output in a per-case output_chapsim2_*.log
+      # rather than on stdout, so a case that exits non-zero prints only
+      # "(solver failed)" and the reason dies with the runner. Keep the logs
+      # when something fails, otherwise a failure here cannot be diagnosed.
+      - name: Upload solver logs from failed cases
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: solver-logs
+          path: |
+            tests/regression/**/output_chapsim2_*.log
+            tests/functional/**/output_chapsim2_*.log
+          if-no-files-found: warn
