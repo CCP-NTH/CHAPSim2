@@ -43,7 +43,9 @@ CHAPSim2/
 ├── lib/                  # External libraries
 │   ├── 2decomp-fft/      # Domain decomposition and 3D FFT library 
 │   └── fishpack4.1/      # 1D/2D FFT library, for testing only 
-├── tests/                # Containing 14 test cases for regression and smoke tests
+├── tests/                # Containing 14 test cases 
+│   ├── regression/       # regression and smoke tests
+│   └── function/         # function/unit tests
 ├── prepost/              # Pre/post-processing tools
 │   ├── autoinput/        # Python scripts to generate input files 
 │   └── useful_scripts/   # Utility scripts for local or HPC execution
@@ -66,7 +68,7 @@ CHAPSim2/
 ### Download
 
 ```bash
-git git@github.com:CCP-NTH/CHAPSim2.git
+git clone https://github.com/CCP-NTH/CHAPSim2.git
 cd CHAPSim2
 ```
 

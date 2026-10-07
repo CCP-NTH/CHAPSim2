@@ -9,12 +9,14 @@ Features:
 - Plots multiple monitor points with different markers and colors
 - Handles both isothermal and thermal flow cases
 - Skips every M points for clearer visualization
+- Optionally starts plotting from a user-given x-axis value
 - Saves high-resolution PNG output
 
 Data format:
 - The data and this script should be stored in the folder ./3_monitor/
 - Files should be named: domain1_monitor_ptX_flow.dat (where X is the point number)
 - Each file contains columns: time, u, v, w, p, phi, [T]
+  or iteration, time, u, v, w, p, phi, [T]
 - First 3 lines are skipped (header)
 
 Usage:
@@ -37,16 +39,30 @@ def read_monitor_data(filename):
         return None
         
     try:
-        data = np.genfromtxt(filename, skip_header=3, usecols=range(6))
+        with open(filename, "r", encoding="utf-8") as f:
+            header = "".join(f.readline() for _ in range(3)).lower()
+
+        has_iteration_column = "iteration" in header
+        time_col = 1 if has_iteration_column else 0
+        first_var_col = time_col + 1
+
+        data = np.genfromtxt(filename, skip_header=3)
         if data is None or len(data) == 0:
             print(f"No data read from {filename}")
             return None
-        return data
+
+        data = np.atleast_2d(data)
+        required_cols = first_var_col + 5
+        if data.shape[1] < required_cols:
+            print(f"Not enough columns in {filename}; expected at least {required_cols}")
+            return None
+
+        return data, time_col, first_var_col
     except Exception as e:
         print(f"Error reading {filename}: {str(e)}")
         return None
 
-def plot_monitor_points(N, M):
+def plot_monitor_points(N, M, x_min=None):
     """Plot monitor points data for N points."""
     print("\nStarting to plot monitor points...")
     
@@ -66,20 +82,27 @@ def plot_monitor_points(N, M):
     
     for i in range(1, N+1):
         filename = f'domain1_monitor_pt{i}_flow.dat'
-        data = read_monitor_data(filename)
-        if data is None:
+        monitor_data = read_monitor_data(filename)
+        if monitor_data is None:
             continue
+
+        data, time_col, first_var_col = monitor_data
+        if x_min is not None:
+            data = data[data[:, time_col] >= x_min]
+            if data.size == 0:
+                print(f"No data in {filename} for x >= {x_min}")
+                continue
             
         data_found = True
         successful_files.append(filename)
         print(f"Successfully reading data from: {filename}")
         
-        # Skip every M points
-        time = data[::M, 0]
+        # Apply the requested sampling interval.
+        time = data[::M, time_col]
         
         # Plot each variable
         for j, var in enumerate(variables):
-            axes[j].plot(time, data[::M, j+1], 
+            axes[j].plot(time, data[::M, first_var_col+j], 
                         marker=markers[i % len(markers)],  # Cycle through markers
                         linestyle='none',  # No lines between points
                         label=f'Point {i}', 
@@ -105,7 +128,16 @@ def plot_monitor_points(N, M):
         print(f"- {file}")
     plt.close()
 
+def parse_optional_x_min(value):
+    """Return a float lower x-axis bound, or None when left blank."""
+    value = value.strip()
+    if not value:
+        return None
+    value = value.replace("x", "").replace(">", "").replace("=", "").strip()
+    return float(value)
+
 if __name__ == "__main__":
     N = int(input("Enter the number of monitor points to plot: "))
     M = int(input("Enter sampling interval (skip every M points for clearer visualization): "))
-    plot_monitor_points(N, M)
+    x_min = parse_optional_x_min(input("Enter lower x-axis value to plot from, e.g. 50 or x>50 [all]: "))
+    plot_monitor_points(N, M, x_min)

@@ -1,0 +1,66 @@
+flowchart TD
+    %% Main Program Structure
+    subgraph Main_Program [Program chapsim]
+        START([Start]) --> INIT[initialise_chapsim]
+        INIT --> SOLVE[Solve_eqs_iteration]
+        SOLVE --> FIN[Finalise_chapsim]
+        FIN --> END([End])
+    end
+
+    %% Initialization Details
+    subgraph Initialization [initialise_chapsim]
+        direction TB
+        I1[MPI & Timing Setup] --> I2[Read Input Parameters]
+        I2 --> I3[Build Geometry & Mesh]
+        I3 --> I4{DEBUG_ALGO?}
+        I4 -- Yes --> I5[Test_algorithms & Stop]
+        I4 -- No --> I6[Domain Decomposition & FFT Init]
+        I6 --> I7{is_thermo?}
+        I7 -- Yes --> I8[Build Thermo Mapping]
+        I7 -- No --> I9[Boundary Conditions Allocation]
+        I8 --> I9
+        I9 --> I10[Field Allocation & Initial Conditions]
+        I10 --> I11[Halo/Interface Data Exchange]
+        I11 --> I12{is_prerun?}
+        I12 -- Yes --> I13[Resolution Est. & Output & Stop]
+        I12 -- No --> I_Return[Return to Main]
+    end
+
+    %% Solver Loop Details
+    subgraph Solver_Loop [Solve_eqs_iteration]
+        direction TB
+        S1[Determine Iteration Bounds] --> S2[Start Time Step Loop]
+        S2 --> S3[Update Reynolds / Pr / Gr]
+        S3 --> S4[CFL Constraint Check]
+        S4 --> S5[Inlet/Outlet IO]
+        S5 --> S6[Sub-iteration Loop: 1..nsubitr]
+        
+        subgraph Physics_Step [Physics Advancement]
+            S6 --> P1[Halo Exchange]
+            P1 --> P2[Solve Energy Eq]
+            P2 --> P3[Solve Momentum Eq]
+            P3 --> P4{MHD Enabled?}
+            P4 -- Yes --> P5[Compute Lorentz Force]
+            P4 -- No --> S6_End[End Sub-loop]
+            P5 --> S6_End
+        end
+
+        S6_End --> S7{IO Enabled?}
+        S7 -- Yes --> S8[Update Stats & Write Monitoring]
+        S8 --> S9[Validate Fields & Print Extrema]
+        S9 --> S10[Checkpoint / Visualization Output]
+        S10 --> S11[Check End Condition]
+        S7 -- No --> S11
+        S11 -->|Next Step| S2
+        S11 -->|Finished| S_Return[Return to Main]
+    end
+
+    %% Finalization
+    subgraph Finalization_Step [Finalise_chapsim]
+        F1[Stop Timers] --> F2[MPI_Finalize]
+    end
+
+    %% Connections to subgraphs
+    INIT -.-> Initialization
+    SOLVE -.-> Solver_Loop
+    FIN -.-> Finalization_Step

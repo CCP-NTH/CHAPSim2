@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Troubleshooting - CHAPSim2 Guidance</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      margin: 0;
+      color: #17202a;
+      background: #f7f9fc;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 34px 24px 64px;
+      background: white;
+      min-height: 100vh;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 245px minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .brand img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    nav {
+      position: sticky;
+      top: 18px;
+      border-right: 1px solid #d7dee8;
+      padding-right: 18px;
+      color: #53657a;
+      font-size: 0.92rem;
+    }
+    .nav-section {
+      margin-bottom: 18px;
+    }
+    .nav-section span {
+      display: block;
+      margin-bottom: 6px;
+      color: #17202a;
+      font-weight: 700;
+    }
+    .nav-section a {
+      display: block;
+      margin: 4px 0;
+    }
+    a {
+      color: #2457c5;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin-top: 1.5em;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2.1rem;
+    }
+    code {
+      background: #eef2f7;
+      padding: 0.1em 0.3em;
+      border-radius: 4px;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 8px;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #d7dee8;
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: #eef2f7;
+      text-align: left;
+    }
+    .doc-home {
+      display: inline-block;
+      margin-top: 12px;
+      font-weight: 650;
+    }
+    @media (max-width: 820px) {
+      .layout {
+        display: block;
+      }
+      nav {
+        position: static;
+        border-right: 0;
+        border-bottom: 1px solid #d7dee8;
+        padding: 0 0 18px;
+        margin-bottom: 28px;
+      }
+      .nav-section a {
+        display: inline-block;
+        margin-right: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <img src="../../chapsim_logo.png" alt="CHAPSim2 logo">
+      <strong>CHAPSim2 User Guidance</strong>
+    </div>
+    <div class="layout">
+      <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
+<div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
+<div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
+      <article>
+<h1>Troubleshooting</h1>
+<p>This page provides solutions for common setup, execution, and post-processing issues encountered during CHAPSim2 usage. Consult this section before modifying solver parameters.</p>
+<h2>Documentation Opens as Raw Markdown</h2>
+<p>If Chrome displays raw Markdown text instead of formatted HTML, access the compiled HTML documentation from the repository root:</p>
+<pre><code class="language-bash">google-chrome docs/guidance/html/index.html</code></pre>
+<p>Then choose <strong>User Guidance</strong>. The browser-facing pages are under:</p>
+<pre><code class="language-text">docs/guidance/html/</code></pre>
+<p>The Markdown source files are still kept under:</p>
+<pre><code class="language-text">docs/guidance/docs/</code></pre>
+<p>To regenerate the local HTML preview after editing source Markdown:</p>
+<pre><code class="language-bash">python3 docs/guidance/build_static.py</code></pre>
+<p>This procedure does not require MkDocs.</p>
+<h2>MkDocs Is Not Installed</h2>
+<p>MkDocs is optional. A dependency-free static HTML builder is available for local browser preview. Employ MkDocs only when the complete Material theme documentation site is required.</p>
+<h2>Figure Saving Fails on a Mounted Filesystem</h2>
+<p>On remote or mounted filesystems, Matplotlib may fail with an error such as:</p>
+<pre><code class="language-text">OSError: [Errno 5] Input/output error</code></pre>
+<p>A robust workflow is:</p>
+<ul>
+<li>save plots first to a local temporary directory, for example <code>/tmp</code>;</li>
+<li>verify the PNG was completed;</li>
+<li>copy the completed file back to the mounted case directory when the filesystem is stable.</li>
+</ul>
+<p>For long postprocessing batches, this avoids losing all later figures after one filesystem write failure.</p>
+<h2>Restart or Interpolation Case Fails Early</h2>
+<p>Check these items before changing numerical parameters:</p>
+<ul>
+<li>Source and target cases use the same geometry family and topology.</li>
+<li><code>input_chapsim_tgt.ini</code> contains the intended target mesh and domain values.</li>
+<li>Target <code>1_data/</code> contains <code>domain1_*</code> files.</li>
+<li>The target <code>input_chapsim.ini</code> has <code>[process] is_prerun = .false.</code>.</li>
+<li>The initial CFL is conservative for the first target restart.</li>
+<li>Boundary-condition and physics settings are consistent with the source field.</li>
+</ul>
+<h2>Visualisation Files Are Missing</h2>
+<p>Check the input-file output settings:</p>
+<ul>
+<li><code>visu_idim</code> selects full-domain or plane output mode.</li>
+<li><code>visu_nfre</code> controls visualisation write frequency.</li>
+<li><code>visu_nskip</code> controls skipped records or stride behavior.</li>
+<li>The run length is long enough to reach a visualisation write step.</li>
+</ul>
+<p>Also inspect the run log for disabled postprocessing or I/O errors.</p>
+<h2>Regression Metrics Are Missing</h2>
+<p>For regression cases, <code>regression_test_metrics.json</code> should be produced by the case run. If it is absent:</p>
+<ul>
+<li>confirm the case was run with the regression wrapper;</li>
+<li>inspect the solver log for early termination;</li>
+<li>check that <code>run_chapsim.sh</code> exists and is executable;</li>
+<li>verify the run finished before the metric timeout in <code>tests/run_regression.sh</code>.</li>
+</ul>
+<p>Use metrics-only mode only when <code>regression_test_metrics.json</code> already exists.</p>
+      </article>
+    </div>
+  </main>
+</body>
+</html>

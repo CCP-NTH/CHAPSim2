@@ -1,10 +1,16 @@
 #!/usr/bin/env python3
 
 import json
+import os
 import sys
 import math
 
 SAFE_REL_THRESHOLD = 1e-10
+
+# Key in tolerances.json holding per-case overrides, keyed by case directory name.
+# Needed because a few metrics are not expected to be near zero in every
+# configuration, so one global tolerance cannot be right for all of them.
+CASE_OVERRIDE_KEY = "cases"
 
 
 def die(msg):
@@ -23,6 +29,22 @@ try:
         tol = json.load(f)
 except Exception as e:
     die(f"Failed to load JSON files: {e}")
+
+
+# -------------------------------------------------
+# Per-case tolerance overrides
+# -------------------------------------------------
+# The case name is the directory holding reference.json. Overrides replace the
+# global entry for that metric outright rather than merging field by field, so a
+# case can drop the absolute check (by supplying "rel" only) for a quantity that
+# has no reason to be zero. Every override applied is printed, so a loosened
+# tolerance can never pass silently.
+case_overrides = tol.pop(CASE_OVERRIDE_KEY, {})
+case_name = os.path.basename(os.path.dirname(os.path.abspath(sys.argv[2])))
+
+for key, entry in case_overrides.get(case_name, {}).items():
+    tol[key] = entry
+    print(f"[TOLER] {key:35s} case override for '{case_name}': {entry}")
 
 
 FAILED = False
@@ -47,37 +69,45 @@ def check_metric(key, new_val, ref_val, tol_entry):
 
     abs_tol = tol_entry.get("abs")
     rel_tol = tol_entry.get("rel")
+    checks = []
+    failures = []
 
     # -------------------------
     # Absolute tolerance
     # -------------------------
     if abs_tol is not None:
-        print(
-            f"[CHECK] {key:35s} "
-            f"new={new_val:.6e} ref={ref_val:.6e} abs={err:.2e}"
-        )
-        if err > abs_tol and abs(new_val) > abs(ref_val):
-            print(f"[FAIL ] {key}: abs {err:.2e} > {abs_tol:.2e}")
-            return True
+        checks.append(f"abs={err:.2e}/{abs_tol:.2e}")
+        if err > abs_tol:
+            failures.append(f"abs {err:.2e} > {abs_tol:.2e}")
 
     # -------------------------
     # Relative tolerance
     # -------------------------
     if rel_tol is not None:
         if abs(ref_val) < SAFE_REL_THRESHOLD:
-            print(
-                f"[SKIP ] {key:35s} "
-                f"relative check skipped (ref ≈ 0)"
-            )
+            checks.append("rel=skip(ref≈0)")
         else:
             rel_err = err / abs(ref_val)
-            print(
-                f"[CHECK] {key:35s} "
-                f"new={new_val:.6e} ref={ref_val:.6e} rel={rel_err:.2e}"
-            )
+            checks.append(f"rel={rel_err:.2e}/{rel_tol:.2e}")
             if rel_err > rel_tol:
-                print(f"[FAIL ] {key}: rel {rel_err:.2e} > {rel_tol:.2e}")
-                return True
+                failures.append(f"rel {rel_err:.2e} > {rel_tol:.2e}")
+
+    applicable_checks = [c for c in checks if not c.startswith("rel=skip")]
+
+    if checks:
+        print(
+            f"[CHECK] {key:35s} "
+            f"new={new_val:.6e} ref={ref_val:.6e} {' '.join(checks)}"
+        )
+    else:
+        print(f"[SKIP ] {key:35s} (no applicable tolerance)")
+
+    if not applicable_checks:
+        return False
+
+    if failures and len(failures) == len(applicable_checks):
+        print(f"[FAIL ] {key}: " + "; ".join(failures))
+        return True
 
     return False
 

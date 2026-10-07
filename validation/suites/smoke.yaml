@@ -1,0 +1,9 @@
+name: smoke
+description: Brief representative suite used by tests/run_smoke.sh.
+runner: tests/run_smoke.sh
+cases:
+  - tests/tgv_iso
+  - tests/channel_iso_inout
+  - tests/channel_scp_inout_Tw
+  - tests/annular_scp_inout_Tw
+  - tests/pipe_scp_inout_Tw

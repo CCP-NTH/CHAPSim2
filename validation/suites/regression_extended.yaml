@@ -1,0 +1,29 @@
+name: regression_extended
+description: Full regression suite used by tests/run_regression.sh when extended mode is selected.
+runner: tests/run_regression.sh
+cases:
+  - tests/tgv_iso
+  - tests/tgv_scp
+  - tests/channel_iso_periodic
+  - tests/channel_iso_inout
+  - tests/channel_scp_periodic_Tw
+  - tests/channel_scp_periodic_qw
+  - tests/channel_scp_inout_Tw
+  - tests/channel_scp_inout_qw
+  - tests/annular_iso_periodic
+  - tests/annular_iso_inout
+  - tests/annular_scp_periodic_Tw
+  - tests/annular_scp_periodic_qw
+  - tests/annular_scp_inout_Tw
+  - tests/annular_scp_inout_qw
+  - tests/pipe_iso_periodic
+  - tests/pipe_iso_inout
+  - tests/pipe_scp_periodic_Tw
+  - tests/pipe_scp_periodic_qw
+  - tests/pipe_scp_inout_Tw
+  - tests/pipe_scp_inout_qw
+optional_cases:
+  - tests/functional/LES_channel_iso_peridic
+  - tests/functional/LES_channel_scp_inout_Tw
+  - tests/functional/MHD_channel_iso_peridic
+  - tests/functional/MHD_channel_scp_inout_Tw

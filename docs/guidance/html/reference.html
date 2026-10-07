@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reference - CHAPSim2 Guidance</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      margin: 0;
+      color: #17202a;
+      background: #f7f9fc;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 34px 24px 64px;
+      background: white;
+      min-height: 100vh;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 245px minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .brand img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    nav {
+      position: sticky;
+      top: 18px;
+      border-right: 1px solid #d7dee8;
+      padding-right: 18px;
+      color: #53657a;
+      font-size: 0.92rem;
+    }
+    .nav-section {
+      margin-bottom: 18px;
+    }
+    .nav-section span {
+      display: block;
+      margin-bottom: 6px;
+      color: #17202a;
+      font-weight: 700;
+    }
+    .nav-section a {
+      display: block;
+      margin: 4px 0;
+    }
+    a {
+      color: #2457c5;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin-top: 1.5em;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2.1rem;
+    }
+    code {
+      background: #eef2f7;
+      padding: 0.1em 0.3em;
+      border-radius: 4px;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 8px;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #d7dee8;
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: #eef2f7;
+      text-align: left;
+    }
+    .doc-home {
+      display: inline-block;
+      margin-top: 12px;
+      font-weight: 650;
+    }
+    @media (max-width: 820px) {
+      .layout {
+        display: block;
+      }
+      nav {
+        position: static;
+        border-right: 0;
+        border-bottom: 1px solid #d7dee8;
+        padding: 0 0 18px;
+        margin-bottom: 28px;
+      }
+      .nav-section a {
+        display: inline-block;
+        margin-right: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <img src="../../chapsim_logo.png" alt="CHAPSim2 logo">
+      <strong>CHAPSim2 User Guidance</strong>
+    </div>
+    <div class="layout">
+      <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
+<div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
+<div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
+      <article>
+<h1>Reference</h1>
+<p>Reference documentation is organized for quick lookup rather than sequential reading.</p>
+<h2>User-Facing Reference</h2>
+<table><thead><tr>
+<th>Page</th>
+<th>Use</th>
+</tr></thead><tbody>
+<tr>
+<td><a href="input-file.html">CHAPSim Input File Guide</a></td>
+<td>Variable meanings, Fortran types, IDs, and common setup rules for <code>input_chapsim.ini</code>.</td>
+</tr>
+<tr>
+<td><a href="benchmark-cases.html">Benchmark and Validation Cases</a></td>
+<td>Case naming conventions and recommended starting cases.</td>
+</tr>
+<tr>
+<td><a href="restart-io.html">Restart I/O Modes</a></td>
+<td>Restart field lists, metadata files, exact/compact history behavior, and recommended input combinations.</td>
+</tr>
+<tr>
+<td><a href="postprocessing.html">Postprocessing and Output Data</a></td>
+<td>Output folders, statistics levels, monitor scripts, and visualisation scripts.</td>
+</tr>
+</tbody></table>
+<h2>Repository File Map</h2>
+<table><thead><tr>
+<th>Path</th>
+<th>Description</th>
+</tr></thead><tbody>
+<tr>
+<td><code>src/</code></td>
+<td>Main Fortran solver source.</td>
+</tr>
+<tr>
+<td><code>bin/</code></td>
+<td>Compiled solver, <code>bin/CHAPSim</code>.</td>
+</tr>
+<tr>
+<td><code>lib/</code></td>
+<td>Bundled third-party libraries: 2decomp-fft and fishpack.</td>
+</tr>
+<tr>
+<td><code>tests/</code></td>
+<td>Smoke/regression/functional entry points and shared tools.</td>
+</tr>
+<tr>
+<td><code>tests/regression/</code></td>
+<td>Metric-gated cases, the case lists, and the reference-update script.</td>
+</tr>
+<tr>
+<td><code>tests/functional/</code></td>
+<td>Feature cases: LES, MHD, restart, mesh mapping, inlet database.</td>
+</tr>
+<tr>
+<td><code>tests/tools/</code></td>
+<td>Static checkers, <code>check_metrics.py</code>, and <code>tolerances.json</code>.</td>
+</tr>
+<tr>
+<td><code>validation/</code></td>
+<td>Validation cases, reference databases, shared post-processing tools, and suite manifests.</td>
+</tr>
+<tr>
+<td><code>examples/</code></td>
+<td>Case-specific example inputs.</td>
+</tr>
+<tr>
+<td><code>prepost/input_generator/</code></td>
+<td>Python and shell tools for generating or modifying input files.</td>
+</tr>
+<tr>
+<td><code>prepost/job_submission/</code></td>
+<td>Local run wrapper and HPC submission scripts.</td>
+</tr>
+<tr>
+<td><code>prepost/mesh_reviewer/</code></td>
+<td>Interactive mesh-stretching inspection tool.</td>
+</tr>
+<tr>
+<td><code>docs/guidance/docs/</code></td>
+<td>Markdown source for user guidance.</td>
+</tr>
+<tr>
+<td><code>docs/guidance/html/</code></td>
+<td>Dependency-free static HTML preview generated from the Markdown source.</td>
+</tr>
+<tr>
+<td><code>docs/diagrams/</code></td>
+<td>Source diagrams used by documentation and architecture notes.</td>
+</tr>
+<tr>
+<td><code>docs/code_structure/</code></td>
+<td>Generated FORD code-structure documentation.</td>
+</tr>
+</tbody></table>
+<h2>Code Structure Reference</h2>
+<p>The generated FORD documentation is separate from the user guide:</p>
+<pre><code class="language-text">docs/code_structure/index.html</code></pre>
+<p>From the documentation home page, choose <strong>Code Structure</strong> to browse modules, procedures, derived types, and source files.</p>
+      </article>
+    </div>
+  </main>
+</body>
+</html>

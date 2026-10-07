@@ -1,0 +1,599 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>build_up_fft2decomp_interface &ndash; CHAPSim2</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/chapsim.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>build_up_fft2decomp_interface
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.5% of total for procedures.">146 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/poisson_1stderivcomp_fft2d.f90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/poisson_1stderivcomp_fft2d.f90.html'>poisson_1stderivcomp_fft2d.f90</a></li>
+                <li class="breadcrumb-item"><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></li>
+            <li class="breadcrumb-item active" aria-current="page">build_up_fft2decomp_interface</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/build_up_fft2decomp_interface.html#src">build_up_fft2decomp_interface</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>public  subroutine build_up_fft2decomp_interface(dm)  
+</h2>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='../module/operations.html'>operations</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
+              </ul>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+
+    <p><code>ipinter=1</code>: conventional sixth-order interpolation coefficients as described in <code>Lele 1992 &lt;https://www.sciencedirect.com/science/article/pii/002199919290324R&gt;</code>_\
+<code>ipinter=2</code>: optimal sixth-order interpolation coefficients designed to be as close as possible to spectral interpolators.
+<code>ipinter=3</code>: aggressive sixth-order interpolation coefficients designed to add some numerical dissipation at small scales but they could result in spurious oscillations close to a wall.
+ if(dm%iAccuracy == IACCU_CD2) then
+   ailcaix6 = ZERO
+   aicix6 = HALF
+   bicix6 = ZERO
+   cicix6 = ZERO
+   dicix6 = ZERO
+ else
+   ailcaix6 = THREE * ZPONE
+   aicix6 = ONEPFIVE * HALF
+   bicix6 = ONE * ZPONE * HALF
+   cicix6 = ZERO
+   dicix6 = ZERO
+ end if</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~125"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">build_up_fft2decomp_interface</span><span class="p">(</span><span class="n">dm</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">operations</span>
+<span class="w">    </span><span class="k">use </span><span class="n">parameters_constant_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">udf_type_mod</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">j</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="n">NDIM</span><span class="p">)</span>
+
+<span class="w">    </span><span class="c">!real(WP) :: alcai, aci, bci</span>
+
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_debug_mid_msg</span><span class="p">(</span><span class="s2">&quot;Building up the interface for the poisson solver ...&quot;</span><span class="p">)</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">istret</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">istret</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">istret</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">beta</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">rstret</span>
+<span class="w">      </span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w">  </span><span class="p">(</span><span class="w"> </span><span class="o">-</span><span class="n">ONE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">sqrt_wp</span><span class="p">(</span><span class="w"> </span><span class="n">ONE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">FOUR</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">PI</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">PI</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">beta</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">beta</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">beta</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">HALF</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">alpha</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">      </span><span class="n">beta</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="k">    </span><span class="n">skip_c2c</span><span class="p">(:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fft_skip_c2c</span><span class="p">(:)</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">skip_c2c</span><span class="p">(</span><span class="n">j</span><span class="p">))</span><span class="w"> </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;fft 2decomp_interface: skip c2c fft in direction &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">j</span>
+<span class="w">      </span><span class="k">end do</span>
+<span class="k">    end if</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">xlx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">lxx</span>
+<span class="w">    </span><span class="n">yly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">lyt</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">lyb</span><span class="w"> </span><span class="c">! check computational or physical length?</span>
+<span class="w">    </span><span class="n">zlz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">lzz</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="n">nclx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_periodic</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="n">ncly</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_periodic</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">    </span><span class="n">nclz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_periodic</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">!   nclx1, ncly1, nclz1 are not used for poisson solver but only for debugging.</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">nclx1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_qx</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_DIRICHLET</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">nclx1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">nclx1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">end if</span>
+
+<span class="k">    if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcy_qy</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">ncly1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcy_qy</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_DIRICHLET</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">ncly1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">ncly1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">end if</span>
+
+<span class="k">    if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcz_qz</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w">  </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">nclz1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="k">else if</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcz_qz</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w">  </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_DIRICHLET</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">nclz1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">nclz1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nclx</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">nx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">      </span><span class="n">nxm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">nx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">      </span><span class="n">nxm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">end if</span>
+
+<span class="k">    if</span><span class="w"> </span><span class="p">(</span><span class="n">ncly</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">ny</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">      </span><span class="n">nym</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">ny</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">      </span><span class="n">nym</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">end if</span>
+
+<span class="k">    if</span><span class="w"> </span><span class="p">(</span><span class="n">nclz</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">nz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">      </span><span class="n">nzm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">nz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">      </span><span class="n">nzm</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">np_geo</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="o">==</span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;FFT: nx, ny, nz, nxm, nym, nzm:(var)&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">nx</span><span class="p">,</span><span class="w"> </span><span class="n">ny</span><span class="p">,</span><span class="w"> </span><span class="n">nz</span><span class="p">,</span><span class="w"> </span><span class="n">nxm</span><span class="p">,</span><span class="w"> </span><span class="n">nym</span><span class="p">,</span><span class="w"> </span><span class="n">nzm</span>
+
+<span class="w">    </span><span class="n">dx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">h</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="n">dy</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">h</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="c">!(dm%lyt - dm%lyb) / real(dm%nc(2), WP) !dm%h(2) ! check, computational or physical grid spacing (yes))?</span>
+<span class="w">    </span><span class="n">dz</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">h</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">!alpha, beta from geo</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! if(dm%iAccuracy == IACCU_CD2) then</span>
+<span class="w">    </span><span class="c">!   alcai = ZERO</span>
+<span class="w">    </span><span class="c">!   aci = ONE</span>
+<span class="w">    </span><span class="c">!   bci = ZERO</span>
+<span class="w">    </span><span class="c">! else</span>
+<span class="w">    </span><span class="c">!   alcai = NINE / SIXTYTWO</span>
+<span class="w">    </span><span class="c">!   aci = SIXTYTHREE / SIXTYTWO</span>
+<span class="w">    </span><span class="c">!   bci = SEVENTEEN / SIXTYTWO / THREE</span>
+<span class="w">    </span><span class="c">! end if</span>
+<span class="w">    </span><span class="c">! One scheme per direction, shared with the divergence in eq_continuity and the</span>
+<span class="w">    </span><span class="c">! pressure gradient in eq_momentum2. kxyz is the separable sum xk2 + yk2 + zk2 (the</span>
+<span class="w">    </span><span class="c">! interpolation cross-terms in `waves` sit behind ftr = .false.), and each term is the</span>
+<span class="w">    </span><span class="c">! square of that direction&#39;s own symbol, so each direction only has to match itself.</span>
+<span class="w">    </span><span class="n">iaccu</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">get_projection_accuracy</span><span class="p">(</span><span class="n">dm</span><span class="p">)</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="n">alcaix6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d1fC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">    </span><span class="n">acix6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">d1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dx</span>
+<span class="w">    </span><span class="n">bcix6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">d1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dx</span>
+
+<span class="w">    </span><span class="n">alcaiy6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d1fC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="w">    </span><span class="n">aciy6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">d1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dy</span>
+<span class="w">    </span><span class="n">bciy6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">d1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dy</span>
+
+<span class="w">    </span><span class="n">alcaiz6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">d1fC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">    </span><span class="n">aciz6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">d1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dz</span>
+<span class="w">    </span><span class="n">bciz6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">d1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dz</span>
+
+<span class="w">    </span><span class="c">! ! only IBC_PERIODIC is necessary, as all non-period data are converted to periodic data.</span>
+<span class="w">    </span><span class="c">! if(dm%ibcx(1, 1) == IBC_PERIODIC ) then</span>
+<span class="w">    </span><span class="c">!     alcaix6 = d1fC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     acix6   = d1rC2P(3, 1, IBC_PERIODIC) / dx</span>
+<span class="w">    </span><span class="c">!     bcix6   = d1rC2P(3, 2, IBC_PERIODIC) / dx</span>
+<span class="w">    </span><span class="c">! else if (dm%ibcx(1, 1) == IBC_DIRICHLET ) then</span>
+<span class="w">    </span><span class="c">!     alcaix6 = d1fC2P(3, 1, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     acix6   = d1rC2P(3, 1, IBC_DIRICHLET) / dx</span>
+<span class="w">    </span><span class="c">!     bcix6   = d1rC2P(3, 2, IBC_DIRICHLET) / dx</span>
+<span class="w">    </span><span class="c">! else</span>
+<span class="w">    </span><span class="c">! ! to add and check</span>
+<span class="w">    </span><span class="c">! end if</span>
+
+
+
+<span class="w">    </span><span class="c">! if(dm%ibcy(1, 2) == IBC_PERIODIC ) then</span>
+<span class="w">    </span><span class="c">!     alcaiy6 = d1fC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     aciy6   = d1rC2P(3, 1, IBC_PERIODIC) / dy</span>
+<span class="w">    </span><span class="c">!     bciy6   = d1rC2P(3, 2, IBC_PERIODIC) / dy</span>
+<span class="w">    </span><span class="c">! else if (dm%ibcy(1, 2) == IBC_DIRICHLET ) then</span>
+<span class="w">    </span><span class="c">!     alcaiy6 = d1fC2P(3, 1, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     aciy6   = d1rC2P(3, 1, IBC_DIRICHLET) / dy</span>
+<span class="w">    </span><span class="c">!     bciy6   = d1rC2P(3, 2, IBC_DIRICHLET) / dy</span>
+<span class="w">    </span><span class="c">! else</span>
+<span class="w">    </span><span class="c">! ! to add and check</span>
+<span class="w">    </span><span class="c">! end if</span>
+
+<span class="w">    </span><span class="c">! if(dm%ibcz(1, 3) == IBC_PERIODIC ) then</span>
+<span class="w">    </span><span class="c">!     alcaiz6 = d1fC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     aciz6   = d1rC2P(3, 1, IBC_PERIODIC) / dz</span>
+<span class="w">    </span><span class="c">!     bciz6   = d1rC2P(3, 2, IBC_PERIODIC) / dz</span>
+<span class="w">    </span><span class="c">! else if (dm%ibcz(1, 3) == IBC_DIRICHLET ) then</span>
+<span class="w">    </span><span class="c">!     alcaiz6 = d1fC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     aciz6   = d1rC2P(3, 1, IBC_PERIODIC) / dz</span>
+<span class="w">    </span><span class="c">!     bciz6   = d1rC2P(3, 2, IBC_PERIODIC) / dz</span>
+<span class="w">    </span><span class="c">! else</span>
+<span class="w">    </span><span class="c">! ! to add and check</span>
+<span class="w">    </span><span class="c">! end if</span>
+
+<span class="cp">#ifdef DEBUG_STEPS</span>
+<span class="w">  </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;1stder, alpha, a, b/3 = &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">alcaix6</span><span class="p">,</span><span class="w"> </span><span class="n">acix6</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dx</span><span class="p">,</span><span class="w"> </span><span class="n">bcix6</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dx</span>
+<span class="cp">#endif</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+<span class="c">!   only classic interpolation, no optimized schemes added here. check paper S. Lele 1992</span>
+<span class="c">!   check pros of optimized schemes, to do (see below info from xcompact3d)</span>
+<span class="c">!*``ipinter=1``: conventional sixth-order interpolation coefficients as described in `Lele 1992 &lt;https://www.sciencedirect.com/science/article/pii/002199919290324R&gt;`_\</span>
+<span class="c">!*``ipinter=2``: optimal sixth-order interpolation coefficients designed to be as close as possible to spectral interpolators.</span>
+<span class="c">!*``ipinter=3``: aggressive sixth-order interpolation coefficients designed to add some numerical dissipation at small scales but they could result in spurious oscillations close to a wall.</span>
+<span class="w">    </span><span class="c">! if(dm%iAccuracy == IACCU_CD2) then</span>
+<span class="w">    </span><span class="c">!   ailcaix6 = ZERO</span>
+<span class="w">    </span><span class="c">!   aicix6 = HALF</span>
+<span class="w">    </span><span class="c">!   bicix6 = ZERO</span>
+<span class="w">    </span><span class="c">!   cicix6 = ZERO</span>
+<span class="w">    </span><span class="c">!   dicix6 = ZERO</span>
+<span class="w">    </span><span class="c">! else</span>
+<span class="w">    </span><span class="c">!   ailcaix6 = THREE * ZPONE</span>
+<span class="w">    </span><span class="c">!   aicix6 = ONEPFIVE * HALF</span>
+<span class="w">    </span><span class="c">!   bicix6 = ONE * ZPONE * HALF</span>
+<span class="w">    </span><span class="c">!   cicix6 = ZERO</span>
+<span class="w">    </span><span class="c">!   dicix6 = ZERO</span>
+<span class="w">    </span><span class="c">! end if</span>
+
+<span class="w">    </span><span class="c">! Interpolation transfer functions. Only read by `waves` inside the ftr branch, which</span>
+<span class="w">    </span><span class="c">! is switched off (ftr = .false.), so these are inert today; kept per-direction anyway</span>
+<span class="w">    </span><span class="c">! so they cannot silently disagree with the derivative coefficients above if it is</span>
+<span class="w">    </span><span class="c">! ever switched on.</span>
+<span class="w">    </span><span class="n">ailcaix6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m1fC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">    </span><span class="n">aicix6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">m1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">    </span><span class="n">bicix6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">m1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">    </span><span class="n">cicix6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">    </span><span class="n">dicix6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+
+<span class="w">    </span><span class="n">ailcaiy6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m1fC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="w">    </span><span class="n">aiciy6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">m1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="w">    </span><span class="n">biciy6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">m1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="w">    </span><span class="n">ciciy6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">    </span><span class="n">diciy6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+
+<span class="w">    </span><span class="n">ailcaiz6</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m1fC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">    </span><span class="n">aiciz6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">m1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">    </span><span class="n">biciz6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">m1rC2P</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="n">IBC_PERIODIC</span><span class="p">,</span><span class="w"> </span><span class="n">iaccu</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">    </span><span class="n">ciciz6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">    </span><span class="n">diciz6</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+
+<span class="w">    </span><span class="c">! if(dm%ibcx(1, 1) == IBC_PERIODIC ) then</span>
+<span class="w">    </span><span class="c">!     ailcaix6 = m1fC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     aicix6   = m1rC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     bicix6   = m1rC2P(3, 2, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     cicix6   = zero</span>
+<span class="w">    </span><span class="c">!     dicix6   = zero</span>
+<span class="w">    </span><span class="c">! else if (dm%ibcx(1, 1) == IBC_DIRICHLET ) then</span>
+<span class="w">    </span><span class="c">!     ailcaix6 = m1fC2P(3, 1, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     aicix6   = m1rC2P(3, 1, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     bicix6   = m1rC2P(3, 2, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     cicix6   = zero</span>
+<span class="w">    </span><span class="c">!     dicix6   = zero</span>
+<span class="w">    </span><span class="c">! else</span>
+<span class="w">    </span><span class="c">! ! to add and check</span>
+<span class="w">    </span><span class="c">! end if</span>
+
+<span class="w">    </span><span class="c">! if(dm%ibcy(1, 2) == IBC_PERIODIC ) then</span>
+<span class="w">    </span><span class="c">!     ailcaiy6 = m1fC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     aiciy6   = m1rC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     biciy6   = m1rC2P(3, 2, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     ciciy6   = zero</span>
+<span class="w">    </span><span class="c">!     diciy6   = zero</span>
+<span class="w">    </span><span class="c">! else if (dm%ibcy(1, 2) == IBC_DIRICHLET ) then</span>
+<span class="w">    </span><span class="c">!     ailcaiy6 = m1fC2P(3, 1, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     aiciy6   = m1rC2P(3, 1, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     biciy6   = m1rC2P(3, 2, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     ciciy6   = zero</span>
+<span class="w">    </span><span class="c">!     diciy6   = zero</span>
+<span class="w">    </span><span class="c">! else</span>
+<span class="w">    </span><span class="c">! ! to add and check</span>
+<span class="w">    </span><span class="c">! end if</span>
+
+<span class="w">    </span><span class="c">! if(dm%ibcz(1, 3) == IBC_PERIODIC ) then</span>
+<span class="w">    </span><span class="c">!     ailcaiz6 = m1fC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     aiciz6   = m1rC2P(3, 1, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     biciz6   = m1rC2P(3, 2, IBC_PERIODIC)</span>
+<span class="w">    </span><span class="c">!     ciciz6   = zero</span>
+<span class="w">    </span><span class="c">!     diciz6   = zero</span>
+<span class="w">    </span><span class="c">! else if (dm%ibcz(1, 3) == IBC_DIRICHLET ) then</span>
+<span class="w">    </span><span class="c">!     ailcaiz6 = m1fC2P(3, 1, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     aiciz6   = m1rC2P(3, 1, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     biciz6   = m1rC2P(3, 2, IBC_DIRICHLET)</span>
+<span class="w">    </span><span class="c">!     ciciz6   = zero</span>
+<span class="w">    </span><span class="c">!     diciz6   = zero</span>
+<span class="w">    </span><span class="c">! else</span>
+<span class="w">    </span><span class="c">! ! to add and check</span>
+<span class="w">    </span><span class="c">! end if</span>
+
+<span class="cp">#ifdef DEBUG_STEPS</span>
+<span class="w">  </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;interp, alpha, a/2, b/4 = &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">ailcaix6</span><span class="p">,</span><span class="w"> </span><span class="n">aicix6</span><span class="p">,</span><span class="w"> </span><span class="n">bicix6</span>
+<span class="cp">#endif</span>
+<span class="c">!------------------------------------------------------------------------------</span>
+
+<span class="w">    </span><span class="c">!module waves</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">zkz</span><span class="p">(</span><span class="n">nz</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">    </span><span class="n">zkz</span><span class="o">=</span><span class="n">zero</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">zk2</span><span class="p">(</span><span class="n">nz</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">    </span><span class="n">zk2</span><span class="o">=</span><span class="n">zero</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">ezs</span><span class="p">(</span><span class="n">nz</span><span class="o">/</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">    </span><span class="n">ezs</span><span class="o">=</span><span class="n">zero</span>
+
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">yky</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span>
+<span class="w">    </span><span class="n">yky</span><span class="o">=</span><span class="n">zero</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">yk2</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span>
+<span class="w">    </span><span class="n">yk2</span><span class="o">=</span><span class="n">zero</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">eys</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span>
+<span class="w">    </span><span class="n">eys</span><span class="o">=</span><span class="n">zero</span>
+
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">xkx</span><span class="p">(</span><span class="n">nx</span><span class="p">))</span>
+<span class="w">    </span><span class="n">xkx</span><span class="o">=</span><span class="n">zero</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">xk2</span><span class="p">(</span><span class="n">nx</span><span class="p">))</span>
+<span class="w">    </span><span class="n">xk2</span><span class="o">=</span><span class="n">zero</span>
+<span class="w">    </span><span class="k">allocate</span><span class="p">(</span><span class="n">exs</span><span class="p">(</span><span class="n">nx</span><span class="p">))</span>
+<span class="w">    </span><span class="n">exs</span><span class="o">=</span><span class="n">zero</span>
+
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_debug_end_msg</span><span class="p">()</span>
+
+<span class="w">    </span><span class="c">!---</span>
+<span class="w">    </span><span class="c">! for 2d fft cylindrical coord</span>
+<span class="w">    </span><span class="c">!---</span>
+<span class="w">    </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">skip_c2c</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      allocate</span><span class="p">(</span><span class="n">ty_real</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span>
+<span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">ty_imag</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span>
+<span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">aa</span><span class="p">(</span><span class="n">ny</span><span class="p">),</span><span class="w"> </span><span class="n">bb</span><span class="p">(</span><span class="n">ny</span><span class="p">),</span><span class="w"> </span><span class="n">cc</span><span class="p">(</span><span class="n">ny</span><span class="p">),</span><span class="w"> </span><span class="n">bbb_real</span><span class="p">(</span><span class="n">ny</span><span class="p">),</span><span class="w"> </span><span class="n">bbb_imag</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span>
+<span class="w">      </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">        </span><span class="n">aa</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">h2r</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">yMappingcc</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">yMappingpt</span><span class="p">(</span><span class="n">j</span><span class="w">  </span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">rp</span><span class="p">(</span><span class="n">j</span><span class="w">  </span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">rc</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+<span class="w">        </span><span class="n">cc</span><span class="p">(</span><span class="n">j</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">h2r</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">yMappingcc</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">yMappingpt</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">rp</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">rc</span><span class="p">(</span><span class="n">j</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end do</span>
+<span class="k">      </span><span class="n">bb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="p">(</span><span class="n">aa</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">cc</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_periodic</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="w">        </span><span class="c">!if(dm%ibcy_pr(1)/=IBC_NEUMANN) &amp;</span>
+<span class="w">        </span><span class="c">!call Print_warning_msg(&#39;The assumption of bcy(1) TDMA coeff. is broken.&#39;)</span>
+<span class="w">        </span><span class="c">! assume dphi/dn = 0 on b.c., Neumann B.C</span>
+<span class="w">        </span><span class="c">! here apply the second order ghost cell configuration</span>
+<span class="w">        </span><span class="n">bb</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bb</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">aa</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">aa</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0_WP</span>
+<span class="w">        </span><span class="c">! for pipe centre</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_PIPE</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">          </span><span class="n">aa</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">          </span><span class="n">bb</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="p">(</span><span class="n">aa</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">cc</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">        </span><span class="k">end if</span>
+<span class="w">        </span><span class="c">!</span>
+<span class="w">        </span><span class="c">! assume dphi/dn = 0 on b.c., Neumann B.C</span>
+<span class="w">        </span><span class="c">! here apply the second order ghost cell configuration</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcy_pr</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">/=</span><span class="n">IBC_NEUMANN</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="k">call </span><span class="n">Print_warning_msg</span><span class="p">(</span><span class="s1">&#39;The assumption of bcy(2) TDMA coeff. is broken.&#39;</span><span class="p">)</span>
+<span class="w">        </span><span class="n">bb</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">bb</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">cc</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+<span class="w">        </span><span class="n">cc</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">nc</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0_WP</span>
+<span class="w">        </span><span class="c">!</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="w">    </span><span class="c">! write(*,*) &#39;a&#39;, aa</span>
+<span class="w">    </span><span class="c">! write(*,*) &#39;b&#39;, bb</span>
+<span class="w">    </span><span class="c">! write(*,*) &#39;c&#39;, cc</span>
+<span class="w">      </span><span class="k">allocate</span><span class="p">(</span><span class="n">rc2</span><span class="p">(</span><span class="n">ny</span><span class="p">))</span>
+<span class="w">      </span><span class="n">rc2</span><span class="p">(:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ONE</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">rci</span><span class="p">(:)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">rci</span><span class="p">(:))</span>
+<span class="w">    </span><span class="k">end if</span>
+
+<span class="k">    return</span>
+<span class="k">  end subroutine </span><span class="n">build_up_fft2decomp_interface</span>
+</pre></div>
+
+    </section>
+    <br>
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>

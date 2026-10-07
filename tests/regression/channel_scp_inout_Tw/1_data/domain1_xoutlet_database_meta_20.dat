@@ -1,0 +1,22 @@
+CHAPSim_bundle_v2
+group xoutlet_database
+iter 20
+iter_start 41
+iter_end 60
+time  4.1000000000000002E-002
+time_end  5.9999999999999998E-002
+dt  1.0000000000000000E-003
+idom 1
+icase 1
+coordinate 1
+layout bundled
+precision_bytes 8
+endianness native
+nc 64 80 64
+np 64 81 64
+length  8.0000000000000000E+000 -1.0000000000000000E+000  1.0000000000000000E+000  4.0000000000000000E+000
+stretch 2 1  1.0000000000000001E-001
+periodic T F T
+ndbbuf 20
+fields ndbbuf=20;outlet1_qx:dxcc,outlet2_qx:dxcc,outlet1_qy:dxpc,outlet2_qy:dxpc,outlet1_qz:dxcp,outlet2_qz:dxcp
+field_shapes outlet1_qx=20,80,64;outlet2_qx=20,80,64;outlet1_qy=20,81,64;outlet2_qy=20,81,64;outlet1_qz=20,80,64;outlet2_qz=20,80,64

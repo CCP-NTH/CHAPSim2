@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CHAPSim2 User Guidance</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      color: #17202a;
+      background: #f7f9fc;
+    }
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 48px 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    .brand img {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    h1 {
+      margin: 0;
+    }
+    a {
+      color: #2457c5;
+    }
+    .links {
+      display: grid;
+      gap: 20px;
+      margin-top: 24px;
+    }
+    .section {
+      display: grid;
+      gap: 10px;
+    }
+    .section h2 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+    .links a {
+      display: block;
+      padding: 16px 18px;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      background: white;
+      text-decoration: none;
+      color: #17202a;
+    }
+    .links a:hover {
+      border-color: #2f6fed;
+    }
+    .title {
+      font-weight: 650;
+    }
+    .desc {
+      display: block;
+      margin-top: 4px;
+      color: #53657a;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <img src="../chapsim_logo.png" alt="CHAPSim2 logo">
+      <h1>CHAPSim2 User Guidance</h1>
+    </div>
+    <p>
+      These pages are the source guidance files. They can be read directly in a
+      browser or rendered as a MkDocs site from this folder when MkDocs is
+      available.
+    </p>
+    <div class="links">
+      <section class="section">
+        <h2>Start Here</h2>
+        <a href="html/index.html">
+          <span class="title">Overview</span>
+          <span class="desc">Repository layout and the recommended user workflow.</span>
+        </a>
+        <a href="html/installation.html">
+          <span class="title">Installation and First Run</span>
+          <span class="desc">Build prerequisites, short test run, and diagnostics to watch.</span>
+        </a>
+      </section>
+      <section class="section">
+        <h2>Benchmark Cases</h2>
+        <a href="html/benchmark-cases.html">
+          <span class="title">Benchmark and Validation Cases</span>
+          <span class="desc">Case families, naming conventions, and recommended starting cases.</span>
+        </a>
+      </section>
+      <section class="section">
+        <h2>User Guide and How-To's</h2>
+        <a href="html/user-guide.html">
+          <span class="title">Workflow Overview</span>
+          <span class="desc">A practical path through input setup, mesh review, restarts, and analysis.</span>
+        </a>
+        <a href="html/input-file.html">
+          <span class="title">Input File Guide</span>
+          <span class="desc">Meaning, type, and valid values for `input_chapsim.ini` variables.</span>
+        </a>
+        <a href="html/mesh-reviewer.html">
+          <span class="title">Mesh Stretching Reviewer</span>
+          <span class="desc">Interactive y-mesh stretching viewer and command-line options.</span>
+        </a>
+        <a href="html/mesh-restart.html">
+          <span class="title">Restarting on a Different Mesh</span>
+          <span class="desc">Two-step interpolation workflow for same-topology mesh changes.</span>
+        </a>
+        <a href="html/postprocessing.html">
+          <span class="title">Postprocessing and Output Data</span>
+          <span class="desc">Output folders, statistics levels, monitor plots, and example scripts.</span>
+        </a>
+        <a href="html/testing.html">
+          <span class="title">Regression and Smoke Tests</span>
+          <span class="desc">How to run short smoke checks and metric-based regression suites.</span>
+        </a>
+      </section>
+      <section class="section">
+        <h2>Reference and Methodology</h2>
+        <a href="html/reference.html">
+          <span class="title">Reference</span>
+          <span class="desc">Input, files, folders, and links to code-structure documentation.</span>
+        </a>
+        <a href="html/methodology.html">
+          <span class="title">Methodology</span>
+          <span class="desc">Geometry, mesh, boundary-condition, output, and solver-scope overview.</span>
+        </a>
+      </section>
+      <section class="section">
+        <h2>Help</h2>
+        <a href="html/troubleshooting.html">
+          <span class="title">Troubleshooting</span>
+          <span class="desc">Browser previews, filesystem I/O, restart setup, and missing metrics.</span>
+        </a>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

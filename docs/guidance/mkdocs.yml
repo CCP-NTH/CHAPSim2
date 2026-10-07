@@ -1,0 +1,23 @@
+site_name: CHAPSim2 User Guide
+nav:
+    - Home: index.md
+    - Getting Started:
+        - Installation and First Run: installation.md
+        - FFT Backend (Generic or FFTW): fft-backend.md
+    - Benchmark Cases:
+        - Benchmark and Example Cases: benchmark-cases.md
+    - User Guide and How-To's:
+        - Overview: user-guide.md
+        - Input File: input-file.md
+        - Mesh Stretching Reviewer: mesh-reviewer.md
+        - Restart I/O Modes: restart-io.md
+        - Restarting on a Different Mesh: mesh-restart.md
+        - Postprocessing: postprocessing.md
+        - Regression and Smoke Tests: testing.md
+    - Reference:
+        - Reference: reference.md
+    - Methodology:
+        - Methodology: methodology.md
+    - Troubleshooting:
+        - Troubleshooting: troubleshooting.md
+theme: material

@@ -1,0 +1,23 @@
+{
+  "global mass balance":   0.00000000E+00,
+  "max. mass conservation (interior)":   2.21266077E-15,
+  "max. mass conservation (inlet)":   2.18170128E-15,
+  "max. mass conservation (outlet)":   2.21247502E-15,
+  "max. physical mass conservation (interior)":   1.67873528E-14,
+  "max. physical mass conservation (inlet)":   1.64243619E-14,
+  "max. physical mass conservation (outlet)":   1.65839564E-14,
+  "max. projected mass conservation (interior)":   2.21266077E-15,
+  "max. projected mass conservation (inlet)":   2.18170128E-15,
+  "max. projected mass conservation (outlet)":   2.21247502E-15,
+  "physical Poisson compatibility defect":  -6.96222535E-17,
+  "explicit uniform Poisson-source correction":   0.00000000E+00,
+  "Poisson projected-source amplitude":  -6.82036768E-18,
+  "Poisson zero-mode projection (scaled solver RHS)":  -2.04611031E-14,
+  "total mass":   2.51371495E+01,
+  "total mass drift from run start":   0.00000000E+00,
+  "global pressure drop":   3.98160359E-02,
+  "mean dpdx":  -1.58395191E-03,
+  "total kinetic energy":   6.66702558E-01,
+  "bulk velocity ux":   1.00000000E+00,
+  "bulk velocity uz":   1.00229898E-07
+}

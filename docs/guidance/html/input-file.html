@@ -1,0 +1,1236 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Input File Guide - CHAPSim2 Guidance</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      margin: 0;
+      color: #17202a;
+      background: #f7f9fc;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 34px 24px 64px;
+      background: white;
+      min-height: 100vh;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 245px minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .brand img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    nav {
+      position: sticky;
+      top: 18px;
+      border-right: 1px solid #d7dee8;
+      padding-right: 18px;
+      color: #53657a;
+      font-size: 0.92rem;
+    }
+    .nav-section {
+      margin-bottom: 18px;
+    }
+    .nav-section span {
+      display: block;
+      margin-bottom: 6px;
+      color: #17202a;
+      font-weight: 700;
+    }
+    .nav-section a {
+      display: block;
+      margin: 4px 0;
+    }
+    a {
+      color: #2457c5;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin-top: 1.5em;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2.1rem;
+    }
+    code {
+      background: #eef2f7;
+      padding: 0.1em 0.3em;
+      border-radius: 4px;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 8px;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #d7dee8;
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: #eef2f7;
+      text-align: left;
+    }
+    .doc-home {
+      display: inline-block;
+      margin-top: 12px;
+      font-weight: 650;
+    }
+    @media (max-width: 820px) {
+      .layout {
+        display: block;
+      }
+      nav {
+        position: static;
+        border-right: 0;
+        border-bottom: 1px solid #d7dee8;
+        padding: 0 0 18px;
+        margin-bottom: 28px;
+      }
+      .nav-section a {
+        display: inline-block;
+        margin-right: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <img src="../../chapsim_logo.png" alt="CHAPSim2 logo">
+      <strong>CHAPSim2 User Guidance</strong>
+    </div>
+    <div class="layout">
+      <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
+<div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
+<div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
+      <article>
+<h1>CHAPSim Input File Guide</h1>
+<p>CHAPSim2 reads simulation parameters from an INI-style configuration file, typically named <code>input_chapsim.ini</code>. Input generation tools may produce files named <code>input_chapsim_auto.ini</code> or <code>input_chapsim_gui.ini</code>; before solver execution, ensure the selected file is placed or renamed as <code>input_chapsim.ini</code> in the case directory.</p>
+<p>The file parser operates on a section-based structure; however, variable order within sections is significant. Maintain variable order as shown in generated templates.</p>
+<h2>What This File Controls</h2>
+<p>The input file establishes the primary interface between user specifications and the Fortran solver. It controls:</p>
+<ul>
+<li><strong>Physical configuration</strong>: Geometry specification, Reynolds number, thermal/magnetohydrodynamic options, and working-fluid properties</li>
+<li><strong>Numerical discretization</strong>: Grid resolution, domain extent, mesh stretching, time-stepping, and spatial/temporal discretization schemes</li>
+<li><strong>Boundary conditions</strong>: Periodic directions, inlet/outlet treatment, wall velocity specifications, wall temperature, and wall heat flux</li>
+<li><strong>Simulation control</strong>: Iteration ranges for flow and thermal field computation</li>
+<li><strong>Output specification</strong>: Restart checkpoint frequency, visualization output frequency, statistics accumulation parameters, and database plane I/O</li>
+<li><strong>Diagnostics</strong>: Probe location definitions and monitoring-output frequency</li>
+</ul>
+<p>For new configurations, begin with the most similar existing <code>tests/regression/*/input_chapsim.ini</code> template or generate a file using <code>prepost/input_generator/autoinput_script.py</code> or <code>autoinput_gui.py</code>, then edit accordingly.</p>
+<h2>Basic Rules</h2>
+<table><thead><tr>
+<th>Property</th>
+<th>Format</th>
+</tr></thead><tbody>
+<tr>
+<td>Boolean values</td>
+<td>Fortran logical syntax: <code>.true.</code> or <code>.false.</code></td>
+</tr>
+<tr>
+<td>Integer values</td>
+<td>Whole-number identifiers or counters</td>
+</tr>
+<tr>
+<td>Real values</td>
+<td>Decimal or scientific notation (e.g., <code>1e-05</code>)</td>
+</tr>
+<tr>
+<td>List values</td>
+<td>Comma-separated (e.g., <code>veloinit= 0.0,0.0,0.0</code>)</td>
+</tr>
+<tr>
+<td>Domain lengths</td>
+<td>Nondimensional with respect to reference half-height, radius, or equivalent case length</td>
+</tr>
+<tr>
+<td>Thermal parameters</td>
+<td>SI units before solver nondimensionalization</td>
+</tr>
+<tr>
+<td>Reynolds numbers</td>
+<td>Based on channel half-height, pipe radius, or equivalent case reference length</td>
+</tr>
+<tr>
+<td>Boundary condition rows</td>
+<td>Format: <code>bc_low,bc_high,value_low,value_high</code></td>
+</tr>
+<tr>
+<td>Comments</td>
+<td>Lines beginning with <code>#</code> or <code>;</code>, blank lines, or indented comment lines are ignored</td>
+</tr>
+</tbody></table>
+<h2><code>[process]</code></h2>
+<p>Governs high-level execution mode selection.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>is_prerun</code></td>
+<td><code>logical</code></td>
+<td>If <code>.true.</code>, run preprocessing/recommendation logic only.</td>
+</tr>
+<tr>
+<td><code>is_postprocess</code></td>
+<td><code>logical</code></td>
+<td>If <code>.true.</code>, run postprocessing mode.</td>
+</tr>
+</tbody></table>
+<h2><code>[decomposition]</code></h2>
+<p>Controls MPI/domain decomposition.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>nxdomain</code></td>
+<td><code>integer</code></td>
+<td>Number of domains in <code>x</code>. Current production inputs should use <code>1</code>.</td>
+</tr>
+<tr>
+<td><code>p_row</code></td>
+<td><code>integer</code></td>
+<td>MPI process grid rows, usually aligned with <code>y</code>. Use <code>0</code> for automatic decomposition.</td>
+</tr>
+<tr>
+<td><code>p_col</code></td>
+<td><code>integer</code></td>
+<td>MPI process grid columns, usually aligned with <code>z</code>. Use <code>0</code> for automatic decomposition.</td>
+</tr>
+</tbody></table>
+<p><code>p_row= 0, p_col= 0</code> is the recommended setting and the only one the test suite exercises. 2decomp&amp;FFT then chooses the process grid itself, and every regression, functional and decomposition-independence check in <code>tests/</code> has been run that way. Results should not depend on the process grid — that is a solver invariant — but a hand-chosen <code>p_row</code>/<code>p_col</code> is outside the tested matrix, so verify such a run against the automatic layout before trusting it for production.</p>
+<h2><code>[domain]</code></h2>
+<p>Defines the physical case and domain extents.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>icase</code></td>
+<td><code>integer</code></td>
+<td>Flow geometry/case ID.</td>
+</tr>
+<tr>
+<td><code>lxx</code></td>
+<td><code>real</code></td>
+<td>Domain length in <code>x</code>. For channel, pipe, and annular cases this is usually streamwise length.</td>
+</tr>
+<tr>
+<td><code>lyt</code></td>
+<td><code>real</code></td>
+<td>Upper <code>y</code>/radial boundary. Some cases reset this internally.</td>
+</tr>
+<tr>
+<td><code>lyb</code></td>
+<td><code>real</code></td>
+<td>Lower <code>y</code>/radial boundary. Some cases reset this internally.</td>
+</tr>
+<tr>
+<td><code>lzz</code></td>
+<td><code>real</code></td>
+<td>Domain length in <code>z</code>. For pipe/annular this is azimuthal length and is reset to <code>2π</code>.</td>
+</tr>
+</tbody></table>
+<p>Case IDs:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Case</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>Channel</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Pipe</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Annular</td>
+</tr>
+<tr>
+<td>4</td>
+<td>3-D Taylor-Green vortex</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Duct</td>
+</tr>
+</tbody></table>
+<p>Notes:</p>
+<ul>
+<li>Pipe and annular cases use cylindrical coordinates internally.</li>
+<li>For pipe, <code>lyb</code>, <code>lyt</code>, and <code>lzz</code> are reset to <code>0</code>, <code>1</code>, and <code>2π</code>.</li>
+<li>For annular flow, <code>lyt</code> and <code>lzz</code> are reset to <code>1</code> and <code>2π</code>.</li>
+<li>For duct, <code>x</code> and <code>y</code> are wall-normal directions and <code>z</code> is streamwise.</li>
+</ul>
+<h2><code>[flow]</code></h2>
+<p>Defines flow-field initialisation and Reynolds numbers.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>initfl</code></td>
+<td><code>integer</code></td>
+<td>Flow-field initialisation method ID.</td>
+</tr>
+<tr>
+<td><code>irestartfrom</code></td>
+<td><code>integer</code></td>
+<td>Restart iteration for flow when <code>initfl=0</code>; otherwise reset internally to <code>0</code>.</td>
+</tr>
+<tr>
+<td><code>veloinit</code></td>
+<td><code>real(3)</code></td>
+<td>Constant initial velocity vector used when <code>initfl=4</code>.</td>
+</tr>
+<tr>
+<td><code>noiselevel</code></td>
+<td><code>real</code></td>
+<td>Random perturbation amplitude added during initialisation where applicable.</td>
+</tr>
+<tr>
+<td><code>reni</code></td>
+<td><code>real</code></td>
+<td>Initial Reynolds number used for ramping/scaling.</td>
+</tr>
+<tr>
+<td><code>nreni</code></td>
+<td><code>integer</code></td>
+<td>Number of iterations over which the initial Reynolds setting is applied.</td>
+</tr>
+<tr>
+<td><code>ren</code></td>
+<td><code>real</code></td>
+<td>Target Reynolds number for the run.</td>
+</tr>
+</tbody></table>
+<p>Initialisation IDs:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>Restart from saved fields</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Random perturbation</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Initialise from inlet data</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Given constant values</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Poiseuille profile</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Analytic function, used for Taylor-Green vortex</td>
+</tr>
+</tbody></table>
+<p>Common choices are <code>initfl=5</code> for periodic channel, pipe, and annular cases; <code>initfl=3</code> for inlet/outlet cases; and <code>initfl=6</code> for Taylor-Green vortex.</p>
+<h2><code>[thermo]</code></h2>
+<p>Defines thermal/energy-equation settings. Include this section when solving the energy equation. Some templates include placeholder thermal values even for isothermal cases because the input format is shared.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ithermo</code></td>
+<td><code>logical</code></td>
+<td>Enables thermal/energy equation.</td>
+</tr>
+<tr>
+<td><code>icht</code></td>
+<td><code>logical</code></td>
+<td>Enables conjugate heat transfer mode.</td>
+</tr>
+<tr>
+<td><code>igravity</code></td>
+<td><code>integer</code></td>
+<td>Gravity direction ID.</td>
+</tr>
+<tr>
+<td><code>ifluid</code></td>
+<td><code>integer</code></td>
+<td>Working-fluid property model ID.</td>
+</tr>
+<tr>
+<td><code>ref_l0</code></td>
+<td><code>real</code></td>
+<td>Dimensional reference length in metres.</td>
+</tr>
+<tr>
+<td><code>ref_t0</code></td>
+<td><code>real</code></td>
+<td>Reference temperature in Kelvin.</td>
+</tr>
+<tr>
+<td><code>inittm</code></td>
+<td><code>integer</code></td>
+<td>Thermal-field initialisation method ID: <code>0</code> restart, <code>4</code> constant, <code>6</code> analytic/function, <code>7</code> linear interpolation from boundary conditions, or <code>8</code> smooth interpolation from boundary conditions. <code>8</code> matches <code>7</code> when both y sides are Dirichlet, and is quadratic with zero gradient on the lower side otherwise — the regular shape for a pipe axis or an adiabatic wall. Both fall back to <code>4</code> for an inlet-outlet configuration, where the inlet plane prescribes the temperature instead.</td>
+</tr>
+<tr>
+<td><code>irestartfrom</code></td>
+<td><code>integer</code></td>
+<td>Restart iteration for thermal field when <code>inittm=0</code>.</td>
+</tr>
+<tr>
+<td><code>tini</code></td>
+<td><code>real</code></td>
+<td>Initial temperature in Kelvin.</td>
+</tr>
+<tr>
+<td><code>inout_buffer</code></td>
+<td><code>real(2)</code></td>
+<td>Inlet and outlet thermal buffer lengths as <code>inlet,outlet</code>, scaled by <code>L0</code>. Over the inlet buffer the y-wall Dirichlet temperature is smoothstepped from the inlet value to the prescribed wall value, so the wall matches the inlet plane exactly at the corner and reaches the wall value with zero slope. This is a *gradually heated* entry, not an unheated one.</td>
+</tr>
+<tr>
+<td><code>qw_ramp</code></td>
+<td><code>logical,integer,integer</code></td>
+<td>Heat-flux ramp as <code>enabled,start_iter,end_iter</code>.</td>
+</tr>
+</tbody></table>
+<p>Gravity IDs:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Direction</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>No gravity</td>
+</tr>
+<tr>
+<td>1</td>
+<td>+x</td>
+</tr>
+<tr>
+<td>-1</td>
+<td>-x</td>
+</tr>
+<tr>
+<td>2</td>
+<td>+y</td>
+</tr>
+<tr>
+<td>-2</td>
+<td>-y</td>
+</tr>
+<tr>
+<td>3</td>
+<td>+z</td>
+</tr>
+<tr>
+<td>-3</td>
+<td>-z</td>
+</tr>
+</tbody></table>
+<p>Fluid IDs:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Fluid</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>Supercritical water</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Supercritical CO2</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Liquid sodium</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Liquid lead</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Liquid bismuth</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Liquid LBE</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Liquid lithium</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Liquid FLiBe</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Liquid PbLi eutectic</td>
+</tr>
+</tbody></table>
+<p>ID 7 is reserved for ordinary liquid water, which has no property correlation in the code; the solver rejects it. Use ID 1 (<code>scp_water</code>) and its NIST table instead.</p>
+<p>For IDs 3-10 the properties come from correlations evaluated over a single temperature interval, printed in the log at startup. That interval is the liquid range (melting to boiling) narrowed by the validity range of any correlation that holds over less than it; the log names whichever property sets each end, and <code>ref_t0</code> or <code>tini</code> outside the interval stops the run with that name in the message.</p>
+<p>PbLi is the only fluid currently narrowed this way. Its dynamic viscosity is the Arrhenius expression measured by Jauch, Haase and Schulz, *Thermophysical Properties in the System Li-Pb*, report KfK-4144 (Kernforschungszentrum Karlsruhe, 1986), Part II section 4.3, which prints <code>eta = 0.187 * exp(11640 / (R T))</code> mPa s, i.e. <code>mu = 1.87e-4 * exp(11640 / (8.314 T))</code> Pa s. It is evaluated over <strong>521-625 K</strong> only. That interval is an implementation policy, not an established physical validity range: the report prints no range beside the equation, the INL MOOSE implementation of the same expression restricts it to melting point-625 K, the liquid-breeder compilation quoting it lists 521-900 K, and 521-625 K is their overlap. The report&#x27;s own section 5 discusses extrapolating its properties to 1250 K, but that is a statement about the whole property set rather than a viscosity bound, so it is not used to widen the interval.</p>
+<p>The PbLi heat capacity is the same report&#x27;s <code>cp = 0.195 - 9.116e-6 T</code> J/(g K), stated there for 508-800 K; that range is recorded but binds nothing, because 508 K is already the melting point and the viscosity cuts the top to 625 K. The PbLi density and thermal conductivity fits used here do not match that report and carry no other identified source range, so they do not narrow the interval further.</p>
+<h2><code>[mhd]</code></h2>
+<p>Defines magnetohydrodynamics settings. If MHD is disabled, the section may still contain placeholder values.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>imhd</code></td>
+<td><code>logical</code></td>
+<td>Enables MHD model.</td>
+</tr>
+<tr>
+<td><code>NStuart</code></td>
+<td><code>logical,real</code></td>
+<td>Pair <code>enabled,value</code> for Stuart number.</td>
+</tr>
+<tr>
+<td><code>NHartmn</code></td>
+<td><code>logical,real</code></td>
+<td>Pair <code>enabled,value</code> for Hartmann number.</td>
+</tr>
+<tr>
+<td><code>B_static</code></td>
+<td><code>real(3)</code></td>
+<td>Static magnetic-field vector <code>Bx,By,Bz</code>.</td>
+</tr>
+</tbody></table>
+<p>Exactly one of <code>NStuart</code> or <code>NHartmn</code> should be enabled for an MHD run. <code>B_static</code> is always interpreted as a global Cartesian vector. For cylindrical pipe and annular cases, the solver decomposes this vector into local radial and azimuthal components internally.</p>
+<p>The current MHD implementation assumes constant electrical conductivity in the electric-potential solve. This is appropriate for isothermal cases and is used as the present approximation for thermal MHD cases. For the liquid-metal property relation currently under review, a 20% temperature increase of about 114 K gives an estimated electrical-conductivity decrease of about 6.9% through the corresponding resistivity change. Temperature-dependent conductivity is therefore a known future extension rather than part of the current MHD model.</p>
+<h2><code>[mesh]</code></h2>
+<p>Defines grid resolution and wall-normal/radial stretching. Use the <a href="mesh-reviewer.html">Mesh Stretching Reviewer</a> to inspect the y-direction mapping before running an expensive case.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ncx</code></td>
+<td><code>integer</code></td>
+<td>Number of cells in <code>x</code>.</td>
+</tr>
+<tr>
+<td><code>ncy</code></td>
+<td><code>integer</code></td>
+<td>Number of cells in <code>y</code> or radial direction.</td>
+</tr>
+<tr>
+<td><code>ncz</code></td>
+<td><code>integer</code></td>
+<td>Number of cells in <code>z</code> or azimuthal direction. For cylindrical cases, odd values are increased to the next even value.</td>
+</tr>
+<tr>
+<td><code>istret</code></td>
+<td><code>integer</code></td>
+<td>Mesh stretching type ID.</td>
+</tr>
+<tr>
+<td><code>rstret</code></td>
+<td><code>integer,real</code></td>
+<td>Stretching method and factor as <code>method,factor</code>.</td>
+</tr>
+<tr>
+<td><code>poisson_y_method</code></td>
+<td><code>string</code></td>
+<td>Optional wall-normal Poisson method: <code>auto</code> (default), <code>fft</code>, or <code>tdma</code>.</td>
+</tr>
+</tbody></table>
+<p>Stretching type IDs for <code>istret</code>:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>No stretching</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Centre clustering</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Two-side clustering</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Bottom-side clustering</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Top-side clustering</td>
+</tr>
+</tbody></table>
+<p>Stretching method IDs for the first value of <code>rstret</code>:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>Uniform mesh; use with <code>istret=0</code> and factor <code>0.0</code></td>
+</tr>
+<tr>
+<td>1</td>
+<td>Five-mode spectral stretching</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Tanh stretching method</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Power-law stretching method</td>
+</tr>
+</tbody></table>
+<p>Five-mode spectral stretching uses a smooth analytic stretching function whose spectral representation contains only five modes, <code>-2</code>, <code>-1</code>, <code>0</code>, <code>1</code>, and <code>2</code>. This compact support is useful when the stretching effect is handled as a convolution in the FFT spectral domain.</p>
+<p>Recommended defaults are two-side clustering for channel and annular flow, top-side clustering for pipe flow, and no stretching for Taylor-Green vortex.</p>
+<p><code>poisson_y_method=auto</code> preserves the validated solver selection: it uses the y-skip TDMA path for non-periodic-y thermal cases and cylindrical cases, and the full FFT path otherwise. Explicit <code>fft</code> is available for Cartesian cases using a uniform mesh or the spectral stretching method; thermal inlet/outlet use is experimental. Explicit <code>tdma</code> requires a non-periodic y direction.</p>
+<h2><code>[bc]</code></h2>
+<p>Defines boundary conditions and periodic-flow driving.</p>
+<p>Each boundary-condition line has four values:</p>
+<pre><code class="language-ini">ifbcx_u= bc_xlow,bc_xhigh,value_xlow,value_xhigh</code></pre>
+<p>The prefix gives the direction (<code>ifbcx</code>, <code>ifbcy</code>, <code>ifbcz</code>) and the suffix gives the variable (<code>u</code>, <code>v</code>, <code>w</code>, <code>p</code>, <code>t</code>). The first BC/value pair belongs to the lower/start boundary, and the second belongs to the upper/end boundary.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>ifbcx_u</code>, <code>ifbcx_v</code>, <code>ifbcx_w</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Velocity BCs on x boundaries.</td>
+</tr>
+<tr>
+<td><code>ifbcx_p</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Pressure BC on x boundaries.</td>
+</tr>
+<tr>
+<td><code>ifbcx_t</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Temperature BC on x boundaries. Temperature values are Kelvin for Dirichlet; heat flux values are W/m² before nondimensionalisation for Neumann. <strong>The inlet Dirichlet value is not a free parameter:</strong> <code>input_general.f90:1694-1698</code> overwrites it with <code>tini</code>, so the third field is ignored whenever the inlet is Dirichlet. Set the inlet temperature through <code>tini</code>.</td>
+</tr>
+<tr>
+<td><code>ifbcy_u</code>, <code>ifbcy_v</code>, <code>ifbcy_w</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Velocity BCs on y/radial boundaries.</td>
+</tr>
+<tr>
+<td><code>ifbcy_p</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Pressure BC on y/radial boundaries.</td>
+</tr>
+<tr>
+<td><code>ifbcy_t</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Temperature BC on y/radial boundaries.</td>
+</tr>
+<tr>
+<td><code>ifbcz_u</code>, <code>ifbcz_v</code>, <code>ifbcz_w</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Velocity BCs on z/azimuthal boundaries.</td>
+</tr>
+<tr>
+<td><code>ifbcz_p</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Pressure BC on z/azimuthal boundaries.</td>
+</tr>
+<tr>
+<td><code>ifbcz_t</code></td>
+<td><code>integer,integer,real,real</code></td>
+<td>Temperature BC on z/azimuthal boundaries.</td>
+</tr>
+<tr>
+<td><code>idriven</code></td>
+<td><code>integer</code></td>
+<td>Flow-driving method ID.</td>
+</tr>
+<tr>
+<td><code>drivenfc</code></td>
+<td><code>real</code></td>
+<td>Magnitude for wall-shear or pressure-gradient driving. Mass-flux driving normally uses <code>0.0</code>.</td>
+</tr>
+</tbody></table>
+<p>Boundary condition IDs:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+<th>Typical use</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>Interior</td>
+<td>Pipe axis or internal boundary</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Periodic</td>
+<td>Periodic directions</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Symmetric</td>
+<td>Symmetry plane</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Antisymmetric</td>
+<td>Antisymmetry plane</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Dirichlet</td>
+<td>Fixed value</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Neumann</td>
+<td>Fixed gradient or heat flux</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Interpolation</td>
+<td>Internal/interpolation use</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Convective outlet</td>
+<td>Open outlet, only supported in <code>x</code> or <code>z</code></td>
+</tr>
+<tr>
+<td>9</td>
+<td>Profile inlet</td>
+<td>1-D/profile inlet, not supported on all faces</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Database inlet</td>
+<td>Inlet from stored plane data</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Poiseuille</td>
+<td>Nominal Poiseuille BC</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Other/interpolation</td>
+<td>Special cases</td>
+</tr>
+</tbody></table>
+<p>Flow driving IDs for <code>idriven</code>:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>No forcing</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Constant streamwise mass flux in <code>x</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Constant wall shear in <code>x</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Constant pressure gradient in <code>x</code></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Constant streamwise mass flux in <code>z</code></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Constant wall shear in <code>z</code></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Constant pressure gradient in <code>z</code></td>
+</tr>
+</tbody></table>
+<p>Important constraints:</p>
+<ul>
+<li>Boundary rows are given for five variables in this order: <code>u</code>, <code>v</code>, <code>w</code>, <code>p</code>, and <code>T</code>. Even isothermal runs still include the <code>T</code> rows.</li>
+<li>Use driving only for periodic wall-bounded cases. In open inlet/outlet cases, the solver disables flow driving.</li>
+<li>Convective outlet in <code>y</code> is not supported.</li>
+<li>For pipe, the lower radial boundary is treated internally as the axis/interior.</li>
+<li>If any side of a variable is periodic, both sides for that variable are made periodic.</li>
+<li>For database inlet in <code>x</code>, the solver applies database treatment to all velocity components and Neumann treatment to pressure.</li>
+</ul>
+<h2><code>[scheme]</code></h2>
+<p>Defines time integration and spatial discretisation.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>dt</code></td>
+<td><code>real</code></td>
+<td>Time-step size.</td>
+</tr>
+<tr>
+<td><code>itimescheme</code></td>
+<td><code>integer</code></td>
+<td>Time integration method ID.</td>
+</tr>
+<tr>
+<td><code>iaccuracy</code></td>
+<td><code>integer</code></td>
+<td>Spatial derivative accuracy ID.</td>
+</tr>
+<tr>
+<td><code>iviscous</code></td>
+<td><code>integer</code></td>
+<td>Viscous-term treatment ID.</td>
+</tr>
+<tr>
+<td><code>out_sponge_l_re</code></td>
+<td><code>real(2)</code></td>
+<td>Outlet sponge layer as <code>length,Re_strength</code>. Use nonzero length for open outlet cases if needed.</td>
+</tr>
+</tbody></table>
+<p>Time scheme IDs for <code>itimescheme</code>:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>Euler</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Adams-Bashforth 2</td>
+</tr>
+<tr>
+<td>2</td>
+<td>RK3-Crank-Nicolson</td>
+</tr>
+<tr>
+<td>3</td>
+<td>RK3</td>
+</tr>
+</tbody></table>
+<p>Spatial accuracy IDs for <code>iaccuracy</code>:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>2nd-order central difference</td>
+</tr>
+<tr>
+<td>2</td>
+<td>4th-order central difference</td>
+</tr>
+<tr>
+<td>3</td>
+<td>4th-order compact</td>
+</tr>
+<tr>
+<td>4</td>
+<td>6th-order compact</td>
+</tr>
+</tbody></table>
+<p>Viscous treatment IDs for <code>iviscous</code>:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>1</td>
+<td>Explicit viscous treatment</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Semi-implicit viscous treatment</td>
+</tr>
+</tbody></table>
+<p>For cylindrical coordinates, the solver forces <code>iaccuracy</code> to 2nd-order central difference. For channel cases, compact schemes are reduced to 4th-order central difference.</p>
+<h2><code>[simcontrol]</code></h2>
+<p>Defines iteration ranges.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>niterflowfirst</code></td>
+<td><code>integer</code></td>
+<td>First flow iteration to run.</td>
+</tr>
+<tr>
+<td><code>niterflowlast</code></td>
+<td><code>integer</code></td>
+<td>Last flow iteration to run.</td>
+</tr>
+<tr>
+<td><code>niterthermofirst</code></td>
+<td><code>integer</code></td>
+<td>First thermal iteration; use <code>0</code> when thermal is disabled.</td>
+</tr>
+<tr>
+<td><code>niterthermolast</code></td>
+<td><code>integer</code></td>
+<td>Last thermal iteration; use <code>0</code> when thermal is disabled.</td>
+</tr>
+<tr>
+<td><code>restart_clock</code></td>
+<td><code>string</code></td>
+<td>Optional. How a restart maps onto the run timeline: <code>continue</code> (default) or <code>reset</code>.</td>
+</tr>
+</tbody></table>
+<p>All four <code>niter*</code> values are <strong>absolute iteration numbers on the run clock</strong>, not offsets from the restart point.</p>
+<p>The environment variable <code>CHAPSIM_NITER</code> can override the final iteration for short smoke tests.</p>
+<h3><code>restart_clock</code></h3>
+<p>A restart carries two distinct numbers that are easy to confuse. <code>irestartfrom</code> in <code>[flow]</code> and <code>[thermo]</code> selects <strong>which checkpoint file to read</strong>; <code>restart_clock</code> selects <strong>where the run then sits on the timeline</strong>. They are the same number under <code>continue</code> and deliberately differ under <code>reset</code>.</p>
+<table><thead><tr>
+<th>Value</th>
+<th>Run starts at</th>
+<th>Stored RHS history</th>
+<th>Stored statistics</th>
+</tr></thead><tbody>
+<tr>
+<td><code>continue</code> (default)</td>
+<td>the checkpoint iteration and its time</td>
+<td>kept</td>
+<td>read, and accumulation continues</td>
+</tr>
+<tr>
+<td><code>reset</code></td>
+<td>iteration <code>0</code>, time <code>0</code></td>
+<td>discarded</td>
+<td>not read; accumulators start empty</td>
+</tr>
+</tbody></table>
+<p>Use <code>continue</code> to extend a simulation — this is the normal case and reproduces the behaviour of a run that was never interrupted. Use <code>reset</code> to treat a stored field as an initial condition for a new experiment, for example when restarting from a developed field under a changed Reynolds number, wall temperature, or body force.</p>
+<p>The clock is a property of the <strong>run</strong>, not of one field, so it is set once and both the flow and the thermal field adopt it. This matters in the common case of restarting the flow from a developed field while starting the thermal field fresh:</p>
+<pre><code class="language-ini">[flow]
+initfl= restart
+irestartfrom= 2000
+[thermo]
+inittm= const
+[simcontrol]
+niterflowfirst= 2001
+niterthermofirst= 2001
+niterflowlast= 5000
+niterthermolast= 5000</code></pre>
+<p>Under <code>continue</code> the run clock is 2000, the fresh thermal field is injected at that same iteration, and both fields advance together from 2001. The flow and thermal output files therefore carry matching iteration numbers.</p>
+<p>Two constraints follow from there being one clock:</p>
+<ul>
+<li>If <strong>both</strong> fields restart, they must restart from the <strong>same</strong> <code>irestartfrom</code>. A mismatch is rejected at input-parsing time rather than producing a run in which one field silently idles while the other catches up.</li>
+<li>Under <code>reset</code> the run starts at iteration 0, so <code>niterflowfirst</code> and <code>niterthermofirst</code> must be set to <code>1</code>, not to <code>irestartfrom + 1</code>. Every other iteration-numbered input — <code>stat_istart</code>, <code>ndbstart</code>, <code>ndbend</code>, <code>initReTo</code> and the wall-heat-flux ramp bounds — is likewise read on the new clock. The solver warns if a field&#x27;s last iteration is at or before the iteration the run starts from, since that field would never be advanced.</li>
+</ul>
+<h2><code>[io]</code></h2>
+<p>Controls monitor, restart, visualisation, statistics, and plane-database I/O.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>cpu_nfre</code></td>
+<td><code>integer</code></td>
+<td>Frequency for CPU/progress output.</td>
+</tr>
+<tr>
+<td><code>ckpt_nfre</code></td>
+<td><code>integer</code></td>
+<td>Checkpoint/restart write frequency.</td>
+</tr>
+<tr>
+<td><code>visu_idim</code></td>
+<td><code>integer</code></td>
+<td>Visualisation mode ID.</td>
+</tr>
+<tr>
+<td><code>visu_nfre</code></td>
+<td><code>integer</code></td>
+<td>Visualisation output frequency.</td>
+</tr>
+<tr>
+<td><code>visu_nskip</code></td>
+<td><code>integer(3)</code></td>
+<td>Cell skip for visualisation output in <code>x,y,z</code>.</td>
+</tr>
+<tr>
+<td><code>stat_istart</code></td>
+<td><code>integer</code></td>
+<td>Iteration at which statistics begin.</td>
+</tr>
+<tr>
+<td><code>stat_level</code></td>
+<td><code>integer</code></td>
+<td>Statistics level.</td>
+</tr>
+<tr>
+<td><code>stat_nskip</code></td>
+<td><code>integer(3)</code></td>
+<td>Cell skip for statistics in <code>x,y,z</code>.</td>
+</tr>
+<tr>
+<td><code>stat_visu_nfre</code></td>
+<td><code>integer</code></td>
+<td>Optional visualised-statistics output frequency. Defaults to <code>visu_nfre</code> when absent.</td>
+</tr>
+<tr>
+<td><code>stat_visu_mode</code></td>
+<td><code>string</code></td>
+<td>Optional visualised-statistics mode: <code>all</code> or <code>tsp_only</code>. Defaults to <code>all</code>.</td>
+</tr>
+<tr>
+<td><code>is_wrt_read_bc</code></td>
+<td><code>logical,logical</code></td>
+<td>Pair <code>write_outlet,read_inlet</code> for plane database files.</td>
+</tr>
+<tr>
+<td><code>wrt_read_nfre</code></td>
+<td><code>integer(3)</code></td>
+<td>Plane database frequency and range as <code>frequency,start,end</code>.</td>
+</tr>
+<tr>
+<td><code>existing_output_policy</code></td>
+<td><code>string</code></td>
+<td>Action when an output file already exists: <code>overwrite</code> (default), <code>skip</code>, or <code>rename_existing</code>.</td>
+</tr>
+<tr>
+<td><code>restart_data_layout</code></td>
+<td><code>string</code></td>
+<td>Backward-compatible alias that sets both restart input and output layouts: <code>per_field</code> (default) or <code>bundled</code>.</td>
+</tr>
+<tr>
+<td><code>restart_data_layout_read</code></td>
+<td><code>string</code></td>
+<td>Layout used when reading existing restart and inlet-database files. Overrides <code>restart_data_layout</code> for input only.</td>
+</tr>
+<tr>
+<td><code>restart_data_layout_write</code></td>
+<td><code>string</code></td>
+<td>Layout used when writing future restart, outlet-database, statistics, and visualisation bundle-capable outputs. Overrides <code>restart_data_layout</code> for output only.</td>
+</tr>
+<tr>
+<td><code>restart_history_mode</code></td>
+<td><code>string</code></td>
+<td>Restart history policy: <code>exact</code> (default) or <code>compact</code>. <code>exact</code> stores/reads RHS history and derived thermal properties; <code>compact</code> reduces restart size and rebuilds history on the first restarted step. <code>compact</code> is isothermal only and is rejected for thermal runs.</td>
+</tr>
+<tr>
+<td><code>reset_unit_massflux</code></td>
+<td><code>logical</code></td>
+<td>Optional restart restore control. Default <code>false</code>; when <code>true</code>, rescale the restored streamwise velocity component so its volume-average bulk value is 1.0.</td>
+</tr>
+</tbody></table>
+<p>Visualisation mode IDs for <code>visu_idim</code>:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>3-D only</td>
+</tr>
+<tr>
+<td>1</td>
+<td>2-D planes only</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Both 3-D and 2-D outputs</td>
+</tr>
+</tbody></table>
+<p>Statistics levels for <code>stat_level</code>:</p>
+<table><thead><tr>
+<th>ID</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td>0</td>
+<td>No statistics</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Mean/first moments</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Second moments</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Extended/turbulent budget statistics where supported</td>
+</tr>
+</tbody></table>
+<p>Visualised-statistics modes for <code>stat_visu_mode</code>:</p>
+<table><thead><tr>
+<th>Mode</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>all</code></td>
+<td>Write both <code>t_avg_*</code> and <code>tsp_avg_*</code> visualisation/post-processing statistics.</td>
+</tr>
+<tr>
+<td><code>tsp_only</code></td>
+<td>Write only <code>tsp_avg_*</code> visualisation/post-processing statistics. This requires at least one periodic direction. Checkpoint/restart <code>t_avg_*</code> statistics are still written with <code>ckpt_nfre</code>.</td>
+</tr>
+</tbody></table>
+<p>Existing-output policies:</p>
+<table><thead><tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>overwrite</code></td>
+<td>Overwrite existing files</td>
+</tr>
+<tr>
+<td><code>skip</code></td>
+<td>Skip writing when the target file exists</td>
+</tr>
+<tr>
+<td><code>rename_existing</code></td>
+<td>Rename the existing file before writing</td>
+</tr>
+</tbody></table>
+<p>Restart-data layouts:</p>
+<table><thead><tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>per_field</code></td>
+<td>Store one restart file per field</td>
+</tr>
+<tr>
+<td><code>bundled</code></td>
+<td>Store one restart bundle per field group</td>
+</tr>
+</tbody></table>
+<p>Restart-history modes:</p>
+<table><thead><tr>
+<th>Value</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>exact</code></td>
+<td>Store and read restart history needed for continuous-run restart equivalence. This is the default.</td>
+</tr>
+<tr>
+<td><code>compact</code></td>
+<td>Store only primary restart fields plus required boundary state. RHS history is rebuilt with startup handling after restart, so exact continuous-run equivalence is not expected.</td>
+</tr>
+</tbody></table>
+<p>For the complete restart file lists under isothermal, thermal, bundled/per-field, and convective-outlet conditions, see <a href="restart-io.html">Restart I/O Modes</a>.</p>
+<p>For database inlet cases, set <code>is_wrt_read_bc= .false.,.true.</code> and make sure the requested inlet database files exist.</p>
+<h2><code>[probe]</code></h2>
+<p>Defines point probes for monitor output.</p>
+<table><thead><tr>
+<th>Variable</th>
+<th>Fortran type</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>npp</code></td>
+<td><code>integer</code></td>
+<td>Number of probe points.</td>
+</tr>
+<tr>
+<td><code>pt1</code>, <code>pt2</code>, ...</td>
+<td><code>real(3)</code></td>
+<td>Probe coordinates as <code>x,y,z</code>.</td>
+</tr>
+</tbody></table>
+<p>Probe coordinates use the same nondimensional coordinate system as the domain.</p>
+<h2>Practical Advice</h2>
+<h3>Recommended Setup Workflow</h3>
+<ol>
+<li>Select the closest existing case under <code>tests/</code>.</li>
+<li>Generate or copy an input file.</li>
+<li>Check <code>[domain]</code>, <code>[mesh]</code>, <code>[flow]</code>, and <code>[bc]</code> first; these define the core physics and numerics.</li>
+<li>Enable <code>[thermo]</code> or <code>[mhd]</code> only when the case needs those physics.</li>
+<li>Keep the first run short by reducing <code>niterflowlast</code>, or by using the <code>CHAPSIM_NITER</code> environment override.</li>
+<li>Increase output frequencies only after the run is stable.</li>
+</ol>
+<h3>Case Setup Checks</h3>
+<ul>
+<li>Keep <code>nxdomain= 1</code> unless the solver is extended to support multiple x-domains.</li>
+<li>Use <code>p_row= 0</code> and <code>p_col= 0</code>. This is the recommended and the only tested setting; a hand-chosen process grid is untested and should be checked against it first.</li>
+<li>For periodic channel, pipe, and annular cases, use periodic streamwise BCs and a driving method such as <code>idriven=1</code>.</li>
+<li>For open inlet/outlet cases, use <code>initfl=3</code>, <code>idriven=0</code>, and database reading when <code>ifbcx_u</code> or <code>ifbcz_u</code> uses BC <code>10</code>.</li>
+<li>For thermal wall-heating cases, confirm the sign convention of Neumann heat flux before launching a long production run.</li>
+<li>For pipe and annular cases, remember that cylindrical-coordinate constraints can override some mesh and accuracy choices.</li>
+</ul>
+<h3>Runtime Monitoring</h3>
+<p>During early runs, watch:</p>
+<ul>
+<li>Input-reading messages for unexpected case, mesh, BC, or scheme overrides.</li>
+<li>CFL and time-step diagnostics.</li>
+<li>Mass-conservation checks.</li>
+<li>Wall quantities and driven-flow response.</li>
+<li>Restart, visualisation, statistics, and plane-database output frequencies.</li>
+</ul>
+<p>Treat warnings during input reading as setup feedback. They often indicate that the solver has corrected an unsupported or inconsistent option.</p>
+      </article>
+    </div>
+  </main>
+</body>
+</html>

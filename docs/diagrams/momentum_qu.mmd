@@ -1,0 +1,62 @@
+flowchart TD
+    %% Main Entry
+    subgraph Solver_Entry [Public Interface: Solve_momentum_eq]
+        A[Start RK Sub-step] --> B{is_thermo?}
+        
+        %% Variable Setup
+        B -- Yes --> C["Set Variable Density/Viscosity<br/>(Advance gx, gy, gz)"]
+        B -- No --> D["Standard Fluid Props<br/>(Advance qx, qy, qz)"]
+        
+        C --> E[Compute Convective-Outlet BCs]
+        D --> E
+    end
+
+    %% RHS Construction
+    subgraph RHS_Logic [Compute_momentum_rhs]
+        E --> F[Initialize RHS Arrays]
+        F --> G{Coordinate System?}
+        
+        G -- Cylindrical --> H[Apply 1/r and 1/r² Corrections<br/>& Pipe-Axis Symmetry]
+        G -- Cartesian --> I[Standard Derivatives]
+        
+        H --> J[Add Physics Terms]
+        I --> J
+        
+        J --> J1[Convection & Diffusion]
+        J --> J2[Gravity & Buoyancy]
+        J --> J3[MHD Lorentz Forces]
+        
+        J1 & J2 & J3 --> K{Driving Force?}
+        K -- Mass Flux --> K1[Adjust for Constant Flow]
+        K -- Pressure Gradient --> K2[Add Imposed Gradient]
+        K -- None --> L[Finalize RHS]
+        K1 & K2 --> L
+    end
+
+    %% Integration & Projection
+    subgraph Projection_Method [Fractional Step & Correction]
+        L --> M[Calculate_momentum_fractional_step]
+        M --> N["Update Provisional Velocity<br/>(Explicit RK Step)"]
+        
+        N --> O{Is Projection Step?}
+        O -- Yes --> P[solve_pressure_poisson]
+        P --> Q[Build RHS from Continuity Error]
+        Q --> R[Solve via FFT]
+        R --> S[Correct_massflux]
+        S --> T[Update Velocity with Pressure Gradient]
+        
+        O -- No --> U[Skip Correction]
+        T --> V[Return to Main Loop]
+        U --> V
+    end
+
+    %% Private Helper Callouts
+    subgraph Helpers [Private Helpers]
+        direction LR
+        H1[gravity_decomposition_to_rz]
+        H2[Pencil Transposes]
+    end
+
+    %% Connections to Helpers
+    J2 -.-> H1
+    L -.-> H2

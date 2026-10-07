@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CHAPSim2 Documentation</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.5;
+      margin: 0;
+      color: #17202a;
+      background: #f6f8fb;
+    }
+    main {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 56px 24px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .brand img {
+      width: 76px;
+      height: 76px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    h1 {
+      margin: 0;
+      font-size: 2.2rem;
+    }
+    p {
+      max-width: 760px;
+      color: #425466;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin-top: 28px;
+    }
+    a.card {
+      display: block;
+      padding: 22px;
+      border: 1px solid #d7dee8;
+      border-radius: 8px;
+      background: white;
+      color: inherit;
+      text-decoration: none;
+      box-shadow: 0 1px 2px rgba(16, 24, 40, 0.04);
+    }
+    a.card:hover {
+      border-color: #2f6fed;
+      box-shadow: 0 8px 20px rgba(16, 24, 40, 0.08);
+    }
+    .card h2 {
+      margin: 0 0 8px;
+      font-size: 1.25rem;
+    }
+    .card p {
+      margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <img src="chapsim_logo.png" alt="CHAPSim2 logo">
+      <h1>CHAPSim2 Documentation</h1>
+    </div>
+    <p>
+      Choose the user-facing guidance for running cases and editing input files,
+      or the generated FORD reference for code modules, procedures, and source
+      structure.
+    </p>
+    <div class="grid">
+      <a class="card" href="guidance/index.html">
+        <h2>User Guidance</h2>
+        <p>Organized guide for installation, benchmark cases, workflows, input reference, methodology, and troubleshooting.</p>
+      </a>
+      <a class="card" href="code_structure/index.html">
+        <h2>Code Structure</h2>
+        <p>Generated FORD reference for modules, procedures, types, and source files.</p>
+      </a>
+      <a class="card" href="diagrams/index.html">
+        <h2>Diagrams</h2>
+        <p>Source Mermaid diagrams for documentation, diagnostics, and architecture notes.</p>
+      </a>
+    </div>
+  </main>
+</body>
+</html>

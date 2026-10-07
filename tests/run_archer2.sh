@@ -3,14 +3,17 @@ set -euo pipefail
 
 # -----------------------------
 # Configuration (non-interactive defaults)
+#
+# ACCOUNT and EXEC_PATH are site-specific: set them here, or export them
+# before running, to your own ARCHER2 project allocation and installation.
 # -----------------------------
 SLURM_FILE="sbatch_archer2_submit.slurm"
 JOB_NAME="job"
 JOB_TIME="00:10:00"
 JOB_NODES=1
 TASK_NODE=128
-ACCOUNT="c01-eng"
-EXEC_PATH="/work/c01/c01/wwangdl/CHAPSim2"
+ACCOUNT="${ACCOUNT:-your-archer2-project}"
+EXEC_PATH="${EXEC_PATH:-/path/to/CHAPSim2}"
 SRC_DIR="${EXEC_PATH}/src"
 SUBMIT_JOB=true        # true to automatically submit job
 

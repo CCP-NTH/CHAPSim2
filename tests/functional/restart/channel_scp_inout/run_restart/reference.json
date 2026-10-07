@@ -1,0 +1,15 @@
+{
+  "global mass balance":  -1.77635684E-15,
+  "max. mass conservation (interior)":   2.04183092E-05,
+  "max. mass conservation (inlet)":   2.04183092E-05,
+  "max. mass conservation (outlet)":   2.04183092E-05,
+  "total kinetic energy":   5.87443609E-01,
+  "bulk velocity ux":   1.00006721E+00,
+  "bulk velocity uz":   8.56642204E-09,
+  "mean dpdx":  -1.04190912E+01,
+  "global energy balance":   2.46463571E-03,
+  "bulk massflux gx":   9.69680700E-01,
+  "bulk massflux gz":   7.93976051E-09,
+  "bulk enthalpy":   2.57385253E-03,
+  "global energy balance":   2.46463571E-03
+}

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Testing - CHAPSim2 Guidance</title>
+  <style>
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.55;
+      margin: 0;
+      color: #17202a;
+      background: #f7f9fc;
+    }
+    main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 34px 24px 64px;
+      background: white;
+      min-height: 100vh;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 245px minmax(0, 1fr);
+      gap: 32px;
+      align-items: start;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 22px;
+    }
+    .brand img {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      flex: 0 0 auto;
+    }
+    nav {
+      position: sticky;
+      top: 18px;
+      border-right: 1px solid #d7dee8;
+      padding-right: 18px;
+      color: #53657a;
+      font-size: 0.92rem;
+    }
+    .nav-section {
+      margin-bottom: 18px;
+    }
+    .nav-section span {
+      display: block;
+      margin-bottom: 6px;
+      color: #17202a;
+      font-weight: 700;
+    }
+    .nav-section a {
+      display: block;
+      margin: 4px 0;
+    }
+    a {
+      color: #2457c5;
+    }
+    h1, h2, h3 {
+      line-height: 1.25;
+      margin-top: 1.5em;
+    }
+    h1 {
+      margin-top: 0;
+      font-size: 2.1rem;
+    }
+    code {
+      background: #eef2f7;
+      padding: 0.1em 0.3em;
+      border-radius: 4px;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 14px;
+      background: #111827;
+      color: #f9fafb;
+      border-radius: 8px;
+    }
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: inherit;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 18px 0;
+      font-size: 0.95rem;
+    }
+    th, td {
+      border: 1px solid #d7dee8;
+      padding: 8px 10px;
+      vertical-align: top;
+    }
+    th {
+      background: #eef2f7;
+      text-align: left;
+    }
+    .doc-home {
+      display: inline-block;
+      margin-top: 12px;
+      font-weight: 650;
+    }
+    @media (max-width: 820px) {
+      .layout {
+        display: block;
+      }
+      nav {
+        position: static;
+        border-right: 0;
+        border-bottom: 1px solid #d7dee8;
+        padding: 0 0 18px;
+        margin-bottom: 28px;
+      }
+      .nav-section a {
+        display: inline-block;
+        margin-right: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <div class="brand">
+      <img src="../../chapsim_logo.png" alt="CHAPSim2 logo">
+      <strong>CHAPSim2 User Guidance</strong>
+    </div>
+    <div class="layout">
+      <nav><div class="nav-section"><span>Home</span><a href="index.html">Overview</a></div>
+<div class="nav-section"><span>Getting Started</span><a href="installation.html">Installation</a> <a href="fft-backend.html">FFT Backend</a></div>
+<div class="nav-section"><span>Benchmark Cases</span><a href="benchmark-cases.html">Benchmark and Validation Cases</a></div>
+<div class="nav-section"><span>User Guide and How-To&#x27;s</span><a href="user-guide.html">Overview</a> <a href="input-file.html">Input File Guide</a> <a href="mesh-reviewer.html">Mesh Reviewer</a> <a href="restart-io.html">Restart I/O</a> <a href="mesh-restart.html">Mesh Restart</a> <a href="postprocessing.html">Postprocessing</a> <a href="testing.html">Testing</a></div>
+<div class="nav-section"><span>Reference</span><a href="reference.html">Reference</a></div>
+<div class="nav-section"><span>Methodology</span><a href="methodology.html">Methodology</a></div>
+<div class="nav-section"><span>Troubleshooting</span><a href="troubleshooting.html">Troubleshooting</a></div><a class="doc-home" href="../../index.html">Documentation Home</a></nav>
+      <article>
+<h1>Regression and Smoke Tests</h1>
+<p>The <code>tests/</code> directory contains ready-to-run cases and helper scripts for quick health checks and numerical regression checks. The <code>validation/</code> directory contains the longer-term validation framework: case metadata, reference databases, shared post-processing tools, and suite manifests.</p>
+<p>Use smoke tests for rapid validation after build or input-generation changes. Use regression tests before merging solver, discretization, I/O, or physics modifications.</p>
+<h2>Test Scripts</h2>
+<table><thead><tr>
+<th>Script</th>
+<th>Purpose</th>
+</tr></thead><tbody>
+<tr>
+<td><code>tests/run_smoke.sh</code></td>
+<td>Execute a 10-iteration subset of representative cases for rapid validation</td>
+</tr>
+<tr>
+<td><code>tests/run_regression.sh</code></td>
+<td>Run or validate standard/extended regression suites against reference metrics</td>
+</tr>
+<tr>
+<td><code>tests/run_functional.sh</code></td>
+<td>Run the behavioural <code>restart/</code> and <code>mesh_mapping/</code> functional sub-suites</td>
+</tr>
+<tr>
+<td><code>tests/regression/case_lists.sh</code></td>
+<td>The single definition of the standard, extended, and functional case lists, shared by the local and ARCHER2 runners</td>
+</tr>
+<tr>
+<td><code>tests/regression/update_reference.sh</code></td>
+<td>Replace <code>reference.json</code> files with newly generated metrics (use only after validated changes)</td>
+</tr>
+<tr>
+<td><code>tests/tools/check_metrics.py</code></td>
+<td>Compare <code>regression_test_metrics.json</code> against <code>reference.json</code> using specified tolerances</td>
+</tr>
+<tr>
+<td><code>tests/tools/tolerances.json</code></td>
+<td>Metric comparison tolerance specifications</td>
+</tr>
+<tr>
+<td><code>tests/tools/check_*.py</code></td>
+<td>Standalone static checkers over inputs, layout, and source wiring; take no arguments and need no build</td>
+</tr>
+</tbody></table>
+<p>The top-level <code>tests/run_smoke.sh</code> and <code>tests/run_regression.sh</code> are thin wrappers that exec the corresponding script in <code>tests/regression/</code>.</p>
+<p>The suite manifests in <code>validation/suites/</code> document the same smoke, standard-regression, and extended-regression case groups in a data-oriented form for future CI and validation tooling. The shell scripts in <code>tests/</code> remain the current execution interface.</p>
+<h2>Static Checks</h2>
+<p>The standalone checkers in <code>tests/tools/</code> need no build and no solver run. They inspect input files, directory layout, and source wiring, and are the cheapest thing to run after editing inputs or test assets:</p>
+<pre><code class="language-bash">for f in tests/tools/check_*.py; do
+  [ &quot;$(basename &quot;$f&quot;)&quot; = check_metrics.py ] &amp;&amp; continue
+  python3 &quot;$f&quot; &gt;/dev/null 2&gt;&amp;1 || echo &quot;FAIL $f&quot;
+done</code></pre>
+<p><code>check_metrics.py</code> is excluded because it is the metric comparator the runners invoke with file paths, not a standalone check.</p>
+<h2>Smoke Tests</h2>
+<p>From the <code>tests/</code> directory:</p>
+<pre><code class="language-bash">cd tests
+bash run_smoke.sh</code></pre>
+<p>The smoke suite is designed to detect build failures, missing files, invalid input generation, and early runtime errors. It is not intended as a substitute for statistically converged production validation.</p>
+<h2>Regression Tests</h2>
+<p>From the <code>tests/</code> directory, execute:</p>
+<pre><code class="language-bash">cd tests
+bash run_regression.sh</code></pre>
+<p>The script supports two operational modes:</p>
+<table><thead><tr>
+<th>Mode</th>
+<th>Behavior</th>
+</tr></thead><tbody>
+<tr>
+<td><code>run</code></td>
+<td>Execute each case, await <code>regression_test_metrics.json</code>, then validate metrics</td>
+</tr>
+<tr>
+<td><code>check</code></td>
+<td>Skip solver execution and validate existing metrics only</td>
+</tr>
+</tbody></table>
+<p>Two test suites are available:</p>
+<table><thead><tr>
+<th>Suite</th>
+<th>Scope</th>
+</tr></thead><tbody>
+<tr>
+<td><code>standard</code></td>
+<td>12 cases: a compact default set for routine validation</td>
+</tr>
+<tr>
+<td><code>extended</code></td>
+<td>23 cases, adding the remaining thermal and inlet/outlet combinations plus three non-default-order cases (<code>cd4</code>, <code>cp4</code>, <code>cp6</code>)</td>
+</tr>
+</tbody></table>
+<p>With the extended suite you are also asked whether to include the functional tests, which adds the metric-gated <code>LES_*</code> and <code>MHD_*</code> cases from <code>tests/functional/</code>.</p>
+<p>Each prompt times out after ten seconds and takes its default. To run without any prompts, set <code>CI=true</code> and select the suite through the environment:</p>
+<pre><code class="language-bash">cd tests
+CI=true TEST_MODE=run REGRESSION_SUITE=standard ./run_regression.sh
+CI=true TEST_MODE=run REGRESSION_SUITE=extended INCLUDE_FUNCTIONAL_TESTS=y ./run_regression.sh</code></pre>
+<p>Cases run on four MPI ranks by default; override with <code>NP</code>. As a rough guide on a recent desktop workstation, the standard suite takes on the order of ten minutes and the extended suite around a quarter of an hour.</p>
+<h2>Reference Metrics</h2>
+<p>Each regression case should contain:</p>
+<table><thead><tr>
+<th>File</th>
+<th>Meaning</th>
+</tr></thead><tbody>
+<tr>
+<td><code>input_chapsim.ini</code></td>
+<td>Case setup.</td>
+</tr>
+<tr>
+<td><code>run_chapsim.sh</code></td>
+<td>Case run wrapper.</td>
+</tr>
+<tr>
+<td><code>reference.json</code></td>
+<td>Accepted reference metrics.</td>
+</tr>
+<tr>
+<td><code>regression_test_metrics.json</code></td>
+<td>Metrics produced by the latest run.</td>
+</tr>
+</tbody></table>
+<p>The comparison is performed by:</p>
+<pre><code class="language-bash">python3 tests/tools/check_metrics.py \
+  tests/regression/&lt;case&gt;/regression_test_metrics.json \
+  tests/regression/&lt;case&gt;/reference.json \
+  tests/tools/tolerances.json</code></pre>
+<p><code>tolerances.json</code> holds a global absolute and relative tolerance per metric key, plus per-case overrides under <code>cases</code>. An override replaces the global entry outright, so omitting <code>abs</code> drops the absolute check and leaves only the relative one. The <code>_comment_*</code> blocks in the file explain why individual keys are gated the way they are; read them before relying on a bare number.</p>
+<h2>Updating References</h2>
+<p>Update references only after confirming that any numerical changes are intentional and physically validated.</p>
+<pre><code class="language-bash">cd tests/regression
+bash update_reference.sh</code></pre>
+<p>This operation copies every available <code>regression_test_metrics.json</code> over its <code>reference.json</code> — all cases at once, not a selected one. Review the resulting version-control diff before committing.</p>
+<p>Record the reasoning in a new <code>tests/reference_update_log_YYYY-MM-DD.md</code>, following the existing files: what changed in the solver, which baselines moved and by how much, and why any related case was left alone.</p>
+<h2>Recommended Testing Policy</h2>
+<ul>
+<li><strong>Input-generation tool modifications</strong>: Execute smoke tests and at least the affected generated cases</li>
+<li><strong>I/O, restart, mesh, or boundary-condition modifications</strong>: Execute smoke tests plus the standard regression suite</li>
+<li><strong>Numerical scheme or physics model modifications</strong>: Execute the extended regression suite and inspect representative monitor histories</li>
+<li><strong>Reference metric updates</strong>: Document the rationale explaining why new metrics are expected</li>
+</ul>
+      </article>
+    </div>
+  </main>
+</body>
+</html>
