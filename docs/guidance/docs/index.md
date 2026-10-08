@@ -45,7 +45,6 @@ New users should:
 - `lib/`: Bundled third-party libraries (2decomp-fft, fishpack)
 - `tests/`: `regression/` metric-gated cases, `functional/` feature cases, and `tools/`
 - `validation/`: Validation cases, reference databases, shared post-processing tools, and suite manifests
-- `examples/`: Case-specific example inputs
 - `prepost/`: Input generation (`input_generator/`), job submission (`job_submission/`), and mesh review (`mesh_reviewer/`)
 - `docs/`: User guidance, source diagrams, and generated code-structure documentation
 

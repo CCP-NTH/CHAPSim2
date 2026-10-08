@@ -52,7 +52,6 @@ validation/thermal_properties/NIST_CO2_8MP.DAT
 # Tests folder
 # Ignore everything recursively in tests, except specific files
 # ------------------------
-#examples/
 tests/*/**
 tests/*/regression_test_metrics.json
 !tests/*/*.sh

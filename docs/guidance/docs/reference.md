@@ -23,7 +23,6 @@ Reference documentation is organized for quick lookup rather than sequential rea
 | `tests/functional/` | Feature cases: LES, MHD, restart, mesh mapping, inlet database. |
 | `tests/tools/` | Static checkers, `check_metrics.py`, and `tolerances.json`. |
 | `validation/` | Validation cases, reference databases, shared post-processing tools, and suite manifests. |
-| `examples/` | Case-specific example inputs. |
 | `prepost/input_generator/` | Python and shell tools for generating or modifying input files. |
 | `prepost/job_submission/` | Local run wrapper and HPC submission scripts. |
 | `prepost/mesh_reviewer/` | Interactive mesh-stretching inspection tool. |
