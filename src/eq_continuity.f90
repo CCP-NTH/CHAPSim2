@@ -483,8 +483,12 @@ contains
     end if
     !fl%mcon(4) = safe_divide(fl%mcon(1)-mm0, dabs(mm0))
     !if(nrank==0) write(*, '(A,1F9.2,A)') ' ', fl%mcon(4)*100.0_WP, '%'
-    ! terminate code once too large
-    if(nrank == 0) then
+    ! terminate code once too large. Only the time-step check (called without
+    ! opt_str, chapsim.f90) can trigger this. The pre-loop calls ('initial',
+    ! 'init-div-free') evaluate div(g) + fl%drhodt before fl%drhodt is computed
+    ! (it is zero until the first energy step), so after a heated restart they
+    ! report max|d rho/dt| of the restored state rather than a continuity error.
+    if(nrank == 0 .and. .not. present(opt_str)) then
       if(safety_mass_residual > 2.0_WP .and. fl%iteration > 10000 ) &
       call Print_error_msg("Mass conservation error exceeds tolerance. Terminate run and investigate.")
     end if

@@ -730,8 +730,38 @@ contains
   !> - fl (in): Flow state.
   !> - dm (in): Domain descriptor.
   !> - suffix (in): Optional suffix appended to the visualisation file name.
+  !> B3.5: metadata of the experimental full-step pressure field 'pr_fullstep'.
+  subroutine write_pr_fullstep_sidecar(dm, visuname, iter, time)
+    use io_files_mod
+    use udf_type_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(*),   intent(in) :: visuname
+    integer,        intent(in) :: iter
+    real(WP),       intent(in) :: time
+    character(256) :: fn
+    integer :: u
+    call generate_pathfile_name(fn, dm%idom, trim(visuname)//'_pr_fullstep_meta', dir_visu_data, 'dat', iter)
+    open(newunit=u, file=trim(fn), status='replace', action='write')
+    write(u, '(A)') 'CHAPSim_pr_fullstep_v1'
+    write(u, '(A)') 'field pr_fullstep'
+    write(u, '(A)') 'definition Pbar = sum_k alpha_k p_k (RK3 stages k=1..3, alpha = 8/15, 2/15, 1/3)'
+    write(u, '(A)') 'meaning full-step effective hydrodynamic pressure of the completed step [t-dt, t]; '// &
+                    'balances the full-step momentum update; not the instantaneous pressure at t'
+    write(u, '(A)') 'gauge volume mean zero when the pressure system is singular (as the stage pressure)'
+    write(u, '(A,1X,I0)') 'iter', iter
+    write(u, '(A,1X,ES23.15)') 'time_completed_step', time
+    write(u, '(A,1X,ES23.15)') 'dt', dm%dt
+    write(u, '(A,1X,ES23.15)') 'time_interval_start', time - dm%dt
+    write(u, '(A,1X,ES23.15)') 'time_midpoint', time - 0.5_WP * dm%dt
+    write(u, '(A)') 'related field pr = internal stage-3 projection pressure (unchanged)'
+    close(u)
+    return
+  end subroutine write_pr_fullstep_sidecar
+  !==============================================================================
   subroutine write_visu_flow(fl, dm, suffix)
     use udf_type_mod
+    use parameters_constant_mod, only: is_pbar_output
     implicit none
     type(t_flow),   intent(in) :: fl
     type(t_domain), intent(in) :: dm
@@ -746,6 +776,15 @@ contains
     call write_visu_file_begin(dm, visuname, iter)
     call write_visu_field_bin_and_xdmf(dm, fl%pres, 'pr', visuname, iter, N_DIRECTION, &
                                        opt_bin_name='visu_pr', opt_reuse_bin_name='pr')
+    ! B3.4/B3.5 experimental: full-step (RK3-weighted) effective pressure of the
+    ! completed step [t-dt, t], centred t-dt/2 ('pr' remains the internal stage
+    ! pressure of the projection, unchanged). A sidecar file records the
+    ! temporal interpretation; the bundle format itself is not changed.
+    if(is_pbar_output .and. fl%is_pres_rk_valid) then
+      call write_visu_field_bin_and_xdmf(dm, fl%pres_rk, 'pr_fullstep', visuname, iter, N_DIRECTION, &
+                                         opt_bin_name='visu_pr_fullstep')
+      if(nrank == 0) call write_pr_fullstep_sidecar(dm, visuname, iter, fl%time)
+    end if
     call write_visu_field_bin_and_xdmf(dm, fl%pcor, 'phi', visuname, iter, N_DIRECTION, &
                                        opt_bin_name='visu_phi')
 

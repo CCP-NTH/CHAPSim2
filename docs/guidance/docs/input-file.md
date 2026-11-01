@@ -38,7 +38,8 @@ Governs high-level execution mode selection.
 | Variable | Fortran type | Meaning |
 |---|---|---|
 | `is_prerun` | `logical` | If `.true.`, run preprocessing/recommendation logic only. |
-| `is_postprocess` | `logical` | If `.true.`, run postprocessing mode. |
+| `is_postprocess` | `logical` | If `.true.`, run the statistical-window post-processing mode only: no time step is taken. See [Statistical-Window Reconstruction](postprocessing.md#statistical-window-reconstruction). Cannot be combined with `is_prerun`. |
+| `pp_stat_window` | `integer(2)` | Required when `is_postprocess = .true.`: `a, b` with `0 <= a < b`. Rebuilds the statistics averaged over iterations `a+1 ... b` from the cumulative statistics written at `a` and `b`. The output always goes to `5_postprocess/window_<a>_<b>/`; the directory is not an input. Ignored otherwise. |
 
 ## `[decomposition]`
 
@@ -131,7 +132,156 @@ isothermal cases because the input format is shared.
 | `irestartfrom` | `integer` | Restart iteration for thermal field when `inittm=0`. |
 | `tini` | `real` | Initial temperature in Kelvin. |
 | `inout_buffer` | `real(2)` | Inlet and outlet thermal buffer lengths as `inlet,outlet`, scaled by `L0`. Over the inlet buffer the y-wall Dirichlet temperature is smoothstepped from the inlet value to the prescribed wall value, so the wall matches the inlet plane exactly at the corner and reaches the wall value with zero slope. This is a *gradually heated* entry, not an unheated one. |
-| `qw_ramp` | `logical,integer,integer` | Heat-flux ramp as `enabled,start_iter,end_iter`. |
+| `qw_ramp` | `logical,integer,integer` | Heat-flux ramp as `enabled,start_iter,end_iter`: a half-cosine ramp of the wall heat flux from 0 at `start_iter` to its full value at `end_iter`, in run iterations (the flow's counter, also when `niterthermofirst > niterflowfirst`). |
+| `rhoh_recovery` | `string`, optional | Recovery of the thermodynamic state from the advanced rho*h: `transported` (default) or `lagged_legacy` (deprecated, comparison only; restarts with imposed-heat-flux walls are not exact, see restart-io). |
+| `property_interp` | `string`, optional | Property-table interpolation in enthalpy: `linear` (default; unchanged behaviour) or `pchip` (EXPERIMENTAL). See below. |
+| `enthalpy_advection` | `string`, optional | Face value of h in the convective flux of rho*h: `cd2` (default; unchanged behaviour) or `koren` (EXPERIMENTAL). See below. |
+| `enthalpy_advection_restart` | `string`, optional | Restart policy for a change of `enthalpy_advection`: `strict` (default; a thermal restart from a checkpoint advanced with the other scheme stops) or `allow_switch`. See below. |
+| `thermal_outlet_pair` | `string`, optional | Thermal state at a convective x-outlet under `rhoh_recovery = transported`: `convective` (default; unchanged behaviour) or `zero_gradient` (EXPERIMENTAL). See below. |
+
+### `property_interp` (experimental)
+
+Table fluids (`scp_water`, `scp_co2`) look up properties from the enthalpy column
+of the table. `linear` interpolates piecewise linearly: d(rho)/dh jumps at every
+table node, and when many heated wall cells cross a node together the step in
+the domain-integrated d(rho)/dt appears as a short pressure impulse.
+`pchip` uses monotone piecewise-cubic Hermite interpolation (Fritsch-Butland
+slopes) of T, rho, mu, k and beta in h: C1 in h, monotone, no overshoot between
+nodes, and table values reproduced exactly at the nodes. In `pchip` mode
+cp = 1/(dT/dh) of the interpolant (consistent with the energy equation; it agrees
+with the tabulated cp as closely as the table's own h and cp columns agree), and
+a lookup by temperature inverts the same T(h).
+
+- Omit the key, or give `linear`, for the existing behaviour; results are
+  unchanged bit for bit.
+- `pchip` requires `rhoh_recovery = transported` and a table fluid; liquid-metal
+  correlations reject it.
+- Position: like every key, `property_interp` is read in order. Put it directly
+  after `rhoh_recovery`; if that key is absent, after `qw_ramp`; if both are
+  absent, after `inout_buffer`. A `property_interp` line anywhere else stops the
+  run with a message.
+- LES: cp enters only the subgrid Prandtl number. Verified with the water-table
+  LES cases; not yet verified with the CO2 table.
+- Restart: every thermal checkpoint is accompanied by
+  `1_data/domain<d>_thermo_interp_meta_<iter>.dat`, which records the
+  interpolation it was written with. Copy it together with the checkpoint (it
+  carries the same iteration number). A thermal restart (`inittm` = restart)
+  must use the same mode: linear to linear and pchip to pchip are accepted (and
+  reproduce the continuous run bit for bit); linear to pchip and pchip to linear
+  stop the run, because the stored density belongs to the other interpolation.
+  A checkpoint without the record (written before `property_interp` existed)
+  is continued with linear interpolation, as before, and is refused with pchip.
+  To change the interpolation, start a fresh thermal field.
+  Executables built before this record existed ignore it: they continue any
+  checkpoint, including a pchip one, with linear interpolation and cannot detect
+  the change of mode. Restart pchip checkpoints only with a current executable.
+- Mesh mapping: the mapping utility does not check the interpolation record of
+  its source checkpoint; its output checkpoints carry the record of the mapping
+  run, not of the source. Use the same `property_interp` in the mapping run as
+  in the run that wrote the source checkpoint (this is not enforced).
+- Not yet established: performance at production scale (property evaluation is
+  about 11 % slower than linear in serial; no difference was resolvable in a
+  whole time step of a small case), and a port to the GPU branch (dev-gpu does
+  not have `property_interp`).
+- Smoother interpolation does not add information to a table of limited
+  precision and is not, by itself, more accurate.
+
+### `enthalpy_advection` (experimental)
+
+The energy equation advances rho*h with the convective flux g h_f, where g is the
+staggered face mass flux (the same one the continuity equation uses) and h_f the
+specific enthalpy at the face. `cd2` takes the midpoint value of the scheme set by
+`iaccuracy`. `koren` takes a Koren-limited MUSCL value, upwinded on the sign of g:
+
+    h_f = h_U + 1/2 psi(r) (h_U - h_UU),   r = (h_D - h_U) / (h_U - h_UU)
+    psi(r) = max(0, min(2r, (1 + 2r)/3, 2))
+
+with U, UU the upwind and far-upwind cells and D the downwind cell. It is evaluated
+without the division and without any tolerance. The face value always lies between
+h_U and h_D (exactly, in floating point). Where the data are smooth and monotone the
+face formula is the unlimited kappa = 1/3 value, (-h_UU + 5 h_U + 2 h_D)/6, the
+third-order upwind-biased face formula on a uniform (computational) grid. At local
+extrema and in steep gradients the limiter reduces it towards first-order upwind.
+
+Accuracy of the complete discretisation: the third order belongs to the face formula
+(and to constant-coefficient advection on a uniform grid). In CHAPSim2 the face value
+multiplies a face mass flux, density and grid metric that vary in space, and the rest
+of the solver (mass flux, diffusion, time coupling) is second order, so `koren` is
+**not** a third-order solver. The tests support approximately second-order global
+accuracy for the tested configurations (L1 order 2.3-2.4 for smooth advection on
+uniform, tanh-stretched and cylindrical grids; L-infinity about 1.5, from the limiter
+at extrema). No formal order is claimed for arbitrary stretched grids.
+
+- Omit the key, or give `cd2`, for the existing behaviour; results are unchanged
+  bit for bit.
+- `koren` requires `iaccuracy = cd2`: only there is the divergence of the face flux a
+  two-point difference, which the bounded-operator property needs. Other
+  `iaccuracy` values stop the run with a message.
+- It is independent of `property_interp`; any combination is allowed.
+- Position: put it directly after `property_interp`. If that key is absent, put it
+  where `property_interp` would go: after `rhoh_recovery`, else `qw_ramp`, else
+  `inout_buffer`. A line anywhere else, or given twice, stops the run.
+- Grids: the stencil is in cell index, like the `cd2` midpoint. The stretched y
+  grid is a mapping y(s), with faces at integer s and centres at the mapped half
+  points, so this is the uniform-grid scheme in s, with the metric applied in the
+  existing derivative. On the tested smooth tanh mappings the observed accuracy matches
+  the uniform grid (see the accuracy paragraph above); errors grow with stretching by a
+  similar factor for `cd2` and `koren` (`tests/unit_enthalpy_advection`).
+- Boundaries: periodic directions, interior/multi-domain ends and the pipe axis
+  (whose halo holds the cells at theta + pi) use the full stencil. Wall and inlet
+  faces keep their boundary value. Every documented thermal boundary type gives the
+  enthalpy ghost cells: a heat-flux wall and Neumann, convective or database outlets
+  are Dirichlet for the enthalpy (with a live, extrapolated or advected boundary
+  state), so the full stencil is used at the face next to every boundary. The code
+  also contains a first-order-upwind branch for an end type without ghost cells; no
+  documented thermal boundary type reaches it (an undocumented boundary code passed
+  through unchanged would).
+  No extra MPI exchange is needed: each direction is reconstructed in the pencil
+  that holds its whole lines.
+- Boundedness: the face value is bounded, and so is the semi-discrete transport
+  operator (local extrema do not grow) when the face mass flux satisfies discrete
+  continuity. The complete time step is not guaranteed bounded, because the
+  low-storage RK3 is not strong-stability-preserving. In the unit tests the RK3
+  solution of sharp profiles stayed within its initial range at every stage for
+  CFL <= 0.5. Overshoots appeared above CFL of about 0.55 to 0.75, and the scheme
+  became unstable near CFL 1.4. In the solver the continuity residual and
+  diffusion add further terms. No clipping is applied anywhere.
+- Dissipation: the limiter adds numerical diffusion at extrema and in steep
+  gradients. That removes the grid-scale oscillations of `cd2` but also smears
+  sharp thermal layers. It is not a substitute for resolution. It does not make
+  wall temperatures DNS-accurate on a mesh that is too coarse for the thermal
+  boundary layer.
+- Restart: each thermal checkpoint's record
+  `1_data/domain<d>_thermo_interp_meta_<iter>.dat` states the scheme it was
+  advanced with: a `koren` run writes the line `enthalpy_advection koren`; a
+  `cd2` run writes nothing extra, so a checkpoint without the line (including
+  every checkpoint written before the key existed) counts as `cd2`. On a thermal
+  restart (`inittm` = restart):
+  - same scheme as the checkpoint: continues normally;
+  - different scheme: **stops** by default (`enthalpy_advection_restart = strict`).
+    To change the scheme deliberately, e.g. to continue a `cd2` checkpoint with
+    `koren` for a comparison, set `enthalpy_advection_restart = allow_switch`
+    (directly after `enthalpy_advection`, or where it would go). The run then
+    prints a prominent warning and every later thermal record carries
+    `enthalpy_advection cd2|koren` and `enthalpy_advection_switch <from>-><to>
+    <iteration>` (the latest permitted change; carried forward on later
+    restarts);
+  - a permitted change still stops if the statistics would continue across it
+    (`stat_level` > 0, restart iteration > `stat_istart`, run clock continued):
+    set `stat_istart` to the restart iteration or later, so that the averages
+    start afresh with the new scheme;
+  - an unrecognised fifth or sixth record line stops;
+  - the `property_interp` rule is checked first and is not affected:
+    `allow_switch` does not permit a change of property interpolation.
+  For reproducible DNS keep `strict`: a run directory's input then fully states
+  the scheme of every checkpoint it continues, and no averaging window mixes
+  two schemes. The stored state does not depend on the face reconstruction, so a
+  permitted switch is numerically admissible; the policy concerns provenance.
+  Mesh mapping: the mapped checkpoints carry the record of the mapping run, not
+  of the source; use the same `enthalpy_advection` in the mapping run. Executables
+  built before these lines existed ignore them.
+- Not yet established: production-scale cost and validation against reference
+  data (e.g. the Nemati et al. heated-pipe case), and a port to the GPU branch.
 
 Gravity IDs:
 
@@ -191,6 +341,19 @@ stated there for 508-800 K; that range is recorded but binds nothing, because
 PbLi density and thermal conductivity fits used here do not match that report
 and carry no other identified source range, so they do not narrow the interval
 further.
+
+### `thermal_outlet_pair` (experimental)
+
+Placed directly after `enthalpy_advection_restart` (or where it would go); only for a
+convective x-outlet with `rhoh_recovery = transported`.
+
+- `convective` (default): the outlet face state (rho*h, rho_hat) is time-integrated by
+  the convective outlet equation.
+- `zero_gradient`: the face takes the last interior cell's (rho*h, rho_hat) pair, so the
+  outflow enthalpy flux is the upwind `g_b h(nc)` and no separately integrated face state
+  exists. The number of reversed (backflow) outlet faces is reported in the log.
+
+Rejected for other outlet types, `lagged_legacy` and convective z-outlets.
 
 ## `[mhd]`
 
@@ -283,7 +446,7 @@ lower/start boundary, and the second belongs to the upper/end boundary.
 |---|---|---|
 | `ifbcx_u`, `ifbcx_v`, `ifbcx_w` | `integer,integer,real,real` | Velocity BCs on x boundaries. |
 | `ifbcx_p` | `integer,integer,real,real` | Pressure BC on x boundaries. |
-| `ifbcx_t` | `integer,integer,real,real` | Temperature BC on x boundaries. Temperature values are Kelvin for Dirichlet; heat flux values are W/m² before nondimensionalisation for Neumann. **The inlet Dirichlet value is not a free parameter:** `input_general.f90:1694-1698` overwrites it with `tini`, so the third field is ignored whenever the inlet is Dirichlet. Set the inlet temperature through `tini`. |
+| `ifbcx_t` | `integer,integer,real,real` | Temperature BC on x boundaries. Temperature values are Kelvin for Dirichlet; heat flux values are W/m² before nondimensionalisation for Neumann. Each value field is a number or the token `tini`. For a Dirichlet side a number is an explicit temperature and is never replaced; `tini` means *not specified* and the initial temperature `tini` is used (resolved after all sections are read, independent of section order). For a Neumann side the value is a heat flux (`tini` is an error); for periodic/interior/convective sides the value is unused. An explicit x-inlet temperature different from `tini` is kept with a warning (the uniform initial field then does not match the inlet plane). Every Dirichlet boundary temperature must lie inside the property range (table rows or correlation interval, endpoints included); otherwise - including 0 K or negative values - the run stops before the simulation with the boundary named. |
 | `ifbcy_u`, `ifbcy_v`, `ifbcy_w` | `integer,integer,real,real` | Velocity BCs on y/radial boundaries. |
 | `ifbcy_p` | `integer,integer,real,real` | Pressure BC on y/radial boundaries. |
 | `ifbcy_t` | `integer,integer,real,real` | Temperature BC on y/radial boundaries. |
@@ -292,6 +455,27 @@ lower/start boundary, and the second belongs to the upper/end boundary.
 | `ifbcz_t` | `integer,integer,real,real` | Temperature BC on z/azimuthal boundaries. |
 | `idriven` | `integer` | Flow-driving method ID. |
 | `drivenfc` | `real` | Magnitude for wall-shear or pressure-gradient driving. Mass-flux driving normally uses `0.0`. |
+| `outlet_mass_correction` | `string`, optional | Profile of the per-stage global mass correction at a convective x-outlet: `proportional` (default; unchanged behaviour), `uniform_flux` or `split` (both EXPERIMENTAL). Directly after `drivenfc`. See below. |
+
+### `outlet_mass_correction` (experimental)
+
+At every RK stage a convective x-outlet closes the global balance
+`int drho/dt dV + mdot_out - mdot_in = 0` exactly by correcting the outlet face mass
+flux with the stage residual `R`. The key only changes how `R` is distributed over the
+outlet plane:
+
+- `proportional` (default): the face mass flux is scaled by `s = 1 + R/mdot_out`.
+- `uniform_flux`: the same increment `R/A_out` is added to every outlet face.
+- `split`: the slow part `S_k = alpha_k * sum(R over the previous step)` is applied
+  proportionally, and the stage-periodic remainder `R_k - S_k` uniformly. Its single
+  state value is written to `1_data/domain<id>_outlet_split_<iter>.dat` at each
+  checkpoint and read on restart. A checkpoint without that file (older runs,
+  mesh-mapped restarts) starts with `S = 0` for one step.
+
+`split` was introduced for heated variable-property inlet/outlet runs, where the
+proportional profile admits the uniform pressure-projection increment unevenly and
+drove a drift of the stored density in the outlet cells. It is EXPERIMENTAL: it has
+been verified for the supercritical CO2 pipe (Nemati/Bae case B) configuration only.
 
 Boundary condition IDs:
 
@@ -305,7 +489,7 @@ Boundary condition IDs:
 | 5 | Neumann | Fixed gradient or heat flux |
 | 6 | Interpolation | Internal/interpolation use |
 | 7 | Convective outlet | Open outlet, only supported in `x` or `z` |
-| 9 | Profile inlet | 1-D/profile inlet, not supported on all faces |
+| 9 | Profile inlet | Not supported (rejected at input): the 1-D profile inlet is unfinished |
 | 10 | Database inlet | Inlet from stored plane data |
 | 11 | Poiseuille | Nominal Poiseuille BC |
 | 12 | Other/interpolation | Special cases |
@@ -463,6 +647,7 @@ Controls monitor, restart, visualisation, statistics, and plane-database I/O.
 | `stat_visu_mode` | `string` | Optional visualised-statistics mode: `all` or `tsp_only`. Defaults to `all`. |
 | `is_wrt_read_bc` | `logical,logical` | Pair `write_outlet,read_inlet` for plane database files. |
 | `wrt_read_nfre` | `integer(3)` | Plane database frequency and range as `frequency,start,end`. |
+| `ndb_sampling_dt` | `real` | Optional, directly after `ndb_file_offset`: physical time between two stored inlet-database planes. Absent: one stored plane per solver step (unchanged behaviour). Given: `ndb_sampling_dt/dt` must be an integer `R >= 1` and equal the `dt` recorded in the bundle metadata; for `R > 1` the inlet is interpolated linearly in time between samples. Requires a constant `dt`. |
 | `existing_output_policy` | `string` | Action when an output file already exists: `overwrite` (default), `skip`, or `rename_existing`. |
 | `restart_data_layout` | `string` | Backward-compatible alias that sets both restart input and output layouts: `per_field` (default) or `bundled`. |
 | `restart_data_layout_read` | `string` | Layout used when reading existing restart and inlet-database files. Overrides `restart_data_layout` for input only. |
@@ -522,6 +707,15 @@ bundled/per-field, and convective-outlet conditions, see
 
 For database inlet cases, set `is_wrt_read_bc= .false.,.true.` and make sure
 the requested inlet database files exist.
+
+To run with a smaller time step than the one the inlet database was recorded
+with, give `ndb_sampling_dt` (the recording interval). Database time is the
+run's physical time: the step from `t` to `t + dt` uses the inflow at `t`,
+sampled planes are used unchanged at their sample times, and linear
+interpolation in time is used between them. The cyclic replay does not
+interpolate across its wrap from the last to the first plane (the last plane is
+held for its interval, then the inflow jumps to the first plane, as without the
+key).
 
 ## `[probe]`
 

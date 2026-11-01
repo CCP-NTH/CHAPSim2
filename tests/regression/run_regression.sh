@@ -167,6 +167,8 @@ for case in "${CASES[@]}"; do
     # -------------------------------------------------------------------------
     if [[ "$TEST_MODE" == "run" ]]; then
         export RUN_MODE=regression
+        # Full-step pressure (RK3-weighted, output only) metrics for the pressure references (B3 proposal B)
+        export CHAPSIM_B3_PBAR=1
         echo "  Running solver..."
         if ! "$RUN_SCRIPT"; then
             echo "[FAIL ] ${case} (solver failed)"

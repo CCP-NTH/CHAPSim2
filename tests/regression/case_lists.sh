@@ -25,6 +25,9 @@ STANDARD_CASES=(
   pipe_iso_periodic
   pipe_scp_periodic_Tw
   pipe_scp_inout_qw
+  # property_interp = pchip twin of pipe_scp_inout_qw (≈ 45 s): keeps the opt-in
+  # interpolation path in the standard suite that CI's Tier 3 job runs.
+  pipe_scp_inout_qw_pchip
 )
 
 EXTENDED_CASES=(
@@ -48,6 +51,10 @@ EXTENDED_CASES=(
   pipe_scp_periodic_qw
   pipe_scp_inout_Tw
   pipe_scp_inout_qw
+  # property_interp = pchip: pipe_scp_inout_qw with monotone cubic property
+  # interpolation. Its full-step pressure keys separate it from the linear twin
+  # (a silent fallback to linear fails them), so the opt-in path stays covered.
+  pipe_scp_inout_qw_pchip
   # High-order coverage. Every case above runs cd2, so the compact/4th-order
   # boundary closures and the pipe-axis ghost layers are never exercised by them
   # (at cd2 the coefficient multiplying those ghosts is exactly zero).
@@ -116,4 +123,11 @@ FUNCTIONAL_CASES=(
   # four reachable. It also pins the isothermal floor: with no SGS contribution
   # on a wall face the total face viscosity is exactly the molecular 1.0.
   ../functional/LES_duct_iso_zwall
+  # Inlet-database replay (is_record_xoutlet_read_xinlet = .false., .true.): the
+  # case reads the shipped recorded database on the same and on a different y-z
+  # mesh. A replay that maps to the wrong record or chunk moves the bulk and the
+  # pressure drop at O(1); tests/tools/inlet_database_replay_check.py checks the
+  # inlet planes against the database records directly.
+  ../functional/inlet_database/same_yz_mesh
+  ../functional/inlet_database/diff_yz_mesh
 )

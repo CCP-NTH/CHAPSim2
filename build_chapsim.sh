@@ -145,10 +145,14 @@ get_choice_input() {
 
 # Function to check if 2decomp-fft repository exists
 check_2decomp_exists() {
-    if [ -d "$PATH_LIB_ROOT/.git" ]; then
-        return 0  # Repository exists (has .git directory)
+    # A git checkout, or the copy vendored in this repository (tracked files, no .git
+    # directory - the normal state of a fresh clone or bundle). Treating the vendored
+    # copy as missing deleted it and cloned an unpinned upstream 2decomp-fft instead,
+    # which also fails on machines without internet access (HPC compute nodes).
+    if [ -d "$PATH_LIB_ROOT/.git" ] || [ -f "$PATH_LIB_ROOT/CMakeLists.txt" ]; then
+        return 0
     else
-        return 1  # Repository does not exist
+        return 1
     fi
 }
 
