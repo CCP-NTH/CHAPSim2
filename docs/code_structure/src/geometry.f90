@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-!                      CHAPSim version 2.2.0
+!                      CHAPSim version 2.3.0
 !                      --------------------------
 ! This file is part of CHAPSim, a general-purpose CFD tool.
 !
@@ -290,11 +290,11 @@ contains
         end if
       end if
       if (dm%istret == ISTRET_2SIDES) then
-        mp(j, 1) = TWO * mm / beta * cosh(beta * (eta(j) - HALF))**2
+        mp(j, 1) = ((TWO * mm) / beta) * (cosh(beta * (eta(j) - HALF))**2)   ! explicit gfortran evaluation order
       else if (dm%istret == ISTRET_BOTTOM) then
-        mp(j, 1) = mm / beta * cosh(arg)**2
+        mp(j, 1) = (mm / beta) * (cosh(arg)**2)   ! explicit gfortran evaluation order
       else if (dm%istret == ISTRET_TOP) then
-        mp(j, 1) = mm / beta * cosh(arg)**2
+        mp(j, 1) = (mm / beta) * (cosh(arg)**2)   ! explicit gfortran evaluation order
       end if
       if(mp(j, 1) < MINP .and. mp(j, 1) > MAXN) then
         mp(j, 1) = ONE
@@ -441,7 +441,9 @@ contains
       !------------------------------------------------------------------------------
       ! 1/h' = d\eta/dy
       !------------------------------------------------------------------------------
-      mp(j, 1) = (alpha / PI + sin_wp(mm) * sin_wp(mm) / PI / beta)  / (dm%lyt - dm%lyb)
+      ! parentheses: gfortran's left-to-right evaluation order made explicit, so that nvfortran does not merge the
+      ! chained divisions into one division by a product (s*s/PI/beta -> (s*s)/(beta*PI))
+      mp(j, 1) = ((alpha / PI) + (((sin_wp(mm) * sin_wp(mm)) / PI) / beta)) / (dm%lyt - dm%lyb)
       !------------------------------------------------------------------------------
       ! (1/h')^2
       !------------------------------------------------------------------------------
@@ -449,7 +451,7 @@ contains
       !------------------------------------------------------------------------------
       ! -h"/(h'^3) = 1/h' * [ d(1/h') / d\eta]
       !------------------------------------------------------------------------------
-      mp(j, 3) = gamma / (dm%lyt - dm%lyb) / beta * sin_wp(TWO * mm) * mp(j, 1)
+      mp(j, 3) = (((gamma / (dm%lyt - dm%lyb)) / beta) * sin_wp(TWO * mm)) * mp(j, 1)
 
     end do
 
@@ -505,6 +507,7 @@ contains
     integer  :: wrt_unit
     real(WP) :: dyp, dyn, ddy, dx, dy, dz
     real(WP) :: dy_max, dy_min
+    real(WP) :: yc_a, yc_b   ! uniform-mesh cell centres, see below
     !real(WP) :: dy(dm%nc(2))
     if(nrank == 0) call Print_debug_start_msg("Initialising domain geometric ...")
 
@@ -563,8 +566,12 @@ contains
       do j = 1, dm%np_geo(2)
         dm%yp(j) = real(j - 1, WP) * dm%h(2) + dm%lyb
       end do
+      ! the two products in separate statements, summed in gfortran's order: nvfortran factorises
+      ! (j - 1) h + h / 2 into h ((j - 1) + 1/2) within one expression, which rounds differently
       do j = 1, dm%nc(2)
-        dm%yc(j) = real(j - 1, WP) * dm%h(2) + dm%h(2) * HALF + dm%lyb
+        yc_a = real(j - 1, WP) * dm%h(2)
+        yc_b = dm%h(2) * HALF
+        dm%yc(j) = (yc_a + yc_b) + dm%lyb
       end do
     end if
 

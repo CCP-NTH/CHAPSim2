@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-!                      CHAPSim version 2.2.0
+!                      CHAPSim version 2.3.0
 !                      --------------------------
 ! This file is part of CHAPSim, a general-purpose CFD tool.
 !
@@ -35,6 +35,21 @@ module thermo_info_mod
   integer, save :: N_FUNC2TABLE = 1024
   logical :: is_ftplist_dim
   type(t_fluidThermoProperty), save, allocatable, dimension(:) :: ftplist
+  !----------------------------------------------------------------------------
+  ! Out-of-range thermodynamic states met by the per-cell recovery routines on
+  ! this rank since the last collective check (check_property_range): number of
+  ! states, and the first offending property, value and supported range. The
+  ! per-cell routines clamp only so that the current stage stays finite; the
+  ! collective check of the same stage then stops the run on all ranks.
+  !----------------------------------------------------------------------------
+  integer,       save :: n_oor_local = 0
+  character(16), save :: oor_property = ''
+  real(WP),      save :: oor_value = 0.0_WP
+  real(WP),      save :: oor_low   = 0.0_WP
+  real(WP),      save :: oor_high  = 0.0_WP
+  private :: n_oor_local, oor_property, oor_value, oor_low, oor_high
+  private :: record_out_of_range
+  public  :: check_property_range
 
   private :: buildup_property_relations_from_table
   private :: buildup_property_relations_from_function
@@ -43,6 +58,7 @@ module thermo_info_mod
   private :: Buildup_fluidparam
   private :: restrict_property_range
   private :: check_T_in_property_range
+  private :: check_dirichlet_bc_temperatures
   private :: ftplist_sort_t_small2big
   private :: Write_thermo_property
 
@@ -62,6 +78,19 @@ module thermo_info_mod
   public  :: initialise_thermal_properties
   public  :: Convert_thermal_input_2undim
   public  :: get_qw_ramp_factor
+  !----------------------------------------------------------------------------
+  ! property_interp = pchip (EXPERIMENTAL, table fluids): node slopes d(.)/dh of
+  ! the non-dimensional table, set once by build_pchip_slopes. Enthalpy is the
+  ! independent variable; T(h), rho(h), mu(h), k(h), sigma_e(h), beta(h) are
+  ! monotone piecewise-cubic Hermite (Fritsch-Butland slopes), and
+  ! cp = 1/(dT/dh) of the same T(h). Inverse lookups invert that T(h).
+  !----------------------------------------------------------------------------
+  real(WP), save, allocatable, dimension(:) :: slp_t, slp_d, slp_m, slp_k, slp_sig, slp_b
+  private :: slp_t, slp_d, slp_m, slp_k, slp_sig, slp_b
+  private :: build_pchip_slopes
+  public  :: pchip_node_slopes
+  private :: ftp_pchip_eval_h
+  private :: pchip_h_from_t
 
 contains
 !==============================================================================
@@ -140,6 +169,7 @@ contains
     real(WP) :: d1, dm
     real(WP) :: w1, w2
     real(WP) :: t1, dummy
+    real(WP) :: q1, q2, q3   ! power terms, one statement each (see the Cp note below)
 
     if(.not. is_ftplist_dim) call Print_error_msg("Error. Please provide dimensional thermal property.")
 
@@ -175,36 +205,41 @@ contains
       ! D = density = f(T)
       select case (fluidparam%ifluid)
         case (ILIQUID_LITHIUM)
-          this%d = fluidparam%CoD(0) + &
-                   fluidparam%CoD(1) * t1 + &
-                   fluidparam%CoD(2) * (1.0_WP - t1 / fluidparam%CoD(3))**(fluidparam%CoD(4))
+          this%d = (fluidparam%CoD(0) + &
+                     fluidparam%CoD(1) * t1) + &
+                     fluidparam%CoD(2) * (1.0_WP - t1 / fluidparam%CoD(3))**(fluidparam%CoD(4))
         case default
           this%d = fluidparam%CoD(0) + &
                    fluidparam%CoD(1) * t1
       end select
 
       ! K = thermal conductivity = f(T)
-      this%k = fluidparam%CoK(0) + &
-               fluidparam%CoK(1) * t1 + &
-               fluidparam%CoK(2) * t1**2
+      q1 = fluidparam%CoK(1) * t1
+      q2 = fluidparam%CoK(2) * t1**2
+      this%k = (fluidparam%CoK(0) + q1) + q2
 
       ! Electrical conductivity = f(T)
       this%sigma_e = ONE
 
+      ! Sums of more than two terms are parenthesised in the left-to-right order gfortran evaluates them: nvfortran may
+      ! otherwise reassociate (e.g. a + b + c as a + (b + c), even at -O0 -Kieee), which changes the rounding. Terms in
+      ! powers of t1 are formed in separate statements (q1, q2, q3): within one expression nvfortran factorises
+      ! c1*t1 + c2*t1**2 into (c1 + c2*t1)*t1 even across parentheses.
+      ! Negative and cubic powers are written as the products gfortran's expansion of t1**(-2), t1**(-1) and t1**3
+      ! forms; nvfortran's host t1**3 and t1**(-2) round differently. Both changes are CPU-neutral.
       ! Cp = f(T)
-      this%cp = fluidparam%CoCp(-2) * t1**(-2) + &
-                fluidparam%CoCp(-1) * t1**(-1) + &
-                fluidparam%CoCp(0) + &
-                fluidparam%CoCp(1) * t1 + &
-                fluidparam%CoCp(2) * t1**2
+      q1 = fluidparam%CoCp(-2) * (ONE / (t1 * t1))
+      q2 = fluidparam%CoCp(1) * t1
+      q3 = fluidparam%CoCp(2) * t1**2
+      this%cp = (((q1 + fluidparam%CoCp(-1) * (ONE / t1)) + fluidparam%CoCp(0)) + q2) + q3
 
       ! H = entropy = f(T)
-      this%h = fluidparam%Hm0 + &
-               fluidparam%CoH(-1) * (ONE / t1 - ONE / fluidparam%TM0) + &
-               fluidparam%CoH(0) + &
-               fluidparam%CoH(1) * (t1    - fluidparam%TM0) + &
-               fluidparam%CoH(2) * (t1**2 - fluidparam%TM0**2) + &
-               fluidparam%CoH(3) * (t1**3 - fluidparam%TM0**3)
+      this%h = ((((fluidparam%Hm0 + &
+                    fluidparam%CoH(-1) * (ONE / t1 - ONE / fluidparam%TM0)) + &
+                    fluidparam%CoH(0)) + &
+                    fluidparam%CoH(1) * (t1    - fluidparam%TM0)) + &
+                    fluidparam%CoH(2) * (t1**2 - fluidparam%TM0**2)) + &
+                    fluidparam%CoH(3) * (t1 * t1 * t1 - fluidparam%TM0 * fluidparam%TM0 * fluidparam%TM0)
 
       ! B = thermal expansion coefficient = -(1 / rho) * drho/dT = f(T)
       ! The tabulated form 1 / (CoB - T) is that definition rewritten for a
@@ -224,9 +259,9 @@ contains
       select case (fluidparam%ifluid)
         ! unit: T(Kelvin), M(Pa S)
         case (ILIQUID_SODIUM)
-          dummy = EXP( CoM_Na(-1) / t1 + &
-                       CoM_Na(0) + &
-                       CoM_Na(1) * LOG(t1) )
+          dummy = EXP( (CoM_Na(-1) / t1 + &
+                        CoM_Na(0)) + &
+                        CoM_Na(1) * LOG(t1) )
         case (ILIQUID_LEAD)
           dummy = CoM_Pb(0)  * EXP (CoM_Pb(-1) / t1)
         case (ILIQUID_BISMUTH)
@@ -234,7 +269,7 @@ contains
         case (ILIQUID_LBE)
           dummy = CoM_LBE(0) * EXP (CoM_LBE(-1) / t1)
         case (ILIQUID_LITHIUM)
-          dummy = EXP( CoM_Li(-1) + CoM_Li(0) * LOG(t1) + (CoM_Li(1) / t1) )
+          dummy = EXP( (CoM_Li(-1) + CoM_Li(0) * LOG(t1)) + (CoM_Li(1) / t1) )
         case (ILIQUID_FLIBE)
           dummy = CoM_FLiBe(0) * EXP (CoM_FLiBe(-1) / t1)
         case (ILIQUID_PBLI)
@@ -267,9 +302,17 @@ contains
     real(WP) :: w1, w2
     real(WP) :: t1, dummy
     real(WP) :: drho_dt, dh_dt
+    real(WP) :: q1, q2, q3   ! power terms, one statement each (see ftp_get_thermal_properties_dimensional_from_T)
 
     !call Print_debug_start_msg("ftp_refresh_thermal_properties_from_T_undim")
-    if(fluidparam%ipropertyState == IPROPERTY_TABLE) then
+    if(fluidparam%ipropertyState == IPROPERTY_TABLE .and. iprop_interp == IPROP_INTERP_PCHIP) then
+      ! invert the same cubic T(h) used by the forward lookup, then evaluate there;
+      ! the requested temperature is kept exactly
+      t1 = this%t
+      call pchip_h_from_t(t1, this%h)
+      call ftp_pchip_eval_h(this)
+      this%t = t1
+    else if(fluidparam%ipropertyState == IPROPERTY_TABLE) then
       i1 = 1
       i2 = fluidparam%nlist
       do while ( (i2 - i1) > 1)
@@ -303,9 +346,9 @@ contains
       ! D = density = f(T)
       select case (fluidparam%ifluid)
         case (ILIQUID_LITHIUM)
-          dummy = fluidparam%CoD(0) + &
-                  fluidparam%CoD(1) * t1 + &
-                  fluidparam%CoD(2) * (1.0_WP - t1 / fluidparam%CoD(3))**(fluidparam%CoD(4))
+          dummy = (fluidparam%CoD(0) + &
+                    fluidparam%CoD(1) * t1) + &
+                    fluidparam%CoD(2) * (1.0_WP - t1 / fluidparam%CoD(3))**(fluidparam%CoD(4))
           this%d = dummy / ftp0ref%d
           drho_dt = (fluidparam%CoD(1) - fluidparam%CoD(2) * fluidparam%CoD(4) * &
                     (1.0_WP - t1 / fluidparam%CoD(3))**(fluidparam%CoD(4) - 1.0_WP) / &
@@ -318,9 +361,9 @@ contains
       end select
 
       ! K = thermal conductivity = f(T)
-      dummy = fluidparam%CoK(0) + &
-              fluidparam%CoK(1) * t1 + &
-              fluidparam%CoK(2) * t1**2
+      q1 = fluidparam%CoK(1) * t1
+      q2 = fluidparam%CoK(2) * t1**2
+      dummy = (fluidparam%CoK(0) + q1) + q2
       this%k = dummy / ftp0ref%k
 
       ! Electrical conductivity = f(T)
@@ -328,25 +371,24 @@ contains
       this%sigma_e = dummy / ftp0ref%sigma_e
 
       ! Cp = f(T)
-      dummy = fluidparam%CoCp(-2) * t1**(-2) + &
-              fluidparam%CoCp(-1) * t1**(-1) + &
-              fluidparam%CoCp(0) + &
-              fluidparam%CoCp(1) * t1 + &
-              fluidparam%CoCp(2) * t1**2
+      q1 = fluidparam%CoCp(-2) * (ONE / (t1 * t1))
+      q2 = fluidparam%CoCp(1) * t1
+      q3 = fluidparam%CoCp(2) * t1**2
+      dummy = (((q1 + fluidparam%CoCp(-1) * (ONE / t1)) + fluidparam%CoCp(0)) + q2) + q3
       this%cp = dummy / ftp0ref%cp
 
       ! H = entropy = f(T)
-      dummy = fluidparam%Hm0 + &
-              fluidparam%CoH(-1) * (ONE / t1 - ONE / fluidparam%TM0) + &
-              fluidparam%CoH(0) + &
-              fluidparam%CoH(1) * (t1    - fluidparam%TM0) + &
-              fluidparam%CoH(2) * (t1**2 - fluidparam%TM0**2) + &
-              fluidparam%CoH(3) * (t1**3 - fluidparam%TM0**3)
+      dummy = ((((fluidparam%Hm0 + &
+                   fluidparam%CoH(-1) * (ONE / t1 - ONE / fluidparam%TM0)) + &
+                   fluidparam%CoH(0)) + &
+                   fluidparam%CoH(1) * (t1    - fluidparam%TM0)) + &
+                   fluidparam%CoH(2) * (t1**2 - fluidparam%TM0**2)) + &
+                   fluidparam%CoH(3) * (t1 * t1 * t1 - fluidparam%TM0 * fluidparam%TM0 * fluidparam%TM0)
       this%h = (dummy - ftp0ref%h) / (ftp0ref%cp * ftp0ref%t)
-      dh_dt =        -fluidparam%CoH(-1) / t1**2 + &
-                      fluidparam%CoH(1) +          &
-                TWO * fluidparam%CoH(2) * t1 +     &
-              THREE * fluidparam%CoH(3) * t1**2
+      q1 = -fluidparam%CoH(-1) / t1**2
+      q2 = TWO * fluidparam%CoH(2) * t1
+      q3 = THREE * fluidparam%CoH(3) * t1**2
+      dh_dt = ((q1 + fluidparam%CoH(1)) + q2) + q3
       dh_dt = dh_dt / ftp0ref%cp
       ! B = f(T). See ftp_get_thermal_properties_dimensional_from_T for why Li
       ! cannot use the 1 / (CoB - T) form. drho_dt above is already divided by
@@ -364,7 +406,7 @@ contains
       select case (fluidparam%ifluid)
         ! unit: T(Kelvin), M(Pa S)
         case (ILIQUID_SODIUM)
-          dummy = EXP( CoM_Na(-1) / t1 + CoM_Na(0) + CoM_Na(1) * LOG(t1) )
+          dummy = EXP( (CoM_Na(-1) / t1 + CoM_Na(0)) + CoM_Na(1) * LOG(t1) )
         case (ILIQUID_LEAD)
           dummy = CoM_Pb(0) * EXP (CoM_Pb(-1) / t1)
         case (ILIQUID_BISMUTH)
@@ -372,7 +414,7 @@ contains
         case (ILIQUID_LBE)
           dummy = CoM_LBE(0) * EXP (CoM_LBE(-1) / t1)
         case (ILIQUID_LITHIUM)
-          dummy = EXP( CoM_Li(-1) + CoM_Li(0) * LOG(t1) + (CoM_Li(1) / t1) )
+          dummy = EXP( (CoM_Li(-1) + CoM_Li(0) * LOG(t1)) + (CoM_Li(1) / t1) )
         case (ILIQUID_FLIBE)
           dummy = CoM_FLiBe(0) * EXP (CoM_FLiBe(-1) / t1)
         case (ILIQUID_PBLI)
@@ -493,6 +535,9 @@ contains
     real(WP) :: d1, dm
     real(WP) :: w1, w2
 
+    if(iprop_interp == IPROP_INTERP_PCHIP) then
+      call ftp_pchip_eval_h(this)
+    else
     i1 = 1
     i2 = fluidparam%nlist
 
@@ -517,6 +562,7 @@ contains
     this%t  = w1 * ftplist(i1)%t  + w2 * ftplist(i2)%t
     this%b  = w1 * ftplist(i1)%b  + w2 * ftplist(i2)%b
     this%cp = w1 * ftplist(i1)%cp + w2 * ftplist(i2)%cp
+    end if
 
     this%rhoh = this%d * this%h
     this%alpha = this%k / this%d / this%cp
@@ -562,19 +608,32 @@ contains
 
     if(is_ftplist_dim) call Print_error_msg("Error. Please provide undimentional variables.")
 
+    !----------------------------------------------------------------------------
+    ! Bc (transported-density recovery): h = rhoh / rho_hat (this%d carries rho_hat). Only the
+    ! monotonic h(T) relation is inverted, so the admissible range is that of h,
+    ! not that of rho*h (which is non-monotonic beyond its maximum).
+    !----------------------------------------------------------------------------
+    if(is_bc_recovery) then
+      this%h = this%rhoh / this%d
+      ! Bc checks h (the quantity the table is inverted for); endpoints are valid.
+      ! Out of range: recorded here, run stopped on all ranks by check_property_range.
+      if(this%h < ftplist(1)%h .or. this%h > ftplist(fluidparam%nlist)%h) then
+        call record_out_of_range('h', this%h, ftplist(1)%h, ftplist(fluidparam%nlist)%h)
+        this%h = min(max(this%h, ftplist(1)%h), ftplist(fluidparam%nlist)%h)
+      end if
+      if(fluidparam%ipropertyState == IPROPERTY_TABLE) then
+        call ftp_refresh_thermal_properties_from_H(this)
+        return
+      end if
+      ! function branch: handled below with the h-inversion
+    else
 
-    if(this%rhoh < fluidparam%dhmin) then
-      if(nrank == 0) then
-        write(*, wrtfmt2e) 'this%rhoh < fluidparam%dhmin', this%rhoh, fluidparam%dhmin
-        call Print_error_msg("rho*h is out of range.")
-      end if
-      this%rhoh = fluidparam%dhmin
-    else if(this%rhoh > fluidparam%dhmax) then
-      if(nrank == 0) then
-        write(*, wrtfmt2e) 'this%rhoh > fluidparam%dhmax', this%rhoh, fluidparam%dhmax
-        call Print_error_msg("rho*h is out of range.")
-      end if
-      this%rhoh = fluidparam%dhmax
+    ! Table endpoints are valid; outside them the state is recorded on this rank
+    ! and the run is stopped on all ranks by check_property_range.
+    if(this%rhoh < fluidparam%dhmin .or. this%rhoh > fluidparam%dhmax) then
+      call record_out_of_range('rho*h', this%rhoh, fluidparam%dhmin, fluidparam%dhmax)
+      this%rhoh = min(max(this%rhoh, fluidparam%dhmin), fluidparam%dhmax)
+    end if
     end if
 
     if(fluidparam%ipropertyState == IPROPERTY_TABLE) then
@@ -589,6 +648,25 @@ contains
         call ftp_refresh_thermal_properties_from_H(this)
         !im = im + 1
       end do
+    else if (fluidparam%ipropertyState == IPROPERTY_FUNCS .and. is_bc_recovery) then
+      ! Bc (transported-density recovery): h = rhoh / rho_hat was set (and range-checked) above;
+      ! invert the monotonic h(T) column instead of rho*h(T).
+      i1 = 1
+      i2 = fluidparam%nlist
+      do while ( (i2 - i1) > 1)
+        im = i1 + (i2 - i1) / 2
+        d1 = ftplist(i1)%h - this%h
+        dm = ftplist(im)%h - this%h
+        if ( (d1 * dm) > MINP ) then
+          i1 = im
+        else
+          i2 = im
+        end if
+      end do
+      w1 = (ftplist(i2)%h - this%h) / (ftplist(i2)%h - ftplist(i1)%h)
+      w2 = ONE - w1
+      this%t = w1 * ftplist(i1)%t + w2 * ftplist(i2)%t
+      call ftp_refresh_thermal_properties_from_T_undim(this)
     else if (fluidparam%ipropertyState == IPROPERTY_FUNCS) then
       i1 = 1
       i2 = fluidparam%nlist
@@ -613,6 +691,256 @@ contains
     end if
     return
   end subroutine ftp_refresh_thermal_properties_from_DH
+!==============================================================================
+  !> Monotone (Fritsch-Butland) node slopes of y(x) for strictly increasing x:
+  !> the PCHIP slopes. Interior node: weighted harmonic mean of the adjacent
+  !> secants when they have the same sign, zero otherwise (local extremum).
+  !> End nodes: three-point one-sided estimate, limited so the end interval stays
+  !> shape-preserving (same rule as Fritsch & Carlson 1980 / Moler, Numerical
+  !> Computing with MATLAB, pchip). The resulting cubic Hermite interpolant
+  !> preserves monotonicity of the data and stays within adjacent node values.
+  !> - x, y (in): node abscissae (strictly increasing) and values.
+  !> - m (out): slopes dy/dx at the nodes.
+  pure subroutine pchip_node_slopes(x, y, m)
+    real(WP), intent(in)  :: x(:), y(:)
+    real(WP), intent(out) :: m(:)
+    integer  :: n, i
+    real(WP) :: h0, h1, d0, d1, w1, w2
+
+    n = size(x)
+    if(n < 2) then
+      m = ZERO
+      return
+    end if
+    if(n == 2) then
+      m = (y(2) - y(1)) / (x(2) - x(1))
+      return
+    end if
+    do i = 2, n - 1
+      h0 = x(i) - x(i - 1);  d0 = (y(i) - y(i - 1)) / h0
+      h1 = x(i + 1) - x(i);  d1 = (y(i + 1) - y(i)) / h1
+      if(d0 * d1 > ZERO) then
+        w1 = TWO * h1 + h0
+        w2 = h1 + TWO * h0
+        m(i) = (w1 + w2) / (w1 / d0 + w2 / d1)
+      else
+        m(i) = ZERO
+      end if
+    end do
+    m(1) = pchip_end_slope(x(2) - x(1), x(3) - x(2), &
+                           (y(2) - y(1)) / (x(2) - x(1)), (y(3) - y(2)) / (x(3) - x(2)))
+    m(n) = pchip_end_slope(x(n) - x(n - 1), x(n - 1) - x(n - 2), &
+                           (y(n) - y(n - 1)) / (x(n) - x(n - 1)), (y(n - 1) - y(n - 2)) / (x(n - 1) - x(n - 2)))
+    return
+  contains
+    pure function pchip_end_slope(he, hn, de, dn) result(me)
+      real(WP), intent(in) :: he, hn, de, dn   ! end and neighbouring interval widths and secants
+      real(WP) :: me
+      me = ((TWO * he + hn) * de - he * dn) / (he + hn)
+      if(me * de <= ZERO) then
+        me = ZERO
+      else if(de * dn <= ZERO .and. abs(me) > THREE * abs(de)) then
+        me = THREE * de
+      end if
+    end function pchip_end_slope
+  end subroutine pchip_node_slopes
+!==============================================================================
+  !> Set the PCHIP node slopes d(.)/dh of the non-dimensional table (once, at
+  !> table load, property_interp = pchip only). Requires h strictly increasing
+  !> along the T-sorted table, and dT/dh > 0 at every node so that
+  !> cp = 1/(dT/dh) is finite; stops otherwise.
+  subroutine build_pchip_slopes
+    integer :: n, i
+    real(WP), allocatable :: x(:)
+
+    n = fluidparam%nlist
+    if(n < 3) call Print_error_msg('property_interp = pchip needs at least 3 table rows.')
+    allocate(x(n))
+    x = ftplist(1:n)%h
+    do i = 2, n
+      if(x(i) <= x(i - 1)) &
+        call Print_error_msg('property_interp = pchip: h is not strictly increasing in the property table.')
+    end do
+    allocate(slp_t(n), slp_d(n), slp_m(n), slp_k(n), slp_sig(n), slp_b(n))
+    call pchip_node_slopes(x, ftplist(1:n)%t,       slp_t)
+    call pchip_node_slopes(x, ftplist(1:n)%d,       slp_d)
+    call pchip_node_slopes(x, ftplist(1:n)%m,       slp_m)
+    call pchip_node_slopes(x, ftplist(1:n)%k,       slp_k)
+    call pchip_node_slopes(x, ftplist(1:n)%sigma_e, slp_sig)
+    call pchip_node_slopes(x, ftplist(1:n)%b,       slp_b)
+    if(any(slp_t <= ZERO)) &
+      call Print_error_msg('property_interp = pchip: dT/dh <= 0 at a table node, cp = 1/(dT/dh) undefined.')
+    deallocate(x)
+    if(nrank == 0) call Print_debug_mid_msg('property_interp = pchip: node slopes set for '// &
+      'T, rho, mu, k, sigma_e, beta in h.')
+    return
+  end subroutine build_pchip_slopes
+!==============================================================================
+  !> Locate the table interval [h(i1), h(i1+1)] containing this%h (exact
+  !> comparisons) and evaluate the cubic Hermite interpolants there:
+  !>   y(h) = H00 y1 + H10 dh m1 + H01 y2 + H11 dh m2,  s = (h - h1)/dh,
+  !>   H00 = (1+2s)(1-s)^2, H10 = s(1-s)^2, H01 = s^2(3-2s), H11 = s^2(s-1);
+  !> sets t, d, m, k, sigma_e, b, and cp = 1/(dT/dh) (non-dimensional: with
+  !> h = (h* - h0*)/(cp0 T0) and T = T*/T0, dT/dh = cp0 dT*/dh* = 1/cp).
+  !> h outside the table is recorded (collective stop by check_property_range)
+  !> and the end value used; no extrapolation.
+  subroutine ftp_pchip_eval_h(this)
+    type(t_fluidThermoProperty), intent(inout) :: this
+    integer  :: n, i1, i2, im
+    real(WP) :: dh, s, s2, h00, h10, h01, h11, dtdh
+
+    n = fluidparam%nlist
+    if(this%h < ftplist(1)%h .or. this%h > ftplist(n)%h) &
+      call record_out_of_range('h', this%h, ftplist(1)%h, ftplist(n)%h)
+    i1 = 1
+    i2 = n
+    do while ( (i2 - i1) > 1)
+      im = i1 + (i2 - i1) / 2
+      if(this%h >= ftplist(im)%h) then
+        i1 = im
+      else
+        i2 = im
+      end if
+    end do
+    dh = ftplist(i2)%h - ftplist(i1)%h
+    s  = min(max((this%h - ftplist(i1)%h) / dh, ZERO), ONE)
+    s2 = s * s
+    h00 = (ONE + TWO * s) * (ONE - s)**2
+    h10 = s * (ONE - s)**2
+    h01 = s2 * (THREE - TWO * s)
+    h11 = s2 * (s - ONE)
+    this%t       = (((h00 * ftplist(i1)%t + h10 * dh * slp_t(i1)) + h01 * ftplist(i2)%t) + h11 * dh * slp_t(i2))
+    this%d       = (((h00 * ftplist(i1)%d + h10 * dh * slp_d(i1)) + h01 * ftplist(i2)%d) + h11 * dh * slp_d(i2))
+    this%m       = (((h00 * ftplist(i1)%m + h10 * dh * slp_m(i1)) + h01 * ftplist(i2)%m) + h11 * dh * slp_m(i2))
+    this%k       = (((h00 * ftplist(i1)%k + h10 * dh * slp_k(i1)) + h01 * ftplist(i2)%k) + h11 * dh * slp_k(i2))
+    this%sigma_e = (((h00 * ftplist(i1)%sigma_e + h10 * dh * slp_sig(i1)) + h01 * ftplist(i2)%sigma_e) + h11 * dh * slp_sig(i2))
+    this%b       = (((h00 * ftplist(i1)%b + h10 * dh * slp_b(i1)) + h01 * ftplist(i2)%b) + h11 * dh * slp_b(i2))
+    ! dT/dh of the same cubic: d/ds of the basis, divided by dh
+    dtdh = (SIX * s * (s - ONE) * (ftplist(i1)%t - ftplist(i2)%t) / dh + &
+           ((THREE * s2 - FOUR * s) + ONE) * slp_t(i1)) + (THREE * s2 - TWO * s) * slp_t(i2)
+    this%cp = ONE / dtdh
+    return
+  end subroutine ftp_pchip_eval_h
+!==============================================================================
+  !> Inverse of the PCHIP T(h): the h with T_cubic(h) = t. The interval comes from
+  !> the T nodes (T_i = T(h_i), T increasing), the root from a bracketed Newton
+  !> iteration in s = (h - h1)/dh on [0, 1], falling back to bisection whenever a
+  !> Newton step leaves the bracket. T_cubic is monotone on the interval, so the
+  !> root is unique; iteration stops when the bracket is below 4 ulp of s.
+  !> t outside the table is recorded and the end value used.
+  subroutine pchip_h_from_t(t, h)
+    real(WP), intent(in)  :: t
+    real(WP), intent(out) :: h
+    integer  :: n, i1, i2, im, it
+    real(WP) :: dh, s, sa, sb, f, df, sn, t1, t2, m1, m2
+
+    n = fluidparam%nlist
+    if(t < ftplist(1)%t .or. t > ftplist(n)%t) &
+      call record_out_of_range('T', t, ftplist(1)%t, ftplist(n)%t)
+    i1 = 1
+    i2 = n
+    do while ( (i2 - i1) > 1)
+      im = i1 + (i2 - i1) / 2
+      if(t >= ftplist(im)%t) then
+        i1 = im
+      else
+        i2 = im
+      end if
+    end do
+    t1 = ftplist(i1)%t;  t2 = ftplist(i2)%t
+    dh = ftplist(i2)%h - ftplist(i1)%h
+    m1 = slp_t(i1) * dh; m2 = slp_t(i2) * dh      ! dT/ds at the ends
+    if(t <= t1) then
+      h = ftplist(i1)%h
+      return
+    else if(t >= t2) then
+      h = ftplist(i2)%h
+      return
+    end if
+    sa = ZERO;  sb = ONE
+    s  = (t - t1) / (t2 - t1)                       ! linear first guess
+    do it = 1, 100
+      f  = ((((ONE + TWO * s) * (ONE - s)**2 * t1 + s * (ONE - s)**2 * m1) + &
+           s * s * (THREE - TWO * s) * t2) + s * s * (s - ONE) * m2) - t
+      df = (SIX * s * (s - ONE) * (t1 - t2) + ((THREE * s * s - FOUR * s) + ONE) * m1) + (THREE * s * s - TWO * s) * m2
+      ! three-way sign test: a residual that is neither positive nor negative is an
+      ! exact root, kept as is (continuing would bisect away from it); no tolerance
+      if(f > ZERO) then
+        sb = s
+      else if(f < ZERO) then
+        sa = s
+      else
+        exit
+      end if
+      if(df > ZERO) then
+        sn = s - f / df
+      else
+        sn = HALF * (sa + sb)
+      end if
+      if(sn <= sa .or. sn >= sb) sn = HALF * (sa + sb)
+      if(abs(sn - s) <= FOUR * epsilon(ONE)) then
+        s = sn
+        exit
+      end if
+      s = sn
+      if(sb - sa <= FOUR * epsilon(ONE)) exit
+    end do
+    h = ftplist(i1)%h + s * dh
+    return
+  end subroutine pchip_h_from_t
+!==============================================================================
+!> \brief Record one out-of-range state on this rank (see n_oor_local).
+!------------------------------------------------------------------------------
+  subroutine record_out_of_range(property, value, low, high)
+    character(len = *), intent(in) :: property
+    real(WP),           intent(in) :: value, low, high
+
+    if(n_oor_local == 0) then
+      oor_property = property
+      oor_value    = value
+      oor_low      = low
+      oor_high     = high
+    end if
+    n_oor_local = n_oor_local + 1
+
+    return
+  end subroutine record_out_of_range
+!==============================================================================
+!> \brief Collective check for out-of-range thermodynamic states.
+!>
+!> Called by all ranks after each property-recovery sweep. If any rank met an
+!> out-of-range state, every such rank reports rank, property, value, supported
+!> range, count, iteration and time, and the run is stopped on all ranks
+!> (MPI_ABORT): the outcome no longer depends on which rank owns the cell, and
+!> no clamped state is carried into the next stage. One integer allreduce.
+!------------------------------------------------------------------------------
+  subroutine check_property_range(iteration, time, where)
+    use iso_fortran_env, only : output_unit
+    integer,            intent(in) :: iteration
+    real(WP),           intent(in) :: time
+    character(len = *), intent(in) :: where
+    integer :: n_oor_global, ierror
+
+    call MPI_ALLREDUCE(n_oor_local, n_oor_global, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, ierror)
+    if(n_oor_global == 0) return
+
+    if(n_oor_local > 0) then
+      write(*, '(A, I0, A, A, A, ES16.8, A, ES16.8, A, ES16.8, A, I0, A, I0, A, ES16.8, A, A)') &
+        ' >> !ERROR! << rank ', nrank, ': ', trim(oor_property), ' = ', oor_value, &
+        ' outside the property table [', oor_low, ', ', oor_high, '] (undim); states on this rank: ', &
+        n_oor_local, '; iteration ', iteration, ', time ', time, '; in ', trim(where)
+      flush(output_unit)
+    end if
+    call MPI_BARRIER(MPI_COMM_WORLD, ierror)
+    if(nrank == 0) then
+      write(*, '(A, I0, A)') ' >> !ERROR! << thermodynamic state out of the property range in ', &
+        n_oor_global, ' states (all ranks). No extrapolation or clamping is applied; stopping all ranks.'
+      flush(output_unit)
+    end if
+    call MPI_ABORT(MPI_COMM_WORLD, 1, ierror)
+
+    return
+  end subroutine check_property_range
 !==============================================================================
 !==============================================================================
 !> Defination of a procedure in the type t_fluidThermoProperty.
@@ -887,6 +1215,12 @@ contains
     ! to sort input date (dimensional) based on Temperature (small to big)
     !------------------------------------------------------------------------------
     call ftplist_sort_t_small2big
+    ! Temperature interval of the table (dimensional): the property range used by
+    ! check_T_in_property_range, e.g. for prescribed boundary temperatures.
+    fluidparam%TP0min    = ftplist(1)%t
+    fluidparam%TP0max    = ftplist(fluidparam%nlist)%t
+    fluidparam%TP0minsrc = 'the first row of the property table'
+    fluidparam%TP0maxsrc = 'the last row of the property table'
     !------------------------------------------------------------------------------
     ! to update reference of thermal properties
     !------------------------------------------------------------------------------
@@ -915,6 +1249,8 @@ contains
     fluidparam%dhmax = ftplist(i)%rhoh ! undim
 
     is_ftplist_dim = .false.
+    ! slopes of the non-dimensional table; linear mode does not touch them
+    if(iprop_interp == IPROP_INTERP_PCHIP) call build_pchip_slopes
 
     return
   end subroutine buildup_property_relations_from_table
@@ -954,6 +1290,8 @@ contains
     integer :: i
     real(WP) :: rhoh(N_FUNC2TABLE), d(N_FUNC2TABLE)
 
+    if(iprop_interp == IPROP_INTERP_PCHIP) &
+      call Print_error_msg('property_interp = pchip is implemented for table fluids only.')
     ! Reject a run whose reference or initial state sits outside the interval the
     ! correlations support, before anything is built from it -- and before the
     ! correlations are evaluated at all. Order matters: Li's density carries
@@ -1349,6 +1687,30 @@ contains
   end subroutine check_T_in_property_range
 
 !==============================================================================
+!> \brief Stop the run before the simulation if a prescribed (nominal Dirichlet)
+!> boundary temperature lies outside the property range. Values are still
+!> dimensional (K). Sides whose temperature BC is not Dirichlet (Neumann heat
+!> flux, periodic, interior, convective, profile, database) are not checked:
+!> their constant is not a temperature. Range endpoints are valid.
+!------------------------------------------------------------------------------
+  subroutine check_dirichlet_bc_temperatures(dm)
+    type(t_domain), intent(in) :: dm
+    character(len = 1), parameter :: side(2) = ['1', '2']
+    integer :: n
+
+    do n = 1, 2
+      if(dm%ibcx_nominal(n, 5) == IBC_DIRICHLET) call check_T_in_property_range(dm%fbcx_const(n, 5), &
+        'the Dirichlet temperature of x boundary '//side(n)//' (ifbcx_t)')
+      if(dm%ibcy_nominal(n, 5) == IBC_DIRICHLET) call check_T_in_property_range(dm%fbcy_const(n, 5), &
+        'the Dirichlet temperature of y boundary '//side(n)//' (ifbcy_t)')
+      if(dm%ibcz_nominal(n, 5) == IBC_DIRICHLET) call check_T_in_property_range(dm%fbcz_const(n, 5), &
+        'the Dirichlet temperature of z boundary '//side(n)//' (ifbcz_t)')
+    end do
+
+    return
+  end subroutine check_dirichlet_bc_temperatures
+
+!==============================================================================
   subroutine Convert_thermal_input_2undim (tm, dm)
     type(t_domain),   intent(inout) :: dm
     type(t_thermo),   intent(inout) :: tm
@@ -1366,6 +1728,8 @@ contains
 
     if(.not. dm%is_thermo) return
 
+    call check_dirichlet_bc_temperatures(dm)
+
     !------------------------------------------------------------------------------
     !   for x-pencil
     !   scale the given thermo b.c. in dimensional to undimensional
@@ -1378,7 +1742,7 @@ contains
         dm%fbcx_const(n, 5) = dm%fbcx_const(n, 5)/tm%ref_T0  ! undim
       end if
       if (dm%ibcx_Tm(n) == IBC_NEUMANN) then
-        dm%fbcx_const(n, 5) = dm%fbcx_const(n, 5) * tm%ref_l0 / fluidparam%ftp0ref%k / fluidparam%ftp0ref%t
+        dm%fbcx_const(n, 5) = ((dm%fbcx_const(n, 5) * tm%ref_l0) / fluidparam%ftp0ref%k) / fluidparam%ftp0ref%t
       end if
     end do
 
@@ -1390,7 +1754,7 @@ contains
         dm%fbcy_const(n, 5) = dm%fbcy_const(n, 5)/tm%ref_T0  ! undim
       end if
       if (dm%ibcy_Tm(n) == IBC_NEUMANN) then
-        dm%fbcy_const(n, 5) = dm%fbcy_const(n, 5) * tm%ref_l0 / fluidparam%ftp0ref%k / fluidparam%ftp0ref%t
+        dm%fbcy_const(n, 5) = ((dm%fbcy_const(n, 5) * tm%ref_l0) / fluidparam%ftp0ref%k) / fluidparam%ftp0ref%t
       end if
     end do
     !------------------------------------------------------------------------------
@@ -1401,7 +1765,7 @@ contains
         dm%fbcz_const(n, 5) = dm%fbcz_const(n, 5)/tm%ref_T0  ! undim
       end if
       if (dm%ibcz_Tm(n) == IBC_NEUMANN) then
-        dm%fbcz_const(n, 5) = dm%fbcz_const(n, 5) * tm%ref_l0 / fluidparam%ftp0ref%k / fluidparam%ftp0ref%t
+        dm%fbcz_const(n, 5) = ((dm%fbcz_const(n, 5) * tm%ref_l0) / fluidparam%ftp0ref%k) / fluidparam%ftp0ref%t
       end if
     end do
 
@@ -1463,6 +1827,7 @@ contains
     integer  :: n
     real(WP) :: Ts, rd, lownoise, s
     real(WP) :: rhoh_bulk(2)
+    type(t_fluidThermoProperty) :: ftp_buf
     logical  :: is_zerograd_lower
     character(len = 80) :: str
 
@@ -1554,6 +1919,11 @@ contains
     ! Add low-level random perturbation to temperature field
     !--------------------------------------------------------------------------------------------------------
     lownoise = fl%noiselevel*2.0e-4_WP
+    ! Hash stream of the temperature noise. n used to be left unassigned, so the
+    ! noise depended on whatever the compiler left in it (0 with gfortran, which
+    ! all CPU results so far used; something else with nvfortran). 0 keeps those
+    ! results and stays apart from the flow noise, which uses n = 1..3.
+    n = 0
     if (abs(lownoise) > MINP) then
       if(nrank == 0) call Print_debug_inline_msg("Add low-level random perturbation to temperature field ...")
       do k = 1, dtmp%xsz(3)
@@ -1610,23 +1980,36 @@ contains
       nxoute = dtmp%xsz(1)
       if(nrank == 0) call Print_debug_inline_msg ("Configuring thermo buffer layers at the outlet...")
     end if
+    !--------------------------------------------------------------------------------------------------------
+    ! Buffer cells start at the reference state T = T0 (non-dimensional 1). With linear interpolation that
+    ! state is exactly rho = mu = k = sigma_e = 1, h = rho*h = 0, because T0 defines the reference values.
+    ! property_interp = pchip evaluates T = 1 with its own interpolant (rho, h differ from 1, 0 by the
+    ! interpolant difference between nodes), so that the buffer starts on that mode's equation of state.
+    !--------------------------------------------------------------------------------------------------------
+    ftp_buf%t = ONE
+    if (iprop_interp == IPROP_INTERP_PCHIP .and. fluidparam%ipropertyState == IPROPERTY_TABLE) then
+      call ftp_refresh_thermal_properties_from_T_undim(ftp_buf)
+    else
+      ftp_buf%d = ONE; ftp_buf%m = ONE; ftp_buf%rhoh = ZERO; ftp_buf%h = ZERO
+      ftp_buf%k = ONE; ftp_buf%sigma_e = ONE
+    end if
     if (nxinl > 0) then
-      fl%dDens(1:nxinl, :, :) = ONE
-      fl%mVisc(1:nxinl, :, :) = ONE
-      tm%rhoh (1:nxinl, :, :) = ZERO
-      tm%hEnth(1:nxinl, :, :) = ZERO
-      tm%kCond(1:nxinl, :, :) = ONE
-      tm%eCond(1:nxinl, :, :) = ONE
-      tm%tTemp(1:nxinl, :, :) = ONE
+      fl%dDens(1:nxinl, :, :) = ftp_buf%d
+      fl%mVisc(1:nxinl, :, :) = ftp_buf%m
+      tm%rhoh (1:nxinl, :, :) = ftp_buf%rhoh
+      tm%hEnth(1:nxinl, :, :) = ftp_buf%h
+      tm%kCond(1:nxinl, :, :) = ftp_buf%k
+      tm%eCond(1:nxinl, :, :) = ftp_buf%sigma_e
+      tm%tTemp(1:nxinl, :, :) = ftp_buf%t
     end if
     if (nxout > 0) then
-      fl%dDens(nxouts:nxoute, :, :) = ONE
-      fl%mVisc(nxouts:nxoute, :, :) = ONE
-      tm%rhoh (nxouts:nxoute, :, :) = ZERO
-      tm%hEnth(nxouts:nxoute, :, :) = ZERO
-      tm%kCond(nxouts:nxoute, :, :) = ONE
-      tm%eCond(nxouts:nxoute, :, :) = ONE
-      tm%tTemp(nxouts:nxoute, :, :) = ONE
+      fl%dDens(nxouts:nxoute, :, :) = ftp_buf%d
+      fl%mVisc(nxouts:nxoute, :, :) = ftp_buf%m
+      tm%rhoh (nxouts:nxoute, :, :) = ftp_buf%rhoh
+      tm%hEnth(nxouts:nxoute, :, :) = ftp_buf%h
+      tm%kCond(nxouts:nxoute, :, :) = ftp_buf%k
+      tm%eCond(nxouts:nxoute, :, :) = ftp_buf%sigma_e
+      tm%tTemp(nxouts:nxoute, :, :) = ftp_buf%t
     end if
 
     if (nrank == 0) call Print_debug_end_msg()

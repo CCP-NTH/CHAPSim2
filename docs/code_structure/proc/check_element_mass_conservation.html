@@ -170,17 +170,17 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/math_mod.html'>math_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
                   <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/input_general_mod.html'>input_general_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/math_mod.html'>math_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></li>
                   <li class="list-inline-item"><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></li>
                   <li class="list-inline-item"><a href='../module/precision_mod.html'>precision_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/wtformat_mod.html'>wtformat_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/input_general_mod.html'>input_general_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/mpi_mod.html'>mpi_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/wtformat_mod.html'>wtformat_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -214,7 +214,7 @@ Check and report element-wise mass-conservation residuals.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~33"></span>
+              <span class="anchor" id="variable-fl~61"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -229,7 +229,7 @@ Check and report element-wise mass-conservation residuals.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~118"></span>
+              <span class="anchor" id="variable-dm~179"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -409,8 +409,12 @@ Check and report element-wise mass-conservation residuals.
 <span class="w">    </span><span class="k">end if</span>
 <span class="w">    </span><span class="c">!fl%mcon(4) = safe_divide(fl%mcon(1)-mm0, dabs(mm0))</span>
 <span class="w">    </span><span class="c">!if(nrank==0) write(*, &#39;(A,1F9.2,A)&#39;) &#39; &#39;, fl%mcon(4)*100.0_WP, &#39;%&#39;</span>
-<span class="w">    </span><span class="c">! terminate code once too large</span>
-<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="w">    </span><span class="c">! terminate code once too large. Only the time-step check (called without</span>
+<span class="w">    </span><span class="c">! opt_str, chapsim.f90) can trigger this. The pre-loop calls (&#39;initial&#39;,</span>
+<span class="w">    </span><span class="c">! &#39;init-div-free&#39;) evaluate div(g) + fl%drhodt before fl%drhodt is computed</span>
+<span class="w">    </span><span class="c">! (it is zero until the first energy step), so after a heated restart they</span>
+<span class="w">    </span><span class="c">! report max|d rho/dt| of the restored state rather than a continuity error.</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="nb">present</span><span class="p">(</span><span class="n">opt_str</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <span class="k">      if</span><span class="p">(</span><span class="n">safety_mass_residual</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mf">2.0_WP</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">10000</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">      </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Mass conservation error exceeds tolerance. Terminate run and investigate.&quot;</span><span class="p">)</span>
 <span class="w">    </span><span class="k">end if</span>

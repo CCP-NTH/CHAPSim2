@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 5.4% of total for derived types.</p>Including implementation: 26 statements,  5.4% of total for derived types.">26 statements</a>
+                 title="<p> 5.4% of total for derived types.</p>Including implementation: 28 statements,  5.4% of total for derived types.">28 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -143,13 +143,15 @@
             <a class="list-group-item" href="../type/t_metrics.html#variable-physical_poisson_compatibility_defect~2">physical_poisson_compatibility_defect</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-uniform_poisson_source_correction~2">uniform_poisson_source_correction</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-poisson_projected_source_amplitude~2">poisson_projected_source_amplitude</a>
-            <a class="list-group-item" href="../type/t_metrics.html#variable-poisson_zero_mode_rhs_projection~3">poisson_zero_mode_rhs_projection</a>
+            <a class="list-group-item" href="../type/t_metrics.html#variable-poisson_zero_mode_rhs_projection~2">poisson_zero_mode_rhs_projection</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-total_mass~2">total_mass</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-total_mass_drift~2">total_mass_drift</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-kinetic_energy">kinetic_energy</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-bulk_velocity">bulk_velocity</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-mean_dpdx">mean_dpdx</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-pressure_drop">pressure_drop</a>
+            <a class="list-group-item" href="../type/t_metrics.html#variable-mean_dpdx_pbar">mean_dpdx_pbar</a>
+            <a class="list-group-item" href="../type/t_metrics.html#variable-pressure_drop_pbar">pressure_drop_pbar</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-bulk_massflux">bulk_massflux</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-bulk_enthalpy">bulk_enthalpy</a>
             <a class="list-group-item" href="../type/t_metrics.html#variable-bulk_temperature">bulk_temperature</a>
@@ -317,7 +319,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-poisson_zero_mode_rhs_projection~3"></span>
+              <span class="anchor" id="variable-poisson_zero_mode_rhs_projection~2"></span>
               real(kind=wp),
             </td>
               <td>public</td>
@@ -430,6 +432,40 @@
             <td><strong>pressure_drop</strong></td>
                 <td></td>
                 <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mean_dpdx_pbar"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mean_dpdx_pbar</strong></td>
+<td> =</td>
+                <td>0.0_wp</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-pressure_drop_pbar"></span>
+              real(kind=wp),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pressure_drop_pbar</strong></td>
+<td> =</td>
+                <td>0.0_wp</td>
             <td>
                 
             </td>
@@ -649,6 +685,8 @@
 <span class="w">    </span><span class="c">!real(wp) :: wall_shear_integral</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mean_dpdx</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">pressure_drop</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">mean_dpdx_pbar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0_wp</span><span class="w">      </span><span class="c">! B3.4 experimental (RK3-weighted pressure)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">pressure_drop_pbar</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.0_wp</span>
 <span class="w">    </span><span class="c">! thermal metrics</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">bulk_massflux</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">wp</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">bulk_enthalpy</span>

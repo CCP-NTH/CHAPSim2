@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 3.6% of total for modules and submodules.">1011 statements</a>
+                 title=" 4.1% of total for modules and submodules.">1288 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -139,6 +139,17 @@
             <a class="list-group-item" href="../module/thermo_info_mod.html#variable-n_func2table">N_FUNC2TABLE</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#variable-is_ftplist_dim">is_ftplist_dim</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#variable-ftplist">ftplist</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-n_oor_local">n_oor_local</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-oor_property">oor_property</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-oor_value">oor_value</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-oor_low">oor_low</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-oor_high">oor_high</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-slp_t">slp_t</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-slp_d">slp_d</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-slp_m">slp_m</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-slp_k">slp_k</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-slp_sig">slp_sig</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#variable-slp_b">slp_b</a>
         </div>
       </div>
     </div>
@@ -180,6 +191,12 @@
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-ftp_refresh_thermal_properties_from_h">ftp_refresh_thermal_properties_from_H</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-ftp_refresh_thermal_properties_from_h_3dftp">ftp_refresh_thermal_properties_from_H_3Dftp</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-ftp_refresh_thermal_properties_from_dh">ftp_refresh_thermal_properties_from_DH</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#proc-pchip_node_slopes">pchip_node_slopes</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#proc-build_pchip_slopes">build_pchip_slopes</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#proc-ftp_pchip_eval_h">ftp_pchip_eval_h</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#proc-pchip_h_from_t">pchip_h_from_t</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#proc-record_out_of_range">record_out_of_range</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#proc-check_property_range">check_property_range</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-ftp_print">ftp_print</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-ftplist_sort_t_small2big">ftplist_sort_t_small2big</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-ftplist_check_monotonicity_dh_of_hort">ftplist_check_monotonicity_DH_of_HorT</a>
@@ -191,6 +208,7 @@
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-buildup_fluidparam">Buildup_fluidparam</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-restrict_property_range">restrict_property_range</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-check_t_in_property_range">check_T_in_property_range</a>
+            <a class="list-group-item" href="../module/thermo_info_mod.html#proc-check_dirichlet_bc_temperatures">check_dirichlet_bc_temperatures</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-convert_thermal_input_2undim">Convert_thermal_input_2undim</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-initialise_thermal_properties">initialise_thermal_properties</a>
             <a class="list-group-item" href="../module/thermo_info_mod.html#proc-buildup_thermo_mapping_relations">Buildup_thermo_mapping_relations</a>
@@ -222,8 +240,8 @@ relationships between properties.</p>
             <li class="list-group-item">
               <ul class="list-inline">
                   <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
-                  <li class="list-inline-item"><a href='udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='wtformat_mod.html'>wtformat_mod</a></li>
                   <li class="list-inline-item"><a href='mpi_mod.html'>mpi_mod</a></li>
               </ul>
@@ -299,6 +317,193 @@ relationships between properties.</p>
                 
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-n_oor_local"></span>
+              integer,
+            </td>
+              <td>private,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>n_oor_local</strong></td>
+<td> =</td>
+                <td>0</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-oor_property"></span>
+              character(len=16),
+            </td>
+              <td>private,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>oor_property</strong></td>
+<td> =</td>
+                <td>&#39;&#39;</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-oor_value"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>oor_value</strong></td>
+<td> =</td>
+                <td>0.0_WP</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-oor_low"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>oor_low</strong></td>
+<td> =</td>
+                <td>0.0_WP</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-oor_high"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>oor_high</strong></td>
+<td> =</td>
+                <td>0.0_WP</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-slp_t"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save, allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>slp_t</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-slp_d"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save, allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>slp_d</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-slp_m"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save, allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>slp_m</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-slp_k"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save, allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>slp_k</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-slp_sig"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save, allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>slp_sig</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-slp_b"></span>
+              real(kind=WP),
+            </td>
+              <td>private,</td>
+            <td>
+              save, allocatable, dimension(:)
+            </td>
+            <td>::</td>
+            <td><strong>slp_b</strong></td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -331,7 +536,7 @@ relationships between properties.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-iter~7"></span>
+              <span class="anchor" id="variable-iter~87"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -573,7 +778,7 @@ relationships between properties.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~27"></span>
+              <span class="anchor" id="variable-fl~100"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -588,7 +793,7 @@ relationships between properties.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~13"></span>
+              <span class="anchor" id="variable-tm~41"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -603,7 +808,7 @@ relationships between properties.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~56"></span>
+              <span class="anchor" id="variable-dm~313"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -643,7 +848,7 @@ relationships between properties.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~28"></span>
+              <span class="anchor" id="variable-fl~101"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -658,7 +863,7 @@ relationships between properties.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~14"></span>
+              <span class="anchor" id="variable-tm~42"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -673,7 +878,7 @@ relationships between properties.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~57"></span>
+              <span class="anchor" id="variable-dm~314"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -816,6 +1021,362 @@ relationships between properties.</p>
   </div>
 
               <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-pchip_node_slopes"></span> <h3>public pure subroutine <a href='../proc/pchip_node_slopes.html'>pchip_node_slopes</a>(x, y, m)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Monotone (Fritsch-Butland) node slopes of y(x) for strictly increasing x:
+the PCHIP slopes. Interior node: weighted harmonic mean of the adjacent
+secants when they have the same sign, zero otherwise (local extremum).
+End nodes: three-point one-sided estimate, limited so the end interval stays
+shape-preserving (same rule as Fritsch &amp; Carlson 1980 / Moler, Numerical
+Computing with MATLAB, pchip). The resulting cubic Hermite interpolant
+preserves monotonicity of the data and stays within adjacent node values.
+- x, y (in): node abscissae (strictly increasing) and values.
+- m (out): slopes dy/dx at the nodes.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-x~9"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>x</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-y~6"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>y</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-m~13"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>m</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-build_pchip_slopes"></span> <h3>private  subroutine <a href='../proc/build_pchip_slopes.html'>build_pchip_slopes</a>()  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Set the PCHIP node slopes d(.)/dh of the non-dimensional table (once, at
+table load, property_interp = pchip only). Requires h strictly increasing
+along the T-sorted table, and dT/dh &gt; 0 at every node so that
+cp = 1/(dT/dh) is finite; stops otherwise.</p>
+
+  <h4>Arguments</h4>
+    <em>None</em>
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-ftp_pchip_eval_h"></span> <h3>private  subroutine <a href='../proc/ftp_pchip_eval_h.html'>ftp_pchip_eval_h</a>(this)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Locate the table interval [h(i1), h(i1+1)] containing this%h (exact
+comparisons) and evaluate the cubic Hermite interpolants there:
+  y(h) = H00 y1 + H10 dh m1 + H01 y2 + H11 dh m2,  s = (h - h1)/dh,
+  H00 = (1+2s)(1-s)^2, H10 = s(1-s)^2, H01 = s^2(3-2s), H11 = s^2(s-1);
+sets t, d, m, k, sigma_e, b, and cp = 1/(dT/dh) (non-dimensional: with
+h = (h<em> - h0</em>)/(cp0 T0) and T = T<em>/T0, dT/dh = cp0 dT</em>/dh* = 1/cp).
+h outside the table is recorded (collective stop by check_property_range)
+and the end value used; no extrapolation.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-this~6"></span>
+              type(<a href='../type/t_fluidthermoproperty.html'>t_fluidThermoProperty</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>this</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-pchip_h_from_t"></span> <h3>private  subroutine <a href='../proc/pchip_h_from_t.html'>pchip_h_from_t</a>(t, h)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Inverse of the PCHIP T(h): the h with T_cubic(h) = t. The interval comes from
+the T nodes (T_i = T(h_i), T increasing), the root from a bracketed Newton
+iteration in s = (h - h1)/dh on [0, 1], falling back to bisection whenever a
+Newton step leaves the bracket. T_cubic is monotone on the interval, so the
+root is unique; iteration stops when the bracket is below 4 ulp of s.
+t outside the table is recorded and the end value used.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-t~7"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>t</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-h~9"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>h</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-record_out_of_range"></span> <h3>private  subroutine <a href='../proc/record_out_of_range.html'>record_out_of_range</a>(property, value, low, high)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>\brief Record one out-of-range state on this rank (see n_oor_local).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-property"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>property</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-value~41"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>value</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-low"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>low</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-high"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>high</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-check_property_range"></span> <h3>public  subroutine <a href='../proc/check_property_range.html'>check_property_range</a>(iteration, time, where)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>\brief Collective check for out-of-range thermodynamic states.</p><a href="../proc/check_property_range.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iteration~5"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iteration</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-time~9"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>time</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-where"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>where</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
     <div class="card-header codesum"><span class="anchor" id="proc-ftp_print"></span> <h3>private  subroutine <a href='../proc/ftp_print.html'>ftp_print</a>(this, unit, iotype, v_list, iostat, iomsg)  
 </h3></div>
     <div class="card-body">
@@ -836,7 +1397,7 @@ relationships between properties.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-this~6"></span>
+              <span class="anchor" id="variable-this~7"></span>
               type(<a href='../type/t_fluidthermoproperty.html'>t_fluidThermoProperty</a>),
             </td>
 <td>intent(in)</td>
@@ -851,7 +1412,7 @@ relationships between properties.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-unit"></span>
+              <span class="anchor" id="variable-unit~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -1089,7 +1650,7 @@ This subroutine is called once after reading the table.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~15"></span>
+              <span class="anchor" id="variable-tm~43"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(in)</td>
@@ -1237,6 +1798,50 @@ the property correlations support, naming the property that sets that end.</p>
   </div>
 
               <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-check_dirichlet_bc_temperatures"></span> <h3>private  subroutine <a href='../proc/check_dirichlet_bc_temperatures.html'>check_dirichlet_bc_temperatures</a>(dm)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>\brief Stop the run before the simulation if a prescribed (nominal Dirichlet)
+boundary temperature lies outside the property range. Values are still
+dimensional (K). Sides whose temperature BC is not Dirichlet (Neumann heat
+flux, periodic, interior, convective, profile, database) are not checked:
+their constant is not a temperature. Range endpoints are valid.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~317"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
     <div class="card-header codesum"><span class="anchor" id="proc-convert_thermal_input_2undim"></span> <h3>public  subroutine <a href='../proc/convert_thermal_input_2undim.html'>Convert_thermal_input_2undim</a>(tm, dm)  
 </h3></div>
     <div class="card-body">
@@ -1256,7 +1861,7 @@ the property correlations support, naming the property that sets that end.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~16"></span>
+              <span class="anchor" id="variable-tm~44"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -1271,7 +1876,7 @@ the property correlations support, naming the property that sets that end.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~60"></span>
+              <span class="anchor" id="variable-dm~318"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -1311,7 +1916,7 @@ the property correlations support, naming the property that sets that end.</p>
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~29"></span>
+              <span class="anchor" id="variable-fl~102"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -1326,7 +1931,7 @@ the property correlations support, naming the property that sets that end.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~17"></span>
+              <span class="anchor" id="variable-tm~45"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -1341,7 +1946,7 @@ the property correlations support, naming the property that sets that end.</p>
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~61"></span>
+              <span class="anchor" id="variable-dm~319"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -1389,7 +1994,7 @@ Scope:  mpi    called-freq    xdomain
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~18"></span>
+              <span class="anchor" id="variable-tm~46"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>

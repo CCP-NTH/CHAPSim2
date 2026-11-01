@@ -84,6 +84,68 @@ module parameters_constant_mod
   !logical :: is_two_potential_splitting ! true = stable solver but twice fft
   logical :: is_single_RK_projection ! true = projection only at last RK sub-step, time (o(dt^3)),
   logical :: is_damping_drhodt
+  !----------------------------------------------------------------------------
+  ! Transport-consistent enthalpy recovery ('Bc', B3 production candidate).
+  ! When true, rho*h is divided by rho_hat, a density advanced with the same
+  ! RK3 weights and stage history as the mass flux seen by the energy equation:
+  !   rho_hat^k = rho_hat^{k-1} + dt*(gamma_k rho_t^{k-1} + zeta_k rho_t^{k-2}),
+  !   h^k = (rho h)^k / rho_hat^k,  rho^k = rho_EOS(h^k).
+  ! Selected by the [thermo] key rhoh_recovery (default transported); false
+  ! only for the deprecated rhoh_recovery = lagged_legacy.
+  !----------------------------------------------------------------------------
+  logical :: is_bc_recovery = .false.
+  !----------------------------------------------------------------------------
+  ! Property-table interpolation in enthalpy ([thermo] key property_interp,
+  ! table fluids only). linear (default): piecewise linear, d(rho)/dh jumps at
+  ! every node. pchip (experimental): monotone piecewise-cubic Hermite, C1 in h.
+  !----------------------------------------------------------------------------
+  integer, parameter :: IPROP_INTERP_LINEAR = 0, &
+                        IPROP_INTERP_PCHIP  = 1
+  integer :: iprop_interp = IPROP_INTERP_LINEAR
+  !----------------------------------------------------------------------------
+  ! Face reconstruction of h in the convective flux g*h_f of the rho*h equation
+  ! ([thermo] key enthalpy_advection). cd2 (default): the existing midpoint
+  ! interpolation at iaccuracy. koren (experimental): Koren-limited MUSCL face
+  ! value upwinded on the face mass flux; needs iaccuracy = cd2.
+  !----------------------------------------------------------------------------
+  integer, parameter :: IENTH_ADV_CD2   = 0, &
+                        IENTH_ADV_KOREN = 1
+  integer :: ienth_adv = IENTH_ADV_CD2
+  ! [thermo] key enthalpy_advection_restart: strict (default) stops a thermal
+  ! restart whose checkpoint was advanced with the other enthalpy_advection;
+  ! allow_switch permits the change (with a warning and a provenance record).
+  logical :: is_enth_adv_switch_allowed = .false.
+  !----------------------------------------------------------------------------
+  ! Global mass-balance correction of a convective x-outlet ([bc] key
+  ! outlet_mass_correction). At every RK stage the outlet face mass flux is
+  ! corrected so that the discrete global balance (the Poisson compatibility
+  ! condition)  sum_V drho/dt dV + mdot_out - mdot_in = 0  holds exactly.
+  !   proportional (default): g_b <- s g_b,  s = 1 + R/mdot_out (unchanged).
+  !   uniform_flux          : g_b <- g_b + R/A_out, the same mass-flux increment
+  !                           on every outlet face (A_out = discrete outlet area).
+  !   split                 : R_k = S_k + F_k. The slow part S_k = alpha_k * (sum of
+  !                           R over the previous step) is applied proportionally,
+  !                           the stage-periodic remainder F_k uniformly.
+  ! R is the stage imbalance of check_global_mass_balance in all cases.
+  !----------------------------------------------------------------------------
+  integer, parameter :: IOUTLET_MASS_PROPORTIONAL = 0, &
+                        IOUTLET_MASS_UNIFORM_FLUX = 1, &
+                        IOUTLET_MASS_SPLIT        = 2
+  integer :: ioutlet_mass_correction = IOUTLET_MASS_PROPORTIONAL
+  ! [thermo] key thermal_outlet_pair: thermodynamic face state of a convective
+  ! x-outlet under rhoh_recovery = transported. convective (default): rho*h and
+  ! rho_hat at the face are advanced with d(phi)/dt + U_c d(phi)/dx = 0.
+  ! zero_gradient: the face takes the last interior cell's (rho*h, rho_hat), so
+  ! h_b = h(nc) and the outflow enthalpy flux is the upwind g_b h(nc).
+  logical :: is_thermal_outlet_zero_gradient = .false.
+  ! B3.4 experimental output (env CHAPSIM_B3_PBAR=1): report the RK3-weighted
+  ! pressure Pbar = sum_k alpha_k p^k in the monitor and visualisation files
+  logical :: is_pbar_output = .false.
+  ! B3.5 experimental (env CHAPSIM_B3_PSTAT=1): pressure statistics from the
+  ! full-step pressure Pbar paired with midpoint velocity / velocity gradient
+  logical :: is_pfs_stats = .false.
+  ! B3.5 decision: optional midpoint pairing kept as an experimental comparison only
+  logical :: is_pfs_stats_mid = .false.
   logical :: is_global_mass_correction
 !------------------------------------------------------------------------------
 ! constants
@@ -655,6 +717,7 @@ module udf_type_mod
     logical :: is_stretching(NDIM)      ! is this direction of stretching grids?
     logical :: is_compact_scheme     ! is compact scheme applied?
     logical :: is_thermo             ! is thermal field considered?
+    logical :: is_fbc_T_tini(2, 3) = .false. ! temperature BC value given as the token 'tini' (sides, x/y/z)
     logical :: is_conv_outlet(3)
     logical :: is_record_xoutlet
     logical :: is_read_xinlet
@@ -694,6 +757,17 @@ module udf_type_mod
     integer :: ndbend
     integer :: ndbstart
     integer :: ndb_file_offset
+    ! inlet database sampling interval (optional [io] key ndb_sampling_dt);
+    ! 0 = not given: one stored plane per solver step (unchanged behaviour).
+    ! Given: planes are database samples ndb_sampling_dt apart in physical time;
+    ! ndb_time_ratio = ndb_sampling_dt/dt (integer >= 1, validated) and, for a
+    ! ratio > 1, the inlet is interpolated linearly in time between samples.
+    real(wp) :: ndb_sampling_dt = 0.0_wp
+    real(wp) :: ndb_sampling_dt_run = 0.0_wp   ! solver dt the ratio was validated with
+    integer  :: ndb_time_ratio = 1
+    integer  :: xinlet_blk_cur = -1             ! database block held in fbcx_q*_inl1/2
+    integer  :: xinlet_blk_nxt = -1             ! database block held in fbcx_q*_inl1/2_nxt
+    logical  :: xinlet_ndb_dt_warned = .false.
     logical :: xinlet_database_checked = .false.
     logical :: xinlet_database_interp_yz = .false.
     logical :: xinlet_database_warning_issued = .false.
@@ -854,6 +928,13 @@ module udf_type_mod
     real(wp), allocatable :: fbcx_qz_inl2(:, :, :) ! variable bc
     real(wp), allocatable :: fbcx_pr_inl1(:, :, :) ! variable bc
     real(wp), allocatable :: fbcx_pr_inl2(:, :, :) ! variable bc
+    ! next database block, used only for temporal interpolation (ndb_time_ratio > 1)
+    real(wp), allocatable :: fbcx_qx_inl1_nxt(:, :, :)
+    real(wp), allocatable :: fbcx_qx_inl2_nxt(:, :, :)
+    real(wp), allocatable :: fbcx_qy_inl1_nxt(:, :, :)
+    real(wp), allocatable :: fbcx_qy_inl2_nxt(:, :, :)
+    real(wp), allocatable :: fbcx_qz_inl1_nxt(:, :, :)
+    real(wp), allocatable :: fbcx_qz_inl2_nxt(:, :, :)
 
     type(t_fluidThermoProperty), allocatable :: fbcx_ftp(:, :, :)  ! undim, xbc state
     type(t_fluidThermoProperty), allocatable :: fbcy_ftp(:, :, :)  ! undim, ybc state
@@ -913,6 +994,13 @@ module udf_type_mod
     real(WP), allocatable :: qz0(:, :, :)
 
     real(WP), allocatable :: pres(:, :, :)
+    ! RK3-weighted pressure of the last completed step, Pbar = sum_k alpha_k p^k:
+    ! the pressure whose gradient balances the full-step momentum update
+    ! g^n - g^(n-1) = dt*sum_k(gamma_k N^(k-1) + zeta_k N^(k-2)) + dt*fbar - dt*G(Pbar)
+    ! (exact when the momentum and projection gradients coincide). Output only;
+    ! fl%pres (stage pressure) remains the algorithmic and restart state.
+    real(WP), allocatable :: pres_rk(:, :, :)
+    logical :: is_pres_rk_valid = .false.
     real(WP), allocatable :: pcor(:, :, :)
     real(WP), allocatable :: pcor_zpencil_ggg(:, :, :)
 
@@ -921,6 +1009,19 @@ module udf_type_mod
     real(WP), allocatable :: mVisc(:, :, :)
     real(WP), allocatable :: tVisc(:, :, :)
     real(WP), allocatable :: dDens0(:, :, :)
+    ! Bc (transported-density recovery): transported density and the two previous-stage rho_t
+    real(WP), allocatable :: dDens_hat(:, :, :)
+    real(WP), allocatable :: drhodt_m1(:, :, :)
+    real(WP), allocatable :: drhodt_m2(:, :, :)
+    ! true when rho_hat and rho_t history were read from a Bc thermal restart
+    logical :: is_bc_state_restored = .false.
+    ! .true. when a thermal flow restart has restored the convective x-outlet
+    ! mass-flux planes fbcx_g* (incl. the convective ghost slots) from the bundle
+    logical :: is_fbcx_g_restored = .false.
+    ! .true. once the x-boundary thermal states (fbcx_ftp) have been rebuilt by the time loop's
+    ! property update (rho*h, rho_hat) - after an energy step, or restored from a checkpoint whose
+    ! metadata records such a state; written to the flow-restart metadata as fbcx_thermal_state
+    logical :: is_fbcx_thermal_rebuilt = .false.
     real(WP), allocatable :: mVisc0(:, :, :)
 
     real(WP), allocatable :: mx_rhs(:, :, :) ! current step rhs in x
@@ -971,6 +1072,22 @@ module udf_type_mod
     real(WP), allocatable :: tavg_uu  (:, :, :, :)  ! 6  = uu, uv, uw, vv, vw, ww
     real(WP), allocatable :: tavg_uuu (:, :, :, :)  ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
     real(WP), allocatable :: tavg_prdu(:, :, :, :)  ! 9  = pr * dui/dxk
+    ! Experimental full-step pressure statistics (is_pfs_stats): Pbar is the RK3
+    ! full-step effective pressure of the step [t-dt, t] (centred t-dt/2), paired
+    ! with the completed-step velocity / velocity gradient u(t), grad u(t)
+    ! (preferred pairing, first order). Optional midpoint pairing
+    ! (is_pfs_stats_mid) with u_mid = (u(t-dt) + u(t))/2 for comparison.
+    real(WP), allocatable :: tavg_prfs  (:, :, :)     ! <Pbar>
+    real(WP), allocatable :: tavg_prfs2 (:, :, :)     ! <Pbar^2>
+    real(WP), allocatable :: tavg_prfsu (:, :, :, :)  ! 3 = <Pbar u_i(t)>
+    real(WP), allocatable :: tavg_prfsdu(:, :, :, :)  ! 9 = <Pbar du_i/dx_k(t)>
+    real(WP), allocatable :: tavg_prfsmu (:, :, :, :) ! 3 = <Pbar u_mid,i>          (midpoint option)
+    real(WP), allocatable :: tavg_prfsmdu(:, :, :, :) ! 9 = <Pbar d u_mid,i/dx_k>   (midpoint option)
+    real(WP), allocatable :: tavg_umid   (:, :, :, :) ! 3 = <u_mid,i>               (midpoint option)
+    real(WP), allocatable :: tavg_dudxmid(:, :, :, :) ! 9 = <d u_mid,i/dx_k>        (midpoint option)
+    real(WP), allocatable :: uccc_prev(:, :, :, :)    ! u of the previous completed step (midpoint option)
+    real(WP), allocatable :: dudx_prev(:, :, :, :, :) ! du_i/dx_j of the previous completed step (midpoint option)
+    logical :: is_stats_prev_valid = .false.
     real(WP), allocatable :: tavg_dudx(:, :, :, :)  ! 9  = dui/dxj
     real(WP), allocatable :: tavg_vort(:, :, :, :)  ! 3  = vort_x, vort_r, vort_theta
     real(WP), allocatable :: tavg_vortvort(:, :, :, :)  ! 6  = vort_i * vort_j
@@ -999,7 +1116,7 @@ module udf_type_mod
     real(WP), allocatable :: tavg_f   (:, :, :)    ! f = rho
     real(WP), allocatable :: tavg_fu  (:, :, :, :) ! 3 = rhou, rhov, rhow
     real(WP), allocatable :: tavg_fuu (:, :, :, :) ! 6 = rho*uu, rho*uv, rho*uw, rho*vv, rho*vw, rho*ww
-    real(WP), allocatable :: tavg_fuuu(:, :, :, :) ! 10 = uuu, uuv, uuw, uvv, uvw, uww, vvv, vvw, vww, www
+    real(WP), allocatable :: tavg_fuuu(:, :, :, :) ! 10 = rho*uuu, rho*uuv, rho*uuw, rho*uvv, rho*uvw, rho*uww, rho*vvv, rho*vvw, rho*vww, rho*www
     !
     real(WP), allocatable :: tavg_fh  (:, :, :)    ! fh= rho * h
     real(WP), allocatable :: tavg_fuh (:, :, :, :) ! 3 = rho*u*h, rho*v*h, rho*w*h
@@ -1058,6 +1175,15 @@ module udf_type_mod
     real(WP), allocatable :: ene_rhs(:, :, :)  ! current step rhs
     real(WP), allocatable :: ene_rhs0(:, :, :) ! last step rhs
     real(WP), allocatable :: fbcx_rhoh_rhs0(:, :)  !
+    ! Bc convective x-outlet: transported density at the outlet face (slot 2)
+    ! and its ghost (slot 4), advanced with the same convective-outlet operator
+    ! and RK3 weights as rho*h, and its RK history.
+    real(WP), allocatable :: fbcx_dhat(:, :, :)
+    real(WP), allocatable :: fbcx_dhat_rhs0(:, :)
+    ! .false.: fbcx_dhat is (re)set from the outlet density fbcx_ftp%d at the next
+    ! outlet update (fresh start, legacy or per-field restart); .true. after an
+    ! exact Bc bundle restart.
+    logical :: is_fbcx_dhat_valid = .false.
     real(WP), allocatable :: fbcz_rhoh_rhs0(:, :)  !
 
     ! Counted sample population of the tavg_* arrays below; see the same member
@@ -1243,14 +1369,21 @@ end module
 module io_files_mod
   use parameters_constant_mod, only : is_IO_off
   implicit none
-  character(8) :: dir_code='0_src'
-  character(9) :: dir_data='1_data'
-  character(6) :: dir_visu='2_visu'
-  character(16) :: dir_visu_data='2_visu/data'
-  character(16) :: dir_visu_xdmf='2_visu/xdmf'
-  character(16) :: dir_visu_mesh='2_visu/mesh'
-  character(9) :: dir_moni='3_monitor'
-  character(9) :: dir_chkp='4_check'
+  ! Lengths leave room for the post-processing mode, which redirects every
+  ! output below 5_postprocess/window_<a>_<b>/ (see Prepare_postprocess_output
+  ! in chapsim.f90). All uses trim them, so the normal paths are unchanged.
+  ! dir_visu must keep ending in '2_visu': visu_xdmf_relative_path relies on it.
+  character(128) :: dir_code='0_src'
+  character(128) :: dir_data='1_data'
+  character(128) :: dir_visu='2_visu'
+  character(128) :: dir_visu_data='2_visu/data'
+  character(128) :: dir_visu_xdmf='2_visu/xdmf'
+  character(128) :: dir_visu_mesh='2_visu/mesh'
+  character(128) :: dir_moni='3_monitor'
+  character(128) :: dir_chkp='4_check'
+  ! root of the post-processing output (is_postprocess), one window_<a>_<b>
+  ! subdirectory per statistical window; not created by a normal run
+  character(*), parameter :: dir_postprocess = '5_postprocess'
   public :: create_directory
 
   interface operator( .f. )
@@ -1270,14 +1403,14 @@ contains
   subroutine create_directory
     implicit none
     if(is_IO_off) return
-    call system('mkdir -p '//dir_code)
-    call system('mkdir -p '//dir_data)
-    call system('mkdir -p '//dir_visu)
-    call system('mkdir -p '//dir_visu_data)
-    call system('mkdir -p '//dir_visu_xdmf)
-    call system('mkdir -p '//dir_visu_mesh)
-    call system('mkdir -p '//dir_moni)
-    call system('mkdir -p '//dir_chkp)
+    call system('mkdir -p '//trim(dir_code))
+    call system('mkdir -p '//trim(dir_data))
+    call system('mkdir -p '//trim(dir_visu))
+    call system('mkdir -p '//trim(dir_visu_data))
+    call system('mkdir -p '//trim(dir_visu_xdmf))
+    call system('mkdir -p '//trim(dir_visu_mesh))
+    call system('mkdir -p '//trim(dir_moni))
+    call system('mkdir -p '//trim(dir_chkp))
     return
   end subroutine
 end module
@@ -1607,3 +1740,92 @@ contains
  end function
 
 end module flatten_index_mod
+!==============================================================================
+!> B3.5/B3 conservation diagnostics (opt-in, env CHAPSIM_B3_BUDGET=1).
+!> Read-only accumulators of the discrete mass and rho*h budgets, built from the
+!> solver's own boundary-face fluxes and the RK3 weights. They never feed back
+!> into the solution. Conventions (undimensional):
+!>   energy: d/dt int(rho h) dV = int R_H dV,  R_H = D(-g h_F) + (1/(Re Pr0)) D(kappa_F G T)
+!>           int R_H dV = sum over boundary faces of (f_out - f_in) dA for a
+!>           telescoping (CD2) divergence with the solver's cell volumes
+!>   mass:   D g^k = -rho_t^k + c^k  (c = closed-domain compatibility correction)
+module budget_diag_mod
+  use precision_mod, only : WP, MPI_REAL_WP
+  implicit none
+  private
+  logical, public, save :: is_budget_diag = .false.
+  ! boundary contributions to int R_H dV of the current stage (1..12):
+  !  1/2 x-low/high convective, 3/4 x-low/high conductive,
+  !  5/6 y-low/high convective, 7/8 y-low/high conductive, 9-12 the same for z
+  integer, parameter, public :: NBF = 12
+  real(WP), public, save :: bflux(NBF) = 0.0_WP, bflux_prev(NBF) = 0.0_WP, bflux_step(NBF) = 0.0_WP
+  real(WP), public, save :: vrhs = 0.0_WP, vrhs_prev = 0.0_WP, vrhs_step = 0.0_WP
+  real(WP), public, save :: scomp_step = 0.0_WP
+  real(WP), public, save :: h_old = 0.0_WP, h_new = 0.0_WP, m_old = 0.0_WP, mhat_old = 0.0_WP
+  real(WP), public, save :: mflux_in_step = 0.0_WP, mflux_out_step = 0.0_WP
+  real(WP), public, save :: drhodt_int_step = 0.0_WP, c_int_step = 0.0_WP, c_cum = 0.0_WP
+  public :: budget_face_x, budget_face_y, budget_face_z
+contains
+  !> int f(iface, :, :) dA over an x-face plane of an x-pencil face array
+  !> (dA = dy dz, dy = h2/(ds/dy) at cell centres, dz = h3 (* r_c in cylindrical)).
+  function budget_face_x(dm, f, iface) result(s)
+    use udf_type_mod
+    use mpi_mod
+    use parameters_constant_mod, only : ICYLINDRICAL
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: f(:, :, :)
+    integer,  intent(in) :: iface
+    real(WP) :: s, sl, dy, dz
+    integer :: j, k, jj, ierr
+    sl = 0.0_WP
+    do j = 1, size(f, 2)
+      jj = dm%dpcc%xst(2) + j - 1
+      dy = dm%h(2)
+      if(dm%is_stretching(2)) dy = dm%h(2) / dm%yMappingcc(jj, 1)
+      dz = dm%h(3)
+      if(dm%icoordinate == ICYLINDRICAL) dz = dm%h(3) * dm%rc(jj)
+      do k = 1, size(f, 3)
+        sl = sl + f(iface, j, k) * dy * dz
+      end do
+    end do
+    call MPI_ALLREDUCE(sl, s, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierr)
+  end function budget_face_x
+  !> int f(:, jface, :) dA over a y-face plane of a y-pencil face array (dA = dx dz;
+  !> in cylindrical coordinates the flux arrays of the energy RHS already carry r).
+  function budget_face_y(dm, f, jface) result(s)
+    use udf_type_mod
+    use mpi_mod
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: f(:, :, :)
+    integer,  intent(in) :: jface
+    real(WP) :: s, sl
+    integer :: i, k, ierr
+    sl = 0.0_WP
+    do k = 1, size(f, 3)
+      do i = 1, size(f, 1)
+        sl = sl + f(i, jface, k) * dm%h(1) * dm%h(3)
+      end do
+    end do
+    call MPI_ALLREDUCE(sl, s, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierr)
+  end function budget_face_y
+  !> int f(:, :, kface) dA over a z-face plane of a z-pencil face array (dA = dx dy).
+  function budget_face_z(dm, f, kface) result(s)
+    use udf_type_mod
+    use mpi_mod
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: f(:, :, :)
+    integer,  intent(in) :: kface
+    real(WP) :: s, sl, dy
+    integer :: i, j, jj, ierr
+    sl = 0.0_WP
+    do j = 1, size(f, 2)
+      jj = dm%dccp%zst(2) + j - 1
+      dy = dm%h(2)
+      if(dm%is_stretching(2)) dy = dm%h(2) / dm%yMappingcc(jj, 1)
+      do i = 1, size(f, 1)
+        sl = sl + f(i, j, kface) * dm%h(1) * dy
+      end do
+    end do
+    call MPI_ALLREDUCE(sl, s, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierr)
+  end function budget_face_z
+end module budget_diag_mod

@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.5% of total for procedures.">141 statements</a>
+                 title=" 0.5% of total for procedures.">148 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -162,7 +162,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>public  subroutine Update_thermal_properties(dens, visc, tm, dm, opt_tVisc, opt_ren)  
+    <h2>public  subroutine Update_thermal_properties(dens, visc, tm, dm, opt_tVisc, opt_ren, opt_dens_bc)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -170,10 +170,10 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
                   <li class="list-inline-item"><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></li>
                   <li class="list-inline-item"><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></li>
                   <li class="list-inline-item"><a href='../module/operations.html'>operations</a></li>
               </ul>
@@ -238,7 +238,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~4"></span>
+              <span class="anchor" id="variable-tm~22"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -253,7 +253,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~21"></span>
+              <span class="anchor" id="variable-dm~185"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -296,6 +296,21 @@
                 
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_dens_bc"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) )
+            </td>
+            <td>::</td>
+            <td><strong>opt_dens_bc</strong></td>
+            <td>
+                
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -313,7 +328,7 @@
     
     <section>
     <h2><span class="anchor" id="src"></span>Source Code</h2>
-    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">Update_thermal_properties</span><span class="p">(</span><span class="n">dens</span><span class="p">,</span><span class="w"> </span><span class="n">visc</span><span class="p">,</span><span class="w"> </span><span class="n">tm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">opt_tVisc</span><span class="p">,</span><span class="w"> </span><span class="n">opt_ren</span><span class="p">)</span>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">Update_thermal_properties</span><span class="p">(</span><span class="n">dens</span><span class="p">,</span><span class="w"> </span><span class="n">visc</span><span class="p">,</span><span class="w"> </span><span class="n">tm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">opt_tVisc</span><span class="p">,</span><span class="w"> </span><span class="n">opt_ren</span><span class="p">,</span><span class="w"> </span><span class="n">opt_dens_bc</span><span class="p">)</span>
 <span class="w">    </span><span class="k">use </span><span class="n">boundary_conditions_mod</span>
 <span class="w">    </span><span class="k">use </span><span class="n">cylindrical_rn_mod</span>
 <span class="w">    </span><span class="k">use </span><span class="n">operations</span>
@@ -326,6 +341,10 @@
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dens</span><span class="p">,</span><span class="w"> </span><span class="n">visc</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">opt_tVisc</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">opt_ren</span>
+<span class="w">    </span><span class="c">! Bc (transported-density recovery): density estimate interpolated to Neumann-wall faces</span>
+<span class="w">    </span><span class="c">! (rho_hat); default is the updated dens, as in the original code</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">),</span><span class="w"> </span><span class="k">optional</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">opt_dens_bc</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dens_bc</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dh_pcc</span><span class="p">,</span><span class="w"> </span><span class="n">d_pcc</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dh_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">d_ypencil</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpc</span><span class="p">%</span><span class="n">ysz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dh_cpc_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">d_cpc_ypencil</span>
@@ -377,13 +396,18 @@
 <span class="k">      end do</span>
 <span class="k">    end do</span>
 
+<span class="k">    if</span><span class="p">(</span><span class="nb">present</span><span class="p">(</span><span class="n">opt_dens_bc</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">dens_bc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">opt_dens_bc</span>
+<span class="w">    </span><span class="k">else</span>
+<span class="k">      </span><span class="n">dens_bc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dens</span>
+<span class="w">    </span><span class="k">end if</span>
 <span class="c">!------------------------------------------------------------------------------</span>
 <span class="c">!  BC - x</span>
 <span class="c">!------------------------------------------------------------------------------</span>
 <span class="w">  </span><span class="k">if</span><span class="p">(</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_Tm</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_NEUMANN</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">      </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_Tm</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_NEUMANN</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <span class="k">    call </span><span class="n">Get_x_midp_C2P_3D</span><span class="p">(</span><span class="n">tm</span><span class="p">%</span><span class="n">rhoh</span><span class="p">,</span><span class="w"> </span><span class="n">dh_pcc</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_ftp</span><span class="p">)</span><span class="w"> </span><span class="c">! exterpolation, check</span>
-<span class="w">    </span><span class="k">call </span><span class="n">Get_x_midp_C2P_3D</span><span class="p">(</span><span class="n">dens</span><span class="p">,</span><span class="n">d_pcc</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_ftp</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">Get_x_midp_C2P_3D</span><span class="p">(</span><span class="n">dens_bc</span><span class="p">,</span><span class="n">d_pcc</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_ftp</span><span class="p">)</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">ibcx_Tm</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IBC_NEUMANN</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">       </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">%</span><span class="n">xst</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <span class="k">      do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_ftp</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span>
@@ -430,7 +454,7 @@
 <span class="w">      </span><span class="k">call </span><span class="n">axis_mirror_fbcy</span><span class="p">(</span><span class="n">dh_cpc_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">IPENCIL</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">fbcy_c4c</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">knc_sym</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dcpc</span><span class="p">,</span><span class="w"> </span><span class="n">is_ynode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.,</span><span class="w"> </span><span class="n">is_odd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.,</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">                            </span><span class="n">axis_mode</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">AXIS_RECON_M0</span><span class="p">,</span><span class="w"> </span><span class="n">assign_axis_to_var</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.,</span><span class="w"> </span><span class="n">nr</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span>
 <span class="w">    </span><span class="k">end if</span>
-<span class="k">    call </span><span class="n">transpose_x_to_y</span><span class="p">(</span><span class="n">dens</span><span class="p">,</span><span class="w"> </span><span class="n">d_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span>
+<span class="k">    call </span><span class="n">transpose_x_to_y</span><span class="p">(</span><span class="n">dens_bc</span><span class="p">,</span><span class="w"> </span><span class="n">d_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">Get_y_midp_C2P_3D</span><span class="p">(</span><span class="n">d_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">d_cpc_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcy_ftp</span><span class="p">)</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">icase</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">ICASE_PIPE</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
 <span class="k">      </span><span class="n">fbcy_c4c</span><span class="p">(:,:,:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcy_ftp</span><span class="p">(:,:,:)%</span><span class="n">d</span>
@@ -472,7 +496,7 @@
 <span class="w">    </span><span class="k">call </span><span class="n">transpose_y_to_z</span><span class="p">(</span><span class="n">dh_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dh_zpencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">Get_z_midp_C2P_3D</span><span class="p">(</span><span class="n">dh_zpencil</span><span class="p">,</span><span class="w"> </span><span class="n">dh_ccp_zpencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcz_ftp</span><span class="p">)</span><span class="w"> </span><span class="c">! exterpolation, check</span>
 
-<span class="w">    </span><span class="k">call </span><span class="n">transpose_x_to_y</span><span class="p">(</span><span class="n">dens</span><span class="p">,</span><span class="w"> </span><span class="n">d_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">transpose_x_to_y</span><span class="p">(</span><span class="n">dens_bc</span><span class="p">,</span><span class="w"> </span><span class="n">d_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">transpose_y_to_z</span><span class="p">(</span><span class="n">d_ypencil</span><span class="p">,</span><span class="w"> </span><span class="n">d_zpencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">Get_z_midp_C2P_3D</span><span class="p">(</span><span class="n">d_zpencil</span><span class="p">,</span><span class="w"> </span><span class="n">d_ccp_zpencil</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">iAccuracy</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">ibcz_ftp</span><span class="p">)</span><span class="w"> </span><span class="c">! exterpolation, check</span>
 

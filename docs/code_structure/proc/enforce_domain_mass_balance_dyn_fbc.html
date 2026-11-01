@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">47 statements</a>
+                 title=" 0.3% of total for procedures.">90 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -162,7 +162,7 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine enforce_domain_mass_balance_dyn_fbc(drhodt, dm)  
+    <h2>private  subroutine enforce_domain_mass_balance_dyn_fbc(drhodt, dm, isub, iter)  
 </h2>
         <div class="card mb-4">
       <h3 class="card-header card-title bg-light">Uses</h3>
@@ -170,11 +170,11 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
+                  <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
                   <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
                   <li class="list-inline-item"><a href='../module/bc_dirichlet_mod.html'>bc_dirichlet_mod</a></li>
                   <li class="list-inline-item"><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></li>
                   <li class="list-inline-item"><a href='../module/wtformat_mod.html'>wtformat_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -197,7 +197,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-drhodt~2"></span>
+              <span class="anchor" id="variable-drhodt~3"></span>
               real(kind=WP),
             </td>
 <td>intent(in),</td>
@@ -212,7 +212,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~43"></span>
+              <span class="anchor" id="variable-dm~195"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -221,6 +221,36 @@
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~10"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>isub</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iter~77"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iter</strong></td>
             <td>
                 
             </td>
@@ -242,7 +272,7 @@
     
     <section>
     <h2><span class="anchor" id="src"></span>Source Code</h2>
-    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">enforce_domain_mass_balance_dyn_fbc</span><span class="p">(</span><span class="n">drhodt</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">enforce_domain_mass_balance_dyn_fbc</span><span class="p">(</span><span class="n">drhodt</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">isub</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
 <span class="w">    </span><span class="k">use </span><span class="n">bc_dirichlet_mod</span>
 <span class="w">    </span><span class="k">use </span><span class="n">cylindrical_rn_mod</span>
 <span class="w">    </span><span class="k">use </span><span class="n">find_max_min_ave_mod</span>
@@ -251,9 +281,13 @@
 <span class="w">    </span><span class="k">implicit none</span>
 <span class="k">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(:,:,:),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">drhodt</span>
 <span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">inout</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">isub</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span>
 <span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">DECOMP_INFO</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dtmp</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="nb">scale</span><span class="p">,</span><span class="w"> </span><span class="n">mass_imbalance</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rslow</span><span class="p">,</span><span class="w"> </span><span class="n">rfast</span>
 <span class="w">    </span><span class="kt">REAL</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rsign</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">area_x</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dflux</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">dimension</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ones_fbcx</span>
 <span class="w">    </span><span class="c">!</span>
 <span class="w">    </span><span class="c">! CASE 2 (inlet/outlet, supercritical) -- ASSUMPTION: net dilatation is</span>
 <span class="w">    </span><span class="c">! PHYSICAL (mdot_in - mdot_out = d/dt integral(rho) dV). We enforce global</span>
@@ -292,6 +326,59 @@
 <span class="w">      </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="s1">&#39;(9ES18.9)&#39;</span><span class="p">)</span><span class="w"> </span><span class="nb">scale</span><span class="p">,</span><span class="w"> </span><span class="n">mass_imbalance</span><span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="mi">8</span><span class="p">)</span>
 <span class="w">    </span><span class="k">end if</span>
 <span class="cp">#endif</span>
+<span class="w">    </span><span class="c">! split: R_k = S_k + F_k. S_k = alpha_k * sum_j R_j(previous step) is the slow</span>
+<span class="w">    </span><span class="c">! part (the previous step&#39;s total correction shared by the sub-step lengths</span>
+<span class="w">    </span><span class="c">! alpha_k dt) and is applied proportionally, g_b &lt;- g_b (1 + S_k/mdot_out);</span>
+<span class="w">    </span><span class="c">! the stage-periodic remainder F_k = R_k - S_k is applied as a uniform</span>
+<span class="w">    </span><span class="c">! mass-flux increment F_k/A_out. sum_out A_f g_b(new) = mdot_out + R_k exactly.</span>
+<span class="w">    </span><span class="c">! Before a complete previous step is known (start, or a restart without the</span>
+<span class="w">    </span><span class="c">! state file) S_k = 0 and the whole R_k is applied uniformly.</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">ioutlet_mass_correction</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IOUTLET_MASS_SPLIT</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">split_init_done</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">read_outlet_split_state</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">        </span><span class="n">split_init_done</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">      if</span><span class="p">(</span><span class="n">isub</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">split_has_prev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">split_acc_complete</span>
+<span class="w">        </span><span class="n">split_rsum_prev</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">split_rsum_acc</span>
+<span class="w">        </span><span class="n">split_rsum_acc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">        </span><span class="n">split_acc_complete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">      </span><span class="n">rslow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">split_has_prev</span><span class="p">)</span><span class="w"> </span><span class="n">rslow</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">tAlpha</span><span class="p">(</span><span class="n">isub</span><span class="p">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">split_rsum_prev</span>
+<span class="w">      </span><span class="n">rfast</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mass_imbalance</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">rslow</span>
+<span class="w">      </span><span class="n">ones_fbcx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ONE</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Get_area_average_2d_for_fbcx</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">,</span><span class="w"> </span><span class="n">ones_fbcx</span><span class="p">,</span><span class="w"> </span><span class="n">area_x</span><span class="p">,</span><span class="w"> </span><span class="n">SPACE_INTEGRAL</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;fbcx&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="n">dflux</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rfast</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">area_x</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_gx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_gx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">ONE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">rslow</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">mass_imbalance</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dflux</span>
+<span class="w">        </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_gx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_ftp</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)%</span><span class="n">d</span>
+<span class="w">      </span><span class="k">else</span>
+<span class="k">        </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">ONE</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">rslow</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">mass_imbalance</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dflux</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">      </span><span class="n">split_rsum_acc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">split_rsum_acc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">mass_imbalance</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">isub</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">nsubitr</span><span class="p">)</span><span class="w"> </span><span class="n">split_acc_complete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">true</span><span class="p">.</span>
+<span class="w">      </span><span class="k">return</span>
+<span class="k">    end if</span>
+<span class="w">    </span><span class="c">! uniform_flux: add the same mass-flux increment R/A_out to every x-outlet</span>
+<span class="w">    </span><span class="c">! face. A_out is the outlet-face area integral with the weights of</span>
+<span class="w">    </span><span class="c">! check_global_mass_balance (dy * r dtheta), so that</span>
+<span class="w">    </span><span class="c">!   sum_out A_f (g_b + R/A_out) = mdot_out + R</span>
+<span class="w">    </span><span class="c">! closes the stage balance exactly, as the scaling does. Only the profile</span>
+<span class="w">    </span><span class="c">! of the correction differs: uniform in mass flux instead of proportional</span>
+<span class="w">    </span><span class="c">! to g_b (rho*u in thermal runs, u otherwise).</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">ioutlet_mass_correction</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IOUTLET_MASS_UNIFORM_FLUX</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">ones_fbcx</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ONE</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Get_area_average_2d_for_fbcx</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dpcc</span><span class="p">,</span><span class="w"> </span><span class="n">ones_fbcx</span><span class="p">,</span><span class="w"> </span><span class="n">area_x</span><span class="p">,</span><span class="w"> </span><span class="n">SPACE_INTEGRAL</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;fbcx&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="n">dflux</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">mass_imbalance</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">area_x</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_gx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_gx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dflux</span>
+<span class="w">        </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_gx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_ftp</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)%</span><span class="n">d</span>
+<span class="w">      </span><span class="k">else</span>
+<span class="k">        </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">fbcx_qx</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">dflux</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">      return</span>
+<span class="k">    end if</span>
 <span class="w">    </span><span class="c">! scale qx/gx convective b.c.</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <span class="k">      if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>

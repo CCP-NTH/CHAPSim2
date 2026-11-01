@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">54 statements</a>
+                 title=" 0.2% of total for procedures.">57 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -193,7 +193,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~227"></span>
+              <span class="anchor" id="variable-dm~72"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -238,7 +238,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dsrc~4"></span>
+              <span class="anchor" id="variable-dsrc~5"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
@@ -268,7 +268,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-yloc~4"></span>
+              <span class="anchor" id="variable-yloc~5"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -283,7 +283,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-zloc~4"></span>
+              <span class="anchor" id="variable-zloc~5"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -328,7 +328,8 @@
 <span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">halo_level</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">y_target</span><span class="p">,</span><span class="w"> </span><span class="n">z_target</span><span class="p">,</span><span class="w"> </span><span class="n">var_target</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">h3_src</span>
-<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ysrc</span><span class="p">(:),</span><span class="w"> </span><span class="n">zsrc</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">kshift</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ysrc</span><span class="p">(:),</span><span class="w"> </span><span class="n">zsrc</span><span class="p">(:),</span><span class="w"> </span><span class="n">zsrc_ext</span><span class="p">(:)</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fsrc_halo</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
 
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">yloc</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
@@ -348,7 +349,10 @@
 <span class="k">    call </span><span class="n">fill_xinlet_z_coords</span><span class="p">(</span><span class="n">size</span><span class="p">(</span><span class="n">zsrc</span><span class="p">),</span><span class="w"> </span><span class="n">h3_src</span><span class="p">,</span><span class="w"> </span><span class="n">zloc</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc</span><span class="p">)</span>
 
 <span class="w">    </span><span class="k">call </span><span class="n">compute_xinlet_database_halo_level</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">dsrc</span><span class="p">,</span><span class="w"> </span><span class="n">dtgt</span><span class="p">,</span><span class="w"> </span><span class="n">ysrc</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc</span><span class="p">,</span><span class="w"> </span><span class="n">yloc</span><span class="p">,</span><span class="w"> </span><span class="n">zloc</span><span class="p">,</span><span class="w"> </span><span class="n">halo_level</span><span class="p">)</span>
+<span class="w">    </span><span class="c">! global-index halo; in a periodic z direction the halo cells 0 and n+1 hold</span>
+<span class="w">    </span><span class="c">! the periodic images (periodic 2decomp topology), used across the seam</span>
 <span class="w">    </span><span class="k">call </span><span class="n">update_halo</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="n">fsrc_halo</span><span class="p">,</span><span class="w"> </span><span class="n">halo_level</span><span class="p">,</span><span class="w"> </span><span class="n">dsrc</span><span class="p">,</span><span class="w"> </span><span class="n">opt_global</span><span class="o">=</span><span class="p">.</span><span class="n">true</span><span class="p">.,</span><span class="w"> </span><span class="n">opt_pencil</span><span class="o">=</span><span class="n">IPENCIL</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+<span class="w">    </span><span class="k">call </span><span class="n">build_xinlet_z_search_coords</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc_ext</span><span class="p">,</span><span class="w"> </span><span class="n">kshift</span><span class="p">)</span>
 
 <span class="w">    </span><span class="k">do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">dtgt</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="w">      </span><span class="n">kk</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dtgt</span><span class="p">%</span><span class="n">xst</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">k</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
@@ -362,7 +366,7 @@
 <span class="w">        </span><span class="k">end if</span>
 <span class="k">        do </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">dtgt</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
 <span class="w">          </span><span class="n">ii</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dtgt</span><span class="p">%</span><span class="n">xst</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span>
-<span class="w">          </span><span class="k">call </span><span class="n">bilinear_interp_xinlet_point_halo</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">y_target</span><span class="p">,</span><span class="w"> </span><span class="n">z_target</span><span class="p">,</span><span class="w"> </span><span class="n">ysrc</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">          </span><span class="k">call </span><span class="n">bilinear_interp_xinlet_point_halo</span><span class="p">(</span><span class="n">ii</span><span class="p">,</span><span class="w"> </span><span class="n">y_target</span><span class="p">,</span><span class="w"> </span><span class="n">z_target</span><span class="p">,</span><span class="w"> </span><span class="n">ysrc</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc_ext</span><span class="p">,</span><span class="w"> </span><span class="n">kshift</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">            </span><span class="nb">lbound</span><span class="p">(</span><span class="n">fsrc_halo</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="nb">lbound</span><span class="p">(</span><span class="n">fsrc_halo</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="nb">lbound</span><span class="p">(</span><span class="n">fsrc_halo</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">            </span><span class="n">fsrc_halo</span><span class="p">,</span><span class="w"> </span><span class="n">var_target</span><span class="p">)</span>
 <span class="w">          </span><span class="n">ftgt</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">var_target</span>
@@ -373,6 +377,7 @@
 <span class="k">    deallocate</span><span class="p">(</span><span class="n">fsrc_halo</span><span class="p">)</span>
 <span class="w">    </span><span class="k">deallocate</span><span class="p">(</span><span class="n">ysrc</span><span class="p">)</span>
 <span class="w">    </span><span class="k">deallocate</span><span class="p">(</span><span class="n">zsrc</span><span class="p">)</span>
+<span class="w">    </span><span class="k">deallocate</span><span class="p">(</span><span class="n">zsrc_ext</span><span class="p">)</span>
 
 <span class="w">    </span><span class="k">return</span>
 <span class="k">  end subroutine </span><span class="n">interp_xinlet_database_array_yz</span>

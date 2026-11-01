@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">51 statements</a>
+                 title=" 0.2% of total for procedures.">68 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -170,10 +170,10 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
+                  <li class="list-inline-item">decomp_2d_io_object_mpi</li>
                   <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/io_tools_mod.html'>io_tools_mod</a></li>
                   <li class="list-inline-item">decomp_2d_io</li>
-                  <li class="list-inline-item">decomp_2d_io_object_mpi</li>
               </ul>
             </li>
         </ul>
@@ -196,7 +196,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~76"></span>
+              <span class="anchor" id="variable-fl~43"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -211,7 +211,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~266"></span>
+              <span class="anchor" id="variable-dm~135"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -255,6 +255,8 @@
 <span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">d2d_io_mpi</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">io</span>
 
 <span class="w">    </span><span class="n">iter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">iterfrom</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_pfs_stats</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_note_msg</span><span class="p">(</span><span class="s1">&#39;Full-step pressure statistics (CHAPSIM_B3_PSTAT=1): &#39;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">      </span><span class="s1">&#39;the flow statistics restart must have been written with the same setting (signature pfs_stats=T).&#39;</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">validate_stats_bundle_metadata</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;flow_stats&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">flow_stats_bundle_signature</span><span class="p">(</span><span class="n">dm</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">                                        </span><span class="n">flow_stats_bundle_fields</span><span class="p">(</span><span class="n">dm</span><span class="p">))</span>
 <span class="w">    </span><span class="k">call </span><span class="n">generate_pathfile_name</span><span class="p">(</span><span class="n">bundle_file</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;flow_stats&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">dir_data</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bin&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
@@ -295,6 +297,22 @@
 <span class="w">        </span><span class="k">call </span><span class="n">stats_bundle_readN</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_fuuh</span><span class="p">,</span><span class="w"> </span><span class="mi">6</span><span class="p">)</span>
 <span class="w">      </span><span class="k">end if</span>
 <span class="k">    end if</span>
+<span class="k">    if</span><span class="p">(</span><span class="n">is_pfs_stats</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">stat_level</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">ISTATL0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">stats_bundle_read1</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_prfs</span><span class="p">)</span>
+<span class="w">        </span><span class="k">call </span><span class="n">stats_bundle_read1</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_prfs2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">      if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">stat_level</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">ISTATL2</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        call </span><span class="n">stats_bundle_readN</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_prfsu</span><span class="p">,</span><span class="w">  </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">        </span><span class="k">call </span><span class="n">stats_bundle_readN</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_prfsdu</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">    end if</span>
+<span class="k">    if</span><span class="p">(</span><span class="n">is_pfs_stats_mid</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">stat_level</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">ISTATL2</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      call </span><span class="n">stats_bundle_readN</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_prfsmu</span><span class="p">,</span><span class="w">  </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">stats_bundle_readN</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_prfsmdu</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">stats_bundle_readN</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_umid</span><span class="p">,</span><span class="w">    </span><span class="mi">3</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">stats_bundle_readN</span><span class="p">(</span><span class="n">io</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">tavg_dudxmid</span><span class="p">,</span><span class="w"> </span><span class="mi">9</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
 
 <span class="k">    call </span><span class="n">io</span><span class="p">%</span><span class="k">close</span><span class="p">()</span>
 

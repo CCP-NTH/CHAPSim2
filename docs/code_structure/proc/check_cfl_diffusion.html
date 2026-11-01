@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.5% of total for procedures.">133 statements</a>
+                 title=" 0.4% of total for procedures.">133 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -171,8 +171,8 @@
             <li class="list-group-item">
               <ul class="list-inline">
                   <li class="list-inline-item"><a href='../module/print_msg_mod.html'>print_msg_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/wtformat_mod.html'>wtformat_mod</a></li>
                   <li class="list-inline-item"><a href='../module/mpi_mod.html'>mpi_mod</a></li>
               </ul>
@@ -197,7 +197,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~23"></span>
+              <span class="anchor" id="variable-fl~76"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(in)</td>
@@ -212,7 +212,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~35"></span>
+              <span class="anchor" id="variable-dm~218"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -227,7 +227,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-opt_tm~2"></span>
+              <span class="anchor" id="variable-opt_tm"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(in),</td>
@@ -434,7 +434,7 @@
 <span class="k">        call </span><span class="n">Print_warning_msg</span><span class="p">(</span><span class="s2">&quot;Warning: Momentum diffusion number is larger than 1. Numerical instability could occur.&quot;</span><span class="p">)</span>
 <span class="w">        </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Please reduce dt below &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">dtmax_mom_work</span>
 <span class="w">        </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Recommended dt with safety factor = &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">DIFF_SAFETY</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dtmax_mom_work</span>
-<span class="w">        </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Or consider increasing the mesh size / using implicit diffusion.&#39;</span>
+<span class="w">        </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Or consider increasing the mesh size (the diffusion terms are explicit; no implicit option exists).&#39;</span>
 <span class="w">      </span><span class="k">end if</span>
 
 <span class="k">      if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_thermo</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
@@ -442,7 +442,7 @@
 <span class="k">          call </span><span class="n">Print_warning_msg</span><span class="p">(</span><span class="s2">&quot;Warning: Energy diffusion number is larger than 1. Numerical instability could occur.&quot;</span><span class="p">)</span>
 <span class="w">          </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Please reduce dt below &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">dtmax_ene_work</span>
 <span class="w">          </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Recommended dt with safety factor = &#39;</span><span class="p">,</span><span class="w"> </span><span class="n">DIFF_SAFETY</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">dtmax_ene_work</span>
-<span class="w">          </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Or consider increasing the mesh size / using implicit diffusion.&#39;</span>
+<span class="w">          </span><span class="k">write</span><span class="p">(</span><span class="o">*</span><span class="p">,</span><span class="o">*</span><span class="p">)</span><span class="w"> </span><span class="s1">&#39;Or consider increasing the mesh size (the diffusion terms are explicit; no implicit option exists).&#39;</span>
 <span class="w">        </span><span class="k">end if</span>
 <span class="k">      end if</span>
 

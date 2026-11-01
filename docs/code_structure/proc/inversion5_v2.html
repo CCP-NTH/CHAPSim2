@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.4% of total for procedures.">106 statements</a>
+                 title=" 0.4% of total for procedures.">114 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -194,7 +194,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-aaa~2"></span>
+              <span class="anchor" id="variable-aaa~7"></span>
               complex(kind=mytype),
             </td>
 <td></td>
@@ -209,7 +209,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-eee~2"></span>
+              <span class="anchor" id="variable-eee~7"></span>
               complex(kind=mytype),
             </td>
 <td></td>
@@ -224,7 +224,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-spi~2"></span>
+              <span class="anchor" id="variable-spi~10"></span>
               type(DECOMP_INFO)
             </td>
 <td></td>
@@ -299,9 +299,23 @@
 <span class="w">        </span><span class="n">mi</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">m</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">i</span>
 <span class="w">        </span><span class="k">do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="w">           </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yst</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">spI</span><span class="p">%</span><span class="n">yen</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
-<span class="w">              </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">dabs</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">MINP</span><span class="p">)</span><span class="w"> </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="o">-</span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
-<span class="w">              </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="nb">dabs</span><span class="p">(</span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">MINP</span><span class="p">)</span><span class="w"> </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="o">-</span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
-<span class="w">              </span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">tmp1</span><span class="p">,</span><span class="w"> </span><span class="n">tmp2</span><span class="p">)</span>
+<span class="w">              </span><span class="c">! A zero pivot leaves nothing to eliminate (the column below it is</span>
+<span class="w">              </span><span class="c">! zero for these matrices, e.g. the singular (0,0) mode), so the</span>
+<span class="w">              </span><span class="c">! multiplier is zero. Without the else branch tmp1/tmp2 kept the</span>
+<span class="w">              </span><span class="c">! previous line&#39;s value (undefined on the first pass), coupling</span>
+<span class="w">              </span><span class="c">! independent (j,k) systems. Same fix as inversion5_v1, 2686f87;</span>
+<span class="w">              </span><span class="c">! reproducer: tests/tools/check_inversion5_zero_pivot.py.</span>
+<span class="w">              </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                 </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="o">-</span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">              </span><span class="k">else</span>
+<span class="k">                 </span><span class="n">tmp1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">              </span><span class="k">endif</span>
+<span class="k">              if</span><span class="w"> </span><span class="p">(</span><span class="n">abs_prec</span><span class="p">(</span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">)))</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">epsilon</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                 </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="o">-</span><span class="n">i</span><span class="p">))</span><span class="w"> </span><span class="o">/</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">aaa</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+<span class="w">              </span><span class="k">else</span>
+<span class="k">                 </span><span class="n">tmp2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">zero</span>
+<span class="w">              </span><span class="k">endif</span>
+<span class="k">              </span><span class="n">sr</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">tmp1</span><span class="p">,</span><span class="w"> </span><span class="n">tmp2</span><span class="p">)</span>
 <span class="w">              </span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">cx</span><span class="p">(</span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tmp1</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">rl</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">)),&amp;</span>
 <span class="w">                               </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">mi</span><span class="p">,</span><span class="n">k</span><span class="p">))</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">tmp2</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">iy</span><span class="p">(</span><span class="n">eee</span><span class="p">(</span><span class="n">j</span><span class="p">,</span><span class="n">m</span><span class="p">,</span><span class="n">k</span><span class="p">)))</span>
 <span class="w">           </span><span class="k">enddo</span>

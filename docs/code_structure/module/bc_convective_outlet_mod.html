@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.3% of total for modules and submodules.">362 statements</a>
+                 title=" 1.7% of total for modules and submodules.">541 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -129,7 +129,22 @@
         <div id="sidebar">
       <h3>Contents</h3>
   
-  
+      <div class="card mb-4">
+      <a data-bs-toggle="collapse" href="#vars-0"
+         aria-expanded="false" aria-controls="vars-0">
+         <h4 class="card-header bg-primary text-white">Variables</h4>
+      </a>
+      <div id="vars-0" class="collapse">
+        <div class="list-group list-group-flush">
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#variable-split_rsum_acc">split_rsum_acc</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#variable-split_rsum_prev">split_rsum_prev</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#variable-split_acc_complete">split_acc_complete</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#variable-split_has_prev">split_has_prev</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#variable-split_init_done">split_init_done</a>
+        </div>
+      </div>
+    </div>
+
   
   
   
@@ -155,8 +170,12 @@
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-compute_fbcz_convective_outlet_flow">compute_fbcz_convective_outlet_flow</a>
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-compute_convective_outlet_flow">compute_convective_outlet_flow</a>
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-update_fbcx_convective_outlet_thermo">update_fbcx_convective_outlet_thermo</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-report_outlet_backflow">report_outlet_backflow</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-restore_fbcx_outlet_thermo_bc">restore_fbcx_outlet_thermo_bc</a>
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-update_fbcz_convective_outlet_thermo">update_fbcz_convective_outlet_thermo</a>
             <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-compute_convective_outlet_thermo">compute_convective_outlet_thermo</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-write_outlet_split_state">write_outlet_split_state</a>
+            <a class="list-group-item" href="../module/bc_convective_outlet_mod.html#proc-read_outlet_split_state">read_outlet_split_state</a>
         </div>
       </div>
     </div>
@@ -182,9 +201,9 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item">decomp_2d</li>
-                  <li class="list-inline-item"><a href='udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='udf_type_mod.html'>udf_type_mod</a></li>
+                  <li class="list-inline-item">decomp_2d</li>
               </ul>
             </li>
         </ul>
@@ -195,6 +214,108 @@
       <br>
 
 
+        <section>
+          <h2>Variables</h2>
+            <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Visibility</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+<th></th><th scope="col">Initial</th>        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-split_rsum_acc"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>split_rsum_acc</strong></td>
+<td> =</td>
+                <td>0.0_WP</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-split_rsum_prev"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>split_rsum_prev</strong></td>
+<td> =</td>
+                <td>0.0_WP</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-split_acc_complete"></span>
+              logical,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>split_acc_complete</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-split_has_prev"></span>
+              logical,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>split_has_prev</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-split_init_done"></span>
+              logical,
+            </td>
+              <td>public,</td>
+            <td>
+              save
+            </td>
+            <td>::</td>
+            <td><strong>split_init_done</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+        </section>
+        <br>
 
 
 
@@ -223,7 +344,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~40"></span>
+              <span class="anchor" id="variable-dm~192"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -323,7 +444,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-var_xpencil~2"></span>
+              <span class="anchor" id="variable-var_xpencil"></span>
               real(kind=WP),
             </td>
 <td>intent(in),</td>
@@ -338,7 +459,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~41"></span>
+              <span class="anchor" id="variable-dm~193"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -453,7 +574,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~42"></span>
+              <span class="anchor" id="variable-dm~194"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -489,7 +610,7 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-enforce_domain_mass_balance_dyn_fbc"></span> <h3>private  subroutine <a href='../proc/enforce_domain_mass_balance_dyn_fbc.html'>enforce_domain_mass_balance_dyn_fbc</a>(drhodt, dm)  
+    <div class="card-header codesum"><span class="anchor" id="proc-enforce_domain_mass_balance_dyn_fbc"></span> <h3>private  subroutine <a href='../proc/enforce_domain_mass_balance_dyn_fbc.html'>enforce_domain_mass_balance_dyn_fbc</a>(drhodt, dm, isub, iter)  
 </h3></div>
     <div class="card-body">
           
@@ -508,7 +629,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-drhodt~2"></span>
+              <span class="anchor" id="variable-drhodt~3"></span>
               real(kind=WP),
             </td>
 <td>intent(in),</td>
@@ -523,7 +644,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~43"></span>
+              <span class="anchor" id="variable-dm~195"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -532,6 +653,36 @@
             </td>
             <td>::</td>
             <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~10"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iter~77"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iter</strong></td>
             <td>
 
             </td>
@@ -563,7 +714,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~24"></span>
+              <span class="anchor" id="variable-fl~66"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -578,7 +729,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~44"></span>
+              <span class="anchor" id="variable-dm~196"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -593,7 +744,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~10"></span>
+              <span class="anchor" id="variable-isub~11"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -633,7 +784,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~25"></span>
+              <span class="anchor" id="variable-fl~67"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -648,7 +799,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~45"></span>
+              <span class="anchor" id="variable-dm~197"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -663,7 +814,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~11"></span>
+              <span class="anchor" id="variable-isub~12"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -703,7 +854,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~26"></span>
+              <span class="anchor" id="variable-fl~68"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -718,77 +869,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~46"></span>
-              type(<a href='../type/t_domain.html'>t_domain</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>dm</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-isub~12"></span>
-              integer,
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>isub</strong></td>
-            <td>
-
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-    </div>
-  </div>
-
-              <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcx_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/update_fbcx_convective_outlet_thermo.html'>update_fbcx_convective_outlet_thermo</a>(tm, dm, isub)  
-</h3></div>
-    <div class="card-body">
-          
-  
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-tm~9"></span>
-              type(<a href='../type/t_thermo.html'>t_thermo</a>),
-            </td>
-<td>intent(inout)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>tm</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-dm~47"></span>
+              <span class="anchor" id="variable-dm~198"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -824,11 +905,11 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcz_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/update_fbcz_convective_outlet_thermo.html'>update_fbcz_convective_outlet_thermo</a>(tm, dm, isub)  
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcx_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/update_fbcx_convective_outlet_thermo.html'>update_fbcx_convective_outlet_thermo</a>(tm, dm, isub, opt_dens_hat)  
 </h3></div>
     <div class="card-body">
           
-  <p>call enforce_domain_energy_balance_dyn_fbc(fl, dm) ! todo-check necessary?</p>
+  
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -843,7 +924,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~10"></span>
+              <span class="anchor" id="variable-tm~28"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -858,7 +939,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~48"></span>
+              <span class="anchor" id="variable-dm~199"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -886,6 +967,21 @@
 
             </td>
         </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_dens_hat"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:, :, :)
+            </td>
+            <td>::</td>
+            <td><strong>opt_dens_hat</strong></td>
+            <td>
+
+            </td>
+        </tr>
     </tbody>
   </table>
 
@@ -894,11 +990,13 @@
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-compute_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/compute_convective_outlet_thermo.html'>compute_convective_outlet_thermo</a>(tm, dm, isub)  
+    <div class="card-header codesum"><span class="anchor" id="proc-report_outlet_backflow"></span> <h3>private  subroutine <a href='../proc/report_outlet_backflow.html'>report_outlet_backflow</a>(tm, dm)  
 </h3></div>
     <div class="card-body">
           
-  
+  <p>thermal_outlet_pair = zero_gradient: count outlet faces with inflow (g_b &lt; 0)
+once per step and report them on rank 0 (first occurrence, then every 1000
+steps while backflow persists). Diagnostic only; the face state is unchanged.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -913,7 +1011,119 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~11"></span>
+              <span class="anchor" id="variable-tm~29"></span>
+              type(<a href='../type/t_thermo.html'>t_thermo</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~200"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-restore_fbcx_outlet_thermo_bc"></span> <h3>public  subroutine <a href='../proc/restore_fbcx_outlet_thermo_bc.html'>restore_fbcx_outlet_thermo_bc</a>(tm, dm)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Bc restart: rebuild the convective x-outlet thermal state (slots 2, 4)
+from the restored advected rho*h (fbcx_ftp%rhoh) and rho_hat (fbcx_dhat),
+exactly as at the end of update_fbcx_convective_outlet_thermo.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tm~30"></span>
+              type(<a href='../type/t_thermo.html'>t_thermo</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~201"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-update_fbcz_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/update_fbcz_convective_outlet_thermo.html'>update_fbcz_convective_outlet_thermo</a>(tm, dm, isub)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>call enforce_domain_energy_balance_dyn_fbc(fl, dm) ! todo-check necessary?</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tm~31"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -928,7 +1138,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~49"></span>
+              <span class="anchor" id="variable-dm~202"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -952,6 +1162,203 @@
             </td>
             <td>::</td>
             <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-compute_convective_outlet_thermo"></span> <h3>public  subroutine <a href='../proc/compute_convective_outlet_thermo.html'>compute_convective_outlet_thermo</a>(tm, dm, isub, opt_dens_hat)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tm~32"></span>
+              type(<a href='../type/t_thermo.html'>t_thermo</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~203"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~16"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_dens_hat~2"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension(:, :, :)
+            </td>
+            <td>::</td>
+            <td><strong>opt_dens_hat</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-write_outlet_split_state"></span> <h3>public  subroutine <a href='../proc/write_outlet_split_state.html'>write_outlet_split_state</a>(dm, iter)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>outlet_mass_correction = split: write the state (the summed stage corrections of
+the step just completed) next to the flow checkpoint of iteration iter.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~204"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iter~78"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iter</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-read_outlet_split_state"></span> <h3>private  subroutine <a href='../proc/read_outlet_split_state.html'>read_outlet_split_state</a>(dm, iter)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>outlet_mass_correction = split: read the state of iteration iter (restart). If the
+file is absent the previous-step correction is unknown and S = 0 for one step.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~205"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iter~79"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iter</strong></td>
             <td>
 
             </td>

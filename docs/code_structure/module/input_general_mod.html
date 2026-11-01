@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 7.5% of total for modules and submodules.">2133 statements</a>
+                 title=" 7.8% of total for modules and submodules.">2483 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -138,6 +138,8 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/input_general_mod.html#variable-is_prerun">is_prerun</a>
             <a class="list-group-item" href="../module/input_general_mod.html#variable-is_postprocess">is_postprocess</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#variable-pp_stat_window">pp_stat_window</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#variable-pp_window_root">pp_window_root</a>
             <a class="list-group-item" href="../module/input_general_mod.html#variable-input_section_reached_eof">input_section_reached_eof</a>
             <a class="list-group-item" href="../module/input_general_mod.html#variable-input_section_max">INPUT_SECTION_MAX</a>
         </div>
@@ -200,10 +202,20 @@
             <a class="list-group-item" href="../module/input_general_mod.html#proc-section_get_real_array">section_get_real_array</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-section_get_logical">section_get_logical</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-read_optional_input_line">read_optional_input_line</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_rhoh_recovery">parse_rhoh_recovery</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_property_interp">parse_property_interp</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_enthalpy_advection">parse_enthalpy_advection</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_enthalpy_advection_restart">parse_enthalpy_advection_restart</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_outlet_mass_correction">parse_outlet_mass_correction</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_thermal_outlet_pair">parse_thermal_outlet_pair</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-check_thermo_key_placement">check_thermo_key_placement</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-read_temperature_bc_line">read_temperature_bc_line</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-apply_inlet_temperature_default">apply_inlet_temperature_default</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_existing_output_policy">parse_existing_output_policy</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_restart_data_layout">parse_restart_data_layout</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_restart_history_mode">parse_restart_history_mode</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_restart_clock">parse_restart_clock</a>
+            <a class="list-group-item" href="../module/input_general_mod.html#proc-read_postprocess_keys">read_postprocess_keys</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_stat_visu_mode">parse_stat_visu_mode</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_icase">parse_icase</a>
             <a class="list-group-item" href="../module/input_general_mod.html#proc-parse_ebc_side">parse_ebc_side</a>
@@ -252,8 +264,9 @@ IDs so run logs are easier to audit.</p>
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
                   <li class="list-inline-item"><a href='parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='budget_diag_mod.html'>budget_diag_mod</a></li>
+                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -287,8 +300,8 @@ IDs so run logs are easier to audit.</p>
             </td>
             <td>::</td>
             <td><strong>is_prerun</strong></td>
-                <td></td>
-                <td></td>
+<td> =</td>
+                <td>.false.</td>
             <td>
                 
             </td>
@@ -304,8 +317,42 @@ IDs so run logs are easier to audit.</p>
             </td>
             <td>::</td>
             <td><strong>is_postprocess</strong></td>
-                <td></td>
-                <td></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-pp_stat_window"></span>
+              integer,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pp_stat_window</strong>(2)</td>
+<td> =</td>
+                <td>-1</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-pp_window_root"></span>
+              character(len=128),
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>pp_window_root</strong></td>
+<td> =</td>
+                <td>&#39;&#39;</td>
             <td>
                 
             </td>
@@ -541,7 +588,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-icase~4"></span>
+              <span class="anchor" id="variable-icase~5"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -1036,7 +1083,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-iacc~47"></span>
+              <span class="anchor" id="variable-iacc~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -1266,7 +1313,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-filename~11"></span>
+              <span class="anchor" id="variable-filename~5"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -1281,7 +1328,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-inputunit~4"></span>
+              <span class="anchor" id="variable-inputunit"></span>
               integer,
             </td>
 <td>intent(out)</td>
@@ -1321,7 +1368,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-inputunit~5"></span>
+              <span class="anchor" id="variable-inputunit~2"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -1436,7 +1483,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-key~6"></span>
+              <span class="anchor" id="variable-key~7"></span>
               character(len=*),
             </td>
 <td>intent(out)</td>
@@ -2121,7 +2168,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-inputunit~6"></span>
+              <span class="anchor" id="variable-inputunit~3"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -2187,11 +2234,11 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-parse_existing_output_policy"></span> <h3>private  subroutine <a href='../proc/parse_existing_output_policy.html'>parse_existing_output_policy</a>(input_line, policy)  
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_rhoh_recovery"></span> <h3>private  subroutine <a href='../proc/parse_rhoh_recovery.html'>parse_rhoh_recovery</a>(input_line, is_transported)  
 </h3></div>
     <div class="card-body">
           
-  
+  <p>Parse the optional [thermo] key rhoh_recovery (see the [thermo] reader).</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2221,7 +2268,613 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-policy"></span>
+              <span class="anchor" id="variable-is_transported"></span>
+              logical,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_transported</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_property_interp"></span> <h3>private  subroutine <a href='../proc/parse_property_interp.html'>parse_property_interp</a>(input_line, iinterp)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Parse the optional [thermo] key property_interp (see the [thermo] reader).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input_line~7"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input_line</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iinterp"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iinterp</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_enthalpy_advection"></span> <h3>private  subroutine <a href='../proc/parse_enthalpy_advection.html'>parse_enthalpy_advection</a>(input_line, iadv)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Parse the optional [thermo] key enthalpy_advection (see the [thermo] reader).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input_line~8"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input_line</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iadv"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iadv</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_enthalpy_advection_restart"></span> <h3>private  subroutine <a href='../proc/parse_enthalpy_advection_restart.html'>parse_enthalpy_advection_restart</a>(input_line, is_allowed)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Parse the optional [thermo] key enthalpy_advection_restart (see the [thermo] reader).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input_line~9"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input_line</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_allowed"></span>
+              logical,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_allowed</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_outlet_mass_correction"></span> <h3>private  subroutine <a href='../proc/parse_outlet_mass_correction.html'>parse_outlet_mass_correction</a>(input_line, imethod)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Parse the optional [bc] key outlet_mass_correction (see the [bc] reader).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input_line~10"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input_line</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-imethod"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>imethod</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_thermal_outlet_pair"></span> <h3>private  subroutine <a href='../proc/parse_thermal_outlet_pair.html'>parse_thermal_outlet_pair</a>(input_line, is_zero_gradient)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Parse the optional [thermo] key thermal_outlet_pair (see the [thermo] reader).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input_line~11"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input_line</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_zero_gradient"></span>
+              logical,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_zero_gradient</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-check_thermo_key_placement"></span> <h3>private  subroutine <a href='../proc/check_thermo_key_placement.html'>check_thermo_key_placement</a>(flinput, keyname, is_read, position, opt_section)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Stop if the input file holds an optional [thermo] key line (keyname) that
+the [thermo] reader did not consume at its position, or holds it more than
+once. Section readers skip lines they do not expect, so a misplaced key
+would otherwise be ignored silently. No effect on inputs without the key.
+Keys checked: property_interp (after rhoh_recovery, else qw_ramp, else
+inout_buffer), enthalpy_advection (directly after property_interp, or
+where property_interp would go when it is absent) and
+enthalpy_advection_restart (directly after enthalpy_advection, or where it
+would go).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-flinput"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>flinput</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-keyname"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>keyname</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_read"></span>
+              logical,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_read</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-position"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>position</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_section"></span>
+              character(len=*),
+            </td>
+<td>intent(in),</td>
+              <td>optional</td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>opt_section</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-read_temperature_bc_line"></span> <h3>private  subroutine <a href='../proc/read_temperature_bc_line.html'>read_temperature_bc_line</a>(inputUnit, keyname, ibc, fconst, is_tini)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Read one temperature BC line, <code>ifbc?_t= ibc1, ibc2, value1, value2</code>.
+A value field may be the token <code>tini</code> (case-insensitive): "not specified,
+use the initial temperature". Any number is an explicit specification and is
+never replaced (it is range-checked later where it is a temperature).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-inputunit~4"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>inputUnit</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-keyname~2"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>keyname</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ibc~8"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ibc</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fconst"></span>
+              real(kind=WP),
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fconst</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_tini"></span>
+              logical,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_tini</strong>(2)</td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-apply_inlet_temperature_default"></span> <h3>private  subroutine <a href='../proc/apply_inlet_temperature_default.html'>apply_inlet_temperature_default</a>(dm, tm)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Resolve the <code>tini</code> token of the temperature BCs once all sections are read
+(independent of the order of [thermo] and [bc]):
+  Dirichlet side given as tini : value := tini (the documented default).
+  Dirichlet side given a number: explicit; kept unchanged, never replaced,
+                                 range-checked in Convert_thermal_input_2undim
+                                 (so 0 K or a negative value stops the run).
+  Neumann side given as tini   : error (the value is a heat flux there).
+  other types (periodic, interior, convective, profile, database): the value
+                                 is not used; the token is ignored.
+An explicit x-inlet temperature different from tini is allowed, with a
+warning: the uniform initial field (tini) then differs from the inlet plane.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~234"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tm~36"></span>
+              type(<a href='../type/t_thermo.html'>t_thermo</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_existing_output_policy"></span> <h3>private  subroutine <a href='../proc/parse_existing_output_policy.html'>parse_existing_output_policy</a>(input_line, policy)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input_line~13"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input_line</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-policy~3"></span>
               integer,
             </td>
 <td>intent(out)</td>
@@ -2261,7 +2914,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~7"></span>
+              <span class="anchor" id="variable-input_line~14"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -2276,7 +2929,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-layout"></span>
+              <span class="anchor" id="variable-layout~5"></span>
               integer,
             </td>
 <td>intent(out)</td>
@@ -2316,7 +2969,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~8"></span>
+              <span class="anchor" id="variable-input_line~15"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -2331,7 +2984,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mode~9"></span>
+              <span class="anchor" id="variable-mode~10"></span>
               integer,
             </td>
 <td>intent(out)</td>
@@ -2371,62 +3024,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~9"></span>
-              character(len=*),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>input_line</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-mode~10"></span>
-              integer,
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>mode</strong></td>
-            <td>
-
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-    </div>
-  </div>
-
-              <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-parse_stat_visu_mode"></span> <h3>private  subroutine <a href='../proc/parse_stat_visu_mode.html'>parse_stat_visu_mode</a>(input_line, mode)  
-</h3></div>
-    <div class="card-body">
-          
-  
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-input_line~10"></span>
+              <span class="anchor" id="variable-input_line~16"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -2462,121 +3060,17 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-parse_icase"></span> <h3>private  subroutine <a href='../proc/parse_icase.html'>parse_icase</a>(input_line, icase)  
+    <div class="card-header codesum"><span class="anchor" id="proc-read_postprocess_keys"></span> <h3>private  subroutine <a href='../proc/read_postprocess_keys.html'>read_postprocess_keys</a>(keys, values, nentry, section_name)  
 </h3></div>
     <div class="card-body">
           
-  
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-input_line~11"></span>
-              character(len=*),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>input_line</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-icase~3"></span>
-              integer,
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>icase</strong></td>
-            <td>
-
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-    </div>
-  </div>
-
-              <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-parse_ebc_side"></span> <h3>public  subroutine <a href='../proc/parse_ebc_side.html'>parse_ebc_side</a>(value, ebc)  
-</h3></div>
-    <div class="card-body">
-          
-  <p>\brief Parse one side of an electrical boundary condition from [mhd].</p><a href="../proc/parse_ebc_side.html" class="pull-right"><emph>Read more&hellip;</emph></a>
-
-  <h4>Arguments</h4>
-      <table class="table table-striped varlist">
-    <thead>
-      <tr>
-        <th scope="col">Type</th>
-<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
-        <th scope="col"></th>
-        <th scope="col">Name</th>
-        <th scope="col"></th>
-    </thead>
-    <tbody>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-value~23"></span>
-              character(len=*),
-            </td>
-<td>intent(in)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>value</strong></td>
-            <td>
-
-            </td>
-        </tr>
-        <tr>
-            <td>
-              <span class="anchor" id="variable-ebc~2"></span>
-              integer,
-            </td>
-<td>intent(out)</td>
-              <td></td>            <td>
-              
-            </td>
-            <td>::</td>
-            <td><strong>ebc</strong></td>
-            <td>
-
-            </td>
-        </tr>
-    </tbody>
-  </table>
-
-
-    </div>
-  </div>
-
-              <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-parse_ebc"></span> <h3>public  subroutine <a href='../proc/parse_ebc.html'>parse_ebc</a>(keys, values, nentry, section_name, key_name, ebc)  
-</h3></div>
-    <div class="card-body">
-          
-  
+  <p>Read and check the [process] keys of the post-processing mode. Every
+problem stops the run here: with is_postprocess set, an invalid or missing
+key must never fall through to a DNS.
+  pp_stat_window = a, b   required; window of samples a+1 ... b
+The output directory is fixed (5_postprocess/window_<a>_<b>/) and is not an
+input; a pp_output_dir key from an earlier development version is rejected
+rather than silently ignored.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -2649,6 +3143,256 @@ parameter
 
             </td>
         </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_stat_visu_mode"></span> <h3>private  subroutine <a href='../proc/parse_stat_visu_mode.html'>parse_stat_visu_mode</a>(input_line, mode)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input_line~17"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input_line</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-mode~12"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>mode</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_icase"></span> <h3>private  subroutine <a href='../proc/parse_icase.html'>parse_icase</a>(input_line, icase)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-input_line~18"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>input_line</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-icase~4"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>icase</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_ebc_side"></span> <h3>public  subroutine <a href='../proc/parse_ebc_side.html'>parse_ebc_side</a>(value, ebc)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>\brief Parse one side of an electrical boundary condition from [mhd].</p><a href="../proc/parse_ebc_side.html" class="pull-right"><emph>Read more&hellip;</emph></a>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-value~30"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>value</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-ebc~2"></span>
+              integer,
+            </td>
+<td>intent(out)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>ebc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-parse_ebc"></span> <h3>public  subroutine <a href='../proc/parse_ebc.html'>parse_ebc</a>(keys, values, nentry, section_name, key_name, ebc)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-keys~9"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>keys</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-values~10"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>values</strong>(:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-nentry~9"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>nentry</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-section_name~8"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>section_name</strong></td>
+            <td>
+
+            </td>
+        </tr>
         <tr>
             <td>
               <span class="anchor" id="variable-key_name~10"></span>
@@ -2706,7 +3450,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~12"></span>
+              <span class="anchor" id="variable-input_line~19"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -2761,7 +3505,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~13"></span>
+              <span class="anchor" id="variable-input_line~20"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -2816,7 +3560,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~14"></span>
+              <span class="anchor" id="variable-input_line~21"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -2871,7 +3615,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~15"></span>
+              <span class="anchor" id="variable-input_line~22"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -2886,7 +3630,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-istret~4"></span>
+              <span class="anchor" id="variable-istret~5"></span>
               integer,
             </td>
 <td>intent(out)</td>
@@ -2926,7 +3670,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~16"></span>
+              <span class="anchor" id="variable-input_line~23"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -2941,7 +3685,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-mstret~2"></span>
+              <span class="anchor" id="variable-mstret~3"></span>
               integer,
             </td>
 <td>intent(out)</td>
@@ -2956,7 +3700,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rstret~2"></span>
+              <span class="anchor" id="variable-rstret~3"></span>
               real(kind=WP),
             </td>
 <td>intent(out)</td>
@@ -2996,7 +3740,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~17"></span>
+              <span class="anchor" id="variable-input_line~24"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -3051,7 +3795,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~18"></span>
+              <span class="anchor" id="variable-input_line~25"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -3106,7 +3850,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~19"></span>
+              <span class="anchor" id="variable-input_line~26"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -3161,7 +3905,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~20"></span>
+              <span class="anchor" id="variable-input_line~27"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -3216,7 +3960,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-input_line~21"></span>
+              <span class="anchor" id="variable-input_line~28"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -3271,7 +4015,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-line~10"></span>
+              <span class="anchor" id="variable-line~17"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -3344,7 +4088,7 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~298"></span>
+              <span class="anchor" id="variable-dm~235"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -3384,7 +4128,7 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~299"></span>
+              <span class="anchor" id="variable-dm~236"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -3424,7 +4168,7 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~300"></span>
+              <span class="anchor" id="variable-dm~237"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -3439,7 +4183,7 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-flinput~2"></span>
+              <span class="anchor" id="variable-flinput~3"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>

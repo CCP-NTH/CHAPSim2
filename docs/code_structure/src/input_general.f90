@@ -1,5 +1,5 @@
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-!                      CHAPSim version 2.2.0
+!                      CHAPSim version 2.3.0
 !                      --------------------------
 ! This file is part of CHAPSim, a general-purpose CFD tool.
 !
@@ -45,10 +45,16 @@ end module util_mod
 !> and statistics settings. It also prints readable names for selected integer
 !> IDs so run logs are easier to audit.
 module input_general_mod
+  use budget_diag_mod, only : is_budget_diag
   use parameters_constant_mod
   use print_msg_mod
   implicit none
-  logical :: is_prerun, is_postprocess
+  logical :: is_prerun = .false., is_postprocess = .false.
+  ! Post-processing mode (is_postprocess): statistical window (a, b] to rebuild
+  ! from the cumulative statistics at iterations a and b. The output always goes
+  ! to 5_postprocess/window_<a>_<b>/ (dir_postprocess, io_files_mod).
+  integer :: pp_stat_window(2) = -1
+  character(len=128) :: pp_window_root = ''   ! 5_postprocess/window_<a>_<b>, set at run time
   logical :: input_section_reached_eof
   integer, parameter :: INPUT_SECTION_MAX = 128
   public  :: Read_input_parameters
@@ -91,6 +97,13 @@ module input_general_mod
   private :: parse_icase
   private :: parse_initfl
   private :: parse_ifluid
+  private :: parse_rhoh_recovery
+  private :: parse_property_interp
+  private :: parse_enthalpy_advection
+  private :: parse_enthalpy_advection_restart
+  private :: check_thermo_key_placement
+  private :: apply_inlet_temperature_default
+  private :: read_temperature_bc_line
   private :: parse_initm
   private :: parse_istret
   private :: parse_rstret
@@ -98,7 +111,10 @@ module input_general_mod
   private :: parse_idriven
   private :: parse_itimescheme
   private :: parse_iviscous
+  private :: parse_thermal_outlet_pair
+  private :: parse_outlet_mass_correction
   private :: parse_LES_model
+  private :: read_postprocess_keys
 contains
 !==============================================================================
   subroutine open_clean_input_file(filename, inputUnit)
@@ -372,6 +388,263 @@ contains
     return
   end subroutine read_optional_input_line
 !==============================================================================
+  !> Parse the optional [thermo] key rhoh_recovery (see the [thermo] reader).
+  subroutine parse_rhoh_recovery(input_line, is_transported)
+    implicit none
+    character(len=*), intent(in) :: input_line
+    logical, intent(out) :: is_transported
+    character(len=80) :: value
+    call extract_input_value(input_line, value)
+    select case(trim(lowercase(adjustl(value))))
+    case('transported')
+      is_transported = .true.
+    case('lagged_legacy')
+      is_transported = .false.
+      if(nrank == 0) call Print_warning_msg('rhoh_recovery = lagged_legacy is DEPRECATED and kept only '// &
+        'for regression comparison: it is unstable when |(h-h(T0)) beta/cp| exceeds about 0.5 and its '// &
+        'pressure contains a component proportional to 1/dt.')
+    case default
+      call Print_error_msg('Invalid rhoh_recovery. Supported values: transported, lagged_legacy.')
+    end select
+    return
+  end subroutine parse_rhoh_recovery
+  !> Parse the optional [thermo] key property_interp (see the [thermo] reader).
+  subroutine parse_property_interp(input_line, iinterp)
+    implicit none
+    character(len=*), intent(in) :: input_line
+    integer, intent(out) :: iinterp
+    character(len=80) :: value
+    call extract_input_value(input_line, value)
+    select case(trim(lowercase(adjustl(value))))
+    case('linear')
+      iinterp = IPROP_INTERP_LINEAR
+    case('pchip')
+      iinterp = IPROP_INTERP_PCHIP
+      if(nrank == 0) call Print_warning_msg('property_interp = pchip is EXPERIMENTAL (monotone cubic '// &
+        'Hermite in h; cp = 1/(dT/dh) of the interpolant).')
+    case default
+      call Print_error_msg('Invalid property_interp. Supported values: linear, pchip.')
+    end select
+    return
+  end subroutine parse_property_interp
+  !> Parse the optional [thermo] key enthalpy_advection (see the [thermo] reader).
+  subroutine parse_enthalpy_advection(input_line, iadv)
+    implicit none
+    character(len=*), intent(in) :: input_line
+    integer, intent(out) :: iadv
+    character(len=80) :: value
+    call extract_input_value(input_line, value)
+    select case(trim(lowercase(adjustl(value))))
+    case('cd2')
+      iadv = IENTH_ADV_CD2
+    case('koren')
+      iadv = IENTH_ADV_KOREN
+      if(nrank == 0) call Print_warning_msg('enthalpy_advection = koren is EXPERIMENTAL (Koren-limited '// &
+        'MUSCL face value of h in the convective flux of rho*h).')
+    case default
+      call Print_error_msg('Invalid enthalpy_advection. Supported values: cd2, koren.')
+    end select
+    return
+  end subroutine parse_enthalpy_advection
+  !> Parse the optional [thermo] key enthalpy_advection_restart (see the [thermo] reader).
+  subroutine parse_enthalpy_advection_restart(input_line, is_allowed)
+    implicit none
+    character(len=*), intent(in) :: input_line
+    logical, intent(out) :: is_allowed
+    character(len=80) :: value
+    call extract_input_value(input_line, value)
+    select case(trim(lowercase(adjustl(value))))
+    case('strict')
+      is_allowed = .false.
+    case('allow_switch')
+      is_allowed = .true.
+    case default
+      call Print_error_msg('Invalid enthalpy_advection_restart. Supported values: strict, allow_switch.')
+    end select
+    return
+  end subroutine parse_enthalpy_advection_restart
+  !> Parse the optional [bc] key outlet_mass_correction (see the [bc] reader).
+  subroutine parse_outlet_mass_correction(input_line, imethod)
+    implicit none
+    character(len=*), intent(in) :: input_line
+    integer, intent(out) :: imethod
+    character(len=80) :: value
+    call extract_input_value(input_line, value)
+    select case(trim(lowercase(adjustl(value))))
+    case('proportional')
+      imethod = IOUTLET_MASS_PROPORTIONAL
+    case('uniform_flux')
+      imethod = IOUTLET_MASS_UNIFORM_FLUX
+    case('split')
+      imethod = IOUTLET_MASS_SPLIT
+    case default
+      call Print_error_msg('Invalid outlet_mass_correction. Supported values: proportional, uniform_flux, split.')
+    end select
+    return
+  end subroutine parse_outlet_mass_correction
+  !> Parse the optional [thermo] key thermal_outlet_pair (see the [thermo] reader).
+  subroutine parse_thermal_outlet_pair(input_line, is_zero_gradient)
+    implicit none
+    character(len=*), intent(in) :: input_line
+    logical, intent(out) :: is_zero_gradient
+    character(len=80) :: value
+    call extract_input_value(input_line, value)
+    select case(trim(lowercase(adjustl(value))))
+    case('convective')
+      is_zero_gradient = .false.
+    case('zero_gradient')
+      is_zero_gradient = .true.
+    case default
+      call Print_error_msg('Invalid thermal_outlet_pair. Supported values: convective, zero_gradient.')
+    end select
+    return
+  end subroutine parse_thermal_outlet_pair
+  !> Stop if the input file holds an optional [thermo] key line (keyname) that
+  !> the [thermo] reader did not consume at its position, or holds it more than
+  !> once. Section readers skip lines they do not expect, so a misplaced key
+  !> would otherwise be ignored silently. No effect on inputs without the key.
+  !> Keys checked: property_interp (after rhoh_recovery, else qw_ramp, else
+  !> inout_buffer), enthalpy_advection (directly after property_interp, or
+  !> where property_interp would go when it is absent) and
+  !> enthalpy_advection_restart (directly after enthalpy_advection, or where it
+  !> would go).
+  subroutine check_thermo_key_placement(flinput, keyname, is_read, position, opt_section)
+    implicit none
+    character(len=*), intent(in) :: flinput
+    character(len=*), intent(in) :: keyname
+    logical,          intent(in) :: is_read
+    character(len=*), intent(in) :: position
+    character(len=*), intent(in), optional :: opt_section   ! default [thermo]
+    character(len=256) :: line
+    character(len=80)  :: varname
+    integer :: u, ioerr, nfound
+    nfound = 0
+    open(newunit = u, file = flinput, status = 'old', action = 'read', iostat = ioerr)
+    if(ioerr /= 0) return
+    do
+      read(u, '(A)', iostat = ioerr) line
+      if(ioerr /= 0) exit
+      read(line, *, iostat = ioerr) varname
+      if(ioerr /= 0) cycle
+      if(trim(varname) == keyname .or. trim(varname) == keyname//'=') nfound = nfound + 1
+    end do
+    close(u)
+    if(nfound > 1) call Print_error_msg(keyname//' is given more than once in '//trim(flinput)//'.')
+    if(nfound == 1 .and. .not. is_read) then
+      if(present(opt_section)) then
+        call Print_error_msg(keyname//' in '//trim(flinput)// &
+          ' is not at its position: put it in '//opt_section//' '//position//'.')
+      else
+        call Print_error_msg(keyname//' in '//trim(flinput)// &
+          ' is not at its position: put it in [thermo] '//position//'.')
+      end if
+    end if
+    return
+  end subroutine check_thermo_key_placement
+!==============================================================================
+  !> Read one temperature BC line, `ifbc?_t= ibc1, ibc2, value1, value2`.
+  !> A value field may be the token `tini` (case-insensitive): "not specified,
+  !> use the initial temperature". Any number is an explicit specification and is
+  !> never replaced (it is range-checked later where it is a temperature).
+  subroutine read_temperature_bc_line(inputUnit, keyname, ibc, fconst, is_tini)
+    implicit none
+    integer, intent(in) :: inputUnit
+    character(len=*), intent(in) :: keyname
+    integer, intent(out) :: ibc(2)
+    real(WP), intent(out) :: fconst(2)
+    logical, intent(out) :: is_tini(2)
+    character(len=512) :: input_line, key, value
+    character(len=64) :: token(4)
+    integer :: ioerr, n, p, q
+
+    read(inputUnit, '(A)', iostat = ioerr) input_line
+    if(ioerr /= 0) call Print_error_msg('Failed to read the '//keyname//' line in section [bc].')
+    call split_input_key_value(input_line, key, value)
+    if(trim(lowercase(key)) /= keyname) &
+      call Print_error_msg('Expected the key '//keyname//' in section [bc], found '//trim(key)//'.')
+    token = ''
+    p = 1
+    do n = 1, 4
+      q = index(value(p:), ',')
+      if(q == 0) then
+        token(n) = adjustl(value(p:))
+        exit
+      end if
+      token(n) = adjustl(value(p:p + q - 2))
+      p = p + q
+    end do
+    read(token(1), *, iostat = ioerr) ibc(1)
+    if(ioerr == 0) read(token(2), *, iostat = ioerr) ibc(2)
+    if(ioerr /= 0) call Print_error_msg('Invalid boundary type in '//keyname//': '//trim(value))
+    do n = 1, 2
+      is_tini(n) = (trim(lowercase(token(n + 2))) == 'tini')
+      fconst(n) = ZERO
+      if(.not. is_tini(n)) then
+        read(token(n + 2), *, iostat = ioerr) fconst(n)
+        if(ioerr /= 0 .or. len_trim(token(n + 2)) == 0) &
+          call Print_error_msg('Invalid value in '//keyname//' (a number or tini expected): '//trim(value))
+      end if
+    end do
+
+    return
+  end subroutine read_temperature_bc_line
+!==============================================================================
+  !> Resolve the `tini` token of the temperature BCs once all sections are read
+  !> (independent of the order of [thermo] and [bc]):
+  !>   Dirichlet side given as tini : value := tini (the documented default).
+  !>   Dirichlet side given a number: explicit; kept unchanged, never replaced,
+  !>                                  range-checked in Convert_thermal_input_2undim
+  !>                                  (so 0 K or a negative value stops the run).
+  !>   Neumann side given as tini   : error (the value is a heat flux there).
+  !>   other types (periodic, interior, convective, profile, database): the value
+  !>                                  is not used; the token is ignored.
+  !> An explicit x-inlet temperature different from tini is allowed, with a
+  !> warning: the uniform initial field (tini) then differs from the inlet plane.
+  subroutine apply_inlet_temperature_default(dm, tm)
+    use mpi_mod
+    use udf_type_mod
+    use wtformat_mod
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    type(t_thermo), intent(in)    :: tm
+    character(len=1), parameter :: dirname(3) = ['x', 'y', 'z']
+    integer :: n, d, ibc
+
+    if(.not. dm%is_thermo) return
+
+    do d = 1, 3
+      do n = 1, 2
+        if(.not. dm%is_fbc_T_tini(n, d)) cycle
+        select case(d)
+        case(1); ibc = dm%ibcx_nominal(n, 5)
+        case(2); ibc = dm%ibcy_nominal(n, 5)
+        case default; ibc = dm%ibcz_nominal(n, 5)
+        end select
+        if(ibc == IBC_DIRICHLET) then
+          select case(d)
+          case(1); dm%fbcx_const(n, 5) = tm%init_T0
+          case(2); dm%fbcy_const(n, 5) = tm%init_T0
+          case default; dm%fbcz_const(n, 5) = tm%init_T0
+          end select
+          if(nrank == 0) write(*, wrtfmt1r) 'T-bc '//dirname(d)//' given as tini, set to (K):', tm%init_T0
+        else if(ibc == IBC_NEUMANN) then
+          call Print_error_msg('ifbc'//dirname(d)//'_t: the token tini is not valid for a Neumann (heat-flux) '// &
+            'temperature boundary.')
+        end if
+      end do
+    end do
+
+    if(dm%ibcx_nominal(1, 5) == IBC_DIRICHLET .and. .not. dm%is_fbc_T_tini(1, 1)) then
+      if(abs(dm%fbcx_const(1, 5) - tm%init_T0) > 1.0e-12_WP * max(abs(tm%init_T0), ONE)) then
+        if(nrank == 0) call Print_warning_msg('The explicit x-inlet Dirichlet temperature in ifbcx_t differs '// &
+          'from tini: it is kept as given, but a uniform initial field (tini) does not match the inlet plane '// &
+          'at the first step.')
+      end if
+    end if
+
+    return
+  end subroutine apply_inlet_temperature_default
+!==============================================================================
   subroutine parse_existing_output_policy(input_line, policy)
     implicit none
     character(len=*), intent(in) :: input_line
@@ -445,6 +718,40 @@ contains
     end select
     return
   end subroutine parse_restart_clock
+!==============================================================================
+!==============================================================================
+!> Read and check the [process] keys of the post-processing mode. Every
+!> problem stops the run here: with is_postprocess set, an invalid or missing
+!> key must never fall through to a DNS.
+!>   pp_stat_window = a, b   required; window of samples a+1 ... b
+!> The output directory is fixed (5_postprocess/window_<a>_<b>/) and is not an
+!> input; a pp_output_dir key from an earlier development version is rejected
+!> rather than silently ignored.
+  subroutine read_postprocess_keys(keys, values, nentry, section_name)
+    use wtformat_mod
+    implicit none
+    character(len=*), intent(in) :: keys(:)
+    character(len=*), intent(in) :: values(:)
+    integer, intent(in) :: nentry
+    character(len=*), intent(in) :: section_name
+    integer :: idx, ioerr
+
+    if(is_prerun) call Print_error_msg('is_prerun and is_postprocess cannot both be .true.')
+
+    idx = section_find_key(keys, nentry, 'pp_stat_window')
+    if(idx == 0) call Print_error_msg('is_postprocess = .true. requires pp_stat_window = a, b in '// &
+      trim(section_name)//': the cumulative statistics at iterations a and b give the average '// &
+      'over iterations a+1 ... b.')
+    read(values(idx), *, iostat=ioerr) pp_stat_window(1:2)
+    if(ioerr /= 0) call Print_error_msg('Invalid pp_stat_window. Expected two integers a, b.')
+    if(pp_stat_window(1) < 0 .or. pp_stat_window(2) <= pp_stat_window(1)) &
+      call Print_error_msg('Invalid pp_stat_window. Expected 0 <= a < b.')
+    if(section_find_key(keys, nentry, 'pp_output_dir') > 0) call Print_error_msg('pp_output_dir is not an '// &
+      'input: the post-processing output always goes to 5_postprocess/window_<a>_<b>/. Remove the key.')
+
+    if(nrank == 0) write (*, wrtfmt2i) 'pp_stat_window (a, b) :', pp_stat_window(1:2)
+    return
+  end subroutine read_postprocess_keys
 !==============================================================================
   subroutine parse_stat_visu_mode(input_line, mode)
     implicit none
@@ -1153,6 +1460,12 @@ contains
     use wtformat_mod
     implicit none
     character(len = 18) :: flinput = 'input_chapsim.ini'
+    logical :: is_property_interp_read   ! property_interp consumed at its [thermo] position
+    logical :: is_enthalpy_advection_read   ! enthalpy_advection consumed at its [thermo] position
+    logical :: is_enth_adv_restart_read     ! enthalpy_advection_restart consumed at its [thermo] position
+    logical :: is_outlet_mass_corr_read     ! outlet_mass_correction consumed at its [bc] position
+    logical :: is_thermal_outlet_pair_read  ! thermal_outlet_pair consumed at its [thermo] position
+    logical :: is_ndb_sampling_dt_read      ! ndb_sampling_dt consumed at its [io] position
     integer :: ioerr, inputUnit
     integer  :: slen
     character(len = 80) :: secname
@@ -1181,11 +1494,30 @@ contains
     is_single_RK_projection = .false.
     is_damping_drhodt = .false.
     is_global_mass_correction = .false.
+    ! B3.4 experimental pressure output (all runs, isothermal and thermal)
+    block
+      character(len=8) :: envval
+      integer :: envlen, envstat
+      call get_environment_variable('CHAPSIM_B3_PBAR', envval, envlen, envstat)
+      is_pbar_output = (envstat == 0 .and. envlen > 0 .and. envval(1:1) == '1')
+      call get_environment_variable('CHAPSIM_B3_BUDGET', envval, envlen, envstat)
+      is_budget_diag = (envstat == 0 .and. envlen > 0 .and. envval(1:1) == '1')
+      call get_environment_variable('CHAPSIM_B3_PSTAT', envval, envlen, envstat)
+      is_pfs_stats = (envstat == 0 .and. envlen > 0 .and. envval(1:1) == '1')
+      call get_environment_variable('CHAPSIM_B3_PSTAT_MID', envval, envlen, envstat)
+      is_pfs_stats_mid = is_pfs_stats .and. (envstat == 0 .and. envlen > 0 .and. envval(1:1) == '1')
+    end block
     input_section_reached_eof = .false.
     !------------------------------------------------------------------------------
     ! open file
     !------------------------------------------------------------------------------
     call open_clean_input_file(flinput, inputUnit)
+    is_property_interp_read = .false.
+    is_enthalpy_advection_read = .false.
+    is_ndb_sampling_dt_read = .false.
+    is_enth_adv_restart_read = .false.
+    is_outlet_mass_corr_read = .false.
+    is_thermal_outlet_pair_read = .false.
     if(nrank == 0) &
     call Print_debug_start_msg("Reading General Parameters from "//flinput//" ...")
     !------------------------------------------------------------------------------
@@ -1217,6 +1549,7 @@ contains
           write (*, wrtfmt1l) 'is_prerun :', is_prerun
           write (*, wrtfmt1l) 'is_postprocess :', is_postprocess
         end if
+        if(is_postprocess) call read_postprocess_keys(section_keys, section_values, section_n, secname(1:slen))
       !------------------------------------------------------------------------------
       ! [decomposition]
       !------------------------------------------------------------------------------
@@ -1307,29 +1640,43 @@ contains
           read(inputUnit, *, iostat = ioerr) varname, domain(i)%ibcx_nominal(1:2, 2), domain(i)%fbcx_const(1:2, 2)
           read(inputUnit, *, iostat = ioerr) varname, domain(i)%ibcx_nominal(1:2, 3), domain(i)%fbcx_const(1:2, 3)
           read(inputUnit, *, iostat = ioerr) varname, domain(i)%ibcx_nominal(1:2, 4), domain(i)%fbcx_const(1:2, 4)
-          read(inputUnit, *, iostat = ioerr) varname, domain(i)%ibcx_nominal(1:2, 5), domain(i)%fbcx_const(1:2, 5) ! dimensional
+          call read_temperature_bc_line(inputUnit, 'ifbcx_t', domain(i)%ibcx_nominal(1:2, 5), domain(i)%fbcx_const(1:2, 5), &
+            domain(i)%is_fbc_T_tini(1:2, 1)) ! dimensional
         end do
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcy_nominal(1:2, 1), domain(1)%fbcy_const(1:2, 1)
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcy_nominal(1:2, 2), domain(1)%fbcy_const(1:2, 2)
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcy_nominal(1:2, 3), domain(1)%fbcy_const(1:2, 3)
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcy_nominal(1:2, 4), domain(1)%fbcy_const(1:2, 4)
-        read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcy_nominal(1:2, 5), domain(1)%fbcy_const(1:2, 5) ! dimensional
+        call read_temperature_bc_line(inputUnit, 'ifbcy_t', domain(1)%ibcy_nominal(1:2, 5), domain(1)%fbcy_const(1:2, 5), &
+          domain(1)%is_fbc_T_tini(1:2, 2)) ! dimensional
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcz_nominal(1:2, 1), domain(1)%fbcz_const(1:2, 1)
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcz_nominal(1:2, 2), domain(1)%fbcz_const(1:2, 2)
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcz_nominal(1:2, 3), domain(1)%fbcz_const(1:2, 3)
         read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcz_nominal(1:2, 4), domain(1)%fbcz_const(1:2, 4)
-        read(inputUnit, *, iostat = ioerr) varname, domain(1)%ibcz_nominal(1:2, 5), domain(1)%fbcz_const(1:2, 5) ! dimensional
+        call read_temperature_bc_line(inputUnit, 'ifbcz_t', domain(1)%ibcz_nominal(1:2, 5), domain(1)%fbcz_const(1:2, 5), &
+          domain(1)%is_fbc_T_tini(1:2, 3)) ! dimensional
         call read_optional_input_line(inputUnit, 'idriven', input_line, has_optional_line)
         if(.not. has_optional_line) &
         call Print_error_msg('Missing required key idriven in section '//trim(secname(1:slen)))
         call parse_idriven(input_line, flow(1)%idriven)
         flow(2 : nxdomain)%idriven = flow(1)%idriven
         read(inputUnit, *, iostat = ioerr) varname, flow(1 : nxdomain)%drvfc
+        ! Optional: global mass-balance correction of a convective x-outlet
+        ! (see ioutlet_mass_correction in modules.f90); default proportional.
+        ioutlet_mass_correction = IOUTLET_MASS_PROPORTIONAL
+        call read_optional_input_line(inputUnit, 'outlet_mass_correction', input_line, has_optional_line)
+        is_outlet_mass_corr_read = has_optional_line
+        if(has_optional_line) call parse_outlet_mass_correction(input_line, ioutlet_mass_correction)
+        if(nrank == 0 .and. ioutlet_mass_correction == IOUTLET_MASS_UNIFORM_FLUX) &
+          write (*, wrtfmt2s) 'outlet global mass correction :', 'uniform_flux (EXPERIMENTAL)'
+        if(nrank == 0 .and. ioutlet_mass_correction == IOUTLET_MASS_SPLIT) &
+          write (*, wrtfmt2s) 'outlet global mass correction :', 'split (EXPERIMENTAL)'
         do i = 2, nxdomain
           domain(i)%ibcy_nominal(:, :) = domain(1)%ibcy_nominal(:, :)
           domain(i)%ibcz_nominal(:, :) = domain(1)%ibcz_nominal(:, :)
           domain(i)%fbcy_const(:, :) = domain(1)%fbcy_const(:, :)
           domain(i)%fbcz_const(:, :) = domain(1)%fbcz_const(:, :)
+          domain(i)%is_fbc_T_tini(:, 2:3) = domain(1)%is_fbc_T_tini(:, 2:3)
         end do
         do i = 1, nxdomain
           domain(i)%is_periodic(:) = .false.
@@ -1388,6 +1735,18 @@ contains
             if(domain(i)%ibcx_nominal(2, m) == IBC_CONVECTIVE) domain(i)%is_conv_outlet(1) = .true.
             if(domain(i)%ibcy_nominal(2, m) == IBC_CONVECTIVE) call Print_error_msg(" Convective Outlet in Y direction is not supported.")
             if(domain(i)%ibcz_nominal(2, m) == IBC_CONVECTIVE) domain(i)%is_conv_outlet(3) = .true.
+          end do
+          ! The 1D profile inlet (IBC_PROFILE1D, BC id 9) is unfinished and is rejected for every
+          ! variable: the streamwise velocity profile is never read (commented out in
+          ! initialise_fbc_flow_given); the other profiles go through profile_interpolation, which
+          ! hands the profile values to spline_interpolation as abscissae, so the interpolated profile
+          ! is wrong; the dimensional temperature profile is never converted (the conversion tests the
+          ! reduced type ibcx_Tm), and initialise_fbc_thermo_given resets the inlet thermal state to
+          ! tm%ftp_ini (tini) after the profile. A run would silently use a different inlet.
+          do m = 1, NBC
+            if(domain(i)%ibcx_nominal(1, m) == IBC_PROFILE1D) call Print_error_msg( &
+              'ifbcx_u/v/w/p/t: the 1D profile inlet (BC id 9, IBC_PROFILE1D) is not supported: the '// &
+              'profile would not be applied correctly. Use a constant, Poiseuille or database inlet.')
           end do
         end do
         do i = 1, nxdomain
@@ -1490,6 +1849,11 @@ contains
         call Print_error_msg('Missing required key itimescheme in section '//trim(secname(1:slen)))
         call parse_itimescheme(section_values(section_idx), domain(1)%iTimeScheme)
         domain(:)%iTimeScheme = domain(1)%iTimeScheme
+        ! rk3_cn is accepted for old inputs but selects nothing different: no Crank-Nicolson
+        ! solve exists, the coefficients are those of the explicit RK3 scheme
+        if(domain(1)%iTimeScheme == ITIME_RK3_CN .and. nrank == 0) call Print_warning_msg( &
+          'itimescheme = rk3_cn runs the explicit RK3 scheme: no Crank-Nicolson treatment is '// &
+          'implemented, and the explicit diffusion limit on dt applies.')
         section_idx = section_find_key(section_keys, section_n, 'iaccuracy')
         if(section_idx == 0) &
         call Print_error_msg('Missing required key iaccuracy in section '//trim(secname(1:slen)))
@@ -1500,6 +1864,10 @@ contains
         if(section_idx > 0) then
           call parse_iviscous(section_values(section_idx), domain(1)%iviscous)
         end if
+        ! no source line reads iviscous: the viscous and thermal diffusion terms are always explicit
+        if(domain(1)%iviscous == IVIS_SEMIMPLT .and. nrank == 0) call Print_warning_msg( &
+          'iviscous = semi_implicit has no effect: the viscous and thermal diffusion terms are '// &
+          'always treated explicitly, and the explicit diffusion limit on dt applies.')
         domain(:)%iviscous = domain(1)%iviscous
         domain(1)%outlet_sponge_layer(1:2) = ZERO
         section_idx = section_find_key(section_keys, section_n, 'out_sponge_L_Re')
@@ -1717,6 +2085,66 @@ contains
         if(is_any_energyeq) thermo(1 : nxdomain)%is_use_qw_ramp = is_tmp
         if(is_any_energyeq) thermo(1 : nxdomain)%istt_qw_ramp = i
         if(is_any_energyeq) thermo(1 : nxdomain)%iend_qw_ramp = j
+        !----------------------------------------------------------------------
+        ! Optional: recovery of the thermodynamic state from the advanced rho*h.
+        !   transported   (default) h = (rho h)/rho_hat, rho_hat advanced with the
+        !                 energy equation's RK3 weights and density-rate history.
+        !   lagged_legacy DEPRECATED, for controlled regression comparison only:
+        !                 h = (rho h)/rho^{k-1} (one lagged pass, as up to 8d47f18).
+        !                 Known defects: Delta-t-independent instability when
+        !                 |(h-h(T0)) beta/cp| exceeds about 0.5, and a pressure
+        !                 component proportional to 1/dt.
+        !----------------------------------------------------------------------
+        is_bc_recovery = .true.
+        call read_optional_input_line(inputUnit, 'rhoh_recovery', input_line, has_optional_line)
+        if(has_optional_line) call parse_rhoh_recovery(input_line, is_bc_recovery)
+        !----------------------------------------------------------------------
+        ! Optional: property-table interpolation in enthalpy.
+        !   linear (default) piecewise linear (unchanged behaviour).
+        !   pchip            EXPERIMENTAL monotone cubic Hermite, C1 in h; table
+        !                    fluids with rhoh_recovery = transported only.
+        !----------------------------------------------------------------------
+        iprop_interp = IPROP_INTERP_LINEAR
+        call read_optional_input_line(inputUnit, 'property_interp', input_line, has_optional_line)
+        is_property_interp_read = has_optional_line
+        if(has_optional_line) call parse_property_interp(input_line, iprop_interp)
+        if(iprop_interp == IPROP_INTERP_PCHIP .and. .not. is_bc_recovery) &
+          call Print_error_msg('property_interp = pchip requires rhoh_recovery = transported.')
+        !----------------------------------------------------------------------
+        ! Optional: face value of h in the convective flux g*h_f of rho*h.
+        !   cd2   (default) the existing midpoint interpolation (unchanged).
+        !   koren EXPERIMENTAL Koren-limited MUSCL, upwinded on g; needs
+        !         iaccuracy = cd2 (checked after all sections are read).
+        !----------------------------------------------------------------------
+        ienth_adv = IENTH_ADV_CD2
+        call read_optional_input_line(inputUnit, 'enthalpy_advection', input_line, has_optional_line)
+        is_enthalpy_advection_read = has_optional_line
+        if(has_optional_line) call parse_enthalpy_advection(input_line, ienth_adv)
+        !----------------------------------------------------------------------
+        ! Optional: restart policy for the enthalpy advection scheme.
+        !   strict       (default) a thermal restart from a checkpoint advanced
+        !                with the other scheme stops.
+        !   allow_switch the change is permitted, with a warning; statistics
+        !                must not continue across it (checked at the restart).
+        !----------------------------------------------------------------------
+        is_enth_adv_switch_allowed = .false.
+        call read_optional_input_line(inputUnit, 'enthalpy_advection_restart', input_line, has_optional_line)
+        is_enth_adv_restart_read = has_optional_line
+        if(has_optional_line) call parse_enthalpy_advection_restart(input_line, is_enth_adv_switch_allowed)
+        !----------------------------------------------------------------------
+        ! Optional: thermodynamic face state of a convective x-outlet
+        ! (ifbcx_t = ..., 7) under rhoh_recovery = transported.
+        !   convective    (default) rho*h and rho_hat at the face obey
+        !                 d(phi)/dt + U_c d(phi)/dx = 0 (unchanged behaviour).
+        !   zero_gradient the face takes the last interior cell's pair, so
+        !                 h_b = h(nc): the outflow enthalpy flux is the upwind
+        !                 g_b h(nc) and no separate face state is integrated.
+        !                 The momentum outlet (g, global U_c) is unchanged.
+        !----------------------------------------------------------------------
+        is_thermal_outlet_zero_gradient = .false.
+        call read_optional_input_line(inputUnit, 'thermal_outlet_pair', input_line, has_optional_line)
+        is_thermal_outlet_pair_read = has_optional_line
+        if(has_optional_line) call parse_thermal_outlet_pair(input_line, is_thermal_outlet_zero_gradient)
         do i = 1, nxdomain
           ! iterfrom selects which checkpoint to read, so it is meaningless unless
           ! this field restarts. The flow is cleared the same way below the [flow]
@@ -1725,9 +2153,9 @@ contains
           if(is_any_energyeq) then
             if(thermo(i)%inittype /= INIT_RESTART) thermo(i)%iterfrom = 0
           end if
-          if( domain(i)%ibcx_nominal(1, 5) == IBC_DIRICHLET ) then
-            domain(i)%fbcx_const(1, 5) = thermo(i)%init_T0
-          end if
+          ! The default inlet temperature (tini) is applied after all sections
+          ! are read - see apply_inlet_temperature_default - because [bc] may
+          ! follow [thermo]; testing ibcx_nominal here depended on section order.
         end do
         if(is_any_energyeq .and. nrank == 0) then
           do i = 1, nxdomain
@@ -1749,6 +2177,20 @@ contains
             write (*, wrtfmt2r) 'inlet  thermal buffer length (lx/L0):', thermo(i)%thermo_buffer_layer(1)
             write (*, wrtfmt2r) 'outlet thermal buffer length (lx/L0):', thermo(i)%thermo_buffer_layer(2)
             write (*, wrtfmt1l) 'is a ramp b.c. heat flux qw enabled?',  thermo(i)%is_use_qw_ramp
+            if(is_bc_recovery) then
+              write (*, wrtfmt2s) 'rho*h recovery :', 'transported (rho_hat)'
+            else
+              write (*, wrtfmt2s) 'rho*h recovery :', 'lagged_legacy (DEPRECATED)'
+            end if
+            ! echoed only when selected, so a linear-mode log is unchanged
+            if(iprop_interp == IPROP_INTERP_PCHIP) &
+              write (*, wrtfmt2s) 'property interpolation in h :', 'pchip (EXPERIMENTAL)'
+            if(ienth_adv == IENTH_ADV_KOREN) &
+              write (*, wrtfmt2s) 'enthalpy advection face value :', 'koren (EXPERIMENTAL)'
+            if(is_enth_adv_switch_allowed) &
+              write (*, wrtfmt2s) 'enthalpy advection restart policy :', 'allow_switch'
+            if(is_thermal_outlet_zero_gradient) &
+              write (*, wrtfmt2s) 'thermal outlet face state :', 'zero_gradient'
             if(thermo(i)%is_use_qw_ramp) then
               write (*, wrtfmt1i) 'b.c. qw ramp starts from :', thermo(i)%istt_qw_ramp
               write (*, wrtfmt1i) 'b.c. qw ramp ends at :', thermo(i)%iend_qw_ramp
@@ -1958,6 +2400,24 @@ contains
           end if
           ioerr = 0
         end if
+        !----------------------------------------------------------------------
+        ! Optional: physical time between two stored inlet-database planes,
+        ! directly after ndb_file_offset. Absent: one stored plane per solver
+        ! step, whatever the database was recorded with (unchanged behaviour;
+        ! the database metadata dt is not used). Given: ndb_sampling_dt/dt must
+        ! be an integer >= 1 (checked in the cross-section checks); for a ratio
+        ! > 1 the inlet is interpolated linearly in time between samples.
+        !----------------------------------------------------------------------
+        domain(1)%ndb_sampling_dt = ZERO
+        call read_optional_input_line(inputUnit, 'ndb_sampling_dt', input_line, has_optional_line)
+        is_ndb_sampling_dt_read = has_optional_line
+        if(has_optional_line) then
+          read(input_line, *, iostat = ioerr) varname, domain(1)%ndb_sampling_dt
+          if(ioerr /= 0 .or. .not. (domain(1)%ndb_sampling_dt > ZERO)) &
+            call Print_error_msg('Invalid ndb_sampling_dt. Supported values are positive reals.')
+          ioerr = 0
+        end if
+        domain(:)%ndb_sampling_dt = domain(1)%ndb_sampling_dt
         domain(1)%existing_output_policy = OUTPUT_POLICY_OVERWRITE
         call read_optional_input_line(inputUnit, 'existing_output_policy', input_line, has_optional_line)
         if(has_optional_line) then
@@ -2167,6 +2627,65 @@ contains
     call Print_error_msg( 'Problem reading '//flinput // &
     'in Subroutine: '// "Read_general_input")
     close(inputUnit)
+    ! a property_interp line anywhere but its [thermo] position would otherwise be
+    ! skipped silently by the section readers and the run would use linear
+    call check_thermo_key_placement(flinput, 'property_interp', is_property_interp_read, &
+      'directly after rhoh_recovery (or after qw_ramp, or after inout_buffer, when those keys are absent)')
+    call check_thermo_key_placement(flinput, 'enthalpy_advection', is_enthalpy_advection_read, &
+      'directly after property_interp (or where property_interp would go, when it is absent)')
+    call check_thermo_key_placement(flinput, 'enthalpy_advection_restart', is_enth_adv_restart_read, &
+      'directly after enthalpy_advection (or where enthalpy_advection would go, when it is absent)')
+    call check_thermo_key_placement(flinput, 'thermal_outlet_pair', is_thermal_outlet_pair_read, &
+      'directly after enthalpy_advection_restart (or where enthalpy_advection_restart would go, when it is absent)')
+    call check_thermo_key_placement(flinput, 'ndb_sampling_dt', is_ndb_sampling_dt_read, &
+      'directly after ndb_file_offset', opt_section='[io]')
+    call check_thermo_key_placement(flinput, 'outlet_mass_correction', is_outlet_mass_corr_read, &
+      'directly after drivenfc', opt_section='[bc]')
+    ! uniform_flux and split replace the scaling of a convective x-outlet only;
+    ! anywhere else they would be silently inert
+    if(ioutlet_mass_correction /= IOUTLET_MASS_PROPORTIONAL) then
+      do i = 1, nxdomain
+        if(domain(i)%ibcx_nominal(2, 1) /= IBC_CONVECTIVE) &
+          call Print_error_msg('outlet_mass_correction = uniform_flux/split requires a convective x-outlet '// &
+            '(ifbcx_u = ..., 7); it has no effect otherwise.')
+        if(domain(i)%ibcz_nominal(2, 3) == IBC_CONVECTIVE) &
+          call Print_error_msg('outlet_mass_correction = uniform_flux/split is implemented for the x-outlet only.')
+      end do
+    end if
+    ! inlet database sampling interval: the database planes are samples
+    ! ndb_sampling_dt apart; the solver steps dt; the ratio must be an integer so
+    ! that every sample time is a solver step-start time (exact reproduction of
+    ! the stored planes at their sample times, no drift of the inflow chronology)
+    if(domain(1)%ndb_sampling_dt > ZERO) then
+      if(.not. domain(1)%is_read_xinlet) &
+        call Print_error_msg('ndb_sampling_dt is given but no inlet database is read '// &
+          '(is_record_xoutlet_read_xinlet).')
+      rtmp = domain(1)%ndb_sampling_dt / domain(1)%dt
+      itmp = nint(rtmp)
+      if(itmp < 1 .or. abs(rtmp - real(itmp, WP)) > 1.0e-9_WP * rtmp) &
+        call Print_error_msg('ndb_sampling_dt / dt must be an integer >= 1 (inlet database '// &
+          'temporal interpolation needs every sample time on the solver time lattice).')
+      domain(:)%ndb_time_ratio = itmp
+      domain(:)%ndb_sampling_dt_run = domain(1)%dt
+    end if
+    ! the Koren operator is bounded only with the two-point flux difference of
+    ! the cd2 divergence (cd4/cp4/cp6 derivatives use wider stencils)
+    if(ienth_adv == IENTH_ADV_KOREN .and. domain(1)%iAccuracy /= IACCU_CD2) &
+      call Print_error_msg('enthalpy_advection = koren requires iaccuracy = cd2.')
+    ! thermal_outlet_pair = zero_gradient replaces the face state of the Bc
+    ! convective x-outlet only; anywhere else it would be silently inert
+    if(is_thermal_outlet_zero_gradient) then
+      if(.not. is_bc_recovery) &
+        call Print_error_msg('thermal_outlet_pair = zero_gradient requires rhoh_recovery = transported.')
+      do i = 1, nxdomain
+        if(domain(i)%ibcx_nominal(2, 5) /= IBC_CONVECTIVE) &
+          call Print_error_msg('thermal_outlet_pair = zero_gradient requires a convective thermal x-outlet '// &
+            '(ifbcx_t = ..., 7); it has no effect otherwise.')
+        if(domain(i)%ibcz_nominal(2, 5) == IBC_CONVECTIVE) &
+          call Print_error_msg('thermal_outlet_pair = zero_gradient is implemented for the x-outlet only; '// &
+            'a convective thermal z-outlet is not supported with it.')
+      end do
+    end if
     !------------------------------------------------------------------------------
     ! cross session conditions
     !------------------------------------------------------------------------------
@@ -2177,6 +2696,9 @@ contains
       end if
     end do
     if(is_any_energyeq) then
+      do i = 1, nxdomain
+        call apply_inlet_temperature_default(domain(i), thermo(i))
+      end do
       do i = 1, nxdomain
         thermo(i)%is_rhoh_compensated = .false.
 !------------------------------------------------------------------------------
@@ -2206,10 +2728,11 @@ contains
 !       a one-off inconsistency in the initial condition, not a transient: on
 !       channel_scp_inout_Tw the global pressure drop steps to 1.7e5 at the
 !       first thermal substep and stays flat there, against -1.1e2 from a
-!       uniform start. Fall back to a uniform field, which matches the inlet -
-!       it matches because line 1692 forces a Dirichlet inlet temperature to
-!       equal init_T0, so the two always agree. If that coupling is ever
-!       relaxed, a mismatch would reinstate the same inlet-plane density step.
+!       uniform start. Fall back to a uniform field, which matches the inlet
+!       when the inlet temperature is tini - the default applied by
+!       apply_inlet_temperature_default when ifbcx_t gives no temperature. An
+!       explicit inlet temperature different from tini is kept (with a warning)
+!       and reinstates this inlet-plane density step at the first step.
 !------------------------------------------------------------------------------
         if((thermo(i)%inittype == INIT_GVBCLN .or. &
             thermo(i)%inittype == INIT_GVBCSMOOTH) .and. &
@@ -2453,6 +2976,11 @@ contains
     ! It does not alter density or conserve the global density integral. Constant
     ! wall-heat-flux thermal mean compensation is handled separately by
     ! is_rhoh_compensated when that option is active.
+    if(is_any_energyeq .and. is_bc_recovery .and. domain(1)%is_conv_outlet(3)) then
+      if(domain(1)%ibcz_nominal(2, 5) == IBC_CONVECTIVE) &
+      call Print_error_msg('rhoh_recovery = transported does not support a convective thermal outlet '// &
+        'in z (not implemented/verified). Use an x-direction outlet or a Neumann thermal outlet.')
+    end if
     if(domain(1)%is_periodic(1) .and. is_any_energyeq .and. &
        .not. any(domain(1)%is_conv_outlet(:))) then
       is_global_mass_correction = .true.

@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 5.7% of total for modules and submodules.">1631 statements</a>
+                 title=" 5.3% of total for modules and submodules.">1678 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -154,6 +154,7 @@
             <a class="list-group-item" href="../module/eq_momentum_mod.html#proc-correct_massflux">Correct_massflux</a>
             <a class="list-group-item" href="../module/eq_momentum_mod.html#proc-solve_pressure_poisson">solve_pressure_poisson</a>
             <a class="list-group-item" href="../module/eq_momentum_mod.html#proc-solve_momentum_eq">Solve_momentum_eq</a>
+            <a class="list-group-item" href="../module/eq_momentum_mod.html#proc-budget_mass_stage">budget_mass_stage</a>
         </div>
       </div>
     </div>
@@ -182,11 +183,12 @@ mass-flux consistency for the active domain geometry.</p>
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
                   <li class="list-inline-item"><a href='wrt_debug_field_mod.html'>wrt_debug_field_mod</a></li>
-                  <li class="list-inline-item"><a href='precision_mod.html'>precision_mod</a></li>
+                  <li class="list-inline-item"><a href='print_msg_mod.html'>print_msg_mod</a></li>
                   <li class="list-inline-item">decomp_2d</li>
+                  <li class="list-inline-item"><a href='precision_mod.html'>precision_mod</a></li>
                   <li class="list-inline-item"><a href='operations.html'>operations</a></li>
+                  <li class="list-inline-item"><a href='budget_diag_mod.html'>budget_diag_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -226,7 +228,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fbcz_cc4~4"></span>
+              <span class="anchor" id="variable-fbcz_cc4~5"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
@@ -256,7 +258,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-name"></span>
+              <span class="anchor" id="variable-name~5"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -301,7 +303,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dens~3"></span>
+              <span class="anchor" id="variable-dens~2"></span>
               real(kind=WP),
             </td>
 <td>intent(in),</td>
@@ -361,7 +363,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~119"></span>
+              <span class="anchor" id="variable-dm~223"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -446,7 +448,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dtmp~38"></span>
+              <span class="anchor" id="variable-dtmp~39"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
@@ -461,7 +463,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~120"></span>
+              <span class="anchor" id="variable-dm~224"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -476,7 +478,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~17"></span>
+              <span class="anchor" id="variable-isub~18"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -516,7 +518,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~34"></span>
+              <span class="anchor" id="variable-fl~77"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -531,7 +533,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~121"></span>
+              <span class="anchor" id="variable-dm~225"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -546,7 +548,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~18"></span>
+              <span class="anchor" id="variable-isub~19"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -631,7 +633,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~35"></span>
+              <span class="anchor" id="variable-fl~78"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -661,7 +663,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~122"></span>
+              <span class="anchor" id="variable-dm~226"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -676,7 +678,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~19"></span>
+              <span class="anchor" id="variable-isub~20"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -716,7 +718,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~36"></span>
+              <span class="anchor" id="variable-fl~79"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -731,7 +733,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~123"></span>
+              <span class="anchor" id="variable-dm~227"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -746,7 +748,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~20"></span>
+              <span class="anchor" id="variable-isub~21"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -786,7 +788,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~37"></span>
+              <span class="anchor" id="variable-fl~80"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -801,7 +803,7 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~124"></span>
+              <span class="anchor" id="variable-dm~228"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -816,7 +818,85 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~21"></span>
+              <span class="anchor" id="variable-isub~22"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-budget_mass_stage"></span> <h3>public  subroutine <a href='../proc/budget_mass_stage.html'>budget_mass_stage</a>(fl, dm, isub)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>B3 conservation diagnostics: mass terms of RK stage isub and, after the last
+stage, one line per step in 3_monitor/domain1_budget.log (rank 0). Columns:
+ 1 time  2 H=int rho h dV  3 dH  4 B_xin,conv  5 B_xout,conv  6 B_xin,cond  7 B_xout,cond
+ 8 B_ylow (conv+cond)  9 B_yhigh (conv+cond; walls: heat input)  10 B_z (all)  11 S_comp
+ 12 sum B  13 int R_H dV (RK)  14 R_tele = (13)-(12)  15 R_H = dH-(13)-(11)  16 R_Hb = dH-(12)-(11)
+ 17 M_EOS  18 dM_EOS  19 M_in  20 M_out  21 int rho_t dV (RK, alpha)  22 int c dV (RK, alpha)
+ 23 R_M = (21)+(20)-(19)-(22)  24 dM_EOS-(21)  25 M_hat  26 M_hat-M_EOS  27 cumulative (22)
+(B_* are boundary contributions to int R_H dV, RK3-integrated over the step; M_in/M_out are
+ the alpha-weighted mass inflow/outflow; R_tele is the discrete telescoping residual.)</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~81"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~229"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-isub~23"></span>
               integer,
             </td>
 <td>intent(in)</td>

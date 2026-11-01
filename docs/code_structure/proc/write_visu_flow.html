@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">25 statements</a>
+                 title=" 0.1% of total for procedures.">30 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -170,6 +170,7 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
+                  <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
                   <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
               </ul>
             </li>
@@ -178,10 +179,6 @@
     </div>
 
 
-    <p>Write flow variables to visualisation files.
-- fl (in): Flow state.
-- dm (in): Domain descriptor.
-- suffix (in): Optional suffix appended to the visualisation file name.</p>
 
 
     <h3>Arguments</h3>
@@ -197,7 +194,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~40"></span>
+              <span class="anchor" id="variable-fl~103"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(in)</td>
@@ -212,7 +209,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~145"></span>
+              <span class="anchor" id="variable-dm~332"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -259,6 +256,7 @@
     <h2><span class="anchor" id="src"></span>Source Code</h2>
     <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">write_visu_flow</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">suffix</span><span class="p">)</span>
 <span class="w">    </span><span class="k">use </span><span class="n">udf_type_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">parameters_constant_mod</span><span class="p">,</span><span class="w"> </span><span class="k">only</span><span class="p">:</span><span class="w"> </span><span class="n">is_pbar_output</span>
 <span class="w">    </span><span class="k">implicit none</span>
 <span class="k">    type</span><span class="p">(</span><span class="n">t_flow</span><span class="p">),</span><span class="w">   </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fl</span>
 <span class="w">    </span><span class="k">type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
@@ -273,7 +271,16 @@
 <span class="w">    </span><span class="k">call </span><span class="n">write_visu_file_begin</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">write_visu_field_bin_and_xdmf</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">pres</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;pr&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">N_DIRECTION</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">                                       </span><span class="n">opt_bin_name</span><span class="o">=</span><span class="s1">&#39;visu_pr&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">opt_reuse_bin_name</span><span class="o">=</span><span class="s1">&#39;pr&#39;</span><span class="p">)</span>
-<span class="w">    </span><span class="k">call </span><span class="n">write_visu_field_bin_and_xdmf</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">pcor</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;phi&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">N_DIRECTION</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">    </span><span class="c">! B3.4/B3.5 experimental: full-step (RK3-weighted) effective pressure of the</span>
+<span class="w">    </span><span class="c">! completed step [t-dt, t], centred t-dt/2 (&#39;pr&#39; remains the internal stage</span>
+<span class="w">    </span><span class="c">! pressure of the projection, unchanged). A sidecar file records the</span>
+<span class="w">    </span><span class="c">! temporal interpretation; the bundle format itself is not changed.</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_pbar_output</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">is_pres_rk_valid</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      call </span><span class="n">write_visu_field_bin_and_xdmf</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">pres_rk</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;pr_fullstep&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">N_DIRECTION</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">                                         </span><span class="n">opt_bin_name</span><span class="o">=</span><span class="s1">&#39;visu_pr_fullstep&#39;</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">write_pr_fullstep_sidecar</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="nb">time</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="k">    call </span><span class="n">write_visu_field_bin_and_xdmf</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">pcor</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;phi&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">N_DIRECTION</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">                                       </span><span class="n">opt_bin_name</span><span class="o">=</span><span class="s1">&#39;visu_phi&#39;</span><span class="p">)</span>
 
 <span class="w">    </span><span class="k">call </span><span class="n">write_visu_field_bin_and_xdmf</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">qx</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;qx_ccc&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">visuname</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">X_DIRECTION</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
