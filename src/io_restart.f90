@@ -205,7 +205,7 @@ contains
     type(t_domain), intent(in) :: dm
     character(1024) :: fields
 
-    ! compact history is isothermal only - see check_restart_history_mode_support
+    ! compact history is isothermal only - rejected for a thermal flow in Read_input_parameters
     fields = 'qx:dpcc,qy:dcpc,qz:dccp,pr:dccc'
     if(dm%is_conv_outlet(1)) &
       fields = trim(fields)//',fbcx_qx:d4cc,fbcx_qy:d4pc,fbcx_qz:d4cp'
@@ -291,7 +291,7 @@ contains
     type(t_domain), intent(in) :: dm
     character(2048) :: shapes
 
-    ! compact history is isothermal only - see check_restart_history_mode_support
+    ! compact history is isothermal only - rejected for a thermal flow in Read_input_parameters
     shapes = trim(bundle_shape('qx', dm%dpcc))//';'// &
              trim(bundle_shape('qy', dm%dcpc))//';'// &
              trim(bundle_shape('qz', dm%dccp))//';'// &
@@ -816,7 +816,7 @@ contains
   end subroutine read_flow_restart_xoutlet_state_compact
 !==============================================================================
   ! A thermal run always stores the full history: compact history is rejected
-  ! for is_thermo at input time (check_restart_history_mode_support), so there
+  ! for is_thermo at input time (Read_input_parameters), so there
   ! is a single thermo restart field set.
   function thermo_restart_fields(dm) result(fields)
     implicit none
@@ -1073,6 +1073,9 @@ contains
     character(1024) :: line, value
     integer :: u, ioerr, iter_read, precision_read
     integer :: nc_read(3), np_read(3)
+    integer :: int_read, istret_read, mstret_read
+    real(WP) :: length_read(4), rstret_read
+    logical :: periodic_read(3)
 
     call generate_pathfile_name(meta_file, dm%idom, trim(group_name)//'_meta', dir_data, 'dat', iter)
     if(.not. file_exists(trim(meta_file))) &
@@ -1101,7 +1104,11 @@ contains
     call read_metadata_line(u, meta_file, 'dt', value)
     call read_metadata_line(u, meta_file, 'idom', value)
     call read_metadata_line(u, meta_file, 'icase', value)
+    call parse_metadata_int(value, int_read, 'icase', meta_file)
+    if(int_read /= dm%icase) call Print_error_msg("Bundle case (icase) mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'coordinate', value)
+    call parse_metadata_int(value, int_read, 'coordinate', meta_file)
+    if(int_read /= dm%icoordinate) call Print_error_msg("Bundle coordinate-system mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'layout', value)
     if(trim(value) /= 'bundled') call Print_error_msg("Bundle layout mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'precision_bytes', value)
@@ -1117,9 +1124,36 @@ contains
     call read_metadata_line(u, meta_file, 'np', value)
     call parse_metadata_int3(value, np_read, 'np', meta_file)
     if(any(np_read /= dm%np)) call Print_error_msg("Bundle mesh point-count mismatch in "//trim(meta_file))
+    !--------------------------------------------------------------------------
+    ! Geometry. The arrays carry no coordinates, so a bundle written on a mesh with
+    ! the same cell counts but another length, stretching or periodicity would be
+    ! read as if it belonged to this mesh. The writer stores the reals with
+    ! ES24.16 (an exact round trip); the 1e-12 relative margin only absorbs
+    ! hand-edited or reformatted files. rstret is compared only for a stretched y.
+    !--------------------------------------------------------------------------
     call read_metadata_line(u, meta_file, 'length', value)
+    read(value, *, iostat=ioerr) length_read(1:4)
+    if(ioerr /= 0) call Print_error_msg("Invalid length entry in "//trim(meta_file))
+    if(.not. (same_real(length_read(1), dm%lxx) .and. same_real(length_read(2), dm%lyb) .and. &
+              same_real(length_read(3), dm%lyt) .and. same_real(length_read(4), dm%lzz))) then
+      if(nrank == 0) write(*, '(A,4ES24.16E3)') ' bundle length lxx, lyb, lyt, lzz:', length_read(1:4)
+      if(nrank == 0) write(*, '(A,4ES24.16E3)') ' input  length lxx, lyb, lyt, lzz:', dm%lxx, dm%lyb, dm%lyt, dm%lzz
+      call Print_error_msg("Bundle domain-length mismatch in "//trim(meta_file))
+    end if
     call read_metadata_line(u, meta_file, 'stretch', value)
+    read(value, *, iostat=ioerr) istret_read, mstret_read, rstret_read
+    if(ioerr /= 0) call Print_error_msg("Invalid stretch entry in "//trim(meta_file))
+    if(istret_read /= dm%istret) then
+      call Print_error_msg("Bundle mesh-stretching mismatch (istret) in "//trim(meta_file))
+    else if(dm%istret /= ISTRET_NO) then
+      if(mstret_read /= dm%mstret .or. .not. same_real(rstret_read, dm%rstret)) &
+      call Print_error_msg("Bundle mesh-stretching mismatch (mstret/rstret) in "//trim(meta_file))
+    end if
     call read_metadata_line(u, meta_file, 'periodic', value)
+    read(value, *, iostat=ioerr) periodic_read(1:3)
+    if(ioerr /= 0) call Print_error_msg("Invalid periodic entry in "//trim(meta_file))
+    if(any(periodic_read(1:3) .neqv. dm%is_periodic(1:3))) &
+    call Print_error_msg("Bundle periodicity mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'ndbbuf', value)
     call read_metadata_line(u, meta_file, 'fields', value)
     if(trim(value) /= trim(fields)) then
@@ -1139,6 +1173,11 @@ contains
     call check_bundle_file_size(dm, group_name, iter, field_shapes, meta_file)
 
     return
+  contains
+    logical function same_real(a, b)
+      real(WP), intent(in) :: a, b
+      same_real = abs(a - b) <= 1.0e-12_WP * max(abs(a), abs(b), 1.0_WP)
+    end function same_real
   end subroutine validate_bundle_metadata
 !==============================================================================
   !> Stop unless the .bin of a bundle holds exactly the arrays its validated
@@ -1249,6 +1288,37 @@ contains
     end if
 
     call read_restart_metadata(idom, keyword, iter, time, dt, found)
+    if(found) return
+
+    !--------------------------------------------------------------------------
+    ! Bundled layout without checkpoint_meta (e.g. only the bundle pair was
+    ! copied): the bundle manifest records the same time and dt (ES24.16), so
+    ! take them from there rather than estimating time = iterfrom * dt, which is
+    ! wrong whenever dt has changed during the run.
+    !--------------------------------------------------------------------------
+    block
+      character(256) :: bundle_meta
+      character(1024) :: value
+      character(32) :: group_name
+      integer :: ios_t, ios_dt
+      group_name = ''
+      if(trim(keyword) == 'flow_meta')   group_name = 'flow_restart'
+      if(trim(keyword) == 'thermo_meta') group_name = 'thermo_restart'
+      if(len_trim(group_name) == 0) return
+      call generate_pathfile_name(bundle_meta, idom, trim(group_name)//'_meta', dir_data, 'dat', iter)
+      if(.not. file_exists(trim(bundle_meta))) return
+      value = metadata_value(bundle_meta, 'time')
+      read(value, *, iostat=ios_t) time
+      value = metadata_value(bundle_meta, 'dt')
+      read(value, *, iostat=ios_dt) dt
+      found = (ios_t == 0 .and. ios_dt == 0)
+      if(found .and. nrank == 0) call Print_note_msg('Restart time and dt taken from the bundle manifest '// &
+        trim(bundle_meta)//' (no checkpoint_meta file).')
+      if(.not. found) then
+        time = ZERO
+        dt = ZERO
+      end if
+    end block
 
     return
   end subroutine read_checkpoint_restart_metadata
@@ -2305,6 +2375,13 @@ contains
       call read_one_3d_array(fl%qy, 'qy', dm%idom, fl%iterfrom, dm%dcpc)
       call read_one_3d_array(fl%qz, 'qz', dm%idom, fl%iterfrom, dm%dccp)
       call read_one_3d_array(fl%pres, 'pr', dm%idom, fl%iterfrom, dm%dccc)
+      ! The bundled initial read (read_flow_restart_bundle_initial) also takes the
+      ! outlet planes fbcx_q*. The per-field flow_xoutlet file carries no field list,
+      ! so its layout (thermal or isothermal writer, exact or compact) cannot be
+      ! identified here and the outlet keeps its initial state: say so.
+      if(dm%is_conv_outlet(1) .and. nrank == 0) call Print_warning_msg( &
+        'Per-field flow checkpoint used as an initial field with a convective x-outlet: the outlet '// &
+        'planes start from their initial state, not from the checkpoint (the bundled layout restores them).')
       call initialise_flow_from_restart_q(fl, dm)
     else
       if(nrank == 0) call Print_debug_mid_msg("Restart input layout expects per-field flow restart files.")
@@ -2720,7 +2797,7 @@ contains
     !--------------------------------------------------------------------------
     ! rho, mu, T, h, k and sigma_e are all part of the checkpoint, in both
     ! restart layouts - a thermal run always stores the full history
-    ! (check_restart_history_mode_support rejects compact). Update_thermal_
+    ! (Read_input_parameters rejects compact). Update_thermal_
     ! properties is still needed, but only for its second half: it is what
     ! rebuilds the Neumann fbc*_ftp boundary states from rhoh, and those are
     ! not stored. Its first half re-derives the interior properties from
@@ -2938,6 +3015,9 @@ contains
     expected_shapes = xoutlet_database_shapes_from_dims(ndbbuf_src, nc_src(2), nc_src(3), np_src(2), np_src(3))
     if(trim(value) /= trim(expected_shapes)) &
     call Print_error_msg("Bundle field-shape mismatch in "//trim(meta_file))
+    ! the .bin must hold exactly the six planes the validated shapes list (a short
+    ! file would otherwise be replayed with stale or zero planes); collective
+    call check_bundle_file_size(dm, 'xoutlet_database', iter, expected_shapes, meta_file)
 
     return
   end subroutine read_xoutlet_bundle_metadata

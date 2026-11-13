@@ -249,7 +249,7 @@
 <td>Detailed budgets and advanced diagnostics</td>
 </tr>
 </tbody></table>
-<p>Control sampling behavior with <code>stat_istart</code>, <code>stat_nskip</code>, and related parameters to ensure statistics are collected only after the transient initial condition phase.</p>
+<p>Use <code>stat_istart</code> to start the accumulation after the transient initial condition phase. Statistics are accumulated on every cell (<code>stat_nskip</code> is reserved and not implemented). To exclude a transient afterwards, rebuild the statistics over a chosen interval with the statistical-window mode (<code>is_postprocess = .true.</code>, <code>pp_stat_window</code>).</p>
 <h2>Statistics Across a Restart</h2>
 <p>The time-averaged fields (<code>t_avg_*</code>) are checkpointed together with the instantaneous fields and are reloaded on restart, so a run split into several segments gives the same averages as one uninterrupted run. The reload happens when all of the following hold:</p>
 <ul>

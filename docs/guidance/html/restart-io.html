@@ -396,7 +396,9 @@
 <td>Only with <code>outlet_mass_correction = split</code> (EXPERIMENTAL): the one state value of the split outlet correction. Copy it with the checkpoint; without it the restart starts with <code>S = 0</code> for one step and is no longer bit-for-bit continuous.</td>
 </tr>
 </tbody></table>
-<p>If bundled metadata exists but does not match the requested restart mode, field order, or mesh shape, the reader stops rather than reading incompatible binary data silently. It also stops if a bundle <code>.bin</code> is shorter or longer than the arrays its metadata lists (for example a partly copied file), or if <code>precision_bytes</code> differs from the build, naming the file and both sizes.</p>
+<p>If bundled metadata exists but does not match the requested restart mode, field order, or mesh shape, the reader stops rather than reading incompatible binary data silently. It also stops if a bundle <code>.bin</code> is shorter or longer than the arrays its metadata lists (for example a partly copied file), or if <code>precision_bytes</code> differs from the build, naming the file and both sizes. The same size rule applies to the statistics bundles (<code>flow_stats</code>, <code>thermo_stats</code>, <code>mhd_stats</code>) and to bundled inlet-database files.</p>
+<p>A bundle also records the geometry it was written on. A restart stops if the input has another case type (<code>icase</code>), coordinate system, domain length (<code>lxx</code>, <code>lyb</code>, <code>lyt</code>, <code>lzz</code>), y stretching (<code>istret</code>; for a stretched mesh also the method and <code>rstret</code>) or periodicity. To continue on another mesh, use the mesh-restart workflow, which interpolates.</p>
+<p>Without <code>checkpoint_meta</code>, the restart time and <code>dt</code> are taken from the bundle metadata (<code>flow_restart_meta</code>, <code>thermo_restart_meta</code>), which records them exactly.</p>
 <h3>Thermal Mode Record and Restart Policy</h3>
 <p>A thermal restart compares the record <code>domainN_thermo_interp_meta_ITER.dat</code> with the run&#x27;s input:</p>
 <table><thead><tr>

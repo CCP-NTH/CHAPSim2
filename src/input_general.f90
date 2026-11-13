@@ -2351,6 +2351,14 @@ contains
             domain(1)%stat_nskip(1:3) = 1
           end if
           ioerr = 0
+          ! A statistics cell skip is not implemented: the accumulators always cover every
+          ! cell (ncl_stat = dccc%xsz; init_coarser_mesh_statS is disabled). Say so instead
+          ! of echoing a skip that has no effect.
+          if(any(domain(1)%stat_nskip(1:3) /= 1)) then
+            call Print_warning_msg('stat_nskip is not implemented: statistics are accumulated on '// &
+              'every cell. The value is ignored (1,1,1 used).')
+            domain(1)%stat_nskip(1:3) = 1
+          end if
         end if
         domain(1)%stat_visu_nfre = domain(1)%visu_nfre
         call read_optional_input_line(inputUnit, 'stat_visu_nfre', input_line, has_optional_line)
@@ -3728,7 +3736,8 @@ contains
     write(*, wrtfmt1il1r)  'rec.[25]-flthr iter. for statistics    :', nt_cur * 25, dm%dt
     if(dm%is_record_xoutlet .or. dm%is_read_xinlet) &
     write(*, wrtfmt1il1r)  'rec. [5]-flthr iter. for db recording  :', nt_cur * 5, dm%dt
-    write(*, *)  "Note: Statistics can start from any iteration when using running average postprocessing. Otherwise:"
+    write(*, *)  "Note: a transient included in the statistics can be removed afterwards with the statistical-window"
+    write(*, *)  "      post-processing mode (is_postprocess, pp_stat_window). Otherwise start statistics after:"
     write(*, wrtfmt1il1r)  'rec.[6]-flthr iter. before statistics  :', nt_cur * 6,  dm%dt
     call Print_debug_mid_msg("folder structure")
     write(*, *)  '1_data: restart/checkpoint data and restartable raw solver data'

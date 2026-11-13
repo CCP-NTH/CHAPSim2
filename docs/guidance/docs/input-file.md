@@ -642,7 +642,7 @@ Controls monitor, restart, visualisation, statistics, and plane-database I/O.
 | `visu_nskip` | `integer(3)` | Cell skip for visualisation output in `x,y,z`. |
 | `stat_istart` | `integer` | Iteration at which statistics begin. |
 | `stat_level` | `integer` | Statistics level. |
-| `stat_nskip` | `integer(3)` | Cell skip for statistics in `x,y,z`. |
+| `stat_nskip` | `integer(3)` | Optional. Reserved: a statistics cell skip is not implemented. Statistics are accumulated on every cell; a value other than `1,1,1` is ignored with a warning. |
 | `stat_visu_nfre` | `integer` | Optional visualised-statistics output frequency. Defaults to `visu_nfre` when absent. |
 | `stat_visu_mode` | `string` | Optional visualised-statistics mode: `all` or `tsp_only`. Defaults to `all`. |
 | `is_wrt_read_bc` | `logical,logical` | Pair `write_outlet,read_inlet` for plane database files. |

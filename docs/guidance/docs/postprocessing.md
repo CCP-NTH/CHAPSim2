@@ -61,7 +61,7 @@ The input variable `stat_level` controls the extent of statistical information c
 | `2` | Second-order statistics | Reynolds stresses and wall-bounded turbulence statistics |
 | `3` | Extended statistics (where supported) | Detailed budgets and advanced diagnostics |
 
-Control sampling behavior with `stat_istart`, `stat_nskip`, and related parameters to ensure statistics are collected only after the transient initial condition phase.
+Use `stat_istart` to start the accumulation after the transient initial condition phase. Statistics are accumulated on every cell (`stat_nskip` is reserved and not implemented). To exclude a transient afterwards, rebuild the statistics over a chosen interval with the statistical-window mode (`is_postprocess = .true.`, `pp_stat_window`).
 
 ## Statistics Across a Restart
 

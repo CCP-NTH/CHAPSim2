@@ -180,6 +180,18 @@ order, or mesh shape, the reader stops rather than reading incompatible binary
 data silently. It also stops if a bundle `.bin` is shorter or longer than the
 arrays its metadata lists (for example a partly copied file), or if
 `precision_bytes` differs from the build, naming the file and both sizes.
+The same size rule applies to the statistics bundles (`flow_stats`,
+`thermo_stats`, `mhd_stats`) and to bundled inlet-database files.
+
+A bundle also records the geometry it was written on. A restart stops if the
+input has another case type (`icase`), coordinate system, domain length
+(`lxx`, `lyb`, `lyt`, `lzz`), y stretching (`istret`; for a stretched mesh also
+the method and `rstret`) or periodicity. To continue on another mesh, use the
+mesh-restart workflow, which interpolates.
+
+Without `checkpoint_meta`, the restart time and `dt` are taken from the bundle
+metadata (`flow_restart_meta`, `thermo_restart_meta`), which records them
+exactly.
 
 ### Thermal Mode Record and Restart Policy
 

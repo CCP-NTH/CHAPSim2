@@ -1,6 +1,6 @@
 # Changelog
 
-## v2.3.0 - 2026-11-01
+## v2.3.0 - 2026-11-13
 
 CPU release supporting the CHAPSim2 CPC paper. It collects the development
 since v2.2.0: the transported-density (Bc) recovery of the thermodynamic
@@ -8,9 +8,10 @@ state, now the default; optional split outlet mass correction and
 zero-gradient thermal outlet pair for convective x-outlets; optional Koren
 enthalpy advection and PCHIP property interpolation; the statistical-window
 post-processing mode; restart integrity (exact heated, LES, per-field and
-mesh-mapped restarts, checkpoint provenance records, bundle size checks);
-correctness fixes found while porting the solver to GPUs; and the structured
-restart, unit and functional tests that verify them. Options marked
+mesh-mapped restarts, checkpoint provenance records, bundle size and geometry
+checks); a continuity safety stop that ends all ranks on a non-finite
+solution; correctness fixes found while porting the solver to GPUs; and the
+structured restart, unit and functional tests that verify them. Options marked
 EXPERIMENTAL are verified only for the configurations stated in their entries
 and in the user guide. Regression baselines moved where a fix changed results;
 each move is explained in `tests/reference_update_log_*.md`.
@@ -225,6 +226,23 @@ each move is explained in `tests/reference_update_log_*.md`.
 
 ### Changed
 
+- Changed a bundled restart to stop when the bundle manifest describes another
+  geometry than the input: `icase`, the coordinate system, the domain lengths
+  (`lxx`, `lyb`, `lyt`, `lzz`), the y stretching (`istret`, and for a
+  stretched mesh `mstret`, `rstret`) and the periodicity are now compared,
+  besides the cell and point counts (`validate_bundle_metadata`,
+  `io_restart.f90`). A checkpoint from a mesh with the same counts but another
+  length or stretching was read as if it belonged to the current mesh.
+- Changed `stat_nskip` to warn and use `1,1,1` when another value is given: a
+  statistics cell skip is not implemented, the statistics always cover every
+  cell (`input_general.f90`). The input guide documents the key as reserved.
+- Changed `restart_clock = reset` to drop the convective-outlet RHS histories
+  (flow `fbcx_a0*_rhs0`, `fbcz_a*0_rhs0`; thermal `fbcx_rhoh_rhs0`,
+  `fbcx_dhat_rhs0`, `fbcz_rhoh_rhs0`) together with the interior ones, as a
+  fresh start and the thermal partial restart do (`initialise_flow_fields`).
+  RK3 runs are unchanged (the step-start history is multiplied by zero); AB2
+  runs change in the first step only.
+
 - Changed the thermal clock of a run whose energy equation starts after the
   flow (`niterthermofirst > niterflowfirst`): the thermal iteration and time
   now advance with every step up to `niterthermolast`, also before
@@ -336,6 +354,36 @@ each move is explained in `tests/reference_update_log_*.md`.
   No numerical test reads any of this data.
 
 ### Fixed
+
+- Fixed the continuity safety stop: a NaN or infinity in div(g) + drho/dt, or
+  a non-finite projected-source amplitude, now stops every rank with the rank
+  and first cell reported, at any iteration and also in the pre-loop restart
+  diagnostics (`abort_if_nonfinite_continuity`, `eq_continuity.f90`; the
+  same check as in the GPU build). The max reductions discarded a NaN, so only
+  the floating-point trap of the default build caught it, on one rank. The
+  finite stop (residual > 2.0 after iteration 10000) now ends all ranks with
+  `MPI_ABORT` instead of a rank-0 `error stop`, which `srun` could leave the
+  other ranks waiting on. Finite runs are unchanged. Test:
+  `tests/restart_nonfinite/run_test.sh` (`EXPECT=nonzero` for trapping builds).
+
+- Fixed statistics bundles (`flow_stats`, `thermo_stats`, `mhd_stats`) being
+  read without a size check: a truncated or padded `.bin` was read without
+  notice. The readers now stop unless the file holds exactly the arrays of the
+  validated field list (`check_stats_bundle_file_size`,
+  `post_statistics.f90`).
+- Fixed bundled inlet-database files being replayed without a size check; a
+  short file now stops the run (`read_xoutlet_bundle_metadata`,
+  `io_restart.f90`). Test for both size checks, the geometry check, the
+  restart time and the MHD manifest: `tests/restart_metadata_checks/run_test.sh`.
+- Fixed the restart time of a bundled restart without `checkpoint_meta`: it is
+  now taken from the bundle manifest, which records it exactly, instead of
+  being estimated as `iterfrom * dt` (`read_checkpoint_restart_metadata`).
+- Fixed `checkpoint_meta` omitting `mhd_stats`: the MHD statistics bundle is
+  written after the flow and thermal ones, and the manifest is now refreshed
+  after it (`write_mhd_stats_bundle`).
+- Fixed a per-field flow checkpoint used as the initial field of a heated run
+  with a convective x-outlet starting the outlet planes silently from their
+  initial state; it now warns (the bundled layout restores the planes).
 
 - Fixed the singular line of the y-direction tridiagonal Poisson solve with z
   walls (`poisson_11x_yskip`): the real and imaginary parts of a z-wall mode

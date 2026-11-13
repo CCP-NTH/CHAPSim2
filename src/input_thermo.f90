@@ -62,7 +62,6 @@ module thermo_info_mod
   private :: ftplist_sort_t_small2big
   private :: Write_thermo_property
 
-  private :: ftp_is_T_in_scope
   private :: ftp_get_thermal_properties_dimensional_from_T
   private :: ftp_refresh_thermal_properties_from_T_undim
   public  :: ftp_refresh_thermal_properties_from_T_undim_3Dftp
@@ -94,56 +93,6 @@ module thermo_info_mod
 
 contains
 !==============================================================================
-!==============================================================================
-!> Defination of a procedure in the type t_fluidThermoProperty.
-!>  to check the temperature limitations.
-!>
-!> This subroutine is called as required to check the temperature
-!> of given element is within the given limits as a single phase
-!> flow.
-!>
-!------------------------------------------------------------------------------
-! Arguments
-!______________________________________________________________________________.
-!  mode           name          role                                           !
-!______________________________________________________________________________!
-!> - this (inout): a cell element with udf property
-!_______________________________________________________________________________
-  subroutine ftp_is_T_in_scope ( this )
-    type( t_fluidThermoProperty ), intent( in ) :: this
-    integer :: nlist
-
-    nlist = fluidparam%nlist
-
-    if(fluidparam%ipropertyState == IPROPERTY_TABLE) then
-
-      if ( ( this%t < ftplist(1)%t     )  .OR. &
-           ( this%t > ftplist(nlist)%t ) ) then
-        write(*, wrtfmt3r) 'this T, low T, high T:', this%t, ftplist(1)%t, ftplist(nlist)%t
-        write(*, wrtfmt3r) 'this rhoh, low rhoh, high rhoh', this%rhoh, fluidparam%dhmin, fluidparam%dhmax
-        call Print_error_msg('temperature exceeds specified range.')
-      end if
-    end if
-
-    if(fluidparam%ipropertyState == IPROPERTY_FUNCS) then
-      ! TP0min/TP0max, not TM0/TB0: a correlation is not guaranteed to hold over
-      ! the whole liquid range, so the table interval can be narrower than
-      ! melting-to-boiling. Name the property that binds the end being violated.
-      if ( this%t < ( fluidparam%TP0min / fluidparam%ftp0ref%t ) ) then
-        write(*, wrtfmt3r) 'this T, low T, high T:', this%t, fluidparam%TP0min / fluidparam%ftp0ref%t, fluidparam%TP0max / fluidparam%ftp0ref%t
-        write(*, wrtfmt3r) 'this rhoh, low rhoh, high rhoh', this%rhoh, fluidparam%dhmin, fluidparam%dhmax
-        call Print_error_msg('temperature is below the supported property range, set by '// &
-                             trim(fluidparam%TP0minsrc)//'.')
-      else if ( this%t > ( fluidparam%TP0max / fluidparam%ftp0ref%t ) ) then
-        write(*, wrtfmt3r) 'this T, low T, high T:', this%t, fluidparam%TP0min / fluidparam%ftp0ref%t, fluidparam%TP0max / fluidparam%ftp0ref%t
-        write(*, wrtfmt3r) 'this rhoh, low rhoh, high rhoh', this%rhoh, fluidparam%dhmin, fluidparam%dhmax
-        call Print_error_msg('temperature is above the supported property range, set by '// &
-                             trim(fluidparam%TP0maxsrc)//'.')
-      end if
-    end if
-
-    return
-  end subroutine
 !==============================================================================
 !==============================================================================
 !> Defination of a procedure in the type t_fluidThermoProperty.
@@ -1417,7 +1366,6 @@ contains
     !   ftp%rhoh = dhmin + (dhmax - dhmin) * real(i - 1, WP) / real(n - 1, WP)
     !   !write(*,*) ftp%rhoh
     !   call ftp_refresh_thermal_properties_from_DH(ftp)
-    !   call ftp_is_T_in_scope(ftp)
     !   write(ftp_unit1, '(8ES13.5)') ftp%h, ftp%t, ftp%d, ftp%m, ftp%k, ftp%cp, ftp%b, ftp%rhoh, ftp%drhoh_drho
     !   call ftp_convert_undim_to_dim(ftp, ftp_dim)
     !   write(ftp_unit2, '(8ES13.5)') ftp_dim%h, ftp_dim%t, ftp_dim%d, ftp_dim%m, ftp_dim%k, ftp_dim%cp, ftp_dim%b, ftp_dim%rhoh
@@ -1522,6 +1470,7 @@ contains
       fluidparam%CoM(-1:1) = CoM_Pb(-1:1)
 
     case (ILIQUID_BISMUTH)
+      fluidparam%nlist = N_FUNC2TABLE
       fluidparam%ipropertyState = IPROPERTY_FUNCS
       fluidparam%TM0 = TM0_BI
       fluidparam%TB0 = TB0_BI

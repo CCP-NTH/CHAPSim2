@@ -199,6 +199,19 @@ for case in "${CASES[@]}"; do
             popd > /dev/null
             continue
         fi
+
+        # Provenance of these metrics, beside (not inside) the metrics file: a
+        # string key in regression_test_metrics.json would be copied into
+        # reference.json by update_reference.sh and fail the numeric comparator.
+        # FFTW and generic FFT agree only to ~1e-7, so the backend is recorded.
+        REPO_ROOT="$(cd "${TESTS_ROOT}/.." && pwd)"
+        FFT_MARKER="${REPO_ROOT}/lib/2decomp-fft/build/opt/chapsim_fft_backend.mk"
+        FFT_BACKEND="$(sed -n 's/^CHAPSIM_FFT_BACKEND *= *//p' "$FFT_MARKER" 2>/dev/null | tr -d '[:space:]')"
+        EXE_SHA="$(sha256sum "${REPO_ROOT}/bin/CHAPSim" 2>/dev/null | cut -c1-64)"
+        GIT_REV="$(git -C "$REPO_ROOT" describe --always --dirty 2>/dev/null || true)"
+        printf '{\n  "fft_backend": "%s",\n  "executable_sha256": "%s",\n  "git_revision": "%s",\n  "date_utc": "%s"\n}\n' \
+            "${FFT_BACKEND:-unknown}" "${EXE_SHA:-unknown}" "${GIT_REV:-unknown}" \
+            "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > regression_test_provenance.json
     else
         # ---------------------------------------------------------------------
         # Metrics-only mode

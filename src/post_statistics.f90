@@ -1285,6 +1285,67 @@ contains
     return
   end subroutine validate_stats_bundle_metadata
 !==============================================================================
+  !> Stop unless the statistics .bin holds exactly the arrays of the validated
+  !> field list. Every entry is one full cell-centred (dccc) array, written in
+  !> list order by stats_bundle_write1/N, and an MPI-IO read past the end of the
+  !> file is not an error, so a truncated or padded bundle would otherwise be read
+  !> without notice (same rule as check_bundle_file_size for restart bundles).
+  !> Rank 0 measures the file and broadcasts the size, so every rank reaches the
+  !> same verdict. Collective: call on all ranks.
+  subroutine check_stats_bundle_file_size(dm, group_name, iter, fields)
+    use iso_fortran_env, only: int64, real32
+    use decomp_2d_constants, only: DEFAULT_OPT_REDUCE_PREC
+    use mpi_mod
+    use io_tools_mod
+    use udf_type_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(*), intent(in) :: group_name
+    integer,      intent(in) :: iter
+    character(*), intent(in) :: fields
+
+    character(256) :: bin_file, meta_file
+    character(1024) :: msg
+    integer(int64) :: expected_bytes, file_bytes, value_bytes, cells
+    integer :: narrays, k
+
+    ! bytes per stored value as decomp_2d_write_var stores it (real32 under SAVE_SINGLE)
+    value_bytes = int(storage_size(1.0_WP) / 8, int64)
+    if(DEFAULT_OPT_REDUCE_PREC) value_bytes = int(storage_size(1.0_real32) / 8, int64)
+    ! global dccc size: full extent of each direction in its own pencil
+    cells = int(dm%dccc%xsz(1), int64) * int(dm%dccc%ysz(2), int64) * int(dm%dccc%zsz(3), int64)
+    narrays = 0
+    if(len_trim(fields) > 0) then
+      narrays = 1
+      do k = 1, len_trim(fields)
+        if(fields(k:k) == ',') narrays = narrays + 1
+      end do
+    end if
+    expected_bytes = int(narrays, int64) * cells * value_bytes
+
+    call generate_pathfile_name(bin_file, dm%idom, trim(group_name), dir_data, 'bin', iter)
+    call generate_pathfile_name(meta_file, dm%idom, trim(group_name)//'_meta', dir_data, 'dat', iter)
+    file_bytes = -1_int64
+    if(nrank == 0) then
+      if(file_exists(trim(bin_file))) inquire(file=trim(bin_file), size=file_bytes)
+    end if
+    call mpi_bcast(file_bytes, 1, MPI_INTEGER8, 0, MPI_COMM_WORLD, ierror)
+
+    if(file_bytes < 0_int64) &
+    call Print_error_msg("The statistics bundle file "//trim(bin_file)//" does not exist or its size cannot be read.")
+    if(file_bytes /= expected_bytes) then
+      write(msg, '(A,A,I0,A,I0,A,I0,A,A)') trim(bin_file), ' has ', file_bytes, ' bytes, expected ', &
+        expected_bytes, ' for the ', narrays, ' arrays listed in ', trim(meta_file)
+      if(file_bytes < expected_bytes) then
+        call Print_error_msg("Statistics bundle size mismatch (file too short): "//trim(msg))
+      else
+        call Print_error_msg("Statistics bundle size mismatch (file too long): "//trim(msg))
+      end if
+    end if
+
+    return
+  end subroutine check_stats_bundle_file_size
+!==============================================================================
   subroutine stats_bundle_write1(io, dm, var)
     use decomp_2d_io
     use decomp_2d_io_object_mpi
@@ -1445,6 +1506,7 @@ contains
       'the flow statistics restart must have been written with the same setting (signature pfs_stats=T).')
     call validate_stats_bundle_metadata(dm, 'flow_stats', iter, flow_stats_bundle_signature(dm), &
                                         flow_stats_bundle_fields(dm))
+    call check_stats_bundle_file_size(dm, 'flow_stats', iter, flow_stats_bundle_fields(dm))
     call generate_pathfile_name(bundle_file, dm%idom, 'flow_stats', dir_data, 'bin', iter)
     if(.not. file_exists(trim(bundle_file))) &
     call Print_error_msg("The flow statistics bundle file "//trim(bundle_file)//" does not exist.")
@@ -1561,6 +1623,7 @@ contains
     iter = tm%iterfrom
     call validate_stats_bundle_metadata(dm, 'thermo_stats', iter, thermo_stats_bundle_signature(dm), &
                                         thermo_stats_bundle_fields(dm))
+    call check_stats_bundle_file_size(dm, 'thermo_stats', iter, thermo_stats_bundle_fields(dm))
     call generate_pathfile_name(bundle_file, dm%idom, 'thermo_stats', dir_data, 'bin', iter)
     if(.not. file_exists(trim(bundle_file))) &
     call Print_error_msg("The thermo statistics bundle file "//trim(bundle_file)//" does not exist.")
@@ -1582,6 +1645,7 @@ contains
   subroutine write_mhd_stats_bundle(mh, dm)
     use decomp_2d_io
     use decomp_2d_io_object_mpi
+    use checkpoint_metadata_mod, only: write_checkpoint_manifest, read_checkpoint_metadata
     use io_tools_mod
     use udf_type_mod
     implicit none
@@ -1592,6 +1656,8 @@ contains
     character(256) :: output_files(2)
     integer :: iter
     logical :: do_write
+    logical :: found_manifest
+    real(WP) :: time_manifest, dt_manifest
     type(d2d_io_mpi) :: io
 
     iter = mh%iteration
@@ -1616,6 +1682,14 @@ contains
     call io%close()
     call write_stats_bundle_metadata(dm, 'mhd_stats', iter, mhd_stats_bundle_signature(dm), &
                                      mhd_stats_bundle_fields(dm), mh%nstat_samples)
+    ! The MHD bundle is written after the flow (and thermo) bundles of the same checkpoint, whose
+    ! writers have already produced checkpoint_meta without it. Rewrite the manifest so that it lists
+    ! mhd_stats too; time and dt come from that manifest because t_mhd carries no clock of its own
+    ! (ES24.16 round-trips a double exactly). No manifest yet: nothing to refresh.
+    if(nrank == 0) then
+      call read_checkpoint_metadata(dm%idom, iter, time_manifest, dt_manifest, found_manifest)
+      if(found_manifest) call write_checkpoint_manifest(dm%idom, iter, time_manifest, dt_manifest)
+    end if
 
     return
   end subroutine write_mhd_stats_bundle
@@ -1636,6 +1710,7 @@ contains
     iter = mh%iterfrom
     call validate_stats_bundle_metadata(dm, 'mhd_stats', iter, mhd_stats_bundle_signature(dm), &
                                         mhd_stats_bundle_fields(dm))
+    call check_stats_bundle_file_size(dm, 'mhd_stats', iter, mhd_stats_bundle_fields(dm))
     call generate_pathfile_name(bundle_file, dm%idom, 'mhd_stats', dir_data, 'bin', iter)
     if(.not. file_exists(trim(bundle_file))) &
     call Print_error_msg("The MHD statistics bundle file "//trim(bundle_file)//" does not exist.")
@@ -2336,13 +2411,13 @@ contains
     !
     iter = fl%iterfrom
     !
+    ! allocate once for all domains, fill the calling domain every time (statistics cover
+    ! every cell: no cell skip is implemented)
     if(.not. allocated(ncl_stat)) then
       allocate (ncl_stat(3, nxdomain))
       ncl_stat = 0
-      ncl_stat(1, dm%idom) = dm%dccc%xsz(1) ! default skip is 1.
-      ncl_stat(2, dm%idom) = dm%dccc%xsz(2) ! default skip is 1.
-      ncl_stat(3, dm%idom) = dm%dccc%xsz(3) ! default skip is 1.
     end if
+    ncl_stat(1:3, dm%idom) = dm%dccc%xsz(1:3)
     ! shared post-processing parameters
     if(dm%stat_level > ISTATL0) then
       allocate( fl%tavg_pr  (ncl_stat(1, dm%idom), ncl_stat(2, dm%idom), ncl_stat(3, dm%idom)   ) )
@@ -2528,13 +2603,13 @@ contains
     !
     iter = tm%iterfrom
     !
+    ! allocate once for all domains, fill the calling domain every time (statistics cover
+    ! every cell: no cell skip is implemented)
     if(.not. allocated(ncl_stat)) then
       allocate (ncl_stat(3, nxdomain))
       ncl_stat = 0
-      ncl_stat(1, dm%idom) = dm%dccc%xsz(1) ! default skip is 1.
-      ncl_stat(2, dm%idom) = dm%dccc%xsz(2) ! default skip is 1.
-      ncl_stat(3, dm%idom) = dm%dccc%xsz(3) ! default skip is 1.
     end if
+    ncl_stat(1:3, dm%idom) = dm%dccc%xsz(1:3)
     !
     if(nrank == 0) call Print_debug_start_msg("Initialise thermo statistics ...")
     !
@@ -2595,13 +2670,13 @@ contains
     !
     iter = mh%iterfrom
     !
+    ! allocate once for all domains, fill the calling domain every time (statistics cover
+    ! every cell: no cell skip is implemented)
     if(.not. allocated(ncl_stat)) then
       allocate (ncl_stat(3, nxdomain))
       ncl_stat = 0
-      ncl_stat(1, dm%idom) = dm%dccc%xsz(1) ! default skip is 1.
-      ncl_stat(2, dm%idom) = dm%dccc%xsz(2) ! default skip is 1.
-      ncl_stat(3, dm%idom) = dm%dccc%xsz(3) ! default skip is 1.
     end if
+    ncl_stat(1:3, dm%idom) = dm%dccc%xsz(1:3)
     !
     if(nrank == 0) call Print_debug_start_msg("Initialise mhd statistics ...")
     !
