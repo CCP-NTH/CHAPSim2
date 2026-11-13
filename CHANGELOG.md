@@ -16,6 +16,99 @@ EXPERIMENTAL are verified only for the configurations stated in their entries
 and in the user guide. Regression baselines moved where a fix changed results;
 each move is explained in `tests/reference_update_log_*.md`.
 
+### Upgrading from v2.2.0
+
+Summary for users of v2.2.0 (tag `v2.2.0`, 2026-10-08). The entries below give the details.
+
+**Changes in numerical behaviour: results differ from v2.2.0**
+- Thermal runs now use transported-density (Bc) recovery of the thermodynamic
+  state by default (`rhoh_recovery = transported`). The previous one-pass
+  recovery is kept as `lagged_legacy`, which is deprecated, for comparison only,
+  and gives non-exact restarts with imposed-heat-flux walls. Thermal regression
+  baselines moved (`tests/reference_update_log_2026-10-10.md`).
+- Thermal timekeeping: when the energy equation starts after the flow
+  (`niterthermofirst > niterflowfirst`), the thermal iteration and time advance
+  with the run, `qw_ramp` runs on run iterations, and thermal checkpoints and
+  statistics are labelled with the run iteration. Runs whose flow and energy
+  equations start together are unchanged.
+- A fresh thermal start builds its boundary thermal states from the initial
+  interior field, as a restart does.
+- The singular line of the y-direction Poisson solve with z walls is now
+  projected. z-wall cases change; periodic-z runs are bitwise unchanged.
+- `restart_clock = reset` also drops the convective-outlet RHS histories. RK3 is
+  unaffected; AB2 changes in its first step only.
+
+**Statistics**
+- `t_avg_fuuu` now accumulates the Favre triple moment rho u_i u_j u_k; it was
+  weighted by rho*T. A heated `stat_level` 3 statistics restart from older flow
+  statistics stops, and a statistical window whose ends use different
+  definitions stops.
+- New statistical-window post-processing mode (`is_postprocess`,
+  `pp_stat_window`). It requires statistics snapshots that carry sample counts
+  (`nsamples`, written since the v2.2.0 tag).
+- `stat_nskip` is not implemented: a value other than `1,1,1` now gives a
+  warning and is ignored.
+
+**Restart compatibility: checks that can stop restarts v2.2.0 accepted**
+- Restart, statistics and inlet-database bundles stop if the `.bin` does not
+  hold exactly the arrays listed in its metadata.
+- A bundled restart stops if the recorded geometry (case, coordinate system,
+  lengths, y stretching, periodicity) differs from the input. Use the
+  mesh-restart workflow to change mesh.
+- A thermal checkpoint written by v2.2.0 carries no Bc state. v2.3.0 starts with
+  rho_hat = rho and a zero rate history, and warns that the continuation is not
+  exact.
+- Liquid-metal (correlation-path) checkpoints written before the x-boundary
+  thermal-state record stop if that state cannot be rebuilt exactly; choose with
+  `CHAPSIM_LEGACY_FBCX_STATE=keep|rederive`.
+- Copy the new per-checkpoint files with a checkpoint:
+  - `thermo_interp_meta`, the numerical-mode record checked on restart;
+  - `outlet_split`, with `outlet_mass_correction = split` only.
+
+  Without `checkpoint_meta`, the restart time is taken from the bundle metadata.
+
+**Removed or unsupported input**
+- The 1D profile inlet (BC id 9) is rejected at input; the feature is
+  unfinished.
+- The NIST CO2 property table (`NIST_CO2_8MP.DAT`) is not distributed, because
+  of NIST Standard Reference Data redistribution terms; see
+  `validation/thermal_properties/README.md`. `ifluid = scp_co2` needs a table in
+  the working directory. `generate_property_table.py` builds one from CoolProp
+  (MIT licence), whose transport properties differ from the NIST table by up to
+  about 5%, so results will not match runs made with the original table. No test
+  or regression case needs CO2; the property-interpolation harnesses skip the
+  CO2 table when it is absent. Supercritical-CO2 production cases, such as the
+  heated CO2 pipe, cannot be rerun from this repository alone.
+
+**Experimental capabilities (verified only for the configurations stated in their entries)**
+- `outlet_mass_correction = uniform_flux | split`
+- `thermal_outlet_pair = zero_gradient`
+- `enthalpy_advection = koren`
+- `property_interp = pchip`
+- Opt-in pressure statistics (`CHAPSIM_B3_PSTAT`)
+
+**Runtime environment variables**
+- Change the run:
+  - `CHAPSIM_B3_FIXED_DT=1` (with `CHAPSIM_B3_FIXED_DT_CFLMAX`): dt is never
+    changed and the run stops if the CFL limit is exceeded;
+  - `CHAPSIM_LEGACY_FBCX_STATE` (see above);
+  - `CHAPSIM_NITER` (overrides the number of steps; used by the smoke tests).
+- Output and diagnostics only:
+  - `CHAPSIM_B3_PBAR` (full-step pressure output);
+  - `CHAPSIM_B3_BUDGET` (mass and rho*h budgets);
+  - `CHAPSIM_DIAG_YSKIP_ZERO` (Poisson diagnostic);
+  - `CHAPSIM_B3_PSTAT` and `CHAPSIM_B3_PSTAT_MID` (experimental pressure
+    statistics). These change the statistics signature, so a statistics
+    restart must use the same setting.
+
+**Verification scope**
+- The code is verified by metric-gated regression and functional suites,
+  conservation checks, restart-exactness tests and unit tests (see `tests/`).
+- This establishes reproducibility and discrete consistency. It does not
+  establish physical accuracy for every configuration.
+- Results depend on the MPI decomposition at round-off level.
+- See the known limitations below.
+
 ### Added
 
 - Added the optional `[bc]` key `outlet_mass_correction` (EXPERIMENTAL, after
@@ -135,95 +228,6 @@ each move is explained in `tests/reference_update_log_*.md`.
 
 - Added `known_limitation` support in `tests/tools/check_metrics.py`.
 
-- Added partial restarts of a thermal run as initialisations. When only one of
-  the flow and thermal fields is restarted, the restarted field is treated as
-  an initial condition rather than a continuation:
-  - flow restart, thermal field initialised afresh: the flow bundle is
-    accepted in any layout (thermal exact, isothermal exact, isothermal
-    compact; per-field layout reads `qx`, `qy`, `qz`, `pr`). Only `q`, `pr`
-    and the outlet `fbcx_q*` planes are taken; `g = rho*u` is rebuilt from
-    the new density, the stored `g*`, `fbcx_g*` and `fbcx_ftp_*` are
-    discarded, and the momentum and outlet RHS histories are dropped
-    (`read_flow_restart_bundle_initial`, `initialise_flow_from_restart_q`).
-    Previously an isothermal bundle stopped the run with "Bundle field list
-    mismatch", and a thermal bundle reused the stored `g` and outlet thermal
-    state against a different thermal field.
-  - thermal restart, flow field initialised afresh: `ene_rhs0` and
-    `fbcx_rhoh_rhs0` are dropped.
-  A full restart (isothermal, or thermal with both fields restarted) still
-  requires the exact layout.
-
-- Added `stat_istart` and `nsamples` to the statistics manifest
-  `domain<N>_<group>_stats_meta_<iter>.dat`, so the number of samples behind a
-  stored set of averages travels with them instead of being recomputed from the
-  iteration number. They are appended after the keys the bundle validator reads
-  by position, so new files still load in an older build and older files still
-  load here - a checkpoint without them falls back to the derived weight and
-  warns. `stat_istart` is validated on read and a run stops if it has changed
-  since the checkpoint, because a stored average cannot be re-weighted onto a
-  different window. The per-field restart layout, which previously wrote no
-  manifest at all, now writes this one.
-
-- Added `# samples` and `# window_first_iter` to the header of both the bundled
-  and the per-field `Euu` spectrum output. The spectra are not checkpointed, so
-  after a restart they average a shorter window than the `t_avg_*` fields
-  alongside them; the headers now state which samples each file covers, and a
-  restart that is accumulating spectra says so in the log.
-
-- Added a positivity check on the property table built from polynomial
-  correlations: a run stops at startup, naming the fluid, the property and the
-  temperature, if density, dynamic viscosity, thermal conductivity or heat
-  capacity is not positive anywhere in the tabulated range.
-
-- Added `TP0min`/`TP0max` to the fluid parameters: the temperature interval the
-  property table spans, kept distinct from the melting and boiling points. It
-  starts as the liquid range and is narrowed by the validity range of each
-  correlation that holds over less than it, and the property binding each end is
-  recorded and named in the log and in every out-of-range diagnostic. A run
-  whose `ref_t0` or `tini` falls outside the interval now stops at startup
-  instead of extrapolating. PbLi is the only fluid narrowed at present, to
-  521-625 K by its viscosity correlation; that interval is the overlap of two
-  disagreeing source ranges and is an implementation policy, not an established
-  physical validity range.
-
-- Added the molar gas constant `RU_GAS` to `parameters_constant_mod`, so an
-  activation energy can be written in its published units.
-
-- Added `tests/tools/run_fluid_property_tests.py`, which runs the solver once
-  per fluid and checks the emitted property table for `dH/dT = cp`, positive
-  properties, falling density, LBE's density at 600 K, Li's thermal expansion
-  and its analytic value at 600 K, and PbLi's KfK-4144 viscosity at 550 K and
-  600 K and its tabulated range. Where the solver prints a directly evaluated
-  reference-state property it is checked against that, at 1e-8 relative, rather
-  than against the tabulated diagnostic, which is written with six significant
-  figures. For sodium and LBE it also checks the solver's
-  `cp` against the enthalpy polynomial differentiated independently in the test.
-  It further checks that `water`, an unknown fluid name and a PbLi run outside
-  521-625 K are all rejected, and that a lithium run above 3500 K stops on the
-  range diagnostic rather than on the floating-point trap in its density
-  correlation. It runs in the CI build job, after the build and before the smoke
-  tests.
-
-- Added `validation/thermal_properties/README.md`, recording what the two
-  supercritical property tables actually are. Both were shown by reproduction
-  to be generated output of NIST Standard Reference Data - the NIST Chemistry
-  WebBook isobaric generator reproduces the water densities to 11 significant
-  figures and the CO2 thermodynamic columns exactly. NIST Standard Reference
-  Data is copyrighted under 15 U.S.C. 290e and is excluded from the general
-  NIST redistribution grant. The README keeps three questions apart - evidence
-  of provenance, evidence of an applicable restriction, and whether permission
-  was found in this repository's records - and states that none was found,
-  which is an absence of evidence rather than proof that none exists.
-
-- Added `validation/thermal_properties/generate_property_table.py`, which
-  builds a table in the solver's column format from CoolProp (MIT licence).
-  CoolProp uses the same equations of state, so the thermodynamic columns match
-  the shipped tables to round-off for water and to the file's own five
-  significant figures for CO2; the transport columns differ by up to 5% because
-  the correlations have since been revised. Replacing a shipped table with a
-  generated one would therefore move the thermal baselines and is not a silent
-  substitution.
-
 ### Changed
 
 - Changed a bundled restart to stop when the bundle manifest describes another
@@ -296,62 +300,6 @@ each move is explained in `tests/reference_update_log_*.md`.
 
 - Changed property-range violations to a collective, informative stop of all
   ranks without clamping or extrapolation.
-
-- Changed the per-step MHD log output. `max-abs-elementary |div(j_vec)|` and
-  `global electric current imbalance` are constraint residuals and are now
-  printed under `Numerical Info`, next to the mass residuals, instead of under
-  `Field Info`. `Field Info` gains the extrema of the current density
-  (`jx`, `jy`, `jz`) and the Lorentz force (`lrfx`, `lrfy`, `lrfz`), each with
-  its per-mille change from the previous step, to follow the development of
-  the MHD field; both are from the start of the last substep. The JSON metrics
-  are unchanged.
-
-- Changed the source cited for the PbLi dynamic viscosity from the 1991 journal
-  paper to the primary measurement report KfK-4144 (1986), Part II section 4.3,
-  which has been read directly and prints the identical expression. The
-  out-of-range diagnostic consequently names `dynamic viscosity (KfK-4144)`
-  rather than `dynamic viscosity (Schulz 1991)`. The supported interval is
-  unchanged at 521-625 K: the report states no range beside the equation, so
-  that interval remains an implementation policy. The same report's heat-capacity
-  range, 508-800 K, is now declared alongside it; it binds nothing today, because
-  the melting point already sets 508 K and the viscosity cuts the top to 625 K.
-
-- Removed `validation/thermal_properties/NIST_CO2_8MP.DAT`. It is generated
-  output of NIST Standard Reference Data 69, which is copyrighted under
-  15 U.S.C. 290e and may not be redistributed without prior permission; no such
-  permission is recorded. `ifluid= scp_co2` is unaffected as a solver option -
-  supply the table in the working directory and the case runs, or generate one
-  under the MIT licence with `generate_property_table.py`. Nothing in `tests/`
-  selects `scp_co2`, so no case or baseline changes. The path is now in
-  `.gitignore` and `check_validation_layout.py` asserts both that guard and
-  that the file is untracked. `NIST_WATER_23.5MP.DAT` is unchanged and still
-  shipped; its redistribution status is unresolved on the same evidence and is
-  recorded as such in `validation/thermal_properties/README.md`.
-
-- Changed `prepost/job_submission/run_local.sh` to take the CHAPSim2 directory
-  from `CHAPSIM_DIR`, falling back to a `/path/to/CHAPSim2` placeholder and
-  stopping with a message when that directory does not exist. It previously
-  hardcoded one developer's absolute path, so an unedited run failed later and
-  less clearly. The other job-submission helpers already had this treatment;
-  this script was missed.
-
-- Regenerated the FORD reference under `docs/code_structure/` from the current
-  `src/`. The published bundle predated the statistics sample-count work, so it
-  omitted `read_stats_sample_count` and `restore_stats_sample_count` and
-  carried an older copy of several source files. Comparing file lists, as the
-  previous check did, cannot detect that.
-
-- Removed the bundled Moser-Kim-Mansour channel profiles
-  (`validation/references/channel/mkm/`) and the unattributed
-  `dnsEggels5300.asc` pipe profile (`validation/references/pipe/eggels/`) from
-  the distribution: neither carries a licence or an explicit redistribution
-  permission, and public availability is not permission.
-  `validation/references/README.md` now gives the authoritative source, the
-  required citation and the exact download commands for the MKM database, and
-  `plot_channel_velo_stress.py` says so when `--ref-dir` is empty. Both paths
-  are in `.gitignore` so a local download cannot be committed back. The Texas
-  Data Repository pipe datasets are unaffected; they are CC0 and still shipped.
-  No numerical test reads any of this data.
 
 ### Fixed
 
@@ -571,89 +519,6 @@ each move is explained in `tests/reference_update_log_*.md`.
   outside the property range (table rows or correlation interval) now stop
   the run before the simulation with the boundary named.
 
-- Fixed the per-mille change printed with `|div(j_vec)|`, which was always
-  `0.00‰` because `check_current_conservation` zeroed its tracker on every
-  call; the previous-step value is now kept by the caller. Fixed the
-  previous-step trackers in `Solve_eqs_iteration` (`maxmin_ep`, `maxmin_qx`,
-  ...) being read uninitialised on the first step.
-
-- Fixed the per-mille change printed with the mass residuals in
-  `Check_element_mass_conservation`. Its tracker was zeroed on every call and
-  shared between the inlet, outlet and bulk lines, so periodic cases always
-  printed `0.00‰` and inlet/outlet cases compared each region with the one
-  printed before it. Each region is now compared with its own value from the
-  previous call (`fl%mcon`, `fl%mcon_projected`).
-
-- Fixed the averaging weight used by the time-averaged statistics, which was
-  derived from the iteration number as `iter - stat_istart` instead of counting
-  the samples actually folded in. The two agree only while the sample stream is
-  unbroken, so a run in which the flow restarts but the thermal field is
-  initialised afresh, or in which `niterflowfirst`/`niterthermofirst` suppress
-  sampling for a window, weighted its averages by more samples than it had and
-  biased every `t_avg_*` field towards zero. `run_stats_action` now takes the
-  population as `opt_nstat` from a counter on the owning field
-  (`nstat_samples`), which `update_stats_flow`, `update_stats_thermo` and
-  `update_stats_mhd` increment once per call; a `STATS_TAVG` call without it is
-  a fatal error rather than a silent miscount. For an uninterrupted run the
-  weight is unchanged.
-
-- Fixed `init_stats_mhd` reloading the MHD statistics regardless of how the
-  field was initialised: it tested `iterfrom` and `restart_clock` but not the
-  initialisation mode, the test its flow and thermal siblings both apply. It
-  now takes the flow's `inittype`, the MHD field having no initialisation mode
-  of its own. `t_mhd%iterfrom` also gained a default initialiser and is set
-  from the flow in the restart-clock block, so it no longer depends on `[mhd]`
-  being parsed before the statistics are initialised.
-
-- Fixed the liquid-sodium and LBE enthalpy coefficients `CoH_Na` and `CoH_LBE`
-  in `parameters_constant_mod`. `CoH_Na` was a copy of the LBE row, so sodium's
-  enthalpy was built from LBE's heat capacity, and `CoH_LBE(3)` was 100 times
-  too large. Measured from the solver's own property table, `dH/dT` disagreed
-  with the separately evaluated `cp` by 69 % for sodium at 462 K and by a factor
-  of 3.8 for LBE at 576 K. Every `CoH_*` row is now written as the term-by-term
-  integral of the corresponding `CoCp_*` row, so the identity `dH/dT = cp`
-  cannot drift again; this also removes a rounding of 6.5e-05 relative in
-  `CoH_Pb(3)`. The enthalpy datum is unaffected: `HM0` and `CoH(0)` cancel in
-  the non-dimensionalisation.
-
-- Fixed the sign of the LBE density slope `CoD_LBE(1)`, which made LBE denser
-  as it got hotter. LBE density at 600 K goes from 11840.8 to 10289.2 kg/m3.
-
-- Fixed `ifluid= water` silently running liquid sodium. There is no property
-  correlation for ordinary liquid water, but the fluid selector fell through to
-  a sodium default while the log still announced "Liquid Water". The input
-  parser now rejects `water` and names `scp_water` as the alternative, and the
-  fluid selector and both dynamic-viscosity selectors abort on an unknown
-  `ifluid` instead of substituting sodium.
-
-- Fixed the thermal-expansion coefficient of liquid lithium. The tabulated
-  `1 / (CoB - T)` form is the exact `-(1/rho) drho/dT` only for a density that
-  is linear in temperature, which Li's is not; `CoB_Li` overstated beta by
-  15 % at 589 K. Li now differentiates its own density correlation. The
-  coefficient is reported in the property table and is not used by the
-  momentum equation, which carries the full variable density.
-
-- Replaced the PbLi dynamic-viscosity correlation. The cubic that stood in
-  `CoM_PbLi` is the fit printed by Martelli, Venturini & Utili (2019); it
-  crosses zero at 859.0 K and is negative above it, inside the 508-873 K range
-  that source's own table states. It is now the Arrhenius expression measured in
-  KfK-4144 (Jauch, Haase & Schulz, Kernforschungszentrum Karlsruhe, 1986),
-  Part II section 4.3, `M = 1.87e-4 * exp(11640 / (Ru T))` Pa s with
-  `Ru = 8.314 J/mol/K`, as also implemented in INL MOOSE. `CoM_PbLi` changed shape from `(0:3)`
-  polynomial coefficients to the `(-1:1)` Arrhenius form already used by Pb, Bi,
-  LBE and FLiBe, and both the dimensional and the non-dimensional evaluation
-  paths were updated with it. PbLi viscosity at 550 K goes from 1.278e-3 to
-  2.384e-3 Pa s, a factor of 1.87.
-
-- Fixed the order of the new startup temperature-range check in
-  `buildup_property_relations_from_function`, which ran after the correlations
-  had already been evaluated at the offending temperature. Liquid lithium's
-  density carries `(1 - T / 3500)**0.467`, so a `ref_t0` or `tini` above 3500 K
-  raised a negative base to a fractional power and the debug build's
-  `-ffpe-trap=invalid` aborted with a bare SIGFPE before the diagnostic could be
-  printed. The check now runs first, so the run stops with the message naming
-  the property that sets the violated end of the range.
-
 ### Known limitations
 
 - `rhoh_recovery = lagged_legacy` is deprecated and kept for regression
@@ -676,6 +541,234 @@ each move is explained in `tests/reference_update_log_*.md`.
 - The public distribution does not include the NIST CO2 property table;
   `ifluid= scp_co2` then needs a user-supplied table (see
   `validation/thermal_properties/README.md`).
+
+## v2.2.0 update - 2026-10-07 (included in the `v2.2.0` tag)
+
+Published after the 2026-10-05 changelog entry below and contained in the `v2.2.0` tag
+(commit `1d0c28f`); listed at the time as "Unreleased - 2026-10-06".
+
+### Fixed
+
+- Fixed the per-mille change printed with `|div(j_vec)|`, which was always
+  `0.00‰` because `check_current_conservation` zeroed its tracker on every
+  call; the previous-step value is now kept by the caller. Fixed the
+  previous-step trackers in `Solve_eqs_iteration` (`maxmin_ep`, `maxmin_qx`,
+  ...) being read uninitialised on the first step.
+- Fixed the per-mille change printed with the mass residuals in
+  `Check_element_mass_conservation`. Its tracker was zeroed on every call and
+  shared between the inlet, outlet and bulk lines, so periodic cases always
+  printed `0.00‰` and inlet/outlet cases compared each region with the one
+  printed before it. Each region is now compared with its own value from the
+  previous call (`fl%mcon`, `fl%mcon_projected`).
+
+- Fixed the averaging weight used by the time-averaged statistics, which was
+  derived from the iteration number as `iter - stat_istart` instead of counting
+  the samples actually folded in. The two agree only while the sample stream is
+  unbroken, so a run in which the flow restarts but the thermal field is
+  initialised afresh, or in which `niterflowfirst`/`niterthermofirst` suppress
+  sampling for a window, weighted its averages by more samples than it had and
+  biased every `t_avg_*` field towards zero. `run_stats_action` now takes the
+  population as `opt_nstat` from a counter on the owning field
+  (`nstat_samples`), which `update_stats_flow`, `update_stats_thermo` and
+  `update_stats_mhd` increment once per call; a `STATS_TAVG` call without it is
+  a fatal error rather than a silent miscount. For an uninterrupted run the
+  weight is unchanged.
+- Fixed `init_stats_mhd` reloading the MHD statistics regardless of how the
+  field was initialised: it tested `iterfrom` and `restart_clock` but not the
+  initialisation mode, the test its flow and thermal siblings both apply. It
+  now takes the flow's `inittype`, the MHD field having no initialisation mode
+  of its own. `t_mhd%iterfrom` also gained a default initialiser and is set
+  from the flow in the restart-clock block, so it no longer depends on `[mhd]`
+  being parsed before the statistics are initialised.
+
+- Fixed the liquid-sodium and LBE enthalpy coefficients `CoH_Na` and `CoH_LBE`
+  in `parameters_constant_mod`. `CoH_Na` was a copy of the LBE row, so sodium's
+  enthalpy was built from LBE's heat capacity, and `CoH_LBE(3)` was 100 times
+  too large. Measured from the solver's own property table, `dH/dT` disagreed
+  with the separately evaluated `cp` by 69 % for sodium at 462 K and by a factor
+  of 3.8 for LBE at 576 K. Every `CoH_*` row is now written as the term-by-term
+  integral of the corresponding `CoCp_*` row, so the identity `dH/dT = cp`
+  cannot drift again; this also removes a rounding of 6.5e-05 relative in
+  `CoH_Pb(3)`. The enthalpy datum is unaffected: `HM0` and `CoH(0)` cancel in
+  the non-dimensionalisation.
+- Fixed the sign of the LBE density slope `CoD_LBE(1)`, which made LBE denser
+  as it got hotter. LBE density at 600 K goes from 11840.8 to 10289.2 kg/m3.
+- Fixed `ifluid= water` silently running liquid sodium. There is no property
+  correlation for ordinary liquid water, but the fluid selector fell through to
+  a sodium default while the log still announced "Liquid Water". The input
+  parser now rejects `water` and names `scp_water` as the alternative, and the
+  fluid selector and both dynamic-viscosity selectors abort on an unknown
+  `ifluid` instead of substituting sodium.
+- Fixed the thermal-expansion coefficient of liquid lithium. The tabulated
+  `1 / (CoB - T)` form is the exact `-(1/rho) drho/dT` only for a density that
+  is linear in temperature, which Li's is not; `CoB_Li` overstated beta by
+  15 % at 589 K. Li now differentiates its own density correlation. The
+  coefficient is reported in the property table and is not used by the
+  momentum equation, which carries the full variable density.
+
+- Replaced the PbLi dynamic-viscosity correlation. The cubic that stood in
+  `CoM_PbLi` is the fit printed by Martelli, Venturini & Utili (2019); it
+  crosses zero at 859.0 K and is negative above it, inside the 508-873 K range
+  that source's own table states. It is now the Arrhenius expression measured in
+  KfK-4144 (Jauch, Haase & Schulz, Kernforschungszentrum Karlsruhe, 1986),
+  Part II section 4.3, `M = 1.87e-4 * exp(11640 / (Ru T))` Pa s with
+  `Ru = 8.314 J/mol/K`, as also implemented in INL MOOSE. `CoM_PbLi` changed shape from `(0:3)`
+  polynomial coefficients to the `(-1:1)` Arrhenius form already used by Pb, Bi,
+  LBE and FLiBe, and both the dimensional and the non-dimensional evaluation
+  paths were updated with it. PbLi viscosity at 550 K goes from 1.278e-3 to
+  2.384e-3 Pa s, a factor of 1.87.
+- Fixed the order of the new startup temperature-range check in
+  `buildup_property_relations_from_function`, which ran after the correlations
+  had already been evaluated at the offending temperature. Liquid lithium's
+  density carries `(1 - T / 3500)**0.467`, so a `ref_t0` or `tini` above 3500 K
+  raised a negative base to a fractional power and the debug build's
+  `-ffpe-trap=invalid` aborted with a bare SIGFPE before the diagnostic could be
+  printed. The check now runs first, so the run stops with the message naming
+  the property that sets the violated end of the range.
+
+### Changed
+
+- Changed the per-step MHD log output. `max-abs-elementary |div(j_vec)|` and
+  `global electric current imbalance` are constraint residuals and are now
+  printed under `Numerical Info`, next to the mass residuals, instead of under
+  `Field Info`. `Field Info` gains the extrema of the current density
+  (`jx`, `jy`, `jz`) and the Lorentz force (`lrfx`, `lrfy`, `lrfz`), each with
+  its per-mille change from the previous step, to follow the development of
+  the MHD field; both are from the start of the last substep. The JSON metrics
+  are unchanged.
+
+- Removed `validation/thermal_properties/NIST_CO2_8MP.DAT`. It is generated
+  output of NIST Standard Reference Data 69, which is copyrighted under
+  15 U.S.C. 290e and may not be redistributed without prior permission; no such
+  permission is recorded. `ifluid= scp_co2` is unaffected as a solver option -
+  supply the table in the working directory and the case runs, or generate one
+  under the MIT licence with `generate_property_table.py`. Nothing in `tests/`
+  selects `scp_co2`, so no case or baseline changes. The path is now in
+  `.gitignore` and `check_validation_layout.py` asserts both that guard and
+  that the file is untracked. `NIST_WATER_23.5MP.DAT` is unchanged and still
+  shipped; its redistribution status is unresolved on the same evidence and is
+  recorded as such in `validation/thermal_properties/README.md`.
+
+- Changed `prepost/job_submission/run_local.sh` to take the CHAPSim2 directory
+  from `CHAPSIM_DIR`, falling back to a `/path/to/CHAPSim2` placeholder and
+  stopping with a message when that directory does not exist. It previously
+  hardcoded one developer's absolute path, so an unedited run failed later and
+  less clearly. The other job-submission helpers already had this treatment;
+  this script was missed.
+
+- Regenerated the FORD reference under `docs/code_structure/` from the current
+  `src/`. The published bundle predated the statistics sample-count work, so it
+  omitted `read_stats_sample_count` and `restore_stats_sample_count` and
+  carried an older copy of several source files. Comparing file lists, as the
+  previous check did, cannot detect that.
+
+- Removed the bundled Moser-Kim-Mansour channel profiles
+  (`validation/references/channel/mkm/`) and the unattributed
+  `dnsEggels5300.asc` pipe profile (`validation/references/pipe/eggels/`) from
+  the distribution: neither carries a licence or an explicit redistribution
+  permission, and public availability is not permission.
+  `validation/references/README.md` now gives the authoritative source, the
+  required citation and the exact download commands for the MKM database, and
+  `plot_channel_velo_stress.py` says so when `--ref-dir` is empty. Both paths
+  are in `.gitignore` so a local download cannot be committed back. The Texas
+  Data Repository pipe datasets are unaffected; they are CC0 and still shipped.
+  No numerical test reads any of this data.
+
+- Changed the source cited for the PbLi dynamic viscosity from the 1991 journal
+  paper to the primary measurement report KfK-4144 (1986), Part II section 4.3,
+  which has been read directly and prints the identical expression. The
+  out-of-range diagnostic consequently names `dynamic viscosity (KfK-4144)`
+  rather than `dynamic viscosity (Schulz 1991)`. The supported interval is
+  unchanged at 521-625 K: the report states no range beside the equation, so
+  that interval remains an implementation policy. The same report's heat-capacity
+  range, 508-800 K, is now declared alongside it; it binds nothing today, because
+  the melting point already sets 508 K and the viscosity cuts the top to 625 K.
+
+### Added
+
+- Added partial restarts of a thermal run as initialisations. When only one of
+  the flow and thermal fields is restarted, the restarted field is treated as
+  an initial condition rather than a continuation:
+  - flow restart, thermal field initialised afresh: the flow bundle is
+    accepted in any layout (thermal exact, isothermal exact, isothermal
+    compact; per-field layout reads `qx`, `qy`, `qz`, `pr`). Only `q`, `pr`
+    and the outlet `fbcx_q*` planes are taken; `g = rho*u` is rebuilt from
+    the new density, the stored `g*`, `fbcx_g*` and `fbcx_ftp_*` are
+    discarded, and the momentum and outlet RHS histories are dropped
+    (`read_flow_restart_bundle_initial`, `initialise_flow_from_restart_q`).
+    Previously an isothermal bundle stopped the run with "Bundle field list
+    mismatch", and a thermal bundle reused the stored `g` and outlet thermal
+    state against a different thermal field.
+  - thermal restart, flow field initialised afresh: `ene_rhs0` and
+    `fbcx_rhoh_rhs0` are dropped.
+  A full restart (isothermal, or thermal with both fields restarted) still
+  requires the exact layout.
+
+- Added `validation/thermal_properties/README.md`, recording what the two
+  supercritical property tables actually are. Both were shown by reproduction
+  to be generated output of NIST Standard Reference Data - the NIST Chemistry
+  WebBook isobaric generator reproduces the water densities to 11 significant
+  figures and the CO2 thermodynamic columns exactly. NIST Standard Reference
+  Data is copyrighted under 15 U.S.C. 290e and is excluded from the general
+  NIST redistribution grant. The README keeps three questions apart - evidence
+  of provenance, evidence of an applicable restriction, and whether permission
+  was found in this repository's records - and states that none was found,
+  which is an absence of evidence rather than proof that none exists.
+
+- Added `validation/thermal_properties/generate_property_table.py`, which
+  builds a table in the solver's column format from CoolProp (MIT licence).
+  CoolProp uses the same equations of state, so the thermodynamic columns match
+  the shipped tables to round-off for water and to the file's own five
+  significant figures for CO2; the transport columns differ by up to 5% because
+  the correlations have since been revised. Replacing a shipped table with a
+  generated one would therefore move the thermal baselines and is not a silent
+  substitution.
+
+- Added `stat_istart` and `nsamples` to the statistics manifest
+  `domain<N>_<group>_stats_meta_<iter>.dat`, so the number of samples behind a
+  stored set of averages travels with them instead of being recomputed from the
+  iteration number. They are appended after the keys the bundle validator reads
+  by position, so new files still load in an older build and older files still
+  load here - a checkpoint without them falls back to the derived weight and
+  warns. `stat_istart` is validated on read and a run stops if it has changed
+  since the checkpoint, because a stored average cannot be re-weighted onto a
+  different window. The per-field restart layout, which previously wrote no
+  manifest at all, now writes this one.
+- Added `# samples` and `# window_first_iter` to the header of both the bundled
+  and the per-field `Euu` spectrum output. The spectra are not checkpointed, so
+  after a restart they average a shorter window than the `t_avg_*` fields
+  alongside them; the headers now state which samples each file covers, and a
+  restart that is accumulating spectra says so in the log.
+- Added a positivity check on the property table built from polynomial
+  correlations: a run stops at startup, naming the fluid, the property and the
+  temperature, if density, dynamic viscosity, thermal conductivity or heat
+  capacity is not positive anywhere in the tabulated range.
+- Added `TP0min`/`TP0max` to the fluid parameters: the temperature interval the
+  property table spans, kept distinct from the melting and boiling points. It
+  starts as the liquid range and is narrowed by the validity range of each
+  correlation that holds over less than it, and the property binding each end is
+  recorded and named in the log and in every out-of-range diagnostic. A run
+  whose `ref_t0` or `tini` falls outside the interval now stops at startup
+  instead of extrapolating. PbLi is the only fluid narrowed at present, to
+  521-625 K by its viscosity correlation; that interval is the overlap of two
+  disagreeing source ranges and is an implementation policy, not an established
+  physical validity range.
+- Added the molar gas constant `RU_GAS` to `parameters_constant_mod`, so an
+  activation energy can be written in its published units.
+- Added `tests/tools/run_fluid_property_tests.py`, which runs the solver once
+  per fluid and checks the emitted property table for `dH/dT = cp`, positive
+  properties, falling density, LBE's density at 600 K, Li's thermal expansion
+  and its analytic value at 600 K, and PbLi's KfK-4144 viscosity at 550 K and
+  600 K and its tabulated range. Where the solver prints a directly evaluated
+  reference-state property it is checked against that, at 1e-8 relative, rather
+  than against the tabulated diagnostic, which is written with six significant
+  figures. For sodium and LBE it also checks the solver's
+  `cp` against the enthalpy polynomial differentiated independently in the test.
+  It further checks that `water`, an unknown fluid name and a PbLi run outside
+  521-625 K are all rejected, and that a lithium run above 3500 K stops on the
+  range diagnostic rather than on the floating-point trap in its density
+  correlation. It runs in the CI build job, after the build and before the smoke
+  tests.
 
 ## v2.2.0 - 2026-10-05
 
