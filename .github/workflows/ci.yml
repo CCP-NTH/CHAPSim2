@@ -179,7 +179,9 @@ jobs:
             mpich \
             cmake \
             make \
-            python3
+            python3 \
+            python3-numpy \
+            python3-scipy
           # No libfftw3-dev: CI builds the generic backend bundled in
           # 2decomp-fft, so the runner stays dependency-free. To test FFTW here,
           # add libfftw3-dev back and build with CHAPSIM_FFT=fftw FFTW_ROOT=/usr
@@ -249,14 +251,33 @@ jobs:
         # minute in total.
         run: python3 tests/tools/run_fluid_property_tests.py
 
+      - name: Check the property-table interpolation (linear and pchip)
+        # Links the unit driver in tests/unit_property_interp against the solver
+        # objects, evaluates both shipped NIST tables in both property_interp
+        # modes and checks node reproduction, C1/C0 continuity, monotonicity,
+        # round trips and the out-of-range stops. Needs numpy and scipy.
+        run: python3 tests/tools/run_property_interp_tests.py
+
+      - name: Check the Koren enthalpy-advection reconstruction (enthalpy_advection = koren)
+        # Links the unit driver in tests/unit_enthalpy_advection against the solver
+        # objects and checks the Koren face values (formula, exact boundedness,
+        # LED), smooth-field order on uniform/stretched/cylindrical grids,
+        # conservation, constant h under variable density and RK3 stage extrema
+        # for CFL <= 0.5. About two minutes. Needs numpy.
+        run: |
+          bash tests/unit_enthalpy_advection/build_test.sh
+          python3 tests/unit_enthalpy_advection/check_enthalpy_advection.py \
+            tests/unit_enthalpy_advection/test_enthalpy_advection
+
       - name: Run smoke tests (Tier 1)
         working-directory: tests
         run: ./run_smoke.sh
 
   # ---------------------------------------------------------------------------
   # Tier 3 - standard regression against tests/tools/tolerances.json.
-  # Not a required gate: it runs on master and on explicit dispatch only, and
-  # continue-on-error keeps it from blocking the workflow conclusion.
+  # Not a required gate: it runs on pushes to dev and master and on explicit
+  # dispatch, and continue-on-error keeps it from blocking the workflow
+  # conclusion (a failure still shows on the job).
   # ---------------------------------------------------------------------------
   regression:
     name: Tier 3 regression (non-blocking)
@@ -266,7 +287,8 @@ jobs:
     continue-on-error: true
     if: |
       (github.event_name == 'workflow_dispatch' && github.event.inputs.test_type == 'regression') ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/master')
+      (github.event_name == 'push' && github.ref == 'refs/heads/master') ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/dev')
 
     steps:
       - name: Checkout repository

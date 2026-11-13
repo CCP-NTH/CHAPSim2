@@ -25,7 +25,7 @@ creation_date: true
 coloured_edges: true
 show_proc_parent: true
 warn: true
-macro: VERSION=2.2.0
+macro: VERSION=2.3.0
 
 CHAPSim2 is a finite difference-based incompressible DNS solver with heat transfer for
 fluids with variable properties. It uses a fully staggered (MAC) grid in Cartesian or

@@ -226,6 +226,7 @@
 </tr>
 </tbody></table>
 <p>The default is <code>exact</code>. Use <code>compact</code> only when smaller checkpoints are more important than exact continuous-run equivalence.</p>
+<p><strong>Exact restart is not supported under <code>rhoh_recovery = lagged_legacy</code></strong> (deprecated, kept for regression comparison only). With imposed-heat-flux (Neumann) walls, a continuation departs from the continuous run: on that path the restart rebuilds the wall states from an interior re-derived through the property inverse, which does not reproduce the stored state bit for bit (observed: <code>channel_scp_periodic_qw</code> with <code>iaccuracy = cd4</code>, restarts at 20 and 40; a configuration that happens to restart exactly is not a guarantee). The default <code>rhoh_recovery = transported</code> restarts exactly.</p>
 <p><strong><code>compact</code> is rejected for thermal / variable-property runs.</strong> A thermal checkpoint would have to rebuild <code>rho</code>, <code>mu</code>, <code>T</code>, <code>h</code>, <code>k</code> and <code>sigma</code> from <code>rhoh</code> through the property table, and that inverse lookup is not bit-reproducible, so the restarted run would not follow the same trajectory. The input reader stops with an error if <code>restart_history_mode = compact</code> is combined with <code>is_thermo</code>, at write time as well as read time, so no unusable compact thermal checkpoint can be produced. Thermal runs always store the full history.</p>
 <h2>Bundled Restart Output</h2>
 <p>Bundled mode writes one binary bundle per field group plus a metadata file that records the field order and expected shapes.</p>
@@ -315,6 +316,57 @@
 <td><code>rhoh</code>, <code>temp</code>, <code>ene_rhs0</code>, <code>dens</code>, <code>visc</code>, <code>henth</code>, <code>kcond</code>, <code>econd</code></td>
 </tr>
 </tbody></table>
+<h3>Convective X-Outlet State (Per-Field)</h3>
+<p>With a convective x-outlet, per-field mode also stores the outlet-boundary state, so that a per-field restart continues exactly as a bundled one:</p>
+<table><thead><tr>
+<th>File</th>
+<th>Written when</th>
+<th>Content</th>
+</tr></thead><tbody>
+<tr>
+<td><code>domainN_flow_xoutlet_ITER.bin</code></td>
+<td>convective x-outlet</td>
+<td>the extra flow-bundle fields of the table above (same order, same writer as the bundle tail)</td>
+</tr>
+<tr>
+<td><code>domainN_fbcx_rhoh_rhs0_ITER.bin</code></td>
+<td>thermal run with convective x-outlet</td>
+<td>outlet rho*h RHS history</td>
+</tr>
+<tr>
+<td><code>domainN_fbcx_dhat_ITER.bin</code>, <code>domainN_fbcx_dhat_rhs0_ITER.bin</code></td>
+<td>as above, <code>rhoh_recovery = transported</code></td>
+<td>outlet transported density and its RHS history</td>
+</tr>
+<tr>
+<td><code>domainN_flow_xoutlet_meta_ITER.dat</code></td>
+<td>thermal run with convective x-outlet</td>
+<td>one line, `fbcx_thermal_state rebuild</td>
+<td>initial` (see *Provenance of the x-boundary thermal state*)</td>
+</tr>
+<tr>
+<td><code>domainN_thermo_clock_ITER.dat</code></td>
+<td>every thermal checkpoint</td>
+<td>one line, <code>flow_iteration &lt;n&gt;</code> (see *Flow step of a thermal checkpoint*)</td>
+</tr>
+</tbody></table>
+<p>Per-field restart directories written before these files existed are still read: a missing file is reported with a warning (&quot;... the continuation is NOT exact&quot;) and the outlet then restarts from its initial state, as before. Such a restart is not a bit-for-bit continuation. The <code>fbcx_*</code> thermal files are only used with a convective thermal outlet (<code>ifbcx_t = ...,7</code>); with a Neumann thermal outlet their absence is still warned about but does not change the result.</p>
+<h3>Heated LES State</h3>
+<p>A heated LES run (<code>[les]</code> with a thermal field) also stores the lagged subgrid state that the first energy substep after a restart reads: the WALE eddy viscosity <code>tvisc</code> and the subgrid Prandtl number <code>prsgs</code>. They are written with the thermal checkpoint:</p>
+<table><thead><tr>
+<th>Layout</th>
+<th>Files</th>
+</tr></thead><tbody>
+<tr>
+<td>bundled</td>
+<td><code>domainN_les_restart_ITER.bin</code> and <code>domainN_les_restart_meta_ITER.dat</code> (fields <code>tvisc</code>, <code>prsgs</code>)</td>
+</tr>
+<tr>
+<td>per-field</td>
+<td><code>domainN_tvisc_ITER.bin</code>, <code>domainN_prsgs_ITER.bin</code></td>
+</tr>
+</tbody></table>
+<p>They are read on a flow-and-thermal continuation, after the initial WALE call, but not with <code>restart_clock = reset</code> (the checkpoint is then an initial condition). A checkpoint without them (older, or from field interpolation) is read with a warning: the subgrid viscosity is recomputed from the restart field, Pr_sgs starts at its high-Peclet limit, and the continuation is not bit-continuous. A per-field checkpoint with only one of the two files, or a bundle metadata file without its bundle, stops the run. Isothermal LES needs neither file.</p>
 <p>Older *isothermal* per-field restart directories that do not contain RHS-history files should be read with:</p>
 <pre><code class="language-ini">restart_history_mode = compact</code></pre>
 <h2>Metadata Files</h2>
@@ -335,8 +387,77 @@
 <td><code>domainN_thermo_restart_meta_ITER.dat</code></td>
 <td>Field order and shapes for <code>domainN_thermo_restart_ITER.bin</code>.</td>
 </tr>
+<tr>
+<td><code>domainN_thermo_interp_meta_ITER.dat</code></td>
+<td>Thermal numerical-mode record: <code>property_interp</code>, and, when relevant, <code>enthalpy_advection</code> and the latest permitted scheme switch. Copy it with the thermal checkpoint.</td>
+</tr>
+<tr>
+<td><code>domainN_outlet_split_ITER.dat</code></td>
+<td>Only with <code>outlet_mass_correction = split</code> (EXPERIMENTAL): the one state value of the split outlet correction. Copy it with the checkpoint; without it the restart starts with <code>S = 0</code> for one step and is no longer bit-for-bit continuous.</td>
+</tr>
 </tbody></table>
-<p>If bundled metadata exists but does not match the requested restart mode, field order, or mesh shape, the reader stops rather than reading incompatible binary data silently.</p>
+<p>If bundled metadata exists but does not match the requested restart mode, field order, or mesh shape, the reader stops rather than reading incompatible binary data silently. It also stops if a bundle <code>.bin</code> is shorter or longer than the arrays its metadata lists (for example a partly copied file), or if <code>precision_bytes</code> differs from the build, naming the file and both sizes. The same size rule applies to the statistics bundles (<code>flow_stats</code>, <code>thermo_stats</code>, <code>mhd_stats</code>) and to bundled inlet-database files.</p>
+<p>A bundle also records the geometry it was written on. A restart stops if the input has another case type (<code>icase</code>), coordinate system, domain length (<code>lxx</code>, <code>lyb</code>, <code>lyt</code>, <code>lzz</code>), y stretching (<code>istret</code>; for a stretched mesh also the method and <code>rstret</code>) or periodicity. To continue on another mesh, use the mesh-restart workflow, which interpolates.</p>
+<p>Without <code>checkpoint_meta</code>, the restart time and <code>dt</code> are taken from the bundle metadata (<code>flow_restart_meta</code>, <code>thermo_restart_meta</code>), which records them exactly.</p>
+<h3>Thermal Mode Record and Restart Policy</h3>
+<p>A thermal restart compares the record <code>domainN_thermo_interp_meta_ITER.dat</code> with the run&#x27;s input:</p>
+<table><thead><tr>
+<th>Record vs run</th>
+<th>Result</th>
+</tr></thead><tbody>
+<tr>
+<td><code>property_interp</code> differs (linear/pchip)</td>
+<td>stop (always; not overridable)</td>
+</tr>
+<tr>
+<td>no record, run uses <code>pchip</code></td>
+<td>stop</td>
+</tr>
+<tr>
+<td><code>enthalpy_advection</code> the same</td>
+<td>continue</td>
+</tr>
+<tr>
+<td><code>enthalpy_advection</code> differs, <code>enthalpy_advection_restart = strict</code> (default)</td>
+<td>stop</td>
+</tr>
+<tr>
+<td><code>enthalpy_advection</code> differs, <code>allow_switch</code>, statistics restart at or after the restart iteration</td>
+<td>continue with a warning; later records carry <code>enthalpy_advection_switch &lt;from&gt;-&gt;&lt;to&gt; &lt;iteration&gt;</code></td>
+</tr>
+<tr>
+<td><code>enthalpy_advection</code> differs, <code>allow_switch</code>, statistics would continue (<code>stat_istart</code> &lt; restart iteration)</td>
+<td>stop</td>
+</tr>
+<tr>
+<td>record unreadable, unrecognised line, or another domain/iteration</td>
+<td>stop</td>
+</tr>
+</tbody></table>
+<p>A record without an <code>enthalpy_advection</code> line means <code>cd2</code>. Binary checkpoint formats are not affected. See <code>enthalpy_advection</code> in the input-file guide.</p>
+<h3>Provenance of the X-Boundary Thermal State</h3>
+<p>A heated run with a convective x-outlet stores the x-boundary thermal states as (rho, rho*h). On a restart under <code>rhoh_recovery = transported</code>, the states the time loop builds from (rho*h, rho_hat) are rebuilt and kept, because re-deriving them from the stored pair does not return the same state. The checkpoint records where its states came from: <code>fbcx_thermal_state rebuild</code> (written after an energy step) or <code>initial</code> (an initial-state checkpoint, e.g. a mesh-mapped one). The line follows <code>field_shapes</code> in <code>domainN_flow_restart_meta_ITER.dat</code> (bundled) or is the content of <code>domainN_flow_xoutlet_meta_ITER.dat</code> (per-field); readers that validate the fixed keys ignore it.</p>
+<table><thead><tr>
+<th>Record</th>
+<th>Restart</th>
+</tr></thead><tbody>
+<tr>
+<td><code>rebuild</code></td>
+<td>keeps the rebuilt state, whichever build or compiler wrote the checkpoint</td>
+</tr>
+<tr>
+<td><code>initial</code></td>
+<td>re-derives the state from the stored pair</td>
+</tr>
+<tr>
+<td>absent (checkpoint written before the record existed)</td>
+<td>keeps the rebuilt state where it reproduces the stored pair bit for bit, otherwise re-derives it; on the correlation property path (liquid metals) a state that is not reproduced stops the run (see below)</td>
+</tr>
+</tbody></table>
+<p>A checkpoint without the record whose correlation-path state the rebuild does not reproduce (in practice: written by another build, compiler or flag set) cannot be classified. The run stops on every rank and names the number of points. Choose with the environment variable <code>CHAPSIM_LEGACY_FBCX_STATE</code>: <code>keep</code> for a checkpoint written by the time loop (any checkpoint after the first energy step), <code>rederive</code> for an initial-state checkpoint (the behaviour before the record existed). Table fluids (supercritical water, CO2) are not affected.</p>
+<h3>Flow Step of a Thermal Checkpoint</h3>
+<p>Thermal checkpoints and statistics are labelled by the run iteration, like the flow&#x27;s: the thermal field keeps the run clock also before <code>niterthermofirst</code>, when its equation is not yet solved. A run whose energy equation starts after the flow therefore writes thermal checkpoints at the same labels as the flow (from <code>niterthermofirst</code> on) and can be continued jointly. Every thermal checkpoint records <code>flow_iteration &lt;n&gt;</code>, after <code>field_shapes</code> in <code>domainN_thermo_restart_meta_ITER.dat</code> (bundled) or in <code>domainN_thermo_clock_ITER.dat</code> (per-field), and the statistics metadata carry <code>label_clock run</code>.</p>
+<p>Builds before 2026-10-30 advanced the thermal counter only while the energy equation was solved: with <code>niterthermofirst &gt; niterflowfirst</code> their thermal labels trailed the flow&#x27;s, a thermal checkpoint could carry the label (and the stored time) of an earlier flow checkpoint, and <code>qw_ramp</code> ran on that trailing counter. A restart whose thermal checkpoint records a different flow step than its label stops; a checkpoint without the record is read with a warning.</p>
 <h2>Recommended Setups</h2>
 <h3>Exact Restart, Bundled Output</h3>
 <p>Use this for production checkpoints and restart-equivalence tests:</p>

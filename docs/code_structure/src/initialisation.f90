@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-!                      CHAPSim version 2.2.0
+!                      CHAPSim version 2.3.0
 !                      --------------------------
 ! This file is part of CHAPSim, a general-purpose CFD tool.
 !
@@ -80,6 +80,7 @@ contains
     call alloc_x(fl%qz,      dm%dccp) ; fl%qz = ZERO
 
     call alloc_x(fl%pres,    dm%dccc) ; fl%pres = ZERO
+    call alloc_x(fl%pres_rk, dm%dccc) ; fl%pres_rk = ZERO
     call alloc_x(fl%pcor,    dm%dccc) ; fl%pcor = ZERO
     call alloc_z(fl%pcor_zpencil_ggg,    dm%dccc, .true.) ; fl%pcor_zpencil_ggg = ZERO
 
@@ -125,6 +126,9 @@ contains
       call alloc_x(fl%dDens,   dm%dccc) ; fl%dDens = ONE
       call alloc_x(fl%mVisc,   dm%dccc) ; fl%mVisc = ONE
       call alloc_x(fl%dDens0, dm%dccc)  ; fl%dDens0 = ONE
+      call alloc_x(fl%dDens_hat, dm%dccc) ; fl%dDens_hat = ONE
+      call alloc_x(fl%drhodt_m1, dm%dccc) ; fl%drhodt_m1 = ZERO
+      call alloc_x(fl%drhodt_m2, dm%dccc) ; fl%drhodt_m2 = ZERO
     end if
     if(dm%outlet_sponge_layer(1) > MINP) then
       allocate (fl%rre_sponge_c(dm%dccc%xsz(1))); fl%rre_sponge_c = ZERO
@@ -173,6 +177,8 @@ contains
 
     if(dm%is_conv_outlet(1)) then
       allocate (tm%fbcx_rhoh_rhs0(dm%dccc%xsz(2), dm%dccc%xsz(3))); tm%fbcx_rhoh_rhs0 = ZERO
+      allocate (tm%fbcx_dhat(4, dm%dccc%xsz(2), dm%dccc%xsz(3))); tm%fbcx_dhat = ONE
+      allocate (tm%fbcx_dhat_rhs0(dm%dccc%xsz(2), dm%dccc%xsz(3))); tm%fbcx_dhat_rhs0 = ZERO
     end if
     if(dm%is_conv_outlet(3)) then
       allocate (tm%fbcz_rhoh_rhs0(dm%dccc%zsz(1), dm%dccc%xsz(2))); tm%fbcz_rhoh_rhs0 = ZERO
@@ -707,6 +713,7 @@ contains
   !> - fl (inout): Flow state to initialise.
   !> - dm (inout): Domain descriptor.
   subroutine initialise_flow_fields(fl, dm, opt_tm)
+    use bc_convective_outlet_mod, only : restore_fbcx_outlet_thermo_bc
     use boundary_conditions_mod
     use continuity_eq_mod
     use convert_primary_conservative_mod
@@ -728,6 +735,7 @@ contains
 
     real(WP) :: velo(3)
     logical  :: is_thermo_fresh
+    real(WP), allocatable :: fbcx_gx_rst(:, :, :), fbcx_gy_rst(:, :, :), fbcx_gz_rst(:, :, :)
 
     if(nrank == 0) call Print_debug_start_msg("Initialise flow fields ...")
   !------------------------------------------------------------------------------
@@ -751,6 +759,10 @@ contains
       if(dm%is_thermo .and. present(opt_tm)) is_thermo_fresh = (opt_tm%inittype /= INIT_RESTART)
       call read_instantaneous_flow(fl, dm, opt_is_initial=is_thermo_fresh)
       call restore_flow_variables_from_restart(fl, dm)
+      ! Bc: the outlet thermal state restored by the flow bundle is rebuilt from
+      ! the advected rho*h and the restored outlet rho_hat (thermal bundle).
+      if(is_bc_recovery .and. dm%is_thermo .and. present(opt_tm)) &
+        call restore_fbcx_outlet_thermo_bc(opt_tm, dm)
       ! The time-averaged fields are not read here. They are restored, together
       ! with their sample count, by init_stats_flow in post_statistics.f90,
       ! which runs earlier - from Buildup_mpi_domain_decomposition, where the
@@ -823,15 +835,36 @@ contains
 ! Drop it and let the AB2 startup branch rebuild it, which is what
 ! rebuild_compact_flow_restart does for restart_history_mode=compact.
 !------------------------------------------------------------------------------
+    ! The convective-outlet histories follow, so that the outlet planes start like
+    ! a fresh run (where they are allocated as zero) and like the thermal partial
+    ! restart in initialise_thermo_fields. They enter as tZeta(isub)*rhs0: no
+    ! effect for RK3 (tZeta(1) = 0), the first step for AB2.
     if(dm%restart_clock == RESTART_CLOCK_RESET) then
       if(fl%inittype == INIT_RESTART) then
         fl%mx_rhs0(:, :, :) = ZERO
         fl%my_rhs0(:, :, :) = ZERO
         fl%mz_rhs0(:, :, :) = ZERO
         fl%is_compact_restart_startup = .true.
+        if(dm%is_conv_outlet(1)) then
+          fl%fbcx_a0cc_rhs0(:, :) = ZERO
+          fl%fbcx_a0pc_rhs0(:, :) = ZERO
+          fl%fbcx_a0cp_rhs0(:, :) = ZERO
+        end if
+        if(dm%is_conv_outlet(3)) then
+          fl%fbcz_apc0_rhs0(:, :) = ZERO
+          fl%fbcz_acp0_rhs0(:, :) = ZERO
+          fl%fbcz_acc0_rhs0(:, :) = ZERO
+        end if
       end if
       if(present(opt_tm)) then
-        if(opt_tm%inittype == INIT_RESTART) opt_tm%ene_rhs0(:, :, :) = ZERO
+        if(opt_tm%inittype == INIT_RESTART) then
+          opt_tm%ene_rhs0(:, :, :) = ZERO
+          if(dm%is_conv_outlet(1)) then
+            opt_tm%fbcx_rhoh_rhs0(:, :) = ZERO
+            opt_tm%fbcx_dhat_rhs0(:, :) = ZERO
+          end if
+          if(dm%is_conv_outlet(3)) opt_tm%fbcz_rhoh_rhs0(:, :) = ZERO
+        end if
       end if
     end if
 
@@ -855,8 +888,26 @@ contains
         ! the restart flow field nor any rescaling of it has been applied yet.
         ! With a freshly initialised thermal field, the interior g = q*rho is
         ! rebuilt from the new density by read_instantaneous_flow instead.
+        !
+        ! Exception: with a convective x-outlet the thermal bundle does store
+        ! fbcx_g*, and those are the advanced outlet state. The rebuild g = q*rho
+        ! would replace the convective ghost (slot 4 = 2*g(2) - g(nc)) of gy, gz by
+        ! a copy of slot 2 (IG2Q keeps q(4) = q(2)), so the first outlet stage
+        ! after the restart would differ from the uninterrupted run. The stored
+        ! x-planes are therefore put back after the rebuild.
         !------------------------------------------------------------------------
+        if(fl%is_fbcx_g_restored) then
+          allocate(fbcx_gx_rst, source = dm%fbcx_gx)
+          allocate(fbcx_gy_rst, source = dm%fbcx_gy)
+          allocate(fbcx_gz_rst, source = dm%fbcx_gz)
+        end if
         call convert_primary_conservative (dm, fl%dDens, IQ2G, IBND)
+        if(fl%is_fbcx_g_restored) then
+          dm%fbcx_gx = fbcx_gx_rst
+          dm%fbcx_gy = fbcx_gy_rst
+          dm%fbcx_gz = fbcx_gz_rst
+          deallocate(fbcx_gx_rst, fbcx_gy_rst, fbcx_gz_rst)
+        end if
       end if
       !call update_dyn_fbcx_from_flow(dm, fl%gx, fl%gy, fl%gz, dm%fbcx_gx, dm%fbcx_gy, dm%fbcx_gz)
       !call convert_primary_conservative(fl%dDens, dm, itag=IG2Q, iloc=IALL)
@@ -891,6 +942,17 @@ contains
     if(dm%LES_model == ILES_WALE) then
       call calculate_les_wale(fl, dm, opt_max_strain_rate_mag2 = fl%max_strain_rate_mag2_init)
       if(nrank == 0) write(*, wrtfmt1e) '  max S_ij S_ij of the initial field :', fl%max_strain_rate_mag2_init
+      !------------------------------------------------------------------------
+      ! A heated LES continuation restores the subgrid viscosity and Prandtl
+      ! number its first energy substep reads (read_les_restart_state). Not on a
+      ! restart_clock=reset run or a partial restart, which treat the checkpoint
+      ! as an initial condition and keep the fresh-start state, as they drop the
+      ! RHS histories.
+      !------------------------------------------------------------------------
+      if(dm%is_thermo .and. present(opt_tm)) then
+        if(fl%inittype == INIT_RESTART .and. opt_tm%inittype == INIT_RESTART .and. &
+           dm%restart_clock /= RESTART_CLOCK_RESET) call read_les_restart_state(fl, opt_tm, dm)
+      end if
     end if
 
     if(dm%is_thermo) then
@@ -953,6 +1015,7 @@ contains
       if(fl%inittype /= INIT_RESTART) then
         tm%ene_rhs0(:, :, :) = ZERO
         if(dm%is_conv_outlet(1)) tm%fbcx_rhoh_rhs0(:, :) = ZERO
+        if(dm%is_conv_outlet(1)) tm%fbcx_dhat_rhs0(:, :) = ZERO
         if(nrank == 0) call Print_note_msg( &
           'Thermal restart with a freshly initialised flow field: the restart thermal field is used '// &
           'as an initial condition and its energy RHS history is dropped.')
@@ -965,6 +1028,12 @@ contains
         call initialise_vortexgreen_3dflow_thermo(fl, tm, dm)
         call ftp_refresh_thermal_properties_from_T_undim_3Dtm(fl, tm, dm)
       end if
+      ! Boundary states from the initial interior, as after a restart. The
+      ! Neumann (imposed-qw) wall and outlet states were left at the uniform tm%ftp_ini until the
+      ! first energy step; with a non-uniform initial field and the energy equation starting after
+      ! the flow, the momentum equation then used states that matched neither the interior nor a
+      ! restart from the step-0 state.
+      call Rebuild_thermal_boundary_states(fl, tm, dm)
       tm%time = ZERO
     end if
 !------------------------------------------------------------------------------
@@ -979,6 +1048,16 @@ contains
     if(dm%restart_clock == RESTART_CLOCK_RESET) tm%time = ZERO
 
     fl%dDens0(:, :, :) = fl%dDens(:, :, :)
+    ! Bc (transported-density recovery): rho_hat and the rho_t of the last stage
+    ! come from a Bc thermal restart when available (fl%is_bc_state_restored).
+    ! Otherwise rho_hat = rho_EOS and a zero history are used. That is exact for
+    ! a fresh thermal field (rho_t = 0 at t = 0, e.g. after an isothermal
+    ! precursor) and approximate for a legacy thermal restart (warned on read).
+    if(.not. fl%is_bc_state_restored) then
+      fl%dDens_hat(:, :, :) = fl%dDens(:, :, :)
+      fl%drhodt_m1(:, :, :) = ZERO
+    end if
+    fl%drhodt_m2(:, :, :) = ZERO   ! multiplies zeta_1 = 0 at the first stage
     if(nrank == 0) call Print_debug_mid_msg("update_fbcy_cc_thermo_halo ...")
     if (dm%icase == ICASE_PIPE) call update_fbcy_cc_thermo_halo(tm, dm)
 

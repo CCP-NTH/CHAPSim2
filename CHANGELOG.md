@@ -1,6 +1,551 @@
 # Changelog
 
-## Unreleased - 2026-10-06
+## v2.3.0 - 2026-11-13
+
+CPU release supporting the CHAPSim2 CPC paper. It collects the development
+since v2.2.0: the transported-density (Bc) recovery of the thermodynamic
+state, now the default; optional split outlet mass correction and
+zero-gradient thermal outlet pair for convective x-outlets; optional Koren
+enthalpy advection and PCHIP property interpolation; the statistical-window
+post-processing mode; restart integrity (exact heated, LES, per-field and
+mesh-mapped restarts, checkpoint provenance records, bundle size and geometry
+checks); a continuity safety stop that ends all ranks on a non-finite
+solution; correctness fixes found while porting the solver to GPUs; and the
+structured restart, unit and functional tests that verify them. Options marked
+EXPERIMENTAL are verified only for the configurations stated in their entries
+and in the user guide. Regression baselines moved where a fix changed results;
+each move is explained in `tests/reference_update_log_*.md`.
+
+### Upgrading from v2.2.0
+
+Summary for users of v2.2.0 (tag `v2.2.0`, 2026-10-08). The entries below give the details.
+
+**Changes in numerical behaviour: results differ from v2.2.0**
+- Thermal runs now use transported-density (Bc) recovery of the thermodynamic
+  state by default (`rhoh_recovery = transported`). The previous one-pass
+  recovery is kept as `lagged_legacy`, which is deprecated, for comparison only,
+  and gives non-exact restarts with imposed-heat-flux walls. Thermal regression
+  baselines moved (`tests/reference_update_log_2026-10-10.md`).
+- Thermal timekeeping: when the energy equation starts after the flow
+  (`niterthermofirst > niterflowfirst`), the thermal iteration and time advance
+  with the run, `qw_ramp` runs on run iterations, and thermal checkpoints and
+  statistics are labelled with the run iteration. Runs whose flow and energy
+  equations start together are unchanged.
+- A fresh thermal start builds its boundary thermal states from the initial
+  interior field, as a restart does.
+- The singular line of the y-direction Poisson solve with z walls is now
+  projected. z-wall cases change; periodic-z runs are bitwise unchanged.
+- `restart_clock = reset` also drops the convective-outlet RHS histories. RK3 is
+  unaffected; AB2 changes in its first step only.
+
+**Statistics**
+- `t_avg_fuuu` now accumulates the Favre triple moment rho u_i u_j u_k; it was
+  weighted by rho*T. A heated `stat_level` 3 statistics restart from older flow
+  statistics stops, and a statistical window whose ends use different
+  definitions stops.
+- New statistical-window post-processing mode (`is_postprocess`,
+  `pp_stat_window`). It requires statistics snapshots that carry sample counts
+  (`nsamples`, written since the v2.2.0 tag).
+- `stat_nskip` is not implemented: a value other than `1,1,1` now gives a
+  warning and is ignored.
+
+**Restart compatibility: checks that can stop restarts v2.2.0 accepted**
+- Restart, statistics and inlet-database bundles stop if the `.bin` does not
+  hold exactly the arrays listed in its metadata.
+- A bundled restart stops if the recorded geometry (case, coordinate system,
+  lengths, y stretching, periodicity) differs from the input. Use the
+  mesh-restart workflow to change mesh.
+- A thermal checkpoint written by v2.2.0 carries no Bc state. v2.3.0 starts with
+  rho_hat = rho and a zero rate history, and warns that the continuation is not
+  exact.
+- Liquid-metal (correlation-path) checkpoints written before the x-boundary
+  thermal-state record stop if that state cannot be rebuilt exactly; choose with
+  `CHAPSIM_LEGACY_FBCX_STATE=keep|rederive`.
+- Copy the new per-checkpoint files with a checkpoint:
+  - `thermo_interp_meta`, the numerical-mode record checked on restart;
+  - `outlet_split`, with `outlet_mass_correction = split` only.
+
+  Without `checkpoint_meta`, the restart time is taken from the bundle metadata.
+
+**Removed or unsupported input**
+- The 1D profile inlet (BC id 9) is rejected at input; the feature is
+  unfinished.
+- The NIST CO2 property table (`NIST_CO2_8MP.DAT`) is not distributed, because
+  of NIST Standard Reference Data redistribution terms; see
+  `validation/thermal_properties/README.md`. `ifluid = scp_co2` needs a table in
+  the working directory. `generate_property_table.py` builds one from CoolProp
+  (MIT licence), whose transport properties differ from the NIST table by up to
+  about 5%, so results will not match runs made with the original table. No test
+  or regression case needs CO2; the property-interpolation harnesses skip the
+  CO2 table when it is absent. Supercritical-CO2 production cases, such as the
+  heated CO2 pipe, cannot be rerun from this repository alone.
+
+**Experimental capabilities (verified only for the configurations stated in their entries)**
+- `outlet_mass_correction = uniform_flux | split`
+- `thermal_outlet_pair = zero_gradient`
+- `enthalpy_advection = koren`
+- `property_interp = pchip`
+- Opt-in pressure statistics (`CHAPSIM_B3_PSTAT`)
+
+**Runtime environment variables**
+- Change the run:
+  - `CHAPSIM_B3_FIXED_DT=1` (with `CHAPSIM_B3_FIXED_DT_CFLMAX`): dt is never
+    changed and the run stops if the CFL limit is exceeded;
+  - `CHAPSIM_LEGACY_FBCX_STATE` (see above);
+  - `CHAPSIM_NITER` (overrides the number of steps; used by the smoke tests).
+- Output and diagnostics only:
+  - `CHAPSIM_B3_PBAR` (full-step pressure output);
+  - `CHAPSIM_B3_BUDGET` (mass and rho*h budgets);
+  - `CHAPSIM_DIAG_YSKIP_ZERO` (Poisson diagnostic);
+  - `CHAPSIM_B3_PSTAT` and `CHAPSIM_B3_PSTAT_MID` (experimental pressure
+    statistics). These change the statistics signature, so a statistics
+    restart must use the same setting.
+
+**Verification scope**
+- The code is verified by metric-gated regression and functional suites,
+  conservation checks, restart-exactness tests and unit tests (see `tests/`).
+- This establishes reproducibility and discrete consistency. It does not
+  establish physical accuracy for every configuration.
+- Results depend on the MPI decomposition at round-off level.
+- See the known limitations below.
+
+### Added
+
+- Added the optional `[bc]` key `outlet_mass_correction` (EXPERIMENTAL, after
+  `drivenfc`) for convective x-outlets. `proportional` (default, unchanged)
+  scales the outlet face mass flux by `s = 1 + R/mdot_out` at every RK stage;
+  `uniform_flux` adds the same mass-flux increment `R/A_out` to every outlet
+  face instead (`enforce_domain_mass_balance_dyn_fbc`); `split` applies the
+  slow part `S_k = alpha_k * sum(R over the previous step)` proportionally and
+  the stage-periodic remainder `R_k - S_k` uniformly, with its one state value
+  written to `1_data/domain<id>_outlet_split_<iter>.dat` at each checkpoint
+  (`write_outlet_split_state`). All variants close the stage balance
+  `int drho/dt dV + mdot_out - mdot_in = 0` exactly; only the profile of the
+  correction differs. `split` is the setting used for the Nemati/Bae case B
+  supercritical CO2 pipe DNS; it is verified for that configuration only.
+
+- Added the optional `[thermo]` key `thermal_outlet_pair` (EXPERIMENTAL;
+  `convective`, default and unchanged; `zero_gradient`) for a convective
+  thermal x-outlet under `rhoh_recovery = transported`. With `zero_gradient`,
+  `update_fbcx_convective_outlet_thermo` sets the outlet face (rho*h, rho_hat)
+  to the last interior cell's pair, so the outflow enthalpy flux is the upwind
+  g_b h(nc) and no separately time-integrated face state exists; the
+  convective face pair let rho_hat drift from rho(h) in the outlet cells.
+  Outlet backflow faces are counted and reported. The key must directly follow
+  `enthalpy_advection_restart` (or its position) and is rejected for other
+  outlet types, `lagged_legacy` and convective z-outlets.
+
+- Added the statistical-window post-processing mode. `is_postprocess = .true.`
+  in `[process]`, which was read but had no effect, now runs post-processing
+  only: with `pp_stat_window = a, b` it rebuilds the statistics averaged over
+  iterations a+1 ... b from the cumulative statistics checkpoints at a and b,
+  `A = (N_b A_b - N_a A_a)/(N_b - N_a)` per stored raw moment, using the
+  sample counts of each group (flow, thermo, MHD) from their manifests. No
+  field is initialised and no time step is taken; nothing in the case's
+  `1_data`, `2_visu`, `3_monitor` or `4_check` is written. Output goes to the
+  fixed directory `5_postprocess/window_<a>_<b>/` (an existing window
+  directory stops the run) in the existing statistics and profile formats,
+  with a provenance record `stat_window_provenance.dat`. Snapshots without a
+  sample count (written before 2026-10-06), a changed `stat_istart`,
+  signature, field list or mesh, a truncated bundle, `N_b - N_a /= b - a`, and
+  flow and thermal statistics known to cover different solver steps are
+  rejected before any output is created; reconstructed variances negative
+  beyond round-off stop the run before the statistics are written. New
+  routines `check_stats_window`, `read_stats_window`, `write_stats_window`
+  (`post_statistics.f90`), `Prepare_postprocess_output`, `Postprocess_chapsim`
+  (`chapsim.f90`). Normal runs are unchanged. Tests:
+  `tests/unit_stat_window/`, `tests/functional/stat_window/`.
+
+- Added the EXPERIMENTAL optional `[thermo]` key `enthalpy_advection` (`cd2`,
+  default and unchanged; `koren`): Koren-limited MUSCL face value of h in the
+  convective flux g*h_f of the rho*h equation, upwinded on the existing face
+  mass flux, with the conservative P2C divergence, cylindrical factors, RK3,
+  projection, diffusion and boundary conditions unchanged
+  (`Get_[xyz]_midp_C2P_koren_3D`, `Compute_energy_rhs`). Requires
+  `iaccuracy = cd2`; independent of `property_interp`; the key follows
+  `property_interp` (or takes its position), and a misplaced or repeated line
+  stops the run. No clipping. Inputs without the key are unchanged bit for bit.
+
+- Added the optional lines `enthalpy_advection <cd2|koren>` and
+  `enthalpy_advection_switch <from>-><to> <iteration>` to the thermal-checkpoint
+  record `domain<d>_thermo_interp_meta_<iter>.dat` (written by koren runs and by
+  runs carrying a permitted switch; cd2 records otherwise unchanged; binary
+  checkpoints unchanged).
+
+- Added the optional `[thermo]` key `enthalpy_advection_restart` (`strict`,
+  default; `allow_switch`), read directly after `enthalpy_advection`:
+  `check_thermo_interp_metadata` stops a thermal restart whose checkpoint was
+  advanced with the other enthalpy-advection scheme unless `allow_switch` is
+  given, and then still stops if the statistics averaging window would
+  continue across the change; a permitted change is warned about and recorded
+  in later checkpoint records. Records without the line count as cd2; the
+  property_interp restart rule is unchanged and not overridable.
+
+- Added the optional `[io]` key `ndb_sampling_dt` (directly after
+  `ndb_file_offset`): the physical time between stored inlet-database planes.
+  With `ndb_sampling_dt = R dt` (R an integer, validated, and equal to the
+  bundle-metadata dt) the inlet is interpolated linearly in time between
+  samples (`read_instantaneous_xinlet_tinterp`): database time is the run
+  time, the stored planes are used unchanged at their sample times, the replay
+  does not interpolate across its wrap, and a restart reads the same inflow as
+  an uninterrupted run. Requires a constant dt. Inputs without the key, and
+  R = 1, keep the step-indexed replay bit for bit.
+
+- Added the EXPERIMENTAL optional `[thermo]` key `property_interp` (`linear`,
+  default and unchanged; `pchip`): monotone piecewise-cubic Hermite
+  interpolation of the property table in enthalpy (T, rho, mu, k, sigma_e,
+  beta), C1 in h, with cp = 1/(dT/dh) of the interpolant and inverse
+  temperature lookups by inversion of the same T(h). Table fluids with
+  `rhoh_recovery = transported` only; the key follows `rhoh_recovery`
+  (or `qw_ramp`, or `inout_buffer`) in the `[thermo]` block, and a
+  `property_interp` line anywhere else, or given twice, stops the run with a
+  message. Inputs without the key are unchanged. Removes the pressure impulses
+  caused by d(rho)/dh jumps at table nodes; not yet approved for production use.
+
+- Added the thermal-checkpoint record `domain<d>_thermo_interp_meta_<iter>.dat`
+  (`write_thermo_interp_metadata`, both restart layouts) holding the property
+  interpolation of the checkpoint; `check_thermo_interp_metadata` stops a
+  thermal restart whose recorded mode differs from `property_interp`, or whose
+  record is unreadable or belongs to another iteration, and continues
+  checkpoints without a record (older versions) in linear mode only. Existing
+  binary and metadata formats are unchanged.
+
+- Added the full-step effective pressure `pr_fullstep` = sum_k alpha_k p_k
+  (RK3 stages) as visualisation field with metadata sidecar, monitor metrics
+  and probe companion files (env `CHAPSIM_B3_PBAR=1`; output only). The
+  internal projection pressure `pr` is unchanged.
+
+- Added opt-in mass and rho*h budget diagnostics `3_monitor/domain1_budget.log`
+  (env `CHAPSIM_B3_BUDGET=1`; output only).
+
+- Added an opt-in fixed-dt safety mode in `Check_cfl_convection` (env
+  `CHAPSIM_B3_FIXED_DT=1`, limit `CHAPSIM_B3_FIXED_DT_CFLMAX`): dt is never
+  changed and all ranks stop if the CFL exceeds the limit; needed with the
+  iteration-indexed inlet database.
+
+- Added experimental, opt-in pressure statistics paired with the completed
+  step (env `CHAPSIM_B3_PSTAT=1`); not a production default.
+
+- Added `known_limitation` support in `tests/tools/check_metrics.py`.
+
+### Changed
+
+- Changed a bundled restart to stop when the bundle manifest describes another
+  geometry than the input: `icase`, the coordinate system, the domain lengths
+  (`lxx`, `lyb`, `lyt`, `lzz`), the y stretching (`istret`, and for a
+  stretched mesh `mstret`, `rstret`) and the periodicity are now compared,
+  besides the cell and point counts (`validate_bundle_metadata`,
+  `io_restart.f90`). A checkpoint from a mesh with the same counts but another
+  length or stretching was read as if it belonged to the current mesh.
+- Changed `stat_nskip` to warn and use `1,1,1` when another value is given: a
+  statistics cell skip is not implemented, the statistics always cover every
+  cell (`input_general.f90`). The input guide documents the key as reserved.
+- Changed `restart_clock = reset` to drop the convective-outlet RHS histories
+  (flow `fbcx_a0*_rhs0`, `fbcz_a*0_rhs0`; thermal `fbcx_rhoh_rhs0`,
+  `fbcx_dhat_rhs0`, `fbcz_rhoh_rhs0`) together with the interior ones, as a
+  fresh start and the thermal partial restart do (`initialise_flow_fields`).
+  RK3 runs are unchanged (the step-start history is multiplied by zero); AB2
+  runs change in the first step only.
+
+- Changed the thermal clock of a run whose energy equation starts after the
+  flow (`niterthermofirst > niterflowfirst`): the thermal iteration and time
+  now advance with every step up to `niterthermolast`, also before
+  `niterthermofirst` (`chapsim.f90`); the energy equation is still solved from
+  `niterthermofirst`. Thermal checkpoints and statistics therefore carry the
+  run iteration of the flow step that wrote them, and `qw_ramp =
+  .true., start, end` ramps over run iterations `start..end`, as documented;
+  before, it ran on the trailing thermal count (e.g. thermal from 21, ramp
+  21..30: wall heat flux zero until 40, ramp 41..50). Statistics metadata gain
+  `label_clock run`; the statistical window treats such thermal snapshots as
+  aligned and keeps the input-based derivation for older files. Runs with the
+  thermal start at the flow start are unchanged.
+
+- Changed `t_avg_fuuu` to accumulate the Favre triple moment rho u_i u_j u_k,
+  as its declaration and the other f-statistics; it was weighted by rho*T
+  (copied from `t_avg_tfuu`). Flow statistics metadata gain
+  `fuuu_definition rho`; a statistics restart (`stat_level` 3, heated) from
+  flow statistics without the key stops, and a statistical window whose ends
+  differ in it stops (`check_stats_fuuu_definition`, `post_statistics.f90`). Test: `tests/stats_fuuu/run_test.sh`.
+
+- Changed a fresh thermal start to build the boundary thermal states
+  (imposed-heat-flux walls, Neumann outlets) from the initial interior field,
+  as a restart from the same state does (`Rebuild_thermal_boundary_states`,
+  `eq_energy.f90`, called by `initialise_thermo_fields` and
+  `restore_thermo_variables_from_restart`). They stayed at the uniform initial
+  state until the first energy step, so with temperature noise and a delayed
+  energy start the momentum equation used, during the delay, wall states that
+  a restart from step 0 did not reproduce (velocity ~1e-7, pressure ~5e-4
+  relative after 60 steps); fresh and restarted runs now agree bit for bit.
+  Fresh-start trajectories of heated runs with a non-uniform initial field and
+  Neumann wall or outlet states change.
+
+- Changed the restart of a checkpoint written before `fbcx_thermal_state`
+  existed (below), on the correlation property path only (liquid metals): if
+  the rebuilt x-boundary thermal state does not reproduce the stored one bit
+  for bit, the run now stops on every rank with the number of points, instead
+  of re-deriving the state from the stored (rho, rho*h) without notice. The
+  environment variable `CHAPSIM_LEGACY_FBCX_STATE=keep` (a time-loop
+  checkpoint) or `=rederive` (an initial-state checkpoint; the former
+  behaviour) chooses. Same-build checkpoints, table fluids and checkpoints
+  with the record are unaffected (`check_legacy_fbcx_state`, `io_restart.f90`).
+
+- Changed the recovery of the thermodynamic state from the advanced rho*h to
+  the transported density rho_hat (Bc): rho_hat is advanced with the energy
+  RK3 weights and the lagged physical density rate, h = (rho h)/rho_hat,
+  rho = rho_EOS(h). Input key `rhoh_recovery` (`transported`, default;
+  `lagged_legacy`, deprecated, comparison only). The previous one-pass
+  recovery was unstable independently of dt when |(h-h0) beta/cp| exceeded
+  about 0.5 and its pressure contained a component proportional to 1/dt.
+  Thermal regression baselines moved (tests/reference_update_log_2026-10-10.md).
+
+- Changed property-range violations to a collective, informative stop of all
+  ranks without clamping or extrapolation.
+
+### Fixed
+
+- Fixed the continuity safety stop: a NaN or infinity in div(g) + drho/dt, or
+  a non-finite projected-source amplitude, now stops every rank with the rank
+  and first cell reported, at any iteration and also in the pre-loop restart
+  diagnostics (`abort_if_nonfinite_continuity`, `eq_continuity.f90`; the
+  same check as in the GPU build). The max reductions discarded a NaN, so only
+  the floating-point trap of the default build caught it, on one rank. The
+  finite stop (residual > 2.0 after iteration 10000) now ends all ranks with
+  `MPI_ABORT` instead of a rank-0 `error stop`, which `srun` could leave the
+  other ranks waiting on. Finite runs are unchanged. Test:
+  `tests/restart_nonfinite/run_test.sh` (`EXPECT=nonzero` for trapping builds).
+
+- Fixed statistics bundles (`flow_stats`, `thermo_stats`, `mhd_stats`) being
+  read without a size check: a truncated or padded `.bin` was read without
+  notice. The readers now stop unless the file holds exactly the arrays of the
+  validated field list (`check_stats_bundle_file_size`,
+  `post_statistics.f90`).
+- Fixed bundled inlet-database files being replayed without a size check; a
+  short file now stops the run (`read_xoutlet_bundle_metadata`,
+  `io_restart.f90`). Test for both size checks, the geometry check, the
+  restart time and the MHD manifest: `tests/restart_metadata_checks/run_test.sh`.
+- Fixed the restart time of a bundled restart without `checkpoint_meta`: it is
+  now taken from the bundle manifest, which records it exactly, instead of
+  being estimated as `iterfrom * dt` (`read_checkpoint_restart_metadata`).
+- Fixed `checkpoint_meta` omitting `mhd_stats`: the MHD statistics bundle is
+  written after the flow and thermal ones, and the manifest is now refreshed
+  after it (`write_mhd_stats_bundle`).
+- Fixed a per-field flow checkpoint used as the initial field of a heated run
+  with a convective x-outlet starting the outlet planes silently from their
+  initial state; it now warns (the bundled layout restores the planes).
+
+- Fixed the singular line of the y-direction tridiagonal Poisson solve with z
+  walls (`poisson_11x_yskip`): the real and imaginary parts of a z-wall mode
+  hold different cosine modes, and the combined zero-mode test never flagged
+  the (0,0) line, which was solved without its compatibility projection
+  (line residual 2.2e-3 of the source). The two parts now take their own
+  flags; periodic-z runs are unchanged bit for bit. Check:
+  `tests/tools/check_yskip_zero_mode_zwalls.sh`.
+
+- Fixed the 1D profile inlet (`IBC_PROFILE1D`, BC id 9) being accepted
+  although the path is unfinished for every variable: the streamwise velocity
+  profile is never read, the profile interpolation passes the values as
+  abscissae, the cylindrical radius scaling is applied to Cartesian cases, and
+  the thermal profile is never converted and then reset to `tini`. The input
+  check now rejects BC id 9 on the x inlet with a message.
+
+- Fixed the initial temperature noise depending on the compiler: the hash index
+  passed to `generate_random11_mixhash` in `initialise_thermal_properties` was
+  unassigned. It is now 0, the value gfortran builds used, so their results are
+  unchanged.
+
+- Fixed `build_chapsim.sh` deleting the vendored `lib/2decomp-fft` (which has no
+  `.git` of its own) in a fresh clone and cloning an unpinned upstream copy,
+  which fails without network access; the vendored copy is accepted when its
+  `CMakeLists.txt` is present.
+
+- Fixed `inversion5_v2` reusing the previous line's multiplier on a zero pivot,
+  as `inversion5_v1` already did; reached only by matrices with a zero pivot,
+  which current inputs do not produce (static check
+  `tests/tools/check_inversion5_zero_pivot.py`).
+
+- Fixed the drho/dt damping towards a z convective outlet having no effect:
+  `damping_drhodt` damped a z-pencil copy that was never written back. Reached
+  only once the projected mass residual exceeds 1 (static
+  check `tests/tools/check_damping_drhodt_z_writeback.py`).
+
+- Fixed the misleading time-scheme and viscous-term options: `itimescheme =
+  rk3_cn` runs the explicit RK3 scheme and `iviscous = semi_implicit` has no
+  effect (no Crank-Nicolson or implicit diffusion is implemented). Both are
+  still accepted, now with a warning, and the diffusion-number warnings no
+  longer advise implicit diffusion.
+
+- Fixed the first header line of the monitor history logs
+  (`domainN_monitor_change_history.log`, `domainN_monitor_metrics_history.log`)
+  printing an unassigned integer as `pt-id`; it is now 0, the value gfortran
+  builds printed.
+
+- Fixed the restart of the x-boundary thermal state from a checkpoint written
+  by another build, compiler or flag set (`rhoh_recovery = transported`,
+  convective x-outlet). The per-point bit test that kept the state rebuilt from
+  (rho*h, rho_hat) fails when the property evaluation differs in the last bit,
+  and the stored-pair re-derivation then moved the outlet rho*h (3.9e-11
+  relative after one step for sodium from an FMA build; ~5e-8 reported for
+  PbLi MHD across CPU and GPU builds). Flow checkpoints now record
+  `fbcx_thermal_state rebuild|initial` (`fl%is_fbcx_thermal_rebuilt`, set by
+  each energy step), after `field_shapes` in `domainN_flow_restart_meta_ITER.dat`
+  or in the per-field sidecar `domainN_flow_xoutlet_meta_ITER.dat`; `rebuild`
+  keeps the rebuilt state on Neumann- and Dirichlet-temperature sides,
+  `initial` re-derives it, an absent record keeps the bit test. A convective
+  thermal outlet (`ifbcx_t = ..., 7`) always keeps its stored advected rho*h.
+  Same-build continuations and fresh runs are unchanged bit for bit; older
+  executables read the new files. Test:
+  `tests/restart_exact/run_test.sh` (`water_convT`).
+
+- Fixed a silent mismatch when a run whose energy equation starts after the
+  flow is restarted from checkpoints of builds before this one, whose thermal
+  labels trailed the flow step (see the thermal clock above). Thermal
+  checkpoints now record `flow_iteration <n>` (after `field_shapes` in
+  `domainN_thermo_restart_meta_ITER.dat`, or in the per-field sidecar
+  `domainN_thermo_clock_ITER.dat`), and `check_thermo_flow_iteration` stops a
+  restart from a mismatched pair; a checkpoint without the record is read
+  with a warning. The stop messages for a missing thermal checkpoint or
+  thermal statistics file name the label offset of older builds. Test:
+  `tests/restart_exact/run_test.sh` (`water_delayed`).
+
+- Fixed the thermal state of a mesh-mapped (prerun) checkpoint lying off the
+  equation of state: `build_up_interp_target_field_thermo` kept the
+  interpolated rho*h while replacing rho by rho_EOS(h), and rho_hat is set to
+  rho_EOS, so the first recovery h = rho*h/rho_hat of the remapped run jumped
+  (max|rhoh - rho_hat h|/max|rhoh| 4.1e-4 on a coarse heated pipe remapped
+  2x finer). rho*h is now stored from the rebuilt state, rho_EOS(h) h. This is
+  thermodynamic consistency, not conservation. Test:
+  `tests/restart_remap_thermo/run_test.sh`.
+
+- Fixed bundled restart files being read without a size check
+  (`restart_data_layout = bundled`; flow, thermal and LES bundles, including
+  the compact-history flow bundle and a heated start from an isothermal
+  precursor). A `.bin` shorter than its metadata lists was read past its end
+  without an error (missing values left as zero, e.g. a truncated velocity
+  component), and a longer one was read as its leading part.
+  `validate_bundle_metadata` now stops on every rank, before any data are
+  read, unless the file size equals the arrays listed in `field_shapes`, and
+  unless `precision_bytes` matches the build's real kind; the message names
+  the file and both sizes. Valid bundles and results are unchanged. Test:
+  `tests/restart_bundle_size/run_test.sh`.
+
+- Fixed the mass-conservation safety stop in `Check_element_mass_conservation`
+  terminating heated restarts beyond iteration 10000 during initialisation: the
+  pre-loop diagnostics (`initial`, `init-div-free`) evaluate div(g) + drho/dt
+  before drho/dt has been computed, so they report max|drho/dt| of the restored
+  state. The stop now applies only to the per-step check; the diagnostics are
+  still printed and the per-step threshold is unchanged.
+
+- Fixed inexact restarts of heated inlet/outlet runs with a Neumann
+  temperature x-boundary under `rhoh_recovery = transported`:
+  `read_flow_restart_xoutlet_state` re-derived the boundary states from the
+  stored (rho, rho*h) with h = rho*h/rho after
+  `restore_thermo_variables_from_restart` had rebuilt them exactly from
+  (rho*h, rho_hat), and the re-derivation does not round-trip. The rebuilt
+  state is now kept at every point where it reproduces the stored pair bit for
+  bit; elsewhere (e.g. a mesh-mapped iteration-0 state) the stored pair is used
+  as before. Fresh runs, `lagged_legacy` and the checkpoint format are
+  unchanged; restarted runs with h /= 0 on that boundary now continue bit for
+  bit. Test: `tests/restart_exact/run_test.sh`.
+
+- Fixed inexact inlet/outlet restarts on the correlation property path
+  (`IPROPERTY_FUNCS`: sodium, lead, bismuth, LBE, lithium, FLiBe, PbLi) under
+  `rhoh_recovery = transported`: re-deriving a Dirichlet-T x-boundary state
+  from the stored (rho, rho*h) through the tabulated h(T) inverse does not
+  return the state the correlations gave for the prescribed temperature.
+  `read_flow_restart_xoutlet_state` now applies the same per-point rule to
+  Dirichlet-T sides as to Neumann-T sides (convective-T side unchanged). Table
+  fluids are unaffected (the re-derivation is exact there); fresh runs and the
+  checkpoint format are unchanged. Test: `tests/restart_exact/run_test.sh`
+  (sodium).
+
+- Fixed per-field restarts (`restart_data_layout = per_field`, the default) of
+  runs with a convective x-outlet: the per-field writers stored no outlet
+  state, so the outlet restarted from its initial state (isothermal channel:
+  1.3e-3 in qx at the outlet ten steps later). Per-field checkpoints now also
+  write `domainN_flow_xoutlet_ITER.bin` (the flow-bundle outlet fields, same
+  routines as the bundle) and, for thermal runs, `fbcx_rhoh_rhs0` and (under
+  `transported`) `fbcx_dhat`, `fbcx_dhat_rhs0`. Older per-field checkpoints
+  are read as before with a warning that the continuation is not exact.
+  Bundled checkpoints and fresh runs are unchanged. Test:
+  `tests/restart_exact/run_test.sh` (water_perfield).
+
+- Fixed inexact restarts of heated LES runs: the first energy substep after a
+  restart reads `fl%tVisc` (WALE of the previous momentum substep) and
+  `tm%prSgs` (refreshed by the previous energy substep), neither of which was
+  checkpointed or can be rebuilt. `write_instantaneous_thermo` now also writes
+  them for a heated LES run (bundled: `domainN_les_restart_ITER.bin` + meta;
+  per-field: `tvisc`, `prsgs`), and `read_les_restart_state` restores them
+  after the initial WALE call of a continuation (not for `restart_clock =
+  reset`). Checkpoints without them are read as before with a warning that
+  the continuation is not bit-continuous. Isothermal LES and fresh runs are
+  unchanged; the LES model is unchanged. Test: `tests/restart_exact/run_test.sh` (les_heated).
+
+- Fixed silent corruption of interpolated inlet-database planes on processor
+  grids whose split of the database cross-section is misaligned with the main
+  grid (e.g. p_col = 48 for a 128 -> 256 theta interpolation): the halo depth
+  then exceeded the adjacent ranks' source blocks and update_halo returned
+  unfilled values. `check_xinlet_database_halo_layout` now compares, on every
+  rank and side, the source layers the interpolation reads with the actual
+  neighbouring block extents and stops with a diagnostic before any
+  interpolated value is used; compatible grids are unchanged bit for bit and
+  the processor grid (including automatic p_row = p_col = 0) is never changed.
+
+- Fixed the periodic seam of the inlet-database interpolation in z when the
+  database cross-section mesh differs from the main domain
+  (`interp_xinlet_database_array_yz`, `bilinear_interp_xinlet_point_halo`,
+  `compute_xinlet_database_halo_level`, new `build_xinlet_z_search_coords`):
+  in a periodic z direction, targets between the last source point and the
+  period end (or below the first point) were given the end value instead of
+  being interpolated across the seam. They now use the periodic neighbour
+  through the existing global halo; interior targets, radial interpolation,
+  non-periodic z and the matching-mesh direct read are unchanged bit for bit.
+
+- Fixed exact restart of heated inlet/outlet runs (outlet boundary states and
+  histories) and of the Bc state (rho_hat, density-rate history, convective
+  thermal outlet).
+
+- Fixed the convective thermal x-outlet to use the transported density.
+
+- Fixed the default x-inlet temperature (`ifbcx_t` third field) never being
+  applied when `[thermo]` precedes `[bc]`: a Dirichlet inlet given as `0.0`
+  ran with an inlet at 0 K. A temperature BC value may now be the token
+  `tini` (read by `read_temperature_bc_line`, resolved after all sections in
+  `apply_inlet_temperature_default`); numeric values are explicit and never
+  replaced, so `0.0` or a negative Dirichlet temperature is now an error.
+  Fixed the crash of isothermal inputs with `[bc]` before `[thermo]`
+  (unallocated `thermo`).
+
+- Added `check_dirichlet_bc_temperatures`: Dirichlet boundary temperatures
+  outside the property range (table rows or correlation interval) now stop
+  the run before the simulation with the boundary named.
+
+### Known limitations
+
+- `rhoh_recovery = lagged_legacy` is deprecated and kept for regression
+  comparison only; its restarts with imposed-heat-flux walls are not exact
+  (documented in `restart-io.md`).
+- The EXPERIMENTAL options `outlet_mass_correction = split`,
+  `thermal_outlet_pair = zero_gradient`, `enthalpy_advection = koren` and
+  `property_interp = pchip` are verified for the configurations stated in
+  their entries, not in general.
+- The fix to the drho/dt damping towards a z convective outlet is verified
+  statically only: no shipped case has a heated z-outlet.
+- The singular-line treatment of the y-direction Poisson solve with z walls is
+  verified by its compatibility residual and the regression cases, not by a
+  manufactured-solution test.
+- The 1D profile inlet (BC id 9) is rejected at input; the feature is
+  unfinished.
+- Results depend on the number of MPI ranks and the decomposition at round-off
+  level, through the summation order of global reductions; restarts at a fixed
+  decomposition are exact.
+- The public distribution does not include the NIST CO2 property table;
+  `ifluid= scp_co2` then needs a user-supplied table (see
+  `validation/thermal_properties/README.md`).
+
+## v2.2.0 update - 2026-10-07 (included in the `v2.2.0` tag)
+
+Published after the 2026-10-05 changelog entry below and contained in the `v2.2.0` tag
+(commit `1d0c28f`); listed at the time as "Unreleased - 2026-10-06".
 
 ### Fixed
 

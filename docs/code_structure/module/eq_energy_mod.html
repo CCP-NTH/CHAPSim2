@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.6% of total for modules and submodules.">460 statements</a>
+                 title=" 1.9% of total for modules and submodules.">600 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -162,10 +162,12 @@
         <div class="list-group list-group-flush">
             <a class="list-group-item" href="../module/eq_energy_mod.html#proc-calculate_drhodt">Calculate_drhodt</a>
             <a class="list-group-item" href="../module/eq_energy_mod.html#proc-update_thermal_properties">Update_thermal_properties</a>
+            <a class="list-group-item" href="../module/eq_energy_mod.html#proc-rebuild_thermal_boundary_states">Rebuild_thermal_boundary_states</a>
             <a class="list-group-item" href="../module/eq_energy_mod.html#proc-calculate_energy_fractional_step">Calculate_energy_fractional_step</a>
             <a class="list-group-item" href="../module/eq_energy_mod.html#proc-add_sgs_enthalpy_flux">add_sgs_enthalpy_flux</a>
             <a class="list-group-item" href="../module/eq_energy_mod.html#proc-compute_energy_rhs">Compute_energy_rhs</a>
             <a class="list-group-item" href="../module/eq_energy_mod.html#proc-solve_energy_eq">Solve_energy_eq</a>
+            <a class="list-group-item" href="../module/eq_energy_mod.html#proc-report_bc_consistency">report_bc_consistency</a>
         </div>
       </div>
     </div>
@@ -196,8 +198,9 @@ time-derivative information needed by variable-property flow.</p>
               <ul class="list-inline">
                   <li class="list-inline-item"><a href='operations.html'>operations</a></li>
                   <li class="list-inline-item">decomp_2d</li>
-                  <li class="list-inline-item"><a href='wrt_debug_field_mod.html'>wrt_debug_field_mod</a></li>
+                  <li class="list-inline-item"><a href='budget_diag_mod.html'>budget_diag_mod</a></li>
                   <li class="list-inline-item"><a href='precision_mod.html'>precision_mod</a></li>
+                  <li class="list-inline-item"><a href='wrt_debug_field_mod.html'>wrt_debug_field_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -307,7 +310,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~16"></span>
+              <span class="anchor" id="variable-fl~86"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -322,7 +325,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~20"></span>
+              <span class="anchor" id="variable-dm~246"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -337,7 +340,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~3"></span>
+              <span class="anchor" id="variable-isub~8"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -358,7 +361,7 @@ parameter
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-update_thermal_properties"></span> <h3>public  subroutine <a href='../proc/update_thermal_properties.html'>Update_thermal_properties</a>(dens, visc, tm, dm, opt_tVisc, opt_ren)  
+    <div class="card-header codesum"><span class="anchor" id="proc-update_thermal_properties"></span> <h3>public  subroutine <a href='../proc/update_thermal_properties.html'>Update_thermal_properties</a>(dens, visc, tm, dm, opt_tVisc, opt_ren, opt_dens_bc)  
 </h3></div>
     <div class="card-body">
           
@@ -386,7 +389,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dens"></span>
+              <span class="anchor" id="variable-dens~3"></span>
               real(kind=WP),
             </td>
 <td>intent(inout),</td>
@@ -401,7 +404,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-visc"></span>
+              <span class="anchor" id="variable-visc~2"></span>
               real(kind=WP),
             </td>
 <td>intent(inout),</td>
@@ -416,7 +419,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~4"></span>
+              <span class="anchor" id="variable-tm~34"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -431,7 +434,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~21"></span>
+              <span class="anchor" id="variable-dm~247"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -470,6 +473,99 @@ parameter
             </td>
             <td>::</td>
             <td><strong>opt_ren</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-opt_dens_bc"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in),</td>
+              <td>optional,</td>            <td>
+              dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) )
+            </td>
+            <td>::</td>
+            <td><strong>opt_dens_bc</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-rebuild_thermal_boundary_states"></span> <h3>public  subroutine <a href='../proc/rebuild_thermal_boundary_states.html'>Rebuild_thermal_boundary_states</a>(fl, tm, dm)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Rebuild the thermal boundary states (fbc<em>_ftp, including the Neumann wall and outlet states, which
+are not stored) from the current interior (rho</em>h, rho), keeping every interior field. This is the
+second half of Update_thermal_properties; its first half re-derives the interior through the
+property inverse, which does not return the stored values bit for bit, so the interior is saved
+and put back. Used after a thermal restart (restore_thermo_variables_from_restart) and after a
+fresh thermal initialisation, so that both start from boundary states consistent with the
+interior and the boundary conditions, and a fresh run equals a restart from its step-0 state.
+Transported density (Bc): the boundary density is rho_hat when restored, otherwise rho (rho_hat =
+rho at a fresh start).</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~87"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tm~35"></span>
+              type(<a href='../type/t_thermo.html'>t_thermo</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~248"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(inout)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
             <td>
 
             </td>
@@ -516,7 +612,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-rhs1"></span>
+              <span class="anchor" id="variable-rhs1~2"></span>
               real(kind=WP),
             </td>
 <td>intent(inout),</td>
@@ -531,7 +627,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dtmp~7"></span>
+              <span class="anchor" id="variable-dtmp~50"></span>
               type(DECOMP_INFO),
             </td>
 <td>intent(in)</td>
@@ -546,7 +642,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~22"></span>
+              <span class="anchor" id="variable-dm~249"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -561,7 +657,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~4"></span>
+              <span class="anchor" id="variable-isub~9"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -616,7 +712,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~5"></span>
+              <span class="anchor" id="variable-tm~36"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -631,7 +727,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~23"></span>
+              <span class="anchor" id="variable-dm~250"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -716,7 +812,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~6"></span>
+              <span class="anchor" id="variable-tm~37"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -731,7 +827,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~24"></span>
+              <span class="anchor" id="variable-dm~251"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -746,7 +842,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~5"></span>
+              <span class="anchor" id="variable-isub~10"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -805,7 +901,7 @@ parameter
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~17"></span>
+              <span class="anchor" id="variable-fl~88"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -820,7 +916,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~7"></span>
+              <span class="anchor" id="variable-tm~38"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -835,7 +931,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~25"></span>
+              <span class="anchor" id="variable-dm~252"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(inout)</td>
@@ -850,7 +946,7 @@ parameter
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~6"></span>
+              <span class="anchor" id="variable-isub~11"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -859,6 +955,77 @@ parameter
             </td>
             <td>::</td>
             <td><strong>isub</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-report_bc_consistency"></span> <h3>private  subroutine <a href='../proc/report_bc_consistency.html'>report_bc_consistency</a>(fl, tm, dm)  
+</h3></div>
+    <div class="card-body">
+          
+  <p>Bc (transported-density recovery) diagnostic: thermodynamic consistency of the recovered
+state, max|rho_hat - rho_EOS| and max|rho h - rho_EOS h| / max|rho h|.</p>
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~89"></span>
+              type(<a href='../type/t_flow.html'>t_flow</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>fl</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-tm~39"></span>
+              type(<a href='../type/t_thermo.html'>t_thermo</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>tm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~253"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
             <td>
 
             </td>

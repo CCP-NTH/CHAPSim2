@@ -25,6 +25,14 @@
     "abs": 1e-2,
     "rel": 1e-3
   },
+  "global pressure drop (full-step pressure, t_mid)": {
+    "abs": 1e-8,
+    "rel": 1e-3
+  },
+  "mean dpdx (full-step pressure, t_mid)": {
+    "abs": 1e-8,
+    "rel": 1e-3
+  },
 
   "total kinetic energy": {
     "abs": 1e-3,
@@ -201,6 +209,9 @@
       "met. Only its reproducibility is meaningful, so these cases keep the relative",
       "check and drop the absolute one. Isothermal and inlet-outlet cases keep the",
       "tight global tolerance, where a non-zero value really would be a defect.",
+    "The seven sealed thermal cases mark their mass metrics known_limitation: the",
+    "reference is the algorithm output (closed-domain compatibility), not physical",
+    "mass conservation; a change beyond tolerance is still reported as a regression.",
       "",
       "'max. |div(current density)|' is an absolute residual, so its floor scales",
       "with the size of j itself, and j scales with |B|. The two *_Btilt cases carry",
@@ -213,13 +224,41 @@
       "projection and a broken one."
     ],
 
-    "tgv_scp":                  { "global mass balance": { "rel": 1e-3 } },
-    "channel_scp_periodic_Tw":  { "global mass balance": { "rel": 1e-3 } },
-    "channel_scp_periodic_qw":  { "global mass balance": { "rel": 1e-3 } },
-    "annular_scp_periodic_Tw":  { "global mass balance": { "rel": 1e-3 } },
-    "annular_scp_periodic_qw":  { "global mass balance": { "rel": 1e-3 } },
-    "pipe_scp_periodic_Tw":     { "global mass balance": { "rel": 1e-3 } },
-    "pipe_scp_periodic_qw":     { "global mass balance": { "rel": 1e-3 } },
+    "tgv_scp": {
+      "global mass balance":             { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass drift from run start": { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass":                      { "rel": 1e-8, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" }
+    },
+    "channel_scp_periodic_Tw": {
+      "global mass balance":             { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass drift from run start": { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass":                      { "rel": 1e-8, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" }
+    },
+    "channel_scp_periodic_qw": {
+      "global mass balance":             { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass drift from run start": { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass":                      { "rel": 1e-8, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" }
+    },
+    "annular_scp_periodic_Tw": {
+      "global mass balance":             { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass drift from run start": { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass":                      { "rel": 1e-8, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" }
+    },
+    "annular_scp_periodic_qw": {
+      "global mass balance":             { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass drift from run start": { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass":                      { "rel": 1e-8, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" }
+    },
+    "pipe_scp_periodic_Tw": {
+      "global mass balance":             { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass drift from run start": { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass":                      { "rel": 1e-8, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" }
+    },
+    "pipe_scp_periodic_qw": {
+      "global mass balance":             { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass drift from run start": { "rel": 1e-3, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" },
+      "total mass":                      { "rel": 1e-8, "known_limitation": "sealed isobaric domain: int(drho/dt) = c*V, EOS mass not conserved (CPC_B3_CLOSED_DOMAIN_FINDING)" }
+    },
 
     "MHD_channel_iso_periodic_Btilt": { "max. |div(current density)|": { "abs": 2.3e-7 } },
     "MHD_pipe_iso_periodic_Btilt":    { "max. |div(current density)|": { "abs": 2.3e-7 } }

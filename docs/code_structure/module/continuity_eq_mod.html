@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 1.0% of total for modules and submodules.">298 statements</a>
+                 title=" 1.1% of total for modules and submodules.">359 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -150,6 +150,7 @@
             <a class="list-group-item" href="../module/continuity_eq_mod.html#proc-get_divergence_flow">Get_divergence_flow</a>
             <a class="list-group-item" href="../module/continuity_eq_mod.html#proc-get_divergence_vector">Get_divergence_vector</a>
             <a class="list-group-item" href="../module/continuity_eq_mod.html#proc-get_divergence_vel_x2z">Get_divergence_vel_x2z</a>
+            <a class="list-group-item" href="../module/continuity_eq_mod.html#proc-abort_if_nonfinite_continuity">abort_if_nonfinite_continuity</a>
             <a class="list-group-item" href="../module/continuity_eq_mod.html#proc-check_element_mass_conservation">Check_element_mass_conservation</a>
         </div>
       </div>
@@ -225,7 +226,7 @@ Compute divergence of the active flow mass-flux or velocity field.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~32"></span>
+              <span class="anchor" id="variable-fl~94"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(in)</td>
@@ -240,7 +241,7 @@ Compute divergence of the active flow mass-flux or velocity field.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-div"></span>
+              <span class="anchor" id="variable-div~3"></span>
               real(kind=WP),
             </td>
 <td>intent(out),</td>
@@ -255,7 +256,7 @@ Compute divergence of the active flow mass-flux or velocity field.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~115"></span>
+              <span class="anchor" id="variable-dm~316"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -308,7 +309,7 @@ Compute divergence of vector components on staggered layouts.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-ux~7"></span>
+              <span class="anchor" id="variable-ux~6"></span>
               real(kind=WP),
             </td>
 <td>intent(in),</td>
@@ -353,7 +354,7 @@ Compute divergence of vector components on staggered layouts.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-div~2"></span>
+              <span class="anchor" id="variable-div~4"></span>
               real(kind=WP),
             </td>
 <td>intent(out),</td>
@@ -368,7 +369,7 @@ Compute divergence of vector components on staggered layouts.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~116"></span>
+              <span class="anchor" id="variable-dm~317"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -458,7 +459,7 @@ Compute divergence of vector components on staggered layouts.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-ux~8"></span>
+              <span class="anchor" id="variable-ux~7"></span>
               real(kind=WP),
             </td>
 <td>intent(in),</td>
@@ -518,7 +519,7 @@ Compute divergence of vector components on staggered layouts.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~117"></span>
+              <span class="anchor" id="variable-dm~318"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -539,7 +540,7 @@ Compute divergence of vector components on staggered layouts.
   </div>
 
               <div class="card">
-    <div class="card-header codesum"><span class="anchor" id="proc-check_element_mass_conservation"></span> <h3>public  subroutine <a href='../proc/check_element_mass_conservation.html'>Check_element_mass_conservation</a>(fl, dm, opt_isub, opt_str)  
+    <div class="card-header codesum"><span class="anchor" id="proc-abort_if_nonfinite_continuity"></span> <h3>private  subroutine <a href='../proc/abort_if_nonfinite_continuity.html'>abort_if_nonfinite_continuity</a>(div, projected_source, dm, iteration, str)  
 </h3></div>
     <div class="card-body">
           
@@ -553,7 +554,14 @@ Check and report element-wise mass-conservation residuals.
 - fl (in): Flow state to check.
 - dm (in): Domain descriptor.
 - opt_isub (in): Optional substep index for diagnostics.
-- opt_str (in): Optional label appended to diagnostic messages.</p>
+- opt_str (in): Optional label appended to diagnostic messages.
+Stops the run on every rank if div(g) + drho/dt holds a NaN or an infinity, or if the
+projected-source amplitude is not finite. Called by all ranks on every continuity check:
+one local count (ieee_is_finite, which does not signal under -ffpe-trap) and one integer
+allreduce, both unconditional, so no rank can wait in a collective the others skip. On
+failure each offending rank reports its count and first cell (global index), rank 0 a
+summary, then MPI_ABORT (the pattern of check_property_range). Finite values are untouched.
+The GPU build applies the same check.</p>
 
   <h4>Arguments</h4>
       <table class="table table-striped varlist">
@@ -568,7 +576,107 @@ Check and report element-wise mass-conservation residuals.
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~33"></span>
+              <span class="anchor" id="variable-div~5"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>div</strong>(:,:,:)</td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-projected_source"></span>
+              real(kind=WP),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>projected_source</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~319"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iteration~2"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iteration</strong></td>
+            <td>
+
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-str~50"></span>
+              character(len=*),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>str</strong></td>
+            <td>
+
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+
+    </div>
+  </div>
+
+              <div class="card">
+    <div class="card-header codesum"><span class="anchor" id="proc-check_element_mass_conservation"></span> <h3>public  subroutine <a href='../proc/check_element_mass_conservation.html'>Check_element_mass_conservation</a>(fl, dm, opt_isub, opt_str)  
+</h3></div>
+    <div class="card-body">
+          
+  
+
+  <h4>Arguments</h4>
+      <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fl~95"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -583,7 +691,7 @@ Check and report element-wise mass-conservation residuals.
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~118"></span>
+              <span class="anchor" id="variable-dm~320"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>

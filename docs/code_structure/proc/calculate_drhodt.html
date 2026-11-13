@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">19 statements</a>
+                 title=" 0.1% of total for procedures.">23 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -170,10 +170,10 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -200,7 +200,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~16"></span>
+              <span class="anchor" id="variable-fl~86"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(inout)</td>
@@ -215,7 +215,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~20"></span>
+              <span class="anchor" id="variable-dm~246"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -230,7 +230,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-isub~3"></span>
+              <span class="anchor" id="variable-isub~8"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -317,8 +317,17 @@
 <span class="w">    </span><span class="c">! damp drho/dt near in/out b.c.</span>
 <span class="w">    </span><span class="c">!------------------------------------------------------------</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_damping_drhodt</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">damping_drhodt</span><span class="p">(</span><span class="n">fl</span><span class="p">%</span><span class="n">drhodt</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">)</span>
+<span class="w">    </span><span class="c">!------------------------------------------------------------</span>
+<span class="w">    </span><span class="c">! Bc (transported-density recovery): keep the physical rho_t of the last two stages for the</span>
+<span class="w">    </span><span class="c">! transported density (the same stage history that the energy convective</span>
+<span class="w">    </span><span class="c">! flux sees through div(g) = -rho_t + c, without the compatibility part c).</span>
+<span class="w">    </span><span class="c">!------------------------------------------------------------</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_bc_recovery</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">fl</span><span class="p">%</span><span class="n">drhodt_m2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">drhodt_m1</span>
+<span class="w">      </span><span class="n">fl</span><span class="p">%</span><span class="n">drhodt_m1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">drhodt</span>
+<span class="w">    </span><span class="k">end if</span>
 
-<span class="w">    </span><span class="k">return</span>
+<span class="k">    return</span>
 <span class="k">  end subroutine </span><span class="n">Calculate_drhodt</span>
 </pre></div>
 

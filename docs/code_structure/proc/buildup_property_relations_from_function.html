@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">29 statements</a>
+                 title=" 0.1% of total for procedures.">30 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -208,6 +208,8 @@
 <span class="k">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">rhoh</span><span class="p">(</span><span class="n">N_FUNC2TABLE</span><span class="p">),</span><span class="w"> </span><span class="n">d</span><span class="p">(</span><span class="n">N_FUNC2TABLE</span><span class="p">)</span>
 
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">iprop_interp</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IPROP_INTERP_PCHIP</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s1">&#39;property_interp = pchip is implemented for table fluids only.&#39;</span><span class="p">)</span>
 <span class="w">    </span><span class="c">! Reject a run whose reference or initial state sits outside the interval the</span>
 <span class="w">    </span><span class="c">! correlations support, before anything is built from it -- and before the</span>
 <span class="w">    </span><span class="c">! correlations are evaluated at all. Order matters: Li&#39;s density carries</span>

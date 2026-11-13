@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">37 statements</a>
+                 title=" 0.1% of total for procedures.">39 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -162,10 +162,13 @@
     </div>
     
     <div class="col-md-9" id='text'>
-    <h2>private  subroutine bilinear_interp_xinlet_point_halo(i_src, y_target, z_target, ysrc, zsrc, ilo, jlo, klo, fsrc, fout)  
+    <h2>private  subroutine bilinear_interp_xinlet_point_halo(i_src, y_target, z_target, ysrc, zsrc, kshift, ilo, jlo, klo, fsrc, fout)  
 </h2>
     
 
+    <p>zsrc is the search array from build_xinlet_z_search_coords: in a periodic
+z direction it carries one periodic image at each end and kshift = -1 maps
+its bracket index to the global source index (0 and n+1 = halo images).</p>
 
 
     <h3>Arguments</h3>
@@ -241,7 +244,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-zsrc~3"></span>
+              <span class="anchor" id="variable-zsrc~4"></span>
               real(kind=WP),
             </td>
 <td>intent(in)</td>
@@ -250,6 +253,21 @@
             </td>
             <td>::</td>
             <td><strong>zsrc</strong>(:)</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-kshift~4"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>kshift</strong></td>
             <td>
                 
             </td>
@@ -316,7 +334,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-fout~2"></span>
+              <span class="anchor" id="variable-fout"></span>
               real(kind=WP),
             </td>
 <td>intent(out)</td>
@@ -346,17 +364,18 @@
     
     <section>
     <h2><span class="anchor" id="src"></span>Source Code</h2>
-    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">bilinear_interp_xinlet_point_halo</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">y_target</span><span class="p">,</span><span class="w"> </span><span class="n">z_target</span><span class="p">,</span><span class="w"> </span><span class="n">ysrc</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">bilinear_interp_xinlet_point_halo</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">y_target</span><span class="p">,</span><span class="w"> </span><span class="n">z_target</span><span class="p">,</span><span class="w"> </span><span class="n">ysrc</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc</span><span class="p">,</span><span class="w"> </span><span class="n">kshift</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">                                              </span><span class="n">ilo</span><span class="p">,</span><span class="w"> </span><span class="n">jlo</span><span class="p">,</span><span class="w"> </span><span class="n">klo</span><span class="p">,</span><span class="w"> </span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="n">fout</span><span class="p">)</span>
 <span class="w">    </span><span class="k">implicit none</span>
 <span class="k">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">i_src</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">y_target</span><span class="p">,</span><span class="w"> </span><span class="n">z_target</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ysrc</span><span class="p">(:),</span><span class="w"> </span><span class="n">zsrc</span><span class="p">(:)</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">kshift</span>
 <span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ilo</span><span class="p">,</span><span class="w"> </span><span class="n">jlo</span><span class="p">,</span><span class="w"> </span><span class="n">klo</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">ilo</span><span class="p">:,</span><span class="w"> </span><span class="n">jlo</span><span class="p">:,</span><span class="w"> </span><span class="n">klo</span><span class="p">:)</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">out</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fout</span>
 
-<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">jsrc</span><span class="p">,</span><span class="w"> </span><span class="n">ksrc</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">jsrc</span><span class="p">,</span><span class="w"> </span><span class="n">ksrc</span><span class="p">,</span><span class="w"> </span><span class="n">kglb</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">eta</span><span class="p">,</span><span class="w"> </span><span class="n">zeta</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dy</span><span class="p">,</span><span class="w"> </span><span class="n">dz</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">c00</span><span class="p">,</span><span class="w"> </span><span class="n">c01</span><span class="p">,</span><span class="w"> </span><span class="n">c10</span><span class="p">,</span><span class="w"> </span><span class="n">c11</span>
@@ -366,10 +385,11 @@
 <span class="w">    </span><span class="k">call </span><span class="n">binary_search_loc2index_yz</span><span class="p">(</span><span class="n">z_target</span><span class="p">,</span><span class="w"> </span><span class="n">zsrc</span><span class="p">,</span><span class="w"> </span><span class="n">ksrc</span><span class="p">)</span>
 <span class="w">    </span><span class="n">jsrc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">min</span><span class="p">(</span><span class="n">jsrc</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">ysrc</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
 <span class="w">    </span><span class="n">ksrc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">min</span><span class="p">(</span><span class="n">ksrc</span><span class="p">,</span><span class="w"> </span><span class="n">size</span><span class="p">(</span><span class="n">zsrc</span><span class="p">)</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="n">kglb</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ksrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">kshift</span>
 
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">i_src</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nb">lbound</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">i_src</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">ubound</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">       </span><span class="n">jsrc</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nb">lbound</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">jsrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">ubound</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="p">&amp;</span>
-<span class="w">       </span><span class="n">ksrc</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nb">lbound</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">ksrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">ubound</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="w">       </span><span class="n">kglb</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="nb">lbound</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">kglb</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="nb">ubound</span><span class="p">(</span><span class="n">fsrc</span><span class="p">,</span><span class="w"> </span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <span class="k">      call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Inlet database interpolation source halo is too small.&quot;</span><span class="p">)</span>
 <span class="w">    </span><span class="k">end if</span>
 
@@ -383,10 +403,10 @@
 <span class="w">    </span><span class="n">eta</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">max</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span><span class="w"> </span><span class="nb">min</span><span class="p">(</span><span class="n">ONE</span><span class="p">,</span><span class="w"> </span><span class="n">eta</span><span class="p">))</span>
 <span class="w">    </span><span class="n">zeta</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">max</span><span class="p">(</span><span class="n">ZERO</span><span class="p">,</span><span class="w"> </span><span class="nb">min</span><span class="p">(</span><span class="n">ONE</span><span class="p">,</span><span class="w"> </span><span class="n">zeta</span><span class="p">))</span>
 
-<span class="w">    </span><span class="n">c00</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">jsrc</span><span class="p">,</span><span class="w">     </span><span class="n">ksrc</span><span class="p">)</span>
-<span class="w">    </span><span class="n">c01</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">jsrc</span><span class="p">,</span><span class="w">     </span><span class="n">ksrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
-<span class="w">    </span><span class="n">c10</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">jsrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">ksrc</span><span class="p">)</span>
-<span class="w">    </span><span class="n">c11</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">jsrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">ksrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="n">c00</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">jsrc</span><span class="p">,</span><span class="w">     </span><span class="n">kglb</span><span class="p">)</span>
+<span class="w">    </span><span class="n">c01</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">jsrc</span><span class="p">,</span><span class="w">     </span><span class="n">kglb</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
+<span class="w">    </span><span class="n">c10</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">jsrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">kglb</span><span class="p">)</span>
+<span class="w">    </span><span class="n">c11</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">fsrc</span><span class="p">(</span><span class="n">i_src</span><span class="p">,</span><span class="w"> </span><span class="n">jsrc</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">kglb</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="p">)</span>
 
 <span class="w">    </span><span class="n">c0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c00</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">ONE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">zeta</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">c01</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">zeta</span>
 <span class="w">    </span><span class="n">c1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">c10</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="p">(</span><span class="n">ONE</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">zeta</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">c11</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">zeta</span>

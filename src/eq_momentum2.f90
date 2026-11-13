@@ -4,6 +4,7 @@
 !> fractional-step momentum equations, solves pressure correction, and enforces
 !> mass-flux consistency for the active domain geometry.
 module eq_momentum_mod
+  use budget_diag_mod, only : is_budget_diag
   use decomp_2d
   use operations
   use precision_mod
@@ -3137,7 +3138,82 @@ contains
       !   fl%tt_mass_change : global mass flux imbalance      [Case 2: physical]
     end if
 
+    !----------------------------------------------------------------
+    ! RK3-weighted pressure (output only). Stage k advances the momentum with
+    ! -alpha_k dt G p^k (predictor p^(k-1) plus correction phi^k, both alpha_k),
+    ! so Pbar = sum_k alpha_k p^k balances the full-step update. Every stage
+    ! contributes once, whether or not it projected (p^k = p^(k-1) then).
+    ! Reset at stage 1; valid only after the last stage of a completed step.
+    !----------------------------------------------------------------
+    if(isub == 1) then
+      fl%pres_rk = ZERO
+      fl%is_pres_rk_valid = .false.
+    end if
+    fl%pres_rk = fl%pres_rk + dm%tAlpha(isub) * fl%pres
+    if(isub == dm%nsubitr) fl%is_pres_rk_valid = .true.
+    ! B3 budget diagnostics (read-only): mass terms of this stage, alpha_k-weighted
+    ! as in the continuity constraint D g^k = -rho_t^k + c^k
+    if(is_budget_diag .and. dm%is_thermo) call budget_mass_stage(fl, dm, isub)
+
     return
   end subroutine Solve_momentum_eq
+!==============================================================================
+  !> B3 conservation diagnostics: mass terms of RK stage isub and, after the last
+  !> stage, one line per step in 3_monitor/domain1_budget.log (rank 0). Columns:
+  !>  1 time  2 H=int rho h dV  3 dH  4 B_xin,conv  5 B_xout,conv  6 B_xin,cond  7 B_xout,cond
+  !>  8 B_ylow (conv+cond)  9 B_yhigh (conv+cond; walls: heat input)  10 B_z (all)  11 S_comp
+  !>  12 sum B  13 int R_H dV (RK)  14 R_tele = (13)-(12)  15 R_H = dH-(13)-(11)  16 R_Hb = dH-(12)-(11)
+  !>  17 M_EOS  18 dM_EOS  19 M_in  20 M_out  21 int rho_t dV (RK, alpha)  22 int c dV (RK, alpha)
+  !>  23 R_M = (21)+(20)-(19)-(22)  24 dM_EOS-(21)  25 M_hat  26 M_hat-M_EOS  27 cumulative (22)
+  !> (B_* are boundary contributions to int R_H dV, RK3-integrated over the step; M_in/M_out are
+  !>  the alpha-weighted mass inflow/outflow; R_tele is the discrete telescoping residual.)
+  subroutine budget_mass_stage(fl, dm, isub)
+    use budget_diag_mod
+    use find_max_min_ave_mod, only : Get_volumetric_average_3d
+    use io_files_mod, only : dir_moni
+    use mpi_mod
+    use parameters_constant_mod
+    use udf_type_mod
+    implicit none
+    type(t_flow),   intent(in) :: fl
+    type(t_domain), intent(in) :: dm
+    integer,        intent(in) :: isub
+    real(WP) :: w, rt, m_new, mhat_new, dh, sb
+    integer :: u
+    logical :: ex
+    character(64) :: fn
+
+    w = dm%tAlpha(isub) * dm%dt
+    if(.not. dm%is_periodic(1)) then
+      mflux_in_step  = mflux_in_step  + w * budget_face_x(dm, fl%gx, 1)
+      mflux_out_step = mflux_out_step + w * budget_face_x(dm, fl%gx, size(fl%gx, 1))
+    end if
+    call Get_volumetric_average_3d(dm, dm%dccc, fl%drhodt, rt, SPACE_INTEGRAL, 'rho_t')
+    drhodt_int_step = drhodt_int_step + w * rt
+    c_int_step = c_int_step + w * fl%uniform_poisson_source_correction * dm%vol
+    if(isub /= dm%nsubitr) return
+
+    c_cum = c_cum + c_int_step
+    call Get_volumetric_average_3d(dm, dm%dccc, fl%dDens, m_new, SPACE_INTEGRAL, 'M')
+    mhat_new = m_new
+    if(is_bc_recovery) call Get_volumetric_average_3d(dm, dm%dccc, fl%dDens_hat, mhat_new, SPACE_INTEGRAL, 'Mhat')
+    if(nrank /= 0) return
+    dh = h_new - h_old
+    sb = sum(bflux_step)
+    fn = trim(dir_moni)//'/domain1_budget.log'
+    inquire(file = trim(fn), exist = ex)
+    open(newunit = u, file = trim(fn), position = 'append', action = 'write')
+    if(.not. ex) write(u, '(A)') '# B3 budget (experimental): time H dH B_xin_conv B_xout_conv B_xin_cond '// &
+      'B_xout_cond B_ylow B_yhigh B_z S_comp sumB intRH R_tele R_H R_Hb M_EOS dM_EOS M_in M_out '// &
+      'int_rhot int_c R_M dM-int_rhot M_hat M_hat-M_EOS c_cum'
+    write(u, '(27ES24.15)') fl%time, h_new, dh, bflux_step(1), bflux_step(2), bflux_step(3), bflux_step(4), &
+      bflux_step(5) + bflux_step(7), bflux_step(6) + bflux_step(8), sum(bflux_step(9:12)), scomp_step, &
+      sb, vrhs_step, vrhs_step - sb, dh - vrhs_step - scomp_step, dh - sb - scomp_step, &
+      m_new, m_new - m_old, mflux_in_step, mflux_out_step, drhodt_int_step, c_int_step, &
+      drhodt_int_step + mflux_out_step - mflux_in_step - c_int_step, (m_new - m_old) - drhodt_int_step, &
+      mhat_new, mhat_new - m_new, c_cum
+    close(u)
+    return
+  end subroutine budget_mass_stage
 
 end module eq_momentum_mod

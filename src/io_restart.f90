@@ -23,9 +23,21 @@ module io_restart_mod
   public  :: write_instantaneous_thermo
   public  :: read_instantaneous_thermo
   public  :: restore_thermo_variables_from_restart
+  public  :: read_les_restart_state
+  private :: write_les_restart_state
+  private :: les_restart_fields
+  private :: les_restart_shapes
 
   private :: append_instantaneous_xoutlet
   private :: assign_instantaneous_xinlet
+  private :: read_instantaneous_xinlet_tinterp
+  private :: assign_instantaneous_xinlet_tinterp
+  private :: load_xinlet_block_current
+  private :: load_xinlet_block_next
+  private :: read_xinlet_block
+  private :: swap_xinlet_block_buffers
+  private :: check_xinlet_database_dt
+  private :: check_xinlet_constant_dt
   public  :: write_instantaneous_xoutlet
   public  :: read_instantaneous_xinlet
 
@@ -36,6 +48,13 @@ module io_restart_mod
   private :: read_flow_restart_bundle_initial
   private :: initialise_flow_from_restart_q
   private :: write_thermo_restart_bundle
+  private :: write_thermo_interp_metadata
+  ! appended to the stop messages of a missing thermal checkpoint
+  character(*), parameter :: THERMO_LABEL_HINT = 'Thermal checkpoints written by builds before 2026-10-30 '// &
+    'are labelled by the thermal step count: if the energy equation started after the flow (niterthermofirst '// &
+    '> niterflowfirst), their labels are lower than the flow step at which they were written.'
+  private :: write_thermo_flow_iteration, check_thermo_flow_iteration
+  private :: check_thermo_interp_metadata
   private :: read_thermo_restart_bundle
   private :: write_xoutlet_database_bundle
   private :: read_xoutlet_database_bundle
@@ -47,7 +66,9 @@ module io_restart_mod
   private :: read_interp_xinlet_database_field
   private :: interp_xinlet_database_array_yz
   private :: compute_xinlet_database_halo_level
+  private :: check_xinlet_database_halo_layout
   private :: bilinear_interp_xinlet_point_halo
+  private :: build_xinlet_z_search_coords
   private :: binary_search_loc2index_yz
   private :: get_xinlet_z_coord
   private :: fill_xinlet_z_coords
@@ -58,6 +79,7 @@ module io_restart_mod
   private :: remove_xoutlet_per_field_file
   private :: write_bundle_metadata
   private :: validate_bundle_metadata
+  private :: check_bundle_file_size
   private :: read_xoutlet_bundle_metadata
   private :: metadata_value
   private :: read_metadata_line
@@ -74,8 +96,13 @@ module io_restart_mod
   ! that matches exactly what the writers below expect
   public  :: is_restart_history_exact
   private :: ensure_restart_convective_outlet_supported
+  private :: write_flow_xoutlet_state_per_field
+  private :: read_flow_xoutlet_state_per_field
   private :: write_flow_restart_xoutlet_state
   private :: read_flow_restart_xoutlet_state
+  private :: is_same_bits
+  private :: legacy_fbcx_policy, check_legacy_fbcx_state, is_true_on_all_ranks
+  private :: fbcx_thermal_state_metadata_file, write_fbcx_thermal_state_metadata, read_fbcx_thermal_state_metadata
   private :: write_flow_restart_xoutlet_state_compact
   private :: read_flow_restart_xoutlet_state_compact
   private :: thermo_restart_fields
@@ -91,6 +118,12 @@ module io_restart_mod
   private :: read_checkpoint_restart_metadata
   private :: remove_legacy_restart_metadata
   private :: warn_if_legacy_metadata_conflicts
+
+  ! Latest permitted change of enthalpy_advection at a thermal restart, as
+  ! '<from>-><to> <iteration>' (empty if none). Read from the checkpoint record
+  ! or set when enthalpy_advection_restart = allow_switch permits a change, and
+  ! written into every later thermal record (provenance).
+  character(64), save :: enth_adv_switch_note = ''
 
 contains
 
@@ -172,7 +205,7 @@ contains
     type(t_domain), intent(in) :: dm
     character(1024) :: fields
 
-    ! compact history is isothermal only - see check_restart_history_mode_support
+    ! compact history is isothermal only - rejected for a thermal flow in Read_input_parameters
     fields = 'qx:dpcc,qy:dcpc,qz:dccp,pr:dccc'
     if(dm%is_conv_outlet(1)) &
       fields = trim(fields)//',fbcx_qx:d4cc,fbcx_qy:d4pc,fbcx_qz:d4cp'
@@ -258,7 +291,7 @@ contains
     type(t_domain), intent(in) :: dm
     character(2048) :: shapes
 
-    ! compact history is isothermal only - see check_restart_history_mode_support
+    ! compact history is isothermal only - rejected for a thermal flow in Read_input_parameters
     shapes = trim(bundle_shape('qx', dm%dpcc))//';'// &
              trim(bundle_shape('qy', dm%dcpc))//';'// &
              trim(bundle_shape('qz', dm%dccp))//';'// &
@@ -349,8 +382,15 @@ contains
     real(WP), dimension(dm%d1cp%xsz(1), dm%d1cp%xsz(2), dm%d1cp%xsz(3)) :: fbcx_a0cp_rhs0
     integer :: n, j, k
     logical :: is_thermo
+    character(16) :: fbcx_state, legacy_policy
+    logical :: all_rebuilt
+    integer :: nlegacy
 
     if(.not. dm%is_conv_outlet(1)) return
+    fbcx_state = read_fbcx_thermal_state_metadata(dm, fl%iterfrom)
+    all_rebuilt = .true.
+    nlegacy = 0
+    legacy_policy = legacy_fbcx_policy()
 
     is_thermo = dm%is_thermo
     if(present(opt_is_thermo)) is_thermo = opt_is_thermo
@@ -359,6 +399,7 @@ contains
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gx, opt_decomp=dm%d4cc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gy, opt_decomp=dm%d4pc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gz, opt_decomp=dm%d4cp)
+      fl%is_fbcx_g_restored = .true.
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qx, opt_decomp=dm%d4cc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qy, opt_decomp=dm%d4pc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qz, opt_decomp=dm%d4cp)
@@ -373,12 +414,56 @@ contains
       do k = 1, dm%d4cc%xsz(3)
         do j = 1, dm%d4cc%xsz(2)
           do n = 1, dm%d4cc%xsz(1)
+            ! Exact Bc restart: restore_thermo_variables_from_restart (which runs first)
+            ! has rebuilt the states of a Neumann-T x side (slots 1, 3 or 2, 4) from
+            ! (rho*h, rho_hat), as the time loop builds them. Where that rebuild
+            ! reproduces the stored (rho, rho*h) bit for bit it is kept: re-deriving
+            ! from the stored pair takes h = rho*h/rho instead of rho*h/rho_hat and does
+            ! not round-trip, which made heated inlet/outlet continuations inexact.
+            ! Elsewhere (e.g. a mesh-mapped iteration-0 state, which the rebuild does
+            ! not reproduce) the stored pair is used as before.
+            ! The same holds on a Dirichlet-T side: its state was set from the given
+            ! temperature, and on the correlation property path (IPROPERTY_FUNCS)
+            ! re-deriving it from (rho, rho*h) through the tabulated inverse does not
+            ! return that state.
+            ! Provenance (fbcx_thermal_state in the metadata): a 'rebuild' checkpoint keeps the
+            ! rebuilt state whichever build wrote it - the bit test below fails across builds
+            ! because the property evaluation differs in the last bit, and the stored-pair
+            ! re-derivation (h = rho*h/rho) then departs from the time-loop state by the
+            ! iterative inverse's tolerance; an 'initial' checkpoint uses the stored pair; a
+            ! checkpoint without the key keeps the bit test (see check_legacy_fbcx_state).
+            ! The rule applies to Neumann-T and Dirichlet-T sides only. A convective thermal outlet
+            ! (ibcx_nominal(2, 5) == IBC_CONVECTIVE, reduced to Neumann in ibcx_Tm) stores the
+            ! advected rho*h, which the stored-pair branch below keeps and restore_fbcx_outlet_thermo_bc
+            ! then uses with fbcx_dhat; the rebuild extrapolates instead, so it is never kept there.
+            if(is_bc_recovery .and. fl%is_bc_state_restored .and. &
+               .not. ((n == 2 .or. n == 4) .and. dm%ibcx_nominal(2, 5) == IBC_CONVECTIVE) .and. &
+               (dm%ibcx_Tm(2 - mod(n, 2)) == IBC_NEUMANN .or. &
+                dm%ibcx_Tm(2 - mod(n, 2)) == IBC_DIRICHLET)) then
+              if(trim(fbcx_state) == 'rebuild') cycle
+              if(len_trim(fbcx_state) == 0) then
+                if(is_same_bits(dm%fbcx_ftp(n, j, k)%d, fbcx_ftp_d(n, j, k)) .and. &
+                   is_same_bits(dm%fbcx_ftp(n, j, k)%rhoh, fbcx_ftp_rhoh(n, j, k))) cycle
+                if(fluidparam%ipropertyState == IPROPERTY_FUNCS) then
+                  nlegacy = nlegacy + 1
+                  if(trim(legacy_policy) == 'keep') cycle
+                end if
+              end if
+            end if
+            if(.not. ((n == 2 .or. n == 4) .and. dm%ibcx_nominal(2, 5) == IBC_CONVECTIVE)) all_rebuilt = .false.
             dm%fbcx_ftp(n, j, k)%d = fbcx_ftp_d(n, j, k)
             dm%fbcx_ftp(n, j, k)%rhoh = fbcx_ftp_rhoh(n, j, k)
             call ftp_refresh_thermal_properties_from_DH(dm%fbcx_ftp(n, j, k))
+            ! Bc convective thermal outlet: the stored rhoh of slots 2, 4 is the
+            ! advected rho*h (not rho_EOS h); keep it. The outlet state is
+            ! recomputed from (rho*h, rho_hat) by restore_fbcx_outlet_thermo_bc.
+            if(is_bc_recovery .and. (n == 2 .or. n == 4) .and. &
+               dm%ibcx_nominal(2, 5) == IBC_CONVECTIVE) dm%fbcx_ftp(n, j, k)%rhoh = fbcx_ftp_rhoh(n, j, k)
           end do
         end do
       end do
+      call check_legacy_fbcx_state(nlegacy, legacy_policy, fl%iterfrom)
+      fl%is_fbcx_thermal_rebuilt = is_true_on_all_ranks(all_rebuilt)
     else
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qx, opt_decomp=dm%d4cc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qy, opt_decomp=dm%d4pc)
@@ -393,6 +478,208 @@ contains
 
     return
   end subroutine read_flow_restart_xoutlet_state
+!==============================================================================
+  !> CHAPSIM_LEGACY_FBCX_STATE, for checkpoints written before the fbcx_thermal_state key existed:
+  !> '' (default: stop where the state cannot be verified), 'keep' (keep the x-boundary states rebuilt
+  !> from the restored (rho*h, rho_hat), as for a 'rebuild' checkpoint) or 'rederive' (re-derive them
+  !> from the stored (rho, rho*h) pair, the behaviour before the key).
+  function legacy_fbcx_policy() result(policy)
+    implicit none
+    character(16) :: policy
+    integer :: l, e
+    call get_environment_variable('CHAPSIM_LEGACY_FBCX_STATE', policy, l, e)
+    if(e /= 0) policy = ''
+    if(len_trim(policy) > 0 .and. trim(policy) /= 'keep' .and. trim(policy) /= 'rederive') &
+      call Print_error_msg('CHAPSIM_LEGACY_FBCX_STATE must be keep or rederive.')
+  end function legacy_fbcx_policy
+!==============================================================================
+  !> A checkpoint without fbcx_thermal_state whose stored x-boundary thermal state on the correlation
+  !> property path is not reproduced bit for bit by the rebuild cannot be classified: if another build
+  !> wrote it after an energy step, re-deriving the state moves it by the iterative inverse's tolerance
+  !> (a jump of order 1e-8 in rho*h at the outlet); if it is an initial-state
+  !> checkpoint, re-deriving is correct. The run stops on every rank unless the user chooses.
+  subroutine check_legacy_fbcx_state(nlegacy, policy, iter)
+    use mpi_mod
+    implicit none
+    integer,      intent(in) :: nlegacy, iter
+    character(*), intent(in) :: policy
+    integer :: ntot
+    character(32) :: str
+    call mpi_allreduce(nlegacy, ntot, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, ierror)
+    if(ntot == 0) return
+    write(str, '(I0,A,I0)') ntot, ' point(s), checkpoint ', iter
+    if(len_trim(policy) == 0) call Print_error_msg('Restart from a checkpoint without fbcx_thermal_state: the '// &
+      'x-boundary thermal state of a correlation-property fluid is not reproduced ('//trim(str)//'). Set '// &
+      'CHAPSIM_LEGACY_FBCX_STATE=keep if the checkpoint was written after an energy step (any time-loop '// &
+      'checkpoint), or =rederive for a checkpoint of the initial state.')
+    if(nrank == 0) call Print_warning_msg('Checkpoint without fbcx_thermal_state ('//trim(str)// &
+      '): CHAPSIM_LEGACY_FBCX_STATE='//trim(policy)//' applied.')
+  end subroutine check_legacy_fbcx_state
+!==============================================================================
+  !> Logical AND over all ranks. The restored provenance must be one value for the run: rank 0 writes
+  !> it to the metadata of the next checkpoint, and with the bit test a point may fall back on any rank.
+  !> Reduced as an INTEGER, like the other MPI buffers of this file.
+  logical function is_true_on_all_ranks(local)
+    use mpi_mod
+    implicit none
+    logical, intent(in) :: local
+    integer :: ilocal, iall
+    ilocal = merge(1, 0, local)
+    call mpi_allreduce(ilocal, iall, 1, MPI_INTEGER, MPI_MIN, MPI_COMM_WORLD, ierror)
+    is_true_on_all_ranks = (iall == 1)
+  end function is_true_on_all_ranks
+!==============================================================================
+  !> Name of the metadata file that carries fbcx_thermal_state: the flow-bundle metadata in the bundled
+  !> layout, the sidecar of domainN_flow_xoutlet_<iter>.bin in the per-field layout.
+  subroutine fbcx_thermal_state_metadata_file(dm, iter, layout, meta_file)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: iter, layout
+    character(*), intent(out) :: meta_file
+    if(layout == RESTART_LAYOUT_BUNDLED) then
+      call generate_pathfile_name(meta_file, dm%idom, 'flow_restart_meta', dir_data, 'dat', iter)
+    else
+      call generate_pathfile_name(meta_file, dm%idom, 'flow_xoutlet_meta', dir_data, 'dat', iter)
+    end if
+  end subroutine fbcx_thermal_state_metadata_file
+!==============================================================================
+  !> Records where the x-boundary thermal states (fbcx_ftp) of a heated run with a convective outlet
+  !> came from: 'rebuild' when the time loop's property update has built them from (rho*h, rho_hat)
+  !> (any checkpoint after an energy step, or one restored from such a checkpoint), 'initial' otherwise
+  !> (a checkpoint of the initial state). Bundled layout: appended after field_shapes, so readers that
+  !> validate the fixed keys are unaffected. Per-field layout: one-line sidecar file.
+  subroutine write_fbcx_thermal_state_metadata(fl, dm, layout)
+    implicit none
+    type(t_flow),   intent(in) :: fl
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: layout
+    character(256) :: meta_file
+    integer :: u
+    if(nrank /= 0) return
+    if(.not. (dm%is_thermo .and. dm%is_conv_outlet(1))) return
+    call fbcx_thermal_state_metadata_file(dm, fl%iteration, layout, meta_file)
+    if(layout == RESTART_LAYOUT_BUNDLED) then
+      open(newunit=u, file=trim(meta_file), status='old', position='append', action='write')
+    else
+      open(newunit=u, file=trim(meta_file), status='replace', action='write')
+    end if
+    if(fl%is_fbcx_thermal_rebuilt) then
+      write(u, '(A)') 'fbcx_thermal_state rebuild'
+    else
+      write(u, '(A)') 'fbcx_thermal_state initial'
+    end if
+    close(u)
+  end subroutine write_fbcx_thermal_state_metadata
+!==============================================================================
+  !> fbcx_thermal_state of the checkpoint of iteration iter in the read layout: 'rebuild', 'initial',
+  !> or '' (key or sidecar absent: a checkpoint written before the key existed).
+  function read_fbcx_thermal_state_metadata(dm, iter) result(state)
+    use mpi_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: iter
+    character(16) :: state
+    character(256) :: meta_file
+    character(1024) :: line
+    integer :: u, ioerr, code
+    state = ''
+    call fbcx_thermal_state_metadata_file(dm, iter, dm%restart_data_layout_read, meta_file)
+    if(nrank == 0) then
+      open(newunit=u, file=trim(meta_file), status='old', action='read', iostat=ioerr)
+      if(ioerr == 0) then
+        do
+          read(u, '(A)', iostat=ioerr) line
+          if(ioerr /= 0) exit
+          line = adjustl(line)
+          if(line(1:19) == 'fbcx_thermal_state ') then
+            state = adjustl(line(20:))
+            exit
+          end if
+        end do
+        close(u)
+      end if
+    end if
+    ! one value on every rank (the per-point decision of the reader must not depend on the rank),
+    ! broadcast as an INTEGER code: 0 absent, 1 rebuild, 2 initial, -1 invalid
+    code = 0
+    if(trim(state) == 'rebuild') then
+      code = 1
+    else if(trim(state) == 'initial') then
+      code = 2
+    else if(len_trim(state) > 0) then
+      code = -1
+    end if
+    call mpi_bcast(code, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierror)
+    if(code == -1) call Print_error_msg('Invalid fbcx_thermal_state in '//trim(meta_file))
+    state = ''
+    if(code == 1) state = 'rebuild'
+    if(code == 2) state = 'initial'
+  end function read_fbcx_thermal_state_metadata
+!==============================================================================
+  !> True when a and b have the same bit pattern (the restart exactness test;
+  !> unlike a == b it separates +0 and -0 and needs no real equality comparison).
+  pure logical function is_same_bits(a, b)
+    use precision_mod, only : I15
+    implicit none
+    real(WP), intent(in) :: a, b
+    is_same_bits = (transfer(a, 1_I15) == transfer(b, 1_I15))
+  end function is_same_bits
+!==============================================================================
+  !> Per-field restart layout: the convective x-outlet state (planes, their RHS
+  !> histories and, for a thermal run, the stored boundary (rho, rho*h)) is written
+  !> as one extra file domain1_flow_xoutlet_<iter>.bin, in exactly the form and by
+  !> the same routines as the tail of the flow bundle, so both layouts restore the
+  !> same outlet state.
+  subroutine write_flow_xoutlet_state_per_field(fl, dm)
+    implicit none
+    type(t_flow),   intent(in) :: fl
+    type(t_domain), intent(in) :: dm
+    type(d2d_io_mpi) :: io
+    character(256) :: output_files(1)
+    logical :: do_write
+
+    if(.not. dm%is_conv_outlet(1)) return
+    call generate_pathfile_name(output_files(1), dm%idom, 'flow_xoutlet', dir_data, 'bin', fl%iteration)
+    call prepare_output_file_set(output_files, dm%existing_output_policy, 'flow outlet state', do_write)
+    if(.not. do_write) return
+    call io%open(trim(output_files(1)), decomp_2d_write_mode)
+    if(is_restart_history_exact(dm)) then
+      call write_flow_restart_xoutlet_state(io, fl, dm)
+    else
+      call write_flow_restart_xoutlet_state_compact(io, fl, dm)
+    end if
+    call io%close()
+    call write_fbcx_thermal_state_metadata(fl, dm, RESTART_LAYOUT_PER_FIELD)
+    return
+  end subroutine write_flow_xoutlet_state_per_field
+!==============================================================================
+  !> Per-field restart layout: read the convective x-outlet state written by
+  !> write_flow_xoutlet_state_per_field. A per-field checkpoint written before that
+  !> file existed is read as before (outlet from its initial state), with a warning.
+  subroutine read_flow_xoutlet_state_per_field(fl, dm)
+    implicit none
+    type(t_flow),   intent(inout) :: fl
+    type(t_domain), intent(inout) :: dm
+    type(d2d_io_mpi) :: io
+    character(256) :: data_file
+
+    if(.not. dm%is_conv_outlet(1)) return
+    call generate_pathfile_name(data_file, dm%idom, 'flow_xoutlet', dir_data, 'bin', fl%iterfrom)
+    if(.not. file_exists(trim(data_file))) then
+      if(nrank == 0) call Print_warning_msg('Per-field flow restart without the convective-outlet '// &
+        'state ('//trim(data_file)//'): the outlet restarts from its initial state; the continuation is NOT exact.')
+      return
+    end if
+    if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(data_file))
+    call io%open(trim(data_file), decomp_2d_read_mode)
+    if(is_restart_history_exact(dm)) then
+      call read_flow_restart_xoutlet_state(io, fl, dm)
+    else
+      call read_flow_restart_xoutlet_state_compact(io, fl, dm)
+    end if
+    call io%close()
+    return
+  end subroutine read_flow_xoutlet_state_per_field
 !==============================================================================
   subroutine write_flow_restart_xoutlet_state_compact(io, fl, dm)
     implicit none
@@ -445,8 +732,15 @@ contains
     real(WP), dimension(dm%d4cc%xsz(1), dm%d4cc%xsz(2), dm%d4cc%xsz(3)) :: fbcx_ftp_rhoh
     integer :: n, j, k
     logical :: is_thermo
+    character(16) :: fbcx_state, legacy_policy
+    logical :: all_rebuilt
+    integer :: nlegacy
 
     if(.not. dm%is_conv_outlet(1)) return
+    fbcx_state = read_fbcx_thermal_state_metadata(dm, fl%iterfrom)
+    all_rebuilt = .true.
+    nlegacy = 0
+    legacy_policy = legacy_fbcx_policy()
 
     is_thermo = dm%is_thermo
     if(present(opt_is_thermo)) is_thermo = opt_is_thermo
@@ -455,6 +749,7 @@ contains
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gx, opt_decomp=dm%d4cc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gy, opt_decomp=dm%d4pc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_gz, opt_decomp=dm%d4cp)
+      fl%is_fbcx_g_restored = .true.
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qx, opt_decomp=dm%d4cc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qy, opt_decomp=dm%d4pc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qz, opt_decomp=dm%d4cp)
@@ -463,12 +758,51 @@ contains
       do k = 1, dm%d4cc%xsz(3)
         do j = 1, dm%d4cc%xsz(2)
           do n = 1, dm%d4cc%xsz(1)
+            ! Exact Bc restart: restore_thermo_variables_from_restart (which runs first)
+            ! has rebuilt the states of a Neumann-T x side (slots 1, 3 or 2, 4) from
+            ! (rho*h, rho_hat), as the time loop builds them. Where that rebuild
+            ! reproduces the stored (rho, rho*h) bit for bit it is kept: re-deriving
+            ! from the stored pair takes h = rho*h/rho instead of rho*h/rho_hat and does
+            ! not round-trip, which made heated inlet/outlet continuations inexact.
+            ! Elsewhere (e.g. a mesh-mapped iteration-0 state, which the rebuild does
+            ! not reproduce) the stored pair is used as before.
+            ! The same holds on a Dirichlet-T side: its state was set from the given
+            ! temperature, and on the correlation property path (IPROPERTY_FUNCS)
+            ! re-deriving it from (rho, rho*h) through the tabulated inverse does not
+            ! return that state. Provenance and legacy checkpoints: as in
+            ! read_flow_restart_xoutlet_state.
+            ! The rule applies to Neumann-T and Dirichlet-T sides only. A convective thermal outlet
+            ! (ibcx_nominal(2, 5) == IBC_CONVECTIVE, reduced to Neumann in ibcx_Tm) stores the
+            ! advected rho*h, which the stored-pair branch below keeps and restore_fbcx_outlet_thermo_bc
+            ! then uses with fbcx_dhat; the rebuild extrapolates instead, so it is never kept there.
+            if(is_bc_recovery .and. fl%is_bc_state_restored .and. &
+               .not. ((n == 2 .or. n == 4) .and. dm%ibcx_nominal(2, 5) == IBC_CONVECTIVE) .and. &
+               (dm%ibcx_Tm(2 - mod(n, 2)) == IBC_NEUMANN .or. &
+                dm%ibcx_Tm(2 - mod(n, 2)) == IBC_DIRICHLET)) then
+              if(trim(fbcx_state) == 'rebuild') cycle
+              if(len_trim(fbcx_state) == 0) then
+                if(is_same_bits(dm%fbcx_ftp(n, j, k)%d, fbcx_ftp_d(n, j, k)) .and. &
+                   is_same_bits(dm%fbcx_ftp(n, j, k)%rhoh, fbcx_ftp_rhoh(n, j, k))) cycle
+                if(fluidparam%ipropertyState == IPROPERTY_FUNCS) then
+                  nlegacy = nlegacy + 1
+                  if(trim(legacy_policy) == 'keep') cycle
+                end if
+              end if
+            end if
+            if(.not. ((n == 2 .or. n == 4) .and. dm%ibcx_nominal(2, 5) == IBC_CONVECTIVE)) all_rebuilt = .false.
             dm%fbcx_ftp(n, j, k)%d = fbcx_ftp_d(n, j, k)
             dm%fbcx_ftp(n, j, k)%rhoh = fbcx_ftp_rhoh(n, j, k)
             call ftp_refresh_thermal_properties_from_DH(dm%fbcx_ftp(n, j, k))
+            ! Bc convective thermal outlet: the stored rhoh of slots 2, 4 is the
+            ! advected rho*h (not rho_EOS h); keep it. The outlet state is
+            ! recomputed from (rho*h, rho_hat) by restore_fbcx_outlet_thermo_bc.
+            if(is_bc_recovery .and. (n == 2 .or. n == 4) .and. &
+               dm%ibcx_nominal(2, 5) == IBC_CONVECTIVE) dm%fbcx_ftp(n, j, k)%rhoh = fbcx_ftp_rhoh(n, j, k)
           end do
         end do
       end do
+      call check_legacy_fbcx_state(nlegacy, legacy_policy, fl%iterfrom)
+      fl%is_fbcx_thermal_rebuilt = is_true_on_all_ranks(all_rebuilt)
     else
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qx, opt_decomp=dm%d4cc)
       call decomp_2d_read_var(io, IPENCIL(1), dm%fbcx_qy, opt_decomp=dm%d4pc)
@@ -482,9 +816,38 @@ contains
   end subroutine read_flow_restart_xoutlet_state_compact
 !==============================================================================
   ! A thermal run always stores the full history: compact history is rejected
-  ! for is_thermo at input time (check_restart_history_mode_support), so there
+  ! for is_thermo at input time (Read_input_parameters), so there
   ! is a single thermo restart field set.
   function thermo_restart_fields(dm) result(fields)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(1024) :: fields
+
+    fields = thermo_restart_fields_legacy(dm)
+    ! Transported-density recovery (Bc) needs rho_hat and the physical rho_t of
+    ! the last stage of the previous step (it multiplies gamma_1 at stage 1 and
+    ! zeta_2 at stage 2; the rho_t of the stage before multiplies zeta_1 = 0).
+    if(is_bc_recovery) fields = trim(fields)//trim(thermo_restart_fields_bc_extra(dm))
+
+    return
+  end function thermo_restart_fields
+!==============================================================================
+  ! Extra thermal restart fields of rhoh_recovery = transported (Bc): rho_hat,
+  ! the physical rho_t of the previous step's last stage and, with a convective
+  ! x-outlet, the outlet rho_hat face/ghost states and their RK history.
+  function thermo_restart_fields_bc_extra(dm) result(fields)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(256) :: fields
+
+    fields = ',dens_hat:dccc,drhodt_m1:dccc'
+    if(dm%is_conv_outlet(1)) fields = trim(fields)//',fbcx_dhat:d4cc,fbcx_dhat_rhs0:d1cc'
+
+    return
+  end function thermo_restart_fields_bc_extra
+!==============================================================================
+  ! Thermal restart field set as written up to 8d47f18 (and by lagged_legacy).
+  function thermo_restart_fields_legacy(dm) result(fields)
     implicit none
     type(t_domain), intent(in) :: dm
     character(1024) :: fields
@@ -493,11 +856,12 @@ contains
     if(dm%is_conv_outlet(1)) fields = trim(fields)//',fbcx_rhoh_rhs0:d1cc'
 
     return
-  end function thermo_restart_fields
+  end function thermo_restart_fields_legacy
 !==============================================================================
-  function thermo_restart_shapes(dm) result(shapes)
+  function thermo_restart_shapes(dm, opt_bc_fields) result(shapes)
     implicit none
     type(t_domain), intent(in) :: dm
+    logical, intent(in), optional :: opt_bc_fields
     character(1024) :: shapes
 
     shapes = trim(bundle_shape('rhoh', dm%dccc))//';'// &
@@ -509,6 +873,14 @@ contains
              trim(bundle_shape('kcond', dm%dccc))//';'// &
              trim(bundle_shape('econd', dm%dccc))
     if(dm%is_conv_outlet(1)) shapes = trim(shapes)//';'//trim(bundle_shape('fbcx_rhoh_rhs0', dm%d1cc))
+    if(present(opt_bc_fields)) then
+      if(opt_bc_fields) then
+        shapes = trim(shapes)//';'//trim(bundle_shape('dens_hat', dm%dccc))// &
+                 ';'//trim(bundle_shape('drhodt_m1', dm%dccc))
+        if(dm%is_conv_outlet(1)) shapes = trim(shapes)//';'//trim(bundle_shape('fbcx_dhat', dm%d4cc))// &
+                 ';'//trim(bundle_shape('fbcx_dhat_rhs0', dm%d1cc))
+      end if
+    end if
 
     return
   end function thermo_restart_shapes
@@ -699,8 +1071,11 @@ contains
 
     character(256) :: meta_file
     character(1024) :: line, value
-    integer :: u, ioerr, iter_read
+    integer :: u, ioerr, iter_read, precision_read
     integer :: nc_read(3), np_read(3)
+    integer :: int_read, istret_read, mstret_read
+    real(WP) :: length_read(4), rstret_read
+    logical :: periodic_read(3)
 
     call generate_pathfile_name(meta_file, dm%idom, trim(group_name)//'_meta', dir_data, 'dat', iter)
     if(.not. file_exists(trim(meta_file))) &
@@ -729,10 +1104,19 @@ contains
     call read_metadata_line(u, meta_file, 'dt', value)
     call read_metadata_line(u, meta_file, 'idom', value)
     call read_metadata_line(u, meta_file, 'icase', value)
+    call parse_metadata_int(value, int_read, 'icase', meta_file)
+    if(int_read /= dm%icase) call Print_error_msg("Bundle case (icase) mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'coordinate', value)
+    call parse_metadata_int(value, int_read, 'coordinate', meta_file)
+    if(int_read /= dm%icoordinate) call Print_error_msg("Bundle coordinate-system mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'layout', value)
     if(trim(value) /= 'bundled') call Print_error_msg("Bundle layout mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'precision_bytes', value)
+    ! the writer records storage_size(real(WP)); another value means another build
+    ! kind, whose arrays this reader would misinterpret
+    call parse_metadata_int(value, precision_read, 'precision_bytes', meta_file)
+    if(precision_read /= storage_size(1.0_WP) / 8) &
+    call Print_error_msg("Bundle precision mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'endianness', value)
     call read_metadata_line(u, meta_file, 'nc', value)
     call parse_metadata_int3(value, nc_read, 'nc', meta_file)
@@ -740,9 +1124,36 @@ contains
     call read_metadata_line(u, meta_file, 'np', value)
     call parse_metadata_int3(value, np_read, 'np', meta_file)
     if(any(np_read /= dm%np)) call Print_error_msg("Bundle mesh point-count mismatch in "//trim(meta_file))
+    !--------------------------------------------------------------------------
+    ! Geometry. The arrays carry no coordinates, so a bundle written on a mesh with
+    ! the same cell counts but another length, stretching or periodicity would be
+    ! read as if it belonged to this mesh. The writer stores the reals with
+    ! ES24.16 (an exact round trip); the 1e-12 relative margin only absorbs
+    ! hand-edited or reformatted files. rstret is compared only for a stretched y.
+    !--------------------------------------------------------------------------
     call read_metadata_line(u, meta_file, 'length', value)
+    read(value, *, iostat=ioerr) length_read(1:4)
+    if(ioerr /= 0) call Print_error_msg("Invalid length entry in "//trim(meta_file))
+    if(.not. (same_real(length_read(1), dm%lxx) .and. same_real(length_read(2), dm%lyb) .and. &
+              same_real(length_read(3), dm%lyt) .and. same_real(length_read(4), dm%lzz))) then
+      if(nrank == 0) write(*, '(A,4ES24.16E3)') ' bundle length lxx, lyb, lyt, lzz:', length_read(1:4)
+      if(nrank == 0) write(*, '(A,4ES24.16E3)') ' input  length lxx, lyb, lyt, lzz:', dm%lxx, dm%lyb, dm%lyt, dm%lzz
+      call Print_error_msg("Bundle domain-length mismatch in "//trim(meta_file))
+    end if
     call read_metadata_line(u, meta_file, 'stretch', value)
+    read(value, *, iostat=ioerr) istret_read, mstret_read, rstret_read
+    if(ioerr /= 0) call Print_error_msg("Invalid stretch entry in "//trim(meta_file))
+    if(istret_read /= dm%istret) then
+      call Print_error_msg("Bundle mesh-stretching mismatch (istret) in "//trim(meta_file))
+    else if(dm%istret /= ISTRET_NO) then
+      if(mstret_read /= dm%mstret .or. .not. same_real(rstret_read, dm%rstret)) &
+      call Print_error_msg("Bundle mesh-stretching mismatch (mstret/rstret) in "//trim(meta_file))
+    end if
     call read_metadata_line(u, meta_file, 'periodic', value)
+    read(value, *, iostat=ioerr) periodic_read(1:3)
+    if(ioerr /= 0) call Print_error_msg("Invalid periodic entry in "//trim(meta_file))
+    if(any(periodic_read(1:3) .neqv. dm%is_periodic(1:3))) &
+    call Print_error_msg("Bundle periodicity mismatch in "//trim(meta_file))
     call read_metadata_line(u, meta_file, 'ndbbuf', value)
     call read_metadata_line(u, meta_file, 'fields', value)
     if(trim(value) /= trim(fields)) then
@@ -759,8 +1170,84 @@ contains
 
     close(u)
 
+    call check_bundle_file_size(dm, group_name, iter, field_shapes, meta_file)
+
     return
+  contains
+    logical function same_real(a, b)
+      real(WP), intent(in) :: a, b
+      same_real = abs(a - b) <= 1.0e-12_WP * max(abs(a), abs(b), 1.0_WP)
+    end function same_real
   end subroutine validate_bundle_metadata
+!==============================================================================
+  !> Stop unless the .bin of a bundle holds exactly the arrays its validated
+  !> metadata lists. The readers take each array at the offset that follows from
+  !> field_shapes, and an MPI-IO read past the end of the file is not an error, so
+  !> a truncated, padded or differently laid-out file would otherwise be read
+  !> without notice (read_one_3d_array makes the same check for a per-field file).
+  !> Rank 0 measures the file and broadcasts the size, so that every rank reaches
+  !> the same verdict and stops together. Collective: call on all ranks.
+  !> - field_shapes (in): 'name=n1,n2,n3;...' as the reader expects it, already
+  !>   compared with the metadata by validate_bundle_metadata.
+  subroutine check_bundle_file_size(dm, group_name, iter, field_shapes, meta_file)
+    use iso_fortran_env, only: int64, real32
+    use decomp_2d_constants, only: DEFAULT_OPT_REDUCE_PREC
+    use mpi_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(*), intent(in) :: group_name
+    integer,      intent(in) :: iter
+    character(*), intent(in) :: field_shapes
+    character(*), intent(in) :: meta_file
+
+    character(256) :: bin_file
+    character(1024) :: msg
+    integer(int64) :: expected_bytes, file_bytes, value_bytes
+    integer :: n(3), p0, p1, peq, narrays
+
+    ! bytes per stored value, as decomp_2d_write_var/read_var store it: real(WP),
+    ! or real32 if 2decomp was built with single-precision output (SAVE_SINGLE)
+    value_bytes = int(storage_size(1.0_WP) / 8, int64)
+    if(DEFAULT_OPT_REDUCE_PREC) value_bytes = int(storage_size(1.0_real32) / 8, int64)
+    expected_bytes = 0_int64
+    narrays = 0
+    p0 = 1
+    do while(p0 <= len_trim(field_shapes))
+      p1 = index(field_shapes(p0:), ';')
+      if(p1 == 0) then
+        p1 = len_trim(field_shapes) + 1
+      else
+        p1 = p0 + p1 - 1
+      end if
+      peq = index(field_shapes(p0:p1-1), '=')
+      if(peq == 0) call Print_error_msg("Malformed bundle field shape "//field_shapes(p0:p1-1))
+      call parse_metadata_int3(field_shapes(p0+peq:p1-1), n, 'field_shapes', meta_file)
+      expected_bytes = expected_bytes + int(n(1), int64) * int(n(2), int64) * int(n(3), int64) * value_bytes
+      narrays = narrays + 1
+      p0 = p1 + 1
+    end do
+
+    call generate_pathfile_name(bin_file, dm%idom, trim(group_name), dir_data, 'bin', iter)
+    file_bytes = -1_int64
+    if(nrank == 0) then
+      if(file_exists(trim(bin_file))) inquire(file=trim(bin_file), size=file_bytes)
+    end if
+    call mpi_bcast(file_bytes, 1, MPI_INTEGER8, 0, MPI_COMM_WORLD, ierror)
+
+    if(file_bytes < 0_int64) &
+    call Print_error_msg("The bundle file "//trim(bin_file)//" does not exist or its size cannot be read.")
+    if(file_bytes /= expected_bytes) then
+      write(msg, '(A,A,I0,A,I0,A,I0,A,A)') trim(bin_file), ' has ', file_bytes, ' bytes, expected ', &
+        expected_bytes, ' for the ', narrays, ' arrays listed in ', trim(meta_file)
+      if(file_bytes < expected_bytes) then
+        call Print_error_msg("Bundle size mismatch (file too short): "//trim(msg))
+      else
+        call Print_error_msg("Bundle size mismatch (file too long): "//trim(msg))
+      end if
+    end if
+
+    return
+  end subroutine check_bundle_file_size
 !==============================================================================
   subroutine warn_if_legacy_metadata_conflicts(idom, keyword, iter, time, dt)
     implicit none
@@ -801,6 +1288,37 @@ contains
     end if
 
     call read_restart_metadata(idom, keyword, iter, time, dt, found)
+    if(found) return
+
+    !--------------------------------------------------------------------------
+    ! Bundled layout without checkpoint_meta (e.g. only the bundle pair was
+    ! copied): the bundle manifest records the same time and dt (ES24.16), so
+    ! take them from there rather than estimating time = iterfrom * dt, which is
+    ! wrong whenever dt has changed during the run.
+    !--------------------------------------------------------------------------
+    block
+      character(256) :: bundle_meta
+      character(1024) :: value
+      character(32) :: group_name
+      integer :: ios_t, ios_dt
+      group_name = ''
+      if(trim(keyword) == 'flow_meta')   group_name = 'flow_restart'
+      if(trim(keyword) == 'thermo_meta') group_name = 'thermo_restart'
+      if(len_trim(group_name) == 0) return
+      call generate_pathfile_name(bundle_meta, idom, trim(group_name)//'_meta', dir_data, 'dat', iter)
+      if(.not. file_exists(trim(bundle_meta))) return
+      value = metadata_value(bundle_meta, 'time')
+      read(value, *, iostat=ios_t) time
+      value = metadata_value(bundle_meta, 'dt')
+      read(value, *, iostat=ios_dt) dt
+      found = (ios_t == 0 .and. ios_dt == 0)
+      if(found .and. nrank == 0) call Print_note_msg('Restart time and dt taken from the bundle manifest '// &
+        trim(bundle_meta)//' (no checkpoint_meta file).')
+      if(.not. found) then
+        time = ZERO
+        dt = ZERO
+      end if
+    end block
 
     return
   end subroutine read_checkpoint_restart_metadata
@@ -850,6 +1368,7 @@ contains
         call write_one_3d_array(fl%my_rhs0, 'my_rhs0', dm%idom, fl%iteration, dm%dcpc, dm%existing_output_policy)
         call write_one_3d_array(fl%mz_rhs0, 'mz_rhs0', dm%idom, fl%iteration, dm%dccp, dm%existing_output_policy)
       end if
+      call write_flow_xoutlet_state_per_field(fl, dm)
       call write_checkpoint_manifest(dm%idom, fl%iteration, fl%time, dm%dt)
       call remove_legacy_restart_metadata(dm%idom, 'flow_meta', fl%iteration, dm%existing_output_policy)
     else
@@ -862,6 +1381,7 @@ contains
         call write_one_3d_array(fl%my_rhs0, 'my_rhs0', dm%idom, fl%iteration, dm%dcpc, dm%existing_output_policy)
         call write_one_3d_array(fl%mz_rhs0, 'mz_rhs0', dm%idom, fl%iteration, dm%dccp, dm%existing_output_policy)
       end if
+      call write_flow_xoutlet_state_per_field(fl, dm)
       call write_checkpoint_manifest(dm%idom, fl%iteration, fl%time, dm%dt)
       call remove_legacy_restart_metadata(dm%idom, 'flow_meta', fl%iteration, dm%existing_output_policy)
     end if
@@ -926,6 +1446,7 @@ contains
 
     call write_bundle_metadata(dm, 'flow_restart', fl%iteration, &
       flow_restart_fields(dm), flow_restart_shapes(dm), fl%time, dm%dt)
+    call write_fbcx_thermal_state_metadata(fl, dm, RESTART_LAYOUT_BUNDLED)
     call write_checkpoint_manifest(dm%idom, fl%iteration, fl%time, dm%dt)
     call remove_legacy_restart_metadata(dm%idom, 'flow_meta', fl%iteration, dm%existing_output_policy)
 
@@ -1166,6 +1687,7 @@ contains
 
     call write_bundle_metadata(dm, 'flow_restart', fl%iteration, &
       flow_restart_fields(dm), flow_restart_shapes(dm), fl%time, dm%dt)
+    call write_fbcx_thermal_state_metadata(fl, dm, RESTART_LAYOUT_BUNDLED)
     call write_checkpoint_manifest(dm%idom, fl%iteration, fl%time, dm%dt)
     call remove_legacy_restart_metadata(dm%idom, 'flow_meta', fl%iteration, dm%existing_output_policy)
 
@@ -1219,12 +1741,15 @@ contains
 
     type(d2d_io_mpi) :: io
     character(256) :: bundle_file
-    character(256) :: output_files(2)
+    character(256) :: output_files(3)
     real(WP), dimension(dm%d1cc%xsz(1), dm%d1cc%xsz(2), dm%d1cc%xsz(3)) :: fbcx_rhoh_rhs0
     logical :: do_write
 
     call generate_pathfile_name(output_files(1), dm%idom, 'thermo_restart', dir_data, 'bin', tm%iteration)
     call generate_pathfile_name(output_files(2), dm%idom, 'thermo_restart_meta', dir_data, 'dat', tm%iteration)
+    ! interpolation-mode sidecar: part of the same output set, so it is skipped,
+    ! renamed or overwritten together with the bundle it describes
+    call generate_pathfile_name(output_files(3), dm%idom, 'thermo_interp_meta', dir_data, 'dat', tm%iteration)
     bundle_file = output_files(1)
     call prepare_output_file_set(output_files, dm%existing_output_policy, 'thermo restart bundle', do_write)
     if(.not. do_write) return
@@ -1243,15 +1768,301 @@ contains
       fbcx_rhoh_rhs0(1, :, :) = tm%fbcx_rhoh_rhs0(:, :)
       call decomp_2d_write_var(io, IPENCIL(1), fbcx_rhoh_rhs0, opt_decomp=dm%d1cc)
     end if
+    if(is_bc_recovery) then
+      call decomp_2d_write_var(io, IPENCIL(1), fl%dDens_hat, opt_decomp=dm%dccc)
+      call decomp_2d_write_var(io, IPENCIL(1), fl%drhodt_m1, opt_decomp=dm%dccc)
+      if(dm%is_conv_outlet(1)) then
+        call decomp_2d_write_var(io, IPENCIL(1), tm%fbcx_dhat, opt_decomp=dm%d4cc)
+        fbcx_rhoh_rhs0(1, :, :) = tm%fbcx_dhat_rhs0(:, :)
+        call decomp_2d_write_var(io, IPENCIL(1), fbcx_rhoh_rhs0, opt_decomp=dm%d1cc)
+      end if
+    end if
     call io%close()
 
     call write_bundle_metadata(dm, 'thermo_restart', tm%iteration, &
-      thermo_restart_fields(dm), thermo_restart_shapes(dm), tm%time, dm%dt)
+      thermo_restart_fields(dm), thermo_restart_shapes(dm, opt_bc_fields=is_bc_recovery), tm%time, dm%dt)
+    call write_thermo_flow_iteration(dm, tm%iteration, fl%iteration, RESTART_LAYOUT_BUNDLED)
+    call write_thermo_interp_metadata(dm, tm%iteration)
     call write_checkpoint_manifest(dm%idom, tm%iteration, tm%time, dm%dt)
     call remove_legacy_restart_metadata(dm%idom, 'thermo_meta', tm%iteration, dm%existing_output_policy)
 
     return
   end subroutine write_thermo_restart_bundle
+!==============================================================================
+  !> Write the property-interpolation record of a thermal checkpoint,
+  !> domain<d>_thermo_interp_meta_<iter>.dat (rank 0):
+  !>   CHAPSim_thermo_interp_v1 / domain <d> / iteration <iter> /
+  !>   property_interp <linear|pchip>
+  !>   [enthalpy_advection <cd2|koren>]   (optional fifth line)
+  !>   [enthalpy_advection_switch <from>-><to> <iteration>]   (optional sixth line)
+  !> A separate text file, so the existing binary and metadata formats are
+  !> unchanged; it is paired with the checkpoint by domain and iteration. The
+  !> fifth line is written by a koren run, and by any run that carries a switch
+  !> record; the sixth line records the latest permitted change of
+  !> enthalpy_advection at a restart. A cd2 run without a switch record writes
+  !> neither, so its record is unchanged; readers that predate the lines ignore
+  !> them.
+  subroutine write_thermo_interp_metadata(dm, iter)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer,        intent(in) :: iter
+    character(256) :: meta_file
+    integer :: u, ios
+    if(nrank /= 0) return
+    call generate_pathfile_name(meta_file, dm%idom, 'thermo_interp_meta', dir_data, 'dat', iter)
+    open(newunit=u, file=trim(meta_file), status='replace', action='write', iostat=ios)
+    if(ios /= 0) call Print_error_msg("Could not write "//trim(meta_file))
+    write(u, '(A)') 'CHAPSim_thermo_interp_v1'
+    write(u, '(A,1X,I0)') 'domain', dm%idom
+    write(u, '(A,1X,I0)') 'iteration', iter
+    if(iprop_interp == IPROP_INTERP_PCHIP) then
+      write(u, '(A)') 'property_interp pchip'
+    else
+      write(u, '(A)') 'property_interp linear'
+    end if
+    if(len_trim(enth_adv_switch_note) > 0) then
+      if(ienth_adv == IENTH_ADV_KOREN) then
+        write(u, '(A)') 'enthalpy_advection koren'
+      else
+        write(u, '(A)') 'enthalpy_advection cd2'
+      end if
+      write(u, '(A)') 'enthalpy_advection_switch '//trim(enth_adv_switch_note)
+    else if(ienth_adv == IENTH_ADV_KOREN) then
+      write(u, '(A)') 'enthalpy_advection koren'
+    end if
+    close(u)
+    return
+  end subroutine write_thermo_interp_metadata
+!==============================================================================
+  !> Records the flow step at which a thermal checkpoint is written ('flow_iteration <n>'). Thermal
+  !> checkpoints are labelled by tm%iteration, which follows the run clock (chapsim.f90), so the record
+  !> equals the label. Builds before 2026-10-30 advanced tm%iteration only while the energy equation was
+  !> solved: with niterthermofirst > niterflowfirst the label was lower than the flow step, and a thermal
+  !> checkpoint could carry the label of an earlier flow checkpoint with the same stored time; the
+  !> record lets a restart detect such a pair. Bundled layout: appended after field_shapes of the thermal
+  !> bundle metadata (readers that validate the fixed keys ignore it); per-field layout: one-line
+  !> sidecar domain<d>_thermo_clock_<iter>.dat.
+  subroutine write_thermo_flow_iteration(dm, iter, flow_iter, layout)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer,        intent(in) :: iter, flow_iter, layout
+    character(256) :: meta_file
+    integer :: u
+    if(nrank /= 0) return
+    if(layout == RESTART_LAYOUT_BUNDLED) then
+      call generate_pathfile_name(meta_file, dm%idom, 'thermo_restart_meta', dir_data, 'dat', iter)
+      open(newunit=u, file=trim(meta_file), status='old', position='append', action='write')
+    else
+      call generate_pathfile_name(meta_file, dm%idom, 'thermo_clock', dir_data, 'dat', iter)
+      open(newunit=u, file=trim(meta_file), status='replace', action='write')
+    end if
+    write(u, '(A,1X,I0)') 'flow_iteration', flow_iter
+    close(u)
+  end subroutine write_thermo_flow_iteration
+!==============================================================================
+  !> A thermal restart from checkpoint iter must start from the thermal state written at flow step
+  !> iter (the flow is restarted from the same label). Stops when the recorded flow step differs: the
+  !> energy equation of the run that wrote it started after the flow, so the two checkpoints with
+  !> this label hold different steps (with the same stored time), and continuing would couple a
+  !> thermal field to a flow field of another step without notice. A checkpoint written before the
+  !> record existed cannot be checked: warning.
+  subroutine check_thermo_flow_iteration(dm, iter)
+    use mpi_mod
+    use typeconvert_mod, only: int2str
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer,        intent(in) :: iter
+    character(256) :: meta_file
+    character(1024) :: line
+    character(64) :: label
+    character(160) :: str
+    integer :: u, ios, flow_iter
+    flow_iter = -1
+    if(dm%restart_data_layout_read == RESTART_LAYOUT_BUNDLED) then
+      call generate_pathfile_name(meta_file, dm%idom, 'thermo_restart_meta', dir_data, 'dat', iter)
+    else
+      call generate_pathfile_name(meta_file, dm%idom, 'thermo_clock', dir_data, 'dat', iter)
+    end if
+    if(nrank == 0) then
+      open(newunit=u, file=trim(meta_file), status='old', action='read', iostat=ios)
+      if(ios == 0) then
+        do
+          read(u, '(A)', iostat=ios) line
+          if(ios /= 0) exit
+          line = adjustl(line)
+          if(line(1:15) == 'flow_iteration ') then
+            read(line, *, iostat=ios) label, flow_iter
+            if(ios /= 0) flow_iter = -2
+            exit
+          end if
+        end do
+        close(u)
+      end if
+    end if
+    call mpi_bcast(flow_iter, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierror)
+    if(flow_iter == -2) call Print_error_msg('Unreadable flow_iteration in '//trim(meta_file))
+    if(flow_iter == -1) then
+      if(nrank == 0) call Print_warning_msg('Thermal checkpoint without flow_iteration ('//trim(meta_file)// &
+        '): it cannot be verified that it was written at flow step '//trim(int2str(iter))//'. If the '// &
+        'energy equation of the run that wrote it started after the flow and that run was not restarted '// &
+        'since, its thermal state is from a later flow step than the flow checkpoint with the same label.')
+      return
+    end if
+    if(flow_iter /= iter) then
+      write(str, '(A,I0,A,I0,A)') 'thermal checkpoint ', iter, ' was written at flow step ', flow_iter, &
+        ', flow checkpoint '
+      call Print_error_msg('Restart: '//trim(str)//' '//trim(int2str(iter))//' at flow step '// &
+        trim(int2str(iter))//'. The energy equation of the run that wrote them started after the '// &
+        'flow, and that build labelled thermal checkpoints by the thermal step count. The pair holds two '// &
+        'different steps and cannot be continued jointly.')
+    end if
+  end subroutine check_thermo_flow_iteration
+!==============================================================================
+  !> Restart policy for the property interpolation (all ranks; rank 0 reads and
+  !> broadcasts, so every rank takes the same decision):
+  !>   record linear -> run linear: allowed;  record pchip -> run pchip: allowed;
+  !>   record and run differ: stop;
+  !>   no record (checkpoint written before property_interp existed, i.e. with
+  !>   linear interpolation): allowed for linear, as before; stop for pchip;
+  !>   unreadable record, or domain/iteration not matching the checkpoint: stop.
+  !> A change of interpolation at a restart is rejected because the stored
+  !> density and rho_hat belong to the writing mode's property relation: the new
+  !> mode would relax rho in one step and keep a permanent rho_hat offset.
+  !> Enthalpy advection (optional fifth line; absent = cd2, which includes every
+  !> checkpoint written before the key existed), checked after the property
+  !> interpolation, whose rules above are not affected:
+  !>   same mode: allowed;
+  !>   different mode, enthalpy_advection_restart = strict (default): stop;
+  !>   different mode, allow_switch: allowed with a warning and recorded in the
+  !>     sixth line of later records, unless the statistics would continue across
+  !>     the change (stat_level > 0, iteration > stat_istart, run clock
+  !>     continued): then stop until the statistics window is reset;
+  !>   unrecognised fifth or sixth line: stop.
+  !> The stored state does not depend on the face reconstruction, so a switch is
+  !> admissible numerically; it is gated because it changes the scheme of a run
+  !> (reproducibility) and would mix two schemes in one averaging window.
+  subroutine check_thermo_interp_metadata(dm, iter)
+    use mpi_mod
+    use typeconvert_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer,        intent(in) :: iter
+    character(256) :: meta_file
+    character(64)  :: label, mode
+    character(80)  :: header
+    character(16)  :: other
+    character(64)  :: note_a, note_b, note_read
+    character(8)   :: mode_ckpt, mode_run
+    integer :: u, ios, idom_read, iter_read, code, iadv_read
+    ! code: 0 no record, 1 linear, 2 pchip, -1 unreadable/invalid, -2 domain/iteration mismatch
+    call generate_pathfile_name(meta_file, dm%idom, 'thermo_interp_meta', dir_data, 'dat', iter)
+    code = 0
+    iadv_read = IENTH_ADV_CD2
+    note_read = ''
+    if(nrank == 0) then
+      if(file_exists(trim(meta_file))) then
+        code = -1
+        open(newunit=u, file=trim(meta_file), status='old', action='read', iostat=ios)
+        if(ios == 0) then
+          read(u, '(A)', iostat=ios) header
+          if(ios == 0 .and. trim(header) == 'CHAPSim_thermo_interp_v1') then
+            read(u, *, iostat=ios) label, idom_read
+            if(ios == 0 .and. trim(label) == 'domain') then
+              read(u, *, iostat=ios) label, iter_read
+              if(ios == 0 .and. trim(label) == 'iteration') then
+                read(u, *, iostat=ios) label, mode
+                if(ios == 0 .and. trim(label) == 'property_interp') then
+                  if(idom_read /= dm%idom .or. iter_read /= iter) then
+                    code = -2
+                  else if(trim(mode) == 'linear') then
+                    code = 1
+                  else if(trim(mode) == 'pchip') then
+                    code = 2
+                  end if
+                  if(code > 0) then
+                    read(u, *, iostat=ios) label, mode
+                    if(ios == 0) then
+                      if(trim(label) == 'enthalpy_advection' .and. trim(mode) == 'koren') then
+                        iadv_read = IENTH_ADV_KOREN
+                      else if(.not. (trim(label) == 'enthalpy_advection' .and. trim(mode) == 'cd2')) then
+                        code = -1
+                      end if
+                      if(code > 0) then
+                        read(u, *, iostat=ios) label, note_a, note_b
+                        if(ios == 0) then
+                          if(trim(label) == 'enthalpy_advection_switch') then
+                            note_read = trim(note_a)//' '//trim(note_b)
+                          else
+                            code = -1
+                          end if
+                        end if
+                      end if
+                    end if
+                  end if
+                end if
+              end if
+            end if
+          end if
+          close(u)
+        end if
+      end if
+    end if
+    call mpi_bcast(code, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierror)
+    call mpi_bcast(iadv_read, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierror)
+    call mpi_bcast(note_read, len(note_read), MPI_CHARACTER, 0, MPI_COMM_WORLD, ierror)
+    select case(code)
+    case(-1)
+      call Print_error_msg("Unreadable or invalid interpolation record "//trim(meta_file)// &
+        " (expected lines: CHAPSim_thermo_interp_v1, domain <d>, iteration <n>, property_interp linear|pchip"// &
+        ", optionally enthalpy_advection cd2|koren and enthalpy_advection_switch <from>-><to> <iteration>).")
+    case(-2)
+      call Print_error_msg("Interpolation record "//trim(meta_file)// &
+        " names another domain or iteration; it does not belong to this thermal checkpoint.")
+    case(0)
+      if(iprop_interp == IPROP_INTERP_PCHIP) call Print_error_msg("Thermal checkpoint at iteration "// &
+        trim(int2str(iter))//" has no interpolation record ("//trim(meta_file)//"): it was written "// &
+        "before property_interp existed, i.e. with linear interpolation, and cannot be continued with "// &
+        "property_interp = pchip. Restart with linear, or start a fresh thermal field (inittm /= restart).")
+      if(nrank == 0) call Print_note_msg("Thermal checkpoint has no interpolation record (written before "// &
+        "property_interp existed); continuing with linear interpolation, as before.")
+    case default
+      if((code == 2) .neqv. (iprop_interp == IPROP_INTERP_PCHIP)) then
+        other = 'linear'
+        if(code == 2) other = 'pchip'
+        call Print_error_msg("Thermal checkpoint at iteration "//trim(int2str(iter))//" was written with "// &
+          "property_interp = "//trim(other)//", which differs from this run. Changing the property "// &
+          "interpolation at a restart is not supported (the stored density belongs to the other "// &
+          "interpolation); restart with property_interp = "//trim(other)//", or start a fresh thermal "// &
+          "field (inittm /= restart).")
+      end if
+    end select
+    ! enthalpy advection: the provenance of the checkpoint is carried forward
+    enth_adv_switch_note = note_read
+    if(iadv_read /= ienth_adv) then
+      mode_ckpt = 'cd2'
+      if(iadv_read == IENTH_ADV_KOREN) mode_ckpt = 'koren'
+      mode_run = 'cd2'
+      if(ienth_adv == IENTH_ADV_KOREN) mode_run = 'koren'
+      if(.not. is_enth_adv_switch_allowed) call Print_error_msg("Thermal checkpoint at iteration "// &
+        trim(int2str(iter))//" was advanced with enthalpy_advection = "//trim(mode_ckpt)//"; this run "// &
+        "requests enthalpy_advection = "//trim(mode_run)//". Changing the enthalpy advection scheme at a "// &
+        "restart requires enthalpy_advection_restart = allow_switch in [thermo]; otherwise restart with "// &
+        "enthalpy_advection = "//trim(mode_ckpt)//", or start a fresh thermal field (inittm /= restart).")
+      if(dm%stat_level > ISTATL0 .and. iter > dm%stat_istart .and. dm%restart_clock == RESTART_CLOCK_CONTINUE) &
+        call Print_error_msg("enthalpy_advection changes from "//trim(mode_ckpt)//" to "//trim(mode_run)// &
+        " at the restart from iteration "//trim(int2str(iter))//", but the statistics averaging window "// &
+        "(stat_istart = "//trim(int2str(dm%stat_istart))//") would continue across the change. Set "// &
+        "stat_istart >= "//trim(int2str(iter))//" to start a new averaging window at the restart (or "// &
+        "restart the run clock), or keep enthalpy_advection = "//trim(mode_ckpt)//".")
+      enth_adv_switch_note = trim(mode_ckpt)//'->'//trim(mode_run)//' '//trim(int2str(iter))
+      if(nrank == 0) call Print_warning_msg("ENTHALPY ADVECTION SCHEME CHANGED AT RESTART: the thermal "// &
+        "checkpoint at iteration "//trim(int2str(iter))//" was advanced with enthalpy_advection = "// &
+        trim(mode_ckpt)//"; this run continues it with enthalpy_advection = "//trim(mode_run)// &
+        " (enthalpy_advection_restart = allow_switch). Recorded as 'enthalpy_advection_switch "// &
+        trim(enth_adv_switch_note)//"' in later thermal checkpoint records.")
+    end if
+    return
+  end subroutine check_thermo_interp_metadata
 !==============================================================================
   subroutine read_thermo_restart_bundle(tm, fl, dm)
     implicit none
@@ -1261,13 +2072,41 @@ contains
 
     type(d2d_io_mpi) :: io
     character(256) :: bundle_file
+    character(256) :: meta_file
+    character(1024) :: fields_read
+    logical :: has_bc_fields
     real(WP), dimension(dm%d1cc%xsz(1), dm%d1cc%xsz(2), dm%d1cc%xsz(3)) :: fbcx_rhoh_rhs0
 
     call generate_pathfile_name(bundle_file, dm%idom, 'thermo_restart', dir_data, 'bin', tm%iterfrom)
     if(.not. file_exists(trim(bundle_file))) &
-    call Print_error_msg("The file "//trim(bundle_file)//" does not exist.")
-    call validate_bundle_metadata(dm, 'thermo_restart', tm%iterfrom, &
-      thermo_restart_fields(dm), thermo_restart_shapes(dm))
+    call Print_error_msg("The file "//trim(bundle_file)//" does not exist. "//THERMO_LABEL_HINT)
+    !--------------------------------------------------------------------------
+    ! Format identification by the stored field list:
+    !   with Bc fields   -> exact continuation of a transported-density run;
+    !   legacy list      -> 8d47f18 / lagged_legacy checkpoint. Under Bc it is
+    !                       accepted with a warning: rho_hat = rho and a zero
+    !                       rho_t history are reconstructed (not exact);
+    !   anything else    -> rejected by validate_bundle_metadata.
+    !--------------------------------------------------------------------------
+    call generate_pathfile_name(meta_file, dm%idom, 'thermo_restart_meta', dir_data, 'dat', tm%iterfrom)
+    fields_read = ''
+    if(file_exists(trim(meta_file))) fields_read = metadata_value(meta_file, 'fields')
+    has_bc_fields = (trim(fields_read) == trim(thermo_restart_fields_legacy(dm))//trim(thermo_restart_fields_bc_extra(dm)))
+    if(has_bc_fields) then
+      call validate_bundle_metadata(dm, 'thermo_restart', tm%iterfrom, &
+        trim(thermo_restart_fields_legacy(dm))//trim(thermo_restart_fields_bc_extra(dm)), &
+        thermo_restart_shapes(dm, opt_bc_fields=.true.))
+      if(.not. is_bc_recovery .and. nrank == 0) call Print_warning_msg( &
+        'Thermal restart written with rhoh_recovery = transported is read by lagged_legacy: '// &
+        'rho_hat and rho_t history are ignored.')
+    else
+      call validate_bundle_metadata(dm, 'thermo_restart', tm%iterfrom, &
+        thermo_restart_fields_legacy(dm), thermo_restart_shapes(dm))
+      if(is_bc_recovery .and. nrank == 0) call Print_warning_msg( &
+        'LEGACY thermal restart (no rho_hat / rho_t history) read with rhoh_recovery = transported: '// &
+        'rho_hat = rho and a zero rho_t history are reconstructed. The continuation is NOT exact; '// &
+        'the first steps differ from an uninterrupted run at the level of one time step error.')
+    end if
     if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(bundle_file))
 
     call io%open(trim(bundle_file), decomp_2d_read_mode)
@@ -1283,10 +2122,141 @@ contains
       call decomp_2d_read_var(io, IPENCIL(1), fbcx_rhoh_rhs0, opt_decomp=dm%d1cc)
       tm%fbcx_rhoh_rhs0(:, :) = fbcx_rhoh_rhs0(1, :, :)
     end if
+    if(has_bc_fields) then
+      call decomp_2d_read_var(io, IPENCIL(1), fl%dDens_hat, opt_decomp=dm%dccc)
+      call decomp_2d_read_var(io, IPENCIL(1), fl%drhodt_m1, opt_decomp=dm%dccc)
+      if(dm%is_conv_outlet(1)) then
+        call decomp_2d_read_var(io, IPENCIL(1), tm%fbcx_dhat, opt_decomp=dm%d4cc)
+        call decomp_2d_read_var(io, IPENCIL(1), fbcx_rhoh_rhs0, opt_decomp=dm%d1cc)
+        tm%fbcx_dhat_rhs0(:, :) = fbcx_rhoh_rhs0(1, :, :)
+        tm%is_fbcx_dhat_valid = is_bc_recovery
+      end if
+      fl%is_bc_state_restored = is_bc_recovery
+    end if
     call io%close()
 
     return
   end subroutine read_thermo_restart_bundle
+!==============================================================================
+  ! LES state of a heated LES run, stored with the thermal checkpoint.
+  !
+  ! The energy equation of a substep uses the subgrid viscosity fl%tVisc that
+  ! WALE computed in the previous momentum substep, and the subgrid Prandtl
+  ! number tm%prSgs that the previous energy substep refreshed from that
+  ! viscosity (loop order in chapsim.f90: energy, Lorentz force, momentum; see
+  ! Solve_energy_eq). Neither can be rebuilt from the other checkpoint fields:
+  ! the last WALE call of a step acted on the velocity at the start of the last
+  ! substep, not on the final velocity, and the last Pr_sgs refresh used the
+  ! viscosity of the substep before. Both are therefore stored, so that a
+  ! continuation repeats the uninterrupted run. An isothermal LES run needs
+  ! neither: WALE runs before the momentum equation uses tVisc.
+  function les_restart_fields() result(fields)
+    implicit none
+    character(64) :: fields
+
+    fields = 'tvisc:dccc,prsgs:dccc'
+
+    return
+  end function les_restart_fields
+!==============================================================================
+  function les_restart_shapes(dm) result(shapes)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    character(512) :: shapes
+
+    shapes = trim(bundle_shape('tvisc', dm%dccc))//';'//trim(bundle_shape('prsgs', dm%dccc))
+
+    return
+  end function les_restart_shapes
+!==============================================================================
+  subroutine write_les_restart_state(fl, tm, dm)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    type(t_flow),   intent(in) :: fl
+    type(t_thermo), intent(in) :: tm
+
+    type(d2d_io_mpi) :: io
+    character(256) :: output_files(2)
+    logical :: do_write
+
+    if(dm%restart_data_layout_write == RESTART_LAYOUT_BUNDLED) then
+      call generate_pathfile_name(output_files(1), dm%idom, 'les_restart', dir_data, 'bin', tm%iteration)
+      call generate_pathfile_name(output_files(2), dm%idom, 'les_restart_meta', dir_data, 'dat', tm%iteration)
+      call prepare_output_file_set(output_files, dm%existing_output_policy, 'LES restart bundle', do_write)
+      if(.not. do_write) return
+      if(nrank == 0) call Print_debug_mid_msg("Writing "//trim(output_files(1)))
+      call io%open(trim(output_files(1)), decomp_2d_write_mode)
+      call decomp_2d_write_var(io, IPENCIL(1), fl%tVisc, opt_decomp=dm%dccc)
+      call decomp_2d_write_var(io, IPENCIL(1), tm%prSgs, opt_decomp=dm%dccc)
+      call io%close()
+      call write_bundle_metadata(dm, 'les_restart', tm%iteration, &
+        les_restart_fields(), les_restart_shapes(dm), tm%time, dm%dt)
+    else
+      call write_one_3d_array(fl%tVisc, 'tvisc', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
+      call write_one_3d_array(tm%prSgs, 'prsgs', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
+    end if
+
+    return
+  end subroutine write_les_restart_state
+!==============================================================================
+  !> Restore the LES state of a heated LES continuation (write_les_restart_state).
+  !> Called by initialise_flow_fields after the initial WALE call, whose tVisc it
+  !> replaces. A checkpoint written before the LES state was stored has none:
+  !> then tVisc stays the one WALE computed from the restart field and Pr_sgs
+  !> keeps its allocation value, the high-Peclet limit, as at a fresh start; the
+  !> first energy substep then differs from the uninterrupted run, and the
+  !> continuation is not bit-continuous. A warning says so.
+  !> - fl (inout): receives tVisc.
+  !> - tm (inout): receives prSgs.
+  !> - dm (in): Domain descriptor and restart layout.
+  subroutine read_les_restart_state(fl, tm, dm)
+    use typeconvert_mod, only: int2str
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    type(t_flow),   intent(inout) :: fl
+    type(t_thermo), intent(inout) :: tm
+
+    type(d2d_io_mpi) :: io
+    character(256) :: bundle_file, meta_file, tvisc_file, prsgs_file
+    logical :: found
+
+    if(dm%restart_data_layout_read == RESTART_LAYOUT_BUNDLED) then
+      call generate_pathfile_name(bundle_file, dm%idom, 'les_restart', dir_data, 'bin', tm%iterfrom)
+      call generate_pathfile_name(meta_file, dm%idom, 'les_restart_meta', dir_data, 'dat', tm%iterfrom)
+      ! explicit control flow: both file queries are always made
+      found = file_exists(trim(bundle_file))
+      if(file_exists(trim(meta_file))) found = .true.
+      if(found) then
+        if(.not. file_exists(trim(bundle_file))) &
+        call Print_error_msg("The file "//trim(bundle_file)//" does not exist.")
+        call validate_bundle_metadata(dm, 'les_restart', tm%iterfrom, les_restart_fields(), les_restart_shapes(dm))
+        if(nrank == 0) call Print_debug_inline_msg("Reading "//trim(bundle_file))
+        call io%open(trim(bundle_file), decomp_2d_read_mode)
+        call decomp_2d_read_var(io, IPENCIL(1), fl%tVisc, opt_decomp=dm%dccc)
+        call decomp_2d_read_var(io, IPENCIL(1), tm%prSgs, opt_decomp=dm%dccc)
+        call io%close()
+      end if
+    else
+      call generate_pathfile_name(tvisc_file, dm%idom, 'tvisc', dir_data, 'bin', tm%iterfrom)
+      call generate_pathfile_name(prsgs_file, dm%idom, 'prsgs', dir_data, 'bin', tm%iterfrom)
+      ! explicit control flow: both file queries are always made
+      found = file_exists(trim(tvisc_file))
+      if(file_exists(trim(prsgs_file))) found = .true.
+      if(found) then
+        call read_one_3d_array(fl%tVisc, 'tvisc', dm%idom, tm%iterfrom, dm%dccc)
+        call read_one_3d_array(tm%prSgs, 'prsgs', dm%idom, tm%iterfrom, dm%dccc)
+      end if
+    end if
+
+    if(.not. found .and. nrank == 0) call Print_warning_msg( &
+      "The checkpoint at iteration "//trim(int2str(tm%iterfrom))//" holds no LES state "// &
+      "(written before the subgrid viscosity and Prandtl number were checkpointed, "// &
+      "or by field interpolation). "// &
+      "The subgrid viscosity is recomputed from the restart field and Pr_sgs starts at "// &
+      "its high-Peclet limit, as at a fresh start, so this continuation is not bit-continuous.")
+
+    return
+  end subroutine read_les_restart_state
 !==============================================================================
 !==============================================================================
   !> Write instantaneous thermal variables for restart.
@@ -1301,6 +2271,9 @@ contains
 
     character(64):: data_flname_path
     character(64):: keyword
+    character(256) :: sidecar_file(1)
+    logical :: sidecar_kept, do_write
+    real(WP), dimension(dm%d1cc%xsz(1), dm%d1cc%xsz(2), dm%d1cc%xsz(3)) :: fbcx_1cc
 
 
     if(nrank == 0) call Print_debug_inline_msg("writing out instantaneous 3d thermo data ...")
@@ -1308,6 +2281,15 @@ contains
     if(dm%restart_data_layout_write == RESTART_LAYOUT_BUNDLED) then
       call write_thermo_restart_bundle(tm, dm, fl)
     else
+      ! interpolation-mode sidecar: skipped when the rhoh file it describes is
+      ! kept (skip policy), otherwise written with the per-field arrays
+      call generate_pathfile_name(sidecar_file(1), dm%idom, 'rhoh', dir_data, 'bin', tm%iteration)
+      sidecar_kept = .false.
+      ! explicit control flow: the file query must not depend on short-circuit evaluation
+      if(nrank == 0) then
+        if(dm%existing_output_policy == OUTPUT_POLICY_SKIP) sidecar_kept = file_exists(trim(sidecar_file(1)))
+      end if
+      call mpi_bcast(sidecar_kept, 1, MPI_LOGICAL, 0, MPI_COMM_WORLD, ierror)
       call write_one_3d_array(tm%rhoh,  'rhoh', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
       call write_one_3d_array(tm%tTemp, 'temp', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
       call write_one_3d_array(tm%ene_rhs0, 'ene_rhs0', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
@@ -1316,9 +2298,34 @@ contains
       call write_one_3d_array(tm%hEnth, 'henth', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
       call write_one_3d_array(tm%kCond, 'kcond', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
       call write_one_3d_array(tm%eCond, 'econd', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
+      if(is_bc_recovery) then
+        call write_one_3d_array(fl%dDens_hat, 'dens_hat', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
+        call write_one_3d_array(fl%drhodt_m1, 'drhodt_m1', dm%idom, tm%iteration, dm%dccc, dm%existing_output_policy)
+      end if
+      ! convective x-outlet: the thermal outlet state the bundle also stores
+      if(dm%is_conv_outlet(1)) then
+        fbcx_1cc(1, :, :) = tm%fbcx_rhoh_rhs0(:, :)
+        call write_one_3d_array(fbcx_1cc, 'fbcx_rhoh_rhs0', dm%idom, tm%iteration, dm%d1cc, dm%existing_output_policy)
+        if(is_bc_recovery) then
+          call write_one_3d_array(tm%fbcx_dhat, 'fbcx_dhat', dm%idom, tm%iteration, dm%d4cc, dm%existing_output_policy)
+          fbcx_1cc(1, :, :) = tm%fbcx_dhat_rhs0(:, :)
+          call write_one_3d_array(fbcx_1cc, 'fbcx_dhat_rhs0', dm%idom, tm%iteration, dm%d1cc, dm%existing_output_policy)
+        end if
+      end if
+      if(.not. sidecar_kept) then
+        call generate_pathfile_name(sidecar_file(1), dm%idom, 'thermo_interp_meta', dir_data, 'dat', tm%iteration)
+        call prepare_output_file_set(sidecar_file, dm%existing_output_policy, 'thermo interpolation metadata', do_write)
+        if(do_write) call write_thermo_interp_metadata(dm, tm%iteration)
+        call generate_pathfile_name(sidecar_file(1), dm%idom, 'thermo_clock', dir_data, 'dat', tm%iteration)
+        call prepare_output_file_set(sidecar_file, dm%existing_output_policy, 'thermo clock record', do_write)
+        if(do_write) call write_thermo_flow_iteration(dm, tm%iteration, fl%iteration, RESTART_LAYOUT_PER_FIELD)
+      end if
       call write_checkpoint_manifest(dm%idom, tm%iteration, tm%time, dm%dt)
       call remove_legacy_restart_metadata(dm%idom, 'thermo_meta', tm%iteration, dm%existing_output_policy)
     end if
+    ! heated LES: the lagged subgrid state the next energy substep reads
+    if(dm%LES_model /= ILES_NONE .and. allocated(tm%prSgs) .and. allocated(fl%tVisc)) &
+      call write_les_restart_state(fl, tm, dm)
 
     if(nrank == 0) call Print_debug_end_msg()
     return
@@ -1368,6 +2375,13 @@ contains
       call read_one_3d_array(fl%qy, 'qy', dm%idom, fl%iterfrom, dm%dcpc)
       call read_one_3d_array(fl%qz, 'qz', dm%idom, fl%iterfrom, dm%dccp)
       call read_one_3d_array(fl%pres, 'pr', dm%idom, fl%iterfrom, dm%dccc)
+      ! The bundled initial read (read_flow_restart_bundle_initial) also takes the
+      ! outlet planes fbcx_q*. The per-field flow_xoutlet file carries no field list,
+      ! so its layout (thermal or isothermal writer, exact or compact) cannot be
+      ! identified here and the outlet keeps its initial state: say so.
+      if(dm%is_conv_outlet(1) .and. nrank == 0) call Print_warning_msg( &
+        'Per-field flow checkpoint used as an initial field with a convective x-outlet: the outlet '// &
+        'planes start from their initial state, not from the checkpoint (the bundled layout restores them).')
       call initialise_flow_from_restart_q(fl, dm)
     else
       if(nrank == 0) call Print_debug_mid_msg("Restart input layout expects per-field flow restart files.")
@@ -1388,8 +2402,10 @@ contains
         call read_one_3d_array(fl%mx_rhs0, 'mx_rhs0', dm%idom, fl%iterfrom, dm%dpcc)
         call read_one_3d_array(fl%my_rhs0, 'my_rhs0', dm%idom, fl%iterfrom, dm%dcpc)
         call read_one_3d_array(fl%mz_rhs0, 'mz_rhs0', dm%idom, fl%iterfrom, dm%dccp)
+        call read_flow_xoutlet_state_per_field(fl, dm)
         fl%is_compact_restart_startup = .false.
       else
+        call read_flow_xoutlet_state_per_field(fl, dm)
         call rebuild_compact_flow_restart(fl, dm)
       end if
     end if
@@ -1598,11 +2614,17 @@ contains
     character(64):: keyword
     real(WP) :: restart_dt
     logical  :: has_metadata
+    real(WP), dimension(dm%d1cc%xsz(1), dm%d1cc%xsz(2), dm%d1cc%xsz(3)) :: fbcx_1cc
+    logical  :: has_fbcx_dhat
 
     if (.not. dm%is_thermo) return
     if(nrank == 0) call Print_debug_inline_msg("read instantaneous thermo data ...")
 
     tm%iteration = tm%iterfrom
+    ! the checkpoint's property_interp must match this run (stops otherwise)
+    call check_thermo_interp_metadata(dm, tm%iterfrom)
+    ! the thermal checkpoint must belong to the flow step it is restarted with (stops otherwise)
+    call check_thermo_flow_iteration(dm, tm%iterfrom)
     call read_checkpoint_restart_metadata(dm%idom, 'thermo_meta', tm%iterfrom, tm%time, restart_dt, has_metadata)
     if(.not. has_metadata) then
       tm%time = real(tm%iterfrom, WP) * dm%dt
@@ -1618,6 +2640,9 @@ contains
       call read_thermo_restart_bundle(tm, fl, dm)
     else
       if(nrank == 0) call Print_debug_mid_msg("Restart input layout expects per-field thermo restart files.")
+      call generate_pathfile_name(data_flname, dm%idom, 'rhoh', dir_data, 'bin', tm%iteration)
+      if(.not. file_exists(trim(data_flname))) &
+        call Print_error_msg("The file "//trim(data_flname)//" does not exist. "//THERMO_LABEL_HINT)
       call read_one_3d_array(tm%rhoh,  'rhoh', dm%idom, tm%iteration, dm%dccc)
       call read_one_3d_array(tm%tTemp, 'temp', dm%idom, tm%iteration, dm%dccc)
       call read_one_3d_array(tm%ene_rhs0, 'ene_rhs0', dm%idom, tm%iteration, dm%dccc)
@@ -1626,6 +2651,42 @@ contains
       call read_one_3d_array(tm%hEnth, 'henth', dm%idom, tm%iteration, dm%dccc)
       call read_one_3d_array(tm%kCond, 'kcond', dm%idom, tm%iteration, dm%dccc)
       call read_one_3d_array(tm%eCond, 'econd', dm%idom, tm%iteration, dm%dccc)
+      if(is_bc_recovery) then
+        call generate_pathfile_name(data_flname, dm%idom, 'dens_hat', dir_data, 'bin', tm%iteration)
+        if(file_exists(trim(data_flname))) then
+          call read_one_3d_array(fl%dDens_hat, 'dens_hat', dm%idom, tm%iteration, dm%dccc)
+          call read_one_3d_array(fl%drhodt_m1, 'drhodt_m1', dm%idom, tm%iteration, dm%dccc)
+          fl%is_bc_state_restored = .true.
+        else if(nrank == 0) then
+          call Print_warning_msg('LEGACY per-field thermal restart (no dens_hat) read with '// &
+            'rhoh_recovery = transported: rho_hat = rho and a zero rho_t history are reconstructed; '// &
+            'the continuation is NOT exact.')
+        end if
+      end if
+      ! convective x-outlet: the thermal outlet state (as in the bundle). A per-field
+      ! checkpoint written before these files existed is read as before, with a warning.
+      if(dm%is_conv_outlet(1)) then
+        call generate_pathfile_name(data_flname, dm%idom, 'fbcx_rhoh_rhs0', dir_data, 'bin', tm%iteration)
+        if(file_exists(trim(data_flname))) then
+          call read_one_3d_array(fbcx_1cc, 'fbcx_rhoh_rhs0', dm%idom, tm%iteration, dm%d1cc)
+          tm%fbcx_rhoh_rhs0(:, :) = fbcx_1cc(1, :, :)
+          call generate_pathfile_name(data_flname, dm%idom, 'fbcx_dhat', dir_data, 'bin', tm%iteration)
+          ! explicit control flow: the file query must not depend on short-circuit evaluation
+          has_fbcx_dhat = file_exists(trim(data_flname))
+          if(is_bc_recovery .and. fl%is_bc_state_restored .and. has_fbcx_dhat) then
+            call read_one_3d_array(tm%fbcx_dhat, 'fbcx_dhat', dm%idom, tm%iteration, dm%d4cc)
+            call read_one_3d_array(fbcx_1cc, 'fbcx_dhat_rhs0', dm%idom, tm%iteration, dm%d1cc)
+            tm%fbcx_dhat_rhs0(:, :) = fbcx_1cc(1, :, :)
+            tm%is_fbcx_dhat_valid = .true.
+          else if(is_bc_recovery .and. fl%is_bc_state_restored .and. nrank == 0) then
+            call Print_warning_msg('Per-field thermal restart without fbcx_dhat: the outlet '// &
+              'transported density is reconstructed; the continuation is NOT exact.')
+          end if
+        else if(nrank == 0) then
+          call Print_warning_msg('Per-field thermal restart without the convective-outlet state '// &
+            '(fbcx_rhoh_rhs0): the thermal outlet restarts from its initial state; the continuation is NOT exact.')
+        end if
+      end if
     end if
 
 
@@ -1730,19 +2791,13 @@ contains
     type(t_domain), intent(inout) :: dm
     type(t_flow),   intent(inout) :: fl
     type(t_thermo), intent(inout) :: tm
-    real(WP), allocatable :: dens_restart(:, :, :)
-    real(WP), allocatable :: visc_restart(:, :, :)
-    real(WP), allocatable :: temp_restart(:, :, :)
-    real(WP), allocatable :: henth_restart(:, :, :)
-    real(WP), allocatable :: kcond_restart(:, :, :)
-    real(WP), allocatable :: econd_restart(:, :, :)
 
     if (.not. dm%is_thermo) return
 
     !--------------------------------------------------------------------------
     ! rho, mu, T, h, k and sigma_e are all part of the checkpoint, in both
     ! restart layouts - a thermal run always stores the full history
-    ! (check_restart_history_mode_support rejects compact). Update_thermal_
+    ! (Read_input_parameters rejects compact). Update_thermal_
     ! properties is still needed, but only for its second half: it is what
     ! rebuilds the Neumann fbc*_ftp boundary states from rhoh, and those are
     ! not stored. Its first half re-derives the interior properties from
@@ -1754,35 +2809,7 @@ contains
     ! depend on how the checkpoint happened to be laid out on disk. Both
     ! layouts now behave identically.
     !--------------------------------------------------------------------------
-    allocate(dens_restart(size(fl%dDens, 1), size(fl%dDens, 2), size(fl%dDens, 3)))
-    allocate(visc_restart(size(fl%mVisc, 1), size(fl%mVisc, 2), size(fl%mVisc, 3)))
-    allocate(temp_restart(size(tm%tTemp, 1), size(tm%tTemp, 2), size(tm%tTemp, 3)))
-    allocate(henth_restart(size(tm%hEnth, 1), size(tm%hEnth, 2), size(tm%hEnth, 3)))
-    allocate(kcond_restart(size(tm%kCond, 1), size(tm%kCond, 2), size(tm%kCond, 3)))
-    allocate(econd_restart(size(tm%eCond, 1), size(tm%eCond, 2), size(tm%eCond, 3)))
-
-    dens_restart = fl%dDens
-    visc_restart = fl%mVisc
-    temp_restart = tm%tTemp
-    henth_restart = tm%hEnth
-    kcond_restart = tm%kCond
-    econd_restart = tm%eCond
-
-    call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm)
-
-    fl%dDens = dens_restart
-    fl%mVisc = visc_restart
-    tm%tTemp = temp_restart
-    tm%hEnth = henth_restart
-    tm%kCond = kcond_restart
-    tm%eCond = econd_restart
-
-    deallocate(dens_restart)
-    deallocate(visc_restart)
-    deallocate(temp_restart)
-    deallocate(henth_restart)
-    deallocate(kcond_restart)
-    deallocate(econd_restart)
+    call Rebuild_thermal_boundary_states(fl, tm, dm)
 
     fl%dDens0(:, :, :) = fl%dDens(:, :, :)
 
@@ -1988,6 +3015,9 @@ contains
     expected_shapes = xoutlet_database_shapes_from_dims(ndbbuf_src, nc_src(2), nc_src(3), np_src(2), np_src(3))
     if(trim(value) /= trim(expected_shapes)) &
     call Print_error_msg("Bundle field-shape mismatch in "//trim(meta_file))
+    ! the .bin must hold exactly the six planes the validated shapes list (a short
+    ! file would otherwise be replayed with stale or zero planes); collective
+    call check_bundle_file_size(dm, 'xoutlet_database', iter, expected_shapes, meta_file)
 
     return
   end subroutine read_xoutlet_bundle_metadata
@@ -2052,6 +3082,7 @@ contains
     integer :: np_src(2)
 
     call infer_xoutlet_database_mesh_from_bundle(dm, iter, nc_src, np_src)
+    if(dm%ndb_sampling_dt > ZERO) call check_xinlet_database_dt(dm, iter)
     if(dm%xinlet_database_checked) then
       if(any(nc_src /= dm%xinlet_database_nc) .or. any(np_src /= dm%xinlet_database_np)) &
       call Print_error_msg("Bundled inlet database mesh changes between database files.")
@@ -2289,6 +3320,11 @@ contains
     integer, intent(in) :: iter
 
     call ensure_xinlet_database_mesh(dm, iter)
+    if(dm%ndb_sampling_dt > ZERO .and. .not. dm%xinlet_ndb_dt_warned) then
+      if(nrank == 0) call Print_warning_msg("Per-field inlet database files carry no metadata: "// &
+        "ndb_sampling_dt cannot be checked against the recorded sampling interval.")
+      dm%xinlet_ndb_dt_warned = .true.
+    end if
 
     if(.not. dm%xinlet_database_interp_yz) then
       call read_one_3d_array(dm%fbcx_qx_inl1, 'outlet1_qx', dm%idom, iter, dm%dxcc)
@@ -2370,6 +3406,41 @@ contains
     return
   end function get_xinlet_z_coord
 !==============================================================================
+  !> Source z coordinates used for the inlet database search. In a periodic z
+  !> direction the array is extended by one periodic image at each end,
+  !>   zsrc_ext = [ zsrc(n) - lzz, zsrc(1:n), zsrc(1) + lzz ],
+  !> so that targets between zsrc(n) and lzz (or below zsrc(1)) are bracketed
+  !> by the source points across the seam instead of being clamped to the end
+  !> value. Bracket index e in zsrc_ext then maps to global source index
+  !> e + kshift with kshift = -1 (global 0 and n+1 are the periodic halo cells
+  !> filled by update_halo). Non-periodic z: zsrc_ext = zsrc, kshift = 0, i.e.
+  !> unchanged behaviour. Interior targets get the same bracket and weights as
+  !> without the extension.
+  subroutine build_xinlet_z_search_coords(dm, zsrc, zsrc_ext, kshift)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    real(WP), intent(in) :: zsrc(:)
+    real(WP), allocatable, intent(out) :: zsrc_ext(:)
+    integer, intent(out) :: kshift
+
+    integer :: n
+
+    n = size(zsrc)
+    if(dm%is_periodic(3)) then
+      allocate(zsrc_ext(n + 2))
+      zsrc_ext(1) = zsrc(n) - dm%lzz
+      zsrc_ext(2:n + 1) = zsrc(1:n)
+      zsrc_ext(n + 2) = zsrc(1) + dm%lzz
+      kshift = -1
+    else
+      allocate(zsrc_ext(n))
+      zsrc_ext(:) = zsrc(:)
+      kshift = 0
+    end if
+
+    return
+  end subroutine build_xinlet_z_search_coords
+!==============================================================================
   subroutine compute_xinlet_database_halo_level(dm, dsrc, dtgt, ysrc, zsrc, yloc, zloc, halo_level)
     use mpi_mod
     implicit none
@@ -2386,8 +3457,11 @@ contains
     integer :: jsrc, ksrc
     integer :: min_j, max_j, min_k, max_k
     integer :: halo_local
+    integer :: kshift
     real(WP) :: y_target, z_target
+    real(WP), allocatable :: zsrc_ext(:)
 
+    call build_xinlet_z_search_coords(dm, zsrc, zsrc_ext, kshift)
     min_j = huge(1)
     max_j = -huge(1)
     min_k = huge(1)
@@ -2404,9 +3478,9 @@ contains
           y_target = dm%yp(jj)
         end if
         call binary_search_loc2index_yz(y_target, ysrc, jsrc)
-        call binary_search_loc2index_yz(z_target, zsrc, ksrc)
+        call binary_search_loc2index_yz(z_target, zsrc_ext, ksrc)
         jsrc = min(jsrc, size(ysrc) - 1)
-        ksrc = min(ksrc, size(zsrc) - 1)
+        ksrc = min(ksrc, size(zsrc_ext) - 1) + kshift   ! global source index (0..n in periodic z)
         min_j = min(min_j, jsrc)
         max_j = max(max_j, jsrc + 1)
         min_k = min(min_k, ksrc)
@@ -2422,9 +3496,102 @@ contains
 
     call mpi_allreduce(halo_local, halo_level, 1, MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD, ierror)
     halo_level = max(1, halo_level)
+    deallocate(zsrc_ext)
+
+    call check_xinlet_database_halo_layout(dm, dsrc, &
+      (/ max(0, dsrc%xst(2) - min_j), max(0, max_j - dsrc%xen(2)), &
+         max(0, dsrc%xst(3) - min_k), max(0, max_k - dsrc%xen(3)) /), yloc, zloc)
 
     return
   end subroutine compute_xinlet_database_halo_level
+!==============================================================================
+  !> Guard for the halo exchange used by the inlet interpolation. update_halo
+  !> (2decomp) fills halo layer m on each side only from the adjacent rank, so a
+  !> layer is valid only if m does not exceed that neighbour's local extent of the
+  !> source block; deeper layers are not filled reliably. need(1:4) are the
+  !> source layers this rank reads below/above its block in y and z (global
+  !> indices of the bracketing source points, see compute_xinlet_database_halo_level).
+  !> The neighbouring block extents are taken from the actual decomposition
+  !> (all ranks' source blocks), so uneven distributions, the staggered location
+  !> of the field (dsrc) and periodic wrap in z are covered. An incompatible
+  !> processor grid stops the run before any interpolated value is used; the grid
+  !> is never changed here.
+  subroutine check_xinlet_database_halo_layout(dm, dsrc, need, yloc, zloc)
+    use mpi_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    type(DECOMP_INFO), intent(in) :: dsrc
+    integer, intent(in) :: need(4)          ! layers needed: y below, y above, z below, z above
+    integer, intent(in) :: yloc, zloc
+
+    integer, allocatable :: blk(:, :)
+    integer :: mine(4), ext(4), n_src(2), b, d, nfail, nfail_glb
+    integer :: need_glb(4), ext_loc(4), ext_glb(4)
+    logical, save :: reported(2, 2) = .false.
+    character(len=1024) :: msg
+
+    mine = (/ dsrc%xst(2), dsrc%xen(2), dsrc%xst(3), dsrc%xen(3) /)
+    allocate(blk(4, 0:nproc - 1))
+    call mpi_allgather(mine, 4, MPI_INTEGER, blk, 4, MPI_INTEGER, MPI_COMM_WORLD, ierror)
+    n_src(1) = maxval(blk(2, :))
+    n_src(2) = maxval(blk(4, :))
+
+    ! extent of the neighbouring source block on each side (0 if there is none)
+    ext(:) = 0
+    do d = 1, 2
+      do b = 0, nproc - 1
+        if(blk(2*d, b) == mine(2*d-1) - 1 .or. &
+           (mine(2*d-1) == 1 .and. dm%is_periodic(d+1) .and. blk(2*d, b) == n_src(d))) &
+          ext(2*d-1) = blk(2*d, b) - blk(2*d-1, b) + 1
+        if(blk(2*d-1, b) == mine(2*d) + 1 .or. &
+           (mine(2*d) == n_src(d) .and. dm%is_periodic(d+1) .and. blk(2*d-1, b) == 1)) &
+          ext(2*d) = blk(2*d, b) - blk(2*d-1, b) + 1
+      end do
+    end do
+    deallocate(blk)
+
+    nfail = 0
+    if(any(need(:) > ext(:))) nfail = 1
+    call mpi_allreduce(nfail, nfail_glb, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, ierror)
+    where(need(:) > 0)
+      ext_loc(:) = ext(:)
+    elsewhere
+      ext_loc(:) = huge(1)
+    end where
+    do d = 1, 4      ! element-wise (scalar buffers, as the other reductions in this file)
+      call mpi_allreduce(need(d), need_glb(d), 1, MPI_INTEGER, MPI_MAX, MPI_COMM_WORLD, ierror)
+      call mpi_allreduce(ext_loc(d), ext_glb(d), 1, MPI_INTEGER, MPI_MIN, MPI_COMM_WORLD, ierror)
+    end do
+    where(ext_glb(:) == huge(1)) ext_glb(:) = -1        ! -1: no layers needed on that side
+
+    if(nfail_glb > 0) then
+      if(nrank == 0) then
+        write(msg, '(A,I0,A,I0,A,I0,A,I0,A,I0,A,I0,A,I0,A,4(1X,I0),A,4(1X,I0),A)') &
+          'Inlet database interpolation: processor grid p_row x p_col = ', p_row, ' x ', p_col, &
+          ' is incompatible with the source database cross-section ', n_src(1), ' x ', n_src(2), &
+          ' (field location y/z = ', yloc, '/', zloc, '). On ', nfail_glb, &
+          ' rank(s) the interpolation needs more halo layers than the adjacent rank holds; '// &
+          'max layers needed (y-, y+, z-, z+):', need_glb, &
+          '; smallest adjacent source block where layers are needed (-1: none needed):', ext_glb, &
+          '. The halo exchange would return unfilled values. Choose p_row/p_col in [decomposition] '// &
+          'so that each source block is at least as wide as the layers it must supply '// &
+          '(e.g. a split of the database cross-section aligned with the main-grid split).'
+        write(*, '(A)') trim(msg)
+      end if
+      call Print_error_msg("Inlet database interpolation halo check failed (see message above). "// &
+                           "The processor grid is not changed automatically.")
+    end if
+
+    if(nrank == 0 .and. .not. reported(yloc, zloc)) then
+      write(*, '(A,I0,A,I0,A,I0,A,I0,A,4(1X,I0),A)') &
+        '   inlet database interpolation halo check passed: p_row x p_col = ', p_row, ' x ', p_col, &
+        ', field y/z location ', yloc, '/', zloc, ', max layers needed (y-, y+, z-, z+):', need_glb, &
+        ' (each within the adjacent source block)'
+      reported(yloc, zloc) = .true.
+    end if
+
+    return
+  end subroutine check_xinlet_database_halo_layout
 !==============================================================================
   subroutine interp_xinlet_database_array_yz(dm, fsrc, ftgt, dsrc, dtgt, yloc, zloc)
     use m_halo, only: update_halo
@@ -2441,7 +3608,8 @@ contains
     integer :: halo_level
     real(WP) :: y_target, z_target, var_target
     real(WP) :: h3_src
-    real(WP), allocatable :: ysrc(:), zsrc(:)
+    integer :: kshift
+    real(WP), allocatable :: ysrc(:), zsrc(:), zsrc_ext(:)
     real(WP), allocatable :: fsrc_halo(:, :, :)
 
     if(yloc == 1) then
@@ -2461,7 +3629,10 @@ contains
     call fill_xinlet_z_coords(size(zsrc), h3_src, zloc, zsrc)
 
     call compute_xinlet_database_halo_level(dm, dsrc, dtgt, ysrc, zsrc, yloc, zloc, halo_level)
+    ! global-index halo; in a periodic z direction the halo cells 0 and n+1 hold
+    ! the periodic images (periodic 2decomp topology), used across the seam
     call update_halo(fsrc, fsrc_halo, halo_level, dsrc, opt_global=.true., opt_pencil=IPENCIL(1))
+    call build_xinlet_z_search_coords(dm, zsrc, zsrc_ext, kshift)
 
     do k = 1, dtgt%xsz(3)
       kk = dtgt%xst(3) + k - 1
@@ -2475,7 +3646,7 @@ contains
         end if
         do i = 1, dtgt%xsz(1)
           ii = dtgt%xst(1) + i - 1
-          call bilinear_interp_xinlet_point_halo(ii, y_target, z_target, ysrc, zsrc, &
+          call bilinear_interp_xinlet_point_halo(ii, y_target, z_target, ysrc, zsrc_ext, kshift, &
             lbound(fsrc_halo, 1), lbound(fsrc_halo, 2), lbound(fsrc_halo, 3), &
             fsrc_halo, var_target)
           ftgt(i, j, k) = var_target
@@ -2486,21 +3657,26 @@ contains
     deallocate(fsrc_halo)
     deallocate(ysrc)
     deallocate(zsrc)
+    deallocate(zsrc_ext)
 
     return
   end subroutine interp_xinlet_database_array_yz
 !==============================================================================
-  subroutine bilinear_interp_xinlet_point_halo(i_src, y_target, z_target, ysrc, zsrc, &
+  !> zsrc is the search array from build_xinlet_z_search_coords: in a periodic
+  !> z direction it carries one periodic image at each end and kshift = -1 maps
+  !> its bracket index to the global source index (0 and n+1 = halo images).
+  subroutine bilinear_interp_xinlet_point_halo(i_src, y_target, z_target, ysrc, zsrc, kshift, &
                                               ilo, jlo, klo, fsrc, fout)
     implicit none
     integer, intent(in) :: i_src
     real(WP), intent(in) :: y_target, z_target
     real(WP), intent(in) :: ysrc(:), zsrc(:)
+    integer, intent(in) :: kshift
     integer, intent(in) :: ilo, jlo, klo
     real(WP), intent(in) :: fsrc(ilo:, jlo:, klo:)
     real(WP), intent(out) :: fout
 
-    integer :: jsrc, ksrc
+    integer :: jsrc, ksrc, kglb
     real(WP) :: eta, zeta
     real(WP) :: dy, dz
     real(WP) :: c00, c01, c10, c11
@@ -2510,10 +3686,11 @@ contains
     call binary_search_loc2index_yz(z_target, zsrc, ksrc)
     jsrc = min(jsrc, size(ysrc) - 1)
     ksrc = min(ksrc, size(zsrc) - 1)
+    kglb = ksrc + kshift
 
     if(i_src < lbound(fsrc, 1) .or. i_src > ubound(fsrc, 1) .or. &
        jsrc < lbound(fsrc, 2) .or. jsrc + 1 > ubound(fsrc, 2) .or. &
-       ksrc < lbound(fsrc, 3) .or. ksrc + 1 > ubound(fsrc, 3)) then
+       kglb < lbound(fsrc, 3) .or. kglb + 1 > ubound(fsrc, 3)) then
       call Print_error_msg("Inlet database interpolation source halo is too small.")
     end if
 
@@ -2527,10 +3704,10 @@ contains
     eta = max(ZERO, min(ONE, eta))
     zeta = max(ZERO, min(ONE, zeta))
 
-    c00 = fsrc(i_src, jsrc,     ksrc)
-    c01 = fsrc(i_src, jsrc,     ksrc + 1)
-    c10 = fsrc(i_src, jsrc + 1, ksrc)
-    c11 = fsrc(i_src, jsrc + 1, ksrc + 1)
+    c00 = fsrc(i_src, jsrc,     kglb)
+    c01 = fsrc(i_src, jsrc,     kglb + 1)
+    c10 = fsrc(i_src, jsrc + 1, kglb)
+    c11 = fsrc(i_src, jsrc + 1, kglb + 1)
 
     c0 = c00 * (ONE - zeta) + c01 * zeta
     c1 = c10 * (ONE - zeta) + c11 * zeta
@@ -2844,6 +4021,15 @@ contains
 
     if(.not. dm%is_read_xinlet) return
     ! ----------------------------------------------------------------------------
+    ! ndb_sampling_dt given: the database planes are samples in physical time.
+    ! Ratio 1 keeps the step-indexed replay below; ratio > 1 interpolates in time.
+    ! ----------------------------------------------------------------------------
+    if(dm%ndb_sampling_dt > ZERO) call check_xinlet_constant_dt(dm)
+    if(dm%ndb_time_ratio > 1) then
+      call read_instantaneous_xinlet_tinterp(fl, dm, opt_iter)
+      return
+    end if
+    ! ----------------------------------------------------------------------------
     ! The database period remains ndbfre, but files are stored as ndbbuf-sized
     ! chunks named by zero-based database offset: 0, ndbbuf, 2*ndbbuf, ...
     ! Inlet replay cycles through the complete [ndbstart, ndbend] database.
@@ -2890,6 +4076,291 @@ contains
 
     return
   end subroutine
+!==============================================================================
+  !> Inlet database replay with linear interpolation in time
+  !> (ndb_sampling_dt = R dt, R = ndb_time_ratio > 1).
+  !>
+  !> Time convention (unchanged from the step-indexed replay): the step that
+  !> advances t_{n-1} -> t_n uses the inflow at its start time t_{n-1}; the plane
+  !> stored at database position q (0-based, q = 0 at ndbstart) is the sample at
+  !> database time q*ndb_sampling_dt, and database time is the run's physical
+  !> time. With the step-start index m = t_{n-1}/dt (an integer on a fixed-dt
+  !> run; checked):
+  !>   q = m div R,  alpha = mod(m, R)/R,  u = (1 - alpha) u_q + alpha u_{q+1},
+  !> so alpha = 0, 1/R, ..., (R-1)/R and the stored plane is used unchanged at
+  !> every sample time. With R = 1 this is the step-indexed replay.
+  !> Replay: q is taken modulo the database length (ndbend - ndbstart + 1).
+  !> The last stored plane and the first are not consecutive samples (cyclic
+  !> replay of an uncorrelated record), so no interpolation is done across the
+  !> wrap: the last plane is held for the R steps of its interval and the inflow
+  !> then jumps to the first plane, as in the step-indexed replay.
+  !> Buffers: the block (ndbbuf planes) holding q is in fbcx_q*_inl1/2; when q is
+  !> the last plane of its block and alpha > 0, the next block is read into
+  !> fbcx_q*_inl1/2_nxt, which becomes the current block at the next sample.
+  !> Each block is read once per pass.
+  subroutine read_instantaneous_xinlet_tinterp(fl, dm, opt_iter)
+    implicit none
+    type(t_flow), intent(inout) :: fl
+    type(t_domain), intent(inout) :: dm
+    integer, intent(in), optional :: opt_iter
+
+    integer :: m, nratio, q, kfrac, ntot, qc, blk, l
+    real(WP) :: xm, alpha
+    logical :: at_wrap, blend, use_next
+
+    if(present(opt_iter)) then
+      m = opt_iter - 1                              ! initialisation from the inlet
+    else
+      ! called after the clock update of this step: fl%time = t_n, start t_{n-1}
+      xm = (fl%time - dm%dt) / dm%dt
+      m = nint(xm)
+      if(m < 0 .or. abs(xm - real(m, WP)) > 0.01_WP) &
+        call Print_error_msg("Inlet database temporal interpolation: the run time is not a "// &
+          "multiple of dt (dt changed or inconsistent restart clock).")
+    end if
+    nratio = dm%ndb_time_ratio
+    q = m / nratio
+    kfrac = mod(m, nratio)
+    ntot = dm%ndbend - dm%ndbstart + 1
+    qc = mod(q, ntot)
+    blk = qc / dm%ndbbuf
+    l = mod(qc, dm%ndbbuf) + 1
+    at_wrap = (qc == ntot - 1)
+    blend = (kfrac > 0) .and. (.not. at_wrap)      ! between two consecutive samples
+    alpha = ZERO
+    if(blend) alpha = real(kfrac, WP) / real(nratio, WP)
+    use_next = blend .and. (l == dm%ndbbuf)
+
+    call load_xinlet_block_current(dm, blk, qc, kfrac)
+    if(use_next) call load_xinlet_block_next(dm, blk + 1)
+    call assign_instantaneous_xinlet_tinterp(fl, dm, l, blend, alpha, use_next)
+
+    return
+  end subroutine read_instantaneous_xinlet_tinterp
+!==============================================================================
+  subroutine load_xinlet_block_current(dm, blk, qc, kfrac)
+    use typeconvert_mod
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    integer, intent(in) :: blk, qc, kfrac
+
+    integer :: itmp
+
+    if(dm%xinlet_blk_cur == blk) return
+    if(dm%xinlet_blk_nxt == blk) then
+      call swap_xinlet_block_buffers(dm)
+      itmp = dm%xinlet_blk_cur
+      dm%xinlet_blk_cur = dm%xinlet_blk_nxt
+      dm%xinlet_blk_nxt = itmp
+    else
+      if(nrank == 0) call Print_debug_mid_msg('Read inlet database block for sample '// &
+        trim(int2str(qc))//' (+'//trim(int2str(kfrac))//'/'//trim(int2str(dm%ndb_time_ratio))// &
+        ' of a sample interval) mapped to file name ='// &
+        trim(int2str(xoutlet_database_file_iter(dm, dm%ndbbuf * blk))))
+      call read_xinlet_block(dm, blk)
+      dm%xinlet_blk_cur = blk
+    end if
+
+    return
+  end subroutine load_xinlet_block_current
+!==============================================================================
+  subroutine load_xinlet_block_next(dm, blk)
+    use typeconvert_mod
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    integer, intent(in) :: blk
+
+    if(dm%xinlet_blk_nxt == blk) return
+    if(.not. allocated(dm%fbcx_qx_inl1_nxt)) then   ! once per run
+      allocate(dm%fbcx_qx_inl1_nxt, mold = dm%fbcx_qx_inl1)
+      allocate(dm%fbcx_qx_inl2_nxt, mold = dm%fbcx_qx_inl2)
+      allocate(dm%fbcx_qy_inl1_nxt, mold = dm%fbcx_qy_inl1)
+      allocate(dm%fbcx_qy_inl2_nxt, mold = dm%fbcx_qy_inl2)
+      allocate(dm%fbcx_qz_inl1_nxt, mold = dm%fbcx_qz_inl1)
+      allocate(dm%fbcx_qz_inl2_nxt, mold = dm%fbcx_qz_inl2)
+    end if
+    if(nrank == 0) call Print_debug_mid_msg('Read next inlet database block mapped to file name ='// &
+      trim(int2str(xoutlet_database_file_iter(dm, dm%ndbbuf * blk))))
+    ! the readers fill fbcx_q*_inl1/2: read into the next-block storage by swapping
+    call swap_xinlet_block_buffers(dm)
+    call read_xinlet_block(dm, blk)
+    call swap_xinlet_block_buffers(dm)
+    dm%xinlet_blk_nxt = blk
+
+    return
+  end subroutine load_xinlet_block_next
+!==============================================================================
+  !> Read database block blk (planes ndbbuf*blk ... ndbbuf*blk + ndbbuf - 1) into
+  !> fbcx_q*_inl1/2 through the same bundled / per-field readers (and spatial
+  !> interpolation) as the step-indexed replay.
+  subroutine read_xinlet_block(dm, blk)
+    use io_tools_mod
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    integer, intent(in) :: blk
+
+    character(64) :: data_flname_path
+    integer :: file_iter
+
+    file_iter = xoutlet_database_file_iter(dm, dm%ndbbuf * blk)
+    if(dm%restart_data_layout_read == RESTART_LAYOUT_BUNDLED) then
+      call generate_pathfile_name(data_flname_path, dm%idom, 'xoutlet_database', dir_data, 'bin', file_iter)
+      if(file_exists(trim(data_flname_path))) then
+        call read_xoutlet_database_bundle_interp(dm, file_iter)
+      else
+        if(nrank == 0) call Print_warning_msg("Bundled inlet/outlet database file was not found; " // &
+          "falling back to per-field inlet/outlet database files.")
+        call read_xoutlet_database_per_field_interp(dm, file_iter)
+      end if
+    else
+      call read_xoutlet_database_per_field_interp(dm, file_iter)
+    end if
+
+    return
+  end subroutine read_xinlet_block
+!==============================================================================
+  subroutine swap_xinlet_block_buffers(dm)
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    real(WP), allocatable :: tmp(:, :, :)
+
+    call move_alloc(dm%fbcx_qx_inl1, tmp); call move_alloc(dm%fbcx_qx_inl1_nxt, dm%fbcx_qx_inl1)
+    call move_alloc(tmp, dm%fbcx_qx_inl1_nxt)
+    call move_alloc(dm%fbcx_qx_inl2, tmp); call move_alloc(dm%fbcx_qx_inl2_nxt, dm%fbcx_qx_inl2)
+    call move_alloc(tmp, dm%fbcx_qx_inl2_nxt)
+    call move_alloc(dm%fbcx_qy_inl1, tmp); call move_alloc(dm%fbcx_qy_inl1_nxt, dm%fbcx_qy_inl1)
+    call move_alloc(tmp, dm%fbcx_qy_inl1_nxt)
+    call move_alloc(dm%fbcx_qy_inl2, tmp); call move_alloc(dm%fbcx_qy_inl2_nxt, dm%fbcx_qy_inl2)
+    call move_alloc(tmp, dm%fbcx_qy_inl2_nxt)
+    call move_alloc(dm%fbcx_qz_inl1, tmp); call move_alloc(dm%fbcx_qz_inl1_nxt, dm%fbcx_qz_inl1)
+    call move_alloc(tmp, dm%fbcx_qz_inl1_nxt)
+    call move_alloc(dm%fbcx_qz_inl2, tmp); call move_alloc(dm%fbcx_qz_inl2_nxt, dm%fbcx_qz_inl2)
+    call move_alloc(tmp, dm%fbcx_qz_inl2_nxt)
+
+    return
+  end subroutine swap_xinlet_block_buffers
+!==============================================================================
+  !> Inlet planes for the temporal replay: plane l of the current block, blended
+  !> with plane l+1 (or plane 1 of the next block when use_next) with weight alpha.
+  !> blend = .false. (a sample time, or the held last plane) copies the stored
+  !> plane unchanged.
+  subroutine assign_instantaneous_xinlet_tinterp(fl, dm, l, blend, alpha, use_next)
+    use convert_primary_conservative_mod
+    implicit none
+    type(t_flow), intent(inout) :: fl
+    type(t_domain), intent(inout) :: dm
+    integer, intent(in) :: l
+    logical, intent(in) :: blend
+    real(WP), intent(in) :: alpha
+    logical, intent(in) :: use_next
+
+    integer :: j, k
+    real(WP) :: w0, w1
+    type(DECOMP_INFO) :: dtmp
+
+    w0 = ONE - alpha
+    w1 = alpha
+
+    if(dm%ibcx_nominal(1, 4) == IBC_DATABASE .and. &
+       allocated(dm%fbcx_pr_inl1) .and. allocated(dm%fbcx_pr_inl2)) &
+      call Print_error_msg("Pressure inlet database replay is not supported with ndb_sampling_dt > dt.")
+
+    if(dm%ibcx_nominal(1, 1) == IBC_DATABASE) then
+      dtmp = dm%dpcc
+      do j = 1, dtmp%xsz(2)
+        do k = 1, dtmp%xsz(3)
+          if(.not. blend) then
+            dm%fbcx_qx(1, j, k) = dm%fbcx_qx_inl1(l, j, k)
+            dm%fbcx_qx(3, j, k) = dm%fbcx_qx_inl2(l, j, k)
+          else if(use_next) then
+            dm%fbcx_qx(1, j, k) = w0 * dm%fbcx_qx_inl1(l, j, k) + w1 * dm%fbcx_qx_inl1_nxt(1, j, k)
+            dm%fbcx_qx(3, j, k) = w0 * dm%fbcx_qx_inl2(l, j, k) + w1 * dm%fbcx_qx_inl2_nxt(1, j, k)
+          else
+            dm%fbcx_qx(1, j, k) = w0 * dm%fbcx_qx_inl1(l, j, k) + w1 * dm%fbcx_qx_inl1(l + 1, j, k)
+            dm%fbcx_qx(3, j, k) = w0 * dm%fbcx_qx_inl2(l, j, k) + w1 * dm%fbcx_qx_inl2(l + 1, j, k)
+          end if
+        end do
+      end do
+    end if
+
+    if(dm%ibcx_nominal(1, 2) == IBC_DATABASE) then
+      dtmp = dm%dcpc
+      do j = 1, dtmp%xsz(2)
+        do k = 1, dtmp%xsz(3)
+          if(.not. blend) then
+            dm%fbcx_qy(1, j, k) = dm%fbcx_qy_inl1(l, j, k)
+            dm%fbcx_qy(3, j, k) = dm%fbcx_qy_inl2(l, j, k)
+          else if(use_next) then
+            dm%fbcx_qy(1, j, k) = w0 * dm%fbcx_qy_inl1(l, j, k) + w1 * dm%fbcx_qy_inl1_nxt(1, j, k)
+            dm%fbcx_qy(3, j, k) = w0 * dm%fbcx_qy_inl2(l, j, k) + w1 * dm%fbcx_qy_inl2_nxt(1, j, k)
+          else
+            dm%fbcx_qy(1, j, k) = w0 * dm%fbcx_qy_inl1(l, j, k) + w1 * dm%fbcx_qy_inl1(l + 1, j, k)
+            dm%fbcx_qy(3, j, k) = w0 * dm%fbcx_qy_inl2(l, j, k) + w1 * dm%fbcx_qy_inl2(l + 1, j, k)
+          end if
+        end do
+      end do
+    end if
+
+    if(dm%ibcx_nominal(1, 3) == IBC_DATABASE) then
+      dtmp = dm%dccp
+      do j = 1, dtmp%xsz(2)
+        do k = 1, dtmp%xsz(3)
+          if(.not. blend) then
+            dm%fbcx_qz(1, j, k) = dm%fbcx_qz_inl1(l, j, k)
+            dm%fbcx_qz(3, j, k) = dm%fbcx_qz_inl2(l, j, k)
+          else if(use_next) then
+            dm%fbcx_qz(1, j, k) = w0 * dm%fbcx_qz_inl1(l, j, k) + w1 * dm%fbcx_qz_inl1_nxt(1, j, k)
+            dm%fbcx_qz(3, j, k) = w0 * dm%fbcx_qz_inl2(l, j, k) + w1 * dm%fbcx_qz_inl2_nxt(1, j, k)
+          else
+            dm%fbcx_qz(1, j, k) = w0 * dm%fbcx_qz_inl1(l, j, k) + w1 * dm%fbcx_qz_inl1(l + 1, j, k)
+            dm%fbcx_qz(3, j, k) = w0 * dm%fbcx_qz_inl2(l, j, k) + w1 * dm%fbcx_qz_inl2(l + 1, j, k)
+          end if
+        end do
+      end do
+    end if
+
+    if(dm%is_thermo) then
+      call convert_primary_conservative(dm, fl%dDens, IQ2G, IBND)
+    end if
+
+    return
+  end subroutine assign_instantaneous_xinlet_tinterp
+!==============================================================================
+  !> ndb_sampling_dt must equal the sampling interval recorded in the bundle
+  !> metadata ('dt' line written by write_xoutlet_database_bundle).
+  subroutine check_xinlet_database_dt(dm, iter)
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: iter
+
+    character(256) :: meta_file
+    character(1024) :: value
+    real(WP) :: dt_db
+    integer :: ioerr
+
+    call generate_pathfile_name(meta_file, dm%idom, 'xoutlet_database_meta', dir_data, 'dat', iter)
+    value = metadata_value(meta_file, 'dt')
+    read(value, *, iostat = ioerr) dt_db
+    if(ioerr /= 0 .or. .not. (dt_db > ZERO)) &
+      call Print_error_msg("No valid dt line in "//trim(meta_file)//" to check ndb_sampling_dt against.")
+    if(abs(dt_db - dm%ndb_sampling_dt) > 1.0e-9_WP * dm%ndb_sampling_dt) &
+      call Print_error_msg("ndb_sampling_dt differs from the sampling interval dt recorded in "// &
+        trim(meta_file)//".")
+
+    return
+  end subroutine check_xinlet_database_dt
+!==============================================================================
+  !> The sample-time lattice is fixed by the dt the ratio was validated with.
+  subroutine check_xinlet_constant_dt(dm)
+    implicit none
+    type(t_domain), intent(in) :: dm
+
+    if(abs(dm%dt - dm%ndb_sampling_dt_run) > 1.0e-12_WP * dm%ndb_sampling_dt_run) &
+      call Print_error_msg("dt changed during the run: ndb_sampling_dt requires a constant dt "// &
+        "(set CHAPSIM_B3_FIXED_DT=1).")
+
+    return
+  end subroutine check_xinlet_constant_dt
 end module
 !==============================================================================
 !==============================================================================
@@ -3447,6 +4918,16 @@ module io_field_interpolation_mod
     ! Rebuild the dependent properties on the table manifold. Same recipe as
     ! Update_thermal_properties: (rhoh, d) in, the full state out, including a
     ! density corrected onto the table.
+    !
+    ! rho*h is then stored from that state, rhoh = rho_EOS(h) h (ftp%rhoh), not
+    ! kept at its interpolated value: output_interp_target_field sets
+    ! rho_hat = rho_EOS, and the interpolated pair (rhoh_i, rho_i) gives
+    ! h = rhoh_i/rho_i with rho_i /= rho_EOS(h) wherever the interpolation cuts
+    ! across a density gradient, so the first recovery h = rhoh/rho_hat of the
+    ! remapped run would jump by h (rho_i - rho_EOS)/rho_EOS
+    ! (tests/restart_remap_thermo). This is thermodynamic consistency, not
+    ! conservation: local rho*h changes by h (rho_EOS - rho_i), and the
+    ! trilinear interpolation is not conservative either.
     !--------------------------------------------------------------------------
     do k = 1, dm_tgt%dccc%xsz(3)
       do j = 1, dm_tgt%dccc%xsz(2)
@@ -3454,6 +4935,7 @@ module io_field_interpolation_mod
           ftp%rhoh = tm_tgt%rhoh(i, j, k)
           ftp%d    = fl_tgt%dDens(i, j, k)
           call ftp_refresh_thermal_properties_from_DH(ftp)
+          tm_tgt%rhoh (i, j, k) = ftp%rhoh
           tm_tgt%hEnth(i, j, k) = ftp%h
           tm_tgt%tTemp(i, j, k) = ftp%T
           tm_tgt%kCond(i, j, k) = ftp%k
@@ -3781,6 +5263,10 @@ module io_field_interpolation_mod
       call alloc_x(tm_tgt%kCond,    dm_tgt%dccc) ; tm_tgt%kCond    = ONE
       call alloc_x(tm_tgt%eCond,    dm_tgt%dccc) ; tm_tgt%eCond    = ONE
       call alloc_x(tm_tgt%ene_rhs0, dm_tgt%dccc) ; tm_tgt%ene_rhs0 = ZERO
+      if(is_bc_recovery) then
+        call alloc_x(fl_tgt%dDens_hat, dm_tgt%dccc) ; fl_tgt%dDens_hat = ONE
+        call alloc_x(fl_tgt%drhodt_m1, dm_tgt%dccc) ; fl_tgt%drhodt_m1 = ZERO
+      end if
     end if
 
     if(dm_tgt%is_conv_outlet(1)) then
@@ -3789,6 +5275,8 @@ module io_field_interpolation_mod
       allocate (fl_tgt%fbcx_a0cp_rhs0(dm_tgt%dccp%xsz(2), dm_tgt%dccp%xsz(3))); fl_tgt%fbcx_a0cp_rhs0 = ZERO
       if(dm_tgt%is_thermo) then
         allocate (tm_tgt%fbcx_rhoh_rhs0(dm_tgt%dccc%xsz(2), dm_tgt%dccc%xsz(3))); tm_tgt%fbcx_rhoh_rhs0 = ZERO
+        allocate (tm_tgt%fbcx_dhat(4, dm_tgt%dccc%xsz(2), dm_tgt%dccc%xsz(3))); tm_tgt%fbcx_dhat = ONE
+        allocate (tm_tgt%fbcx_dhat_rhs0(dm_tgt%dccc%xsz(2), dm_tgt%dccc%xsz(3))); tm_tgt%fbcx_dhat_rhs0 = ZERO
       end if
     end if
 
@@ -4091,6 +5579,7 @@ module io_field_interpolation_mod
     use io_restart_mod
     use parameters_constant_mod
     use print_msg_mod
+    use thermo_info_mod, only: check_property_range
     use udf_type_mod
    !use visualisation_field_mod
     implicit none
@@ -4123,6 +5612,20 @@ module io_field_interpolation_mod
       call build_up_interp_target_field_thermo(tm_src, fl_src, dm_src, thermo_tgt, flow_tgt, domain_tgt)
     end if
     call build_up_interp_target_xoutlet_state(dm_src, fl_src, domain_tgt, flow_tgt)
+    !--------------------------------------------------------------------------
+    ! Bc state of the remapped fresh start: rho_hat = rho (cells and outlet
+    ! plane) and a zero rho_t history, i.e. the fresh-initialisation state.
+    !--------------------------------------------------------------------------
+    if(domain_tgt%is_thermo .and. is_bc_recovery) then
+      flow_tgt%dDens_hat = flow_tgt%dDens
+      flow_tgt%drhodt_m1 = ZERO
+      if(domain_tgt%is_conv_outlet(1)) then
+        thermo_tgt%fbcx_dhat = domain_tgt%fbcx_ftp(:, :, :)%d
+        thermo_tgt%is_fbcx_dhat_valid = .true.
+        thermo_tgt%fbcx_dhat_rhs0 = ZERO
+      end if
+    end if
+    if(domain_tgt%is_thermo) call check_property_range(0, ZERO, 'mesh-mapping target')
 
     call write_instantaneous_flow(flow_tgt, domain_tgt)
     !call write_visu_flow(flow_tgt, domain_tgt)

@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">58 statements</a>
+                 title=" 0.2% of total for procedures.">62 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -199,7 +199,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-filename~9"></span>
+              <span class="anchor" id="variable-filename~10"></span>
               character(len=*),
             </td>
 <td>intent(in)</td>
@@ -229,7 +229,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_thermo~9"></span>
+              <span class="anchor" id="variable-is_thermo~7"></span>
               logical,
             </td>
 <td>intent(in)</td>
@@ -244,7 +244,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-is_mhd~2"></span>
+              <span class="anchor" id="variable-is_mhd"></span>
               logical,
             </td>
 <td>intent(in)</td>
@@ -334,6 +334,10 @@
 <span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;total mass drift from run start&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">total_mass_drift</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;global pressure drop&#39;</span><span class="p">,</span><span class="w">  </span><span class="n">metrics</span><span class="p">%</span><span class="n">pressure_drop</span><span class="p">,</span><span class="w">    </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;mean dpdx&#39;</span><span class="p">,</span><span class="w">             </span><span class="n">metrics</span><span class="p">%</span><span class="n">mean_dpdx</span><span class="p">,</span><span class="w">        </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">is_pbar_output</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;global pressure drop (full-step pressure, t_mid)&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">pressure_drop_pbar</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;mean dpdx (full-step pressure, t_mid)&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">metrics</span><span class="p">%</span><span class="n">mean_dpdx_pbar</span><span class="p">,</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
+<span class="w">    </span><span class="k">end if</span>
 <span class="w">    </span><span class="c">! momentum</span>
 <span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;total kinetic energy&#39;</span><span class="p">,</span><span class="w">  </span><span class="n">metrics</span><span class="p">%</span><span class="n">kinetic_energy</span><span class="p">,</span><span class="w">   </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">write_json_real</span><span class="p">(</span><span class="n">unit</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bulk velocity ux&#39;</span><span class="p">,</span><span class="w">      </span><span class="n">metrics</span><span class="p">%</span><span class="n">bulk_velocity</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">last</span><span class="o">=</span><span class="p">.</span><span class="n">false</span><span class="p">.)</span>

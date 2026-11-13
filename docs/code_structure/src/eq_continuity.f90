@@ -11,6 +11,7 @@ module continuity_eq_mod
   public :: Get_divergence_flow
   public :: Get_divergence_vel_x2z
   public :: Check_element_mass_conservation
+  private :: abort_if_nonfinite_continuity
 contains
 !==============================================================================
 !==============================================================================
@@ -363,6 +364,72 @@ contains
   !> - dm (in): Domain descriptor.
   !> - opt_isub (in): Optional substep index for diagnostics.
   !> - opt_str (in): Optional label appended to diagnostic messages.
+!==========================================================================================================
+!> Stops the run on every rank if div(g) + drho/dt holds a NaN or an infinity, or if the
+!> projected-source amplitude is not finite. Called by all ranks on every continuity check:
+!> one local count (ieee_is_finite, which does not signal under -ffpe-trap) and one integer
+!> allreduce, both unconditional, so no rank can wait in a collective the others skip. On
+!> failure each offending rank reports its count and first cell (global index), rank 0 a
+!> summary, then MPI_ABORT (the pattern of check_property_range). Finite values are untouched.
+!> The GPU build applies the same check.
+!==========================================================================================================
+  subroutine abort_if_nonfinite_continuity(div, projected_source, dm, iteration, str)
+    use, intrinsic :: ieee_arithmetic, only : ieee_is_finite
+    use, intrinsic :: iso_fortran_env, only : output_unit
+    use mpi_mod
+    use precision_mod
+    use udf_type_mod
+    implicit none
+    real(WP),       intent(in) :: div(:, :, :)
+    real(WP),       intent(in) :: projected_source
+    type(t_domain), intent(in) :: dm
+    integer,        intent(in) :: iteration
+    character(*),   intent(in) :: str
+    integer :: i, j, k, n1, n2, n3, nbad, nbad_global, ifirst, ierr
+
+    n1 = size(div, 1); n2 = size(div, 2); n3 = size(div, 3)
+    nbad = 0
+    do k = 1, n3
+      do j = 1, n2
+        do i = 1, n1
+          if(.not. ieee_is_finite(div(i, j, k))) nbad = nbad + 1
+        end do
+      end do
+    end do
+    if(.not. ieee_is_finite(projected_source)) nbad = nbad + 1
+    call MPI_ALLREDUCE(nbad, nbad_global, 1, MPI_INTEGER, MPI_SUM, MPI_COMM_WORLD, ierr)
+    if(nbad_global == 0) return
+    ! failure path only: locate the first non-finite cell on each offending rank
+    if(nbad > 0) then
+      ifirst = huge(ifirst)
+      do k = 1, n3
+        do j = 1, n2
+          do i = 1, n1
+            if(.not. ieee_is_finite(div(i, j, k))) ifirst = min(ifirst, i + n1 * ((j - 1) + n2 * (k - 1)))
+          end do
+        end do
+      end do
+      if(ifirst == huge(ifirst)) then
+        write(*, '(A, I0, A, A)') ' >> !ERROR! << rank ', nrank, &
+          ': non-finite Poisson projected-source amplitude in the continuity check ', trim(str)
+      else
+        i = mod(ifirst - 1, n1) + 1
+        j = mod((ifirst - 1) / n1, n2) + 1
+        k = (ifirst - 1) / (n1 * n2) + 1
+        write(*, '(A, I0, A, I0, A, A, A, 3(1X, I0), A)') ' >> !ERROR! << rank ', nrank, ': ', nbad, &
+          ' non-finite values of div(g) + drho/dt in the continuity check ', trim(str), &
+          '; first at global cell', i + dm%dccc%xst(1) - 1, j + dm%dccc%xst(2) - 1, k + dm%dccc%xst(3) - 1, ' (x-pencil)'
+      end if
+      flush(output_unit)
+    end if
+    call MPI_BARRIER(MPI_COMM_WORLD, ierr)
+    if(nrank == 0) then
+      write(*, '(A, I0, A, I0, A)') ' >> !ERROR! << NaN or infinity in the continuity check (', nbad_global, &
+        ' values, all ranks) at iteration ', iteration, '. The solution is not finite; stopping all ranks.'
+      flush(output_unit)
+    end if
+    call MPI_ABORT(MPI_COMM_WORLD, 1, ierr)
+  end subroutine abort_if_nonfinite_continuity
   subroutine Check_element_mass_conservation(fl, dm, opt_isub, opt_str)
     use cylindrical_rn_mod
     use input_general_mod
@@ -376,6 +443,7 @@ contains
     !use visualisation_field_mod
     use find_max_min_ave_mod
     use typeconvert_mod
+    use, intrinsic :: iso_fortran_env, only : output_unit
     implicit none
 
     type(t_domain), intent( in) :: dm
@@ -425,6 +493,15 @@ contains
       ! The Cartesian zero-mode correction represented by amplitude C is uniform.
       div_projected = div - fl%poisson_projected_source_amplitude
     end if
+    !----------------------------------------------------------------
+    ! Non-finite guard (every call: start-up, pre-loop restart diagnostics, every step;
+    ! no iteration condition). The residual reductions below cannot report a NaN: max
+    ! reductions and MPI_MAX discard it and NaN > threshold is false; with floating-point
+    ! traps (default build) their comparisons raise SIGFPE on one rank instead. div holds
+    ! div(g) + drho/dt in every cell (inlet/outlet layers included); div_projected differs
+    ! from it only by the projected-source amplitude.
+    !----------------------------------------------------------------
+    call abort_if_nonfinite_continuity(div, fl%poisson_projected_source_amplitude, dm, fl%iteration, str)
     !
 !#ifdef DEBUG_STEPS
     !if(MOD(fl%iteration, dm%visu_nfre) == 0) &
@@ -483,10 +560,22 @@ contains
     end if
     !fl%mcon(4) = safe_divide(fl%mcon(1)-mm0, dabs(mm0))
     !if(nrank==0) write(*, '(A,1F9.2,A)') ' ', fl%mcon(4)*100.0_WP, '%'
-    ! terminate code once too large
-    if(nrank == 0) then
-      if(safety_mass_residual > 2.0_WP .and. fl%iteration > 10000 ) &
-      call Print_error_msg("Mass conservation error exceeds tolerance. Terminate run and investigate.")
+    ! terminate code once too large. Only the time-step check (called without
+    ! opt_str, chapsim.f90) can trigger this. The pre-loop calls ('initial',
+    ! 'init-div-free') evaluate div(g) + fl%drhodt before fl%drhodt is computed
+    ! (it is zero until the first energy step), so after a heated restart they
+    ! report max|d rho/dt| of the restored state rather than a continuity error.
+    ! safety_mass_residual comes from global reductions, so rank 0 decides for all ranks;
+    ! MPI_ABORT ends every rank (as check_property_range does) rather than relying on the
+    ! launcher to stop the others after a rank-0 error stop (srun may leave them waiting).
+    if(nrank == 0 .and. .not. present(opt_str)) then
+      if(safety_mass_residual > 2.0_WP .and. fl%iteration > 10000 ) then
+        write(*, '(A)') ' >> !ERROR! <<Mass conservation error exceeds tolerance. Terminate run and investigate.'
+        write(*, '(A, ES16.8, A, I0)') ' >> !ERROR! << interior continuity residual ', safety_mass_residual, &
+          ' > 2.0 at iteration ', fl%iteration
+        flush(output_unit)
+        call MPI_ABORT(MPI_COMM_WORLD, 1, ierror)
+      end if
     end if
     if (nrank == 0) then
       write (*, wrtfmt1el) 'global mass flux imbalance :', fl%tt_mass_change
