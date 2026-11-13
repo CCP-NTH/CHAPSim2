@@ -835,15 +835,36 @@ contains
 ! Drop it and let the AB2 startup branch rebuild it, which is what
 ! rebuild_compact_flow_restart does for restart_history_mode=compact.
 !------------------------------------------------------------------------------
+    ! The convective-outlet histories follow, so that the outlet planes start like
+    ! a fresh run (where they are allocated as zero) and like the thermal partial
+    ! restart in initialise_thermo_fields. They enter as tZeta(isub)*rhs0: no
+    ! effect for RK3 (tZeta(1) = 0), the first step for AB2.
     if(dm%restart_clock == RESTART_CLOCK_RESET) then
       if(fl%inittype == INIT_RESTART) then
         fl%mx_rhs0(:, :, :) = ZERO
         fl%my_rhs0(:, :, :) = ZERO
         fl%mz_rhs0(:, :, :) = ZERO
         fl%is_compact_restart_startup = .true.
+        if(dm%is_conv_outlet(1)) then
+          fl%fbcx_a0cc_rhs0(:, :) = ZERO
+          fl%fbcx_a0pc_rhs0(:, :) = ZERO
+          fl%fbcx_a0cp_rhs0(:, :) = ZERO
+        end if
+        if(dm%is_conv_outlet(3)) then
+          fl%fbcz_apc0_rhs0(:, :) = ZERO
+          fl%fbcz_acp0_rhs0(:, :) = ZERO
+          fl%fbcz_acc0_rhs0(:, :) = ZERO
+        end if
       end if
       if(present(opt_tm)) then
-        if(opt_tm%inittype == INIT_RESTART) opt_tm%ene_rhs0(:, :, :) = ZERO
+        if(opt_tm%inittype == INIT_RESTART) then
+          opt_tm%ene_rhs0(:, :, :) = ZERO
+          if(dm%is_conv_outlet(1)) then
+            opt_tm%fbcx_rhoh_rhs0(:, :) = ZERO
+            opt_tm%fbcx_dhat_rhs0(:, :) = ZERO
+          end if
+          if(dm%is_conv_outlet(3)) opt_tm%fbcz_rhoh_rhs0(:, :) = ZERO
+        end if
       end if
     end if
 

@@ -90,6 +90,29 @@
 			 <thead><tr><th>Procedure</th><th>Location</th><th>Procedure Type</th><th>Description</th></tr></thead>
 			 <tbody>
 			   <tr>
+                 <td><a href='../proc/abort_if_nonfinite_continuity.html'>abort_if_nonfinite_continuity</a></td>
+                 <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>To calculate divergence of (rho * u) or divergence of (u)
+- ux (in): ux or gx
+- uy (in): uy or gy
+- uz (in): uz or gz
+- div (out): div(u) or div(g)
+- d (in): domain
+Check and report element-wise mass-conservation residuals.
+- fl (in): Flow state to check.
+- dm (in): Domain descriptor.
+- opt_isub (in): Optional substep index for diagnostics.
+- opt_str (in): Optional label appended to diagnostic messages.
+Stops the run on every rank if div(g) + drho/dt holds a NaN or an infinity, or if the
+projected-source amplitude is not finite. Called by all ranks on every continuity check:
+one local count (ieee_is_finite, which does not signal under -ffpe-trap) and one integer
+allreduce, both unconditional, so no rank can wait in a collective the others skip. On
+failure each offending rank reports its count and first cell (global index), rank 0 a
+summary, then MPI_ABORT (the pattern of check_property_range). Finite values are untouched.
+The GPU build applies the same check.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/abs_cdp.html'>abs_cdp</a></td>
                  <td><a href='../module/math_mod.html'>math_mod</a></td>
                  <td>Function</td>
@@ -216,7 +239,7 @@ Allocate flow-variable arrays for the current domain decomposition.
                </tr>
 			   <tr>
                  <td><a href='../proc/allocate_wave_arrays.html'>allocate_wave_arrays</a></td>
-                 <td><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></td>
+                 <td><a href='../module/fft2decomp_interface_mod~2.html'>fft2decomp_interface_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
                </tr>
@@ -526,12 +549,6 @@ cp = 1/(dT/dh) is finite; stops otherwise.</p></td>
                  <td><a href='../proc/build_up_fft2decomp_interface.html'>build_up_fft2decomp_interface</a></td>
                  <td><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></td>
                  <td>Subroutine</td>
-                 <td></td>
-               </tr>
-			   <tr>
-                 <td><a href='../proc/build_up_fft2decomp_interface~2.html'>build_up_fft2decomp_interface</a></td>
-                 <td><a href='../module/fft2decomp_interface_mod~2.html'>fft2decomp_interface_mod</a></td>
-                 <td>Subroutine</td>
                  <td><p><code>ipinter=1</code>: conventional sixth-order interpolation coefficients as described in <code>Lele 1992 &lt;https://www.sciencedirect.com/science/article/pii/002199919290324R&gt;</code>_\
 <code>ipinter=2</code>: optimal sixth-order interpolation coefficients designed to be as close as possible to spectral interpolators.
 <code>ipinter=3</code>: aggressive sixth-order interpolation coefficients designed to add some numerical dissipation at small scales but they could result in spurious oscillations close to a wall.
@@ -548,6 +565,12 @@ cp = 1/(dT/dh) is finite; stops otherwise.</p></td>
    cicix6 = ZERO
    dicix6 = ZERO
  end if</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/build_up_fft2decomp_interface~2.html'>build_up_fft2decomp_interface</a></td>
+                 <td><a href='../module/fft2decomp_interface_mod~2.html'>fft2decomp_interface_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/build_up_interp_target_field_flow.html'>build_up_interp_target_field_flow</a></td>
@@ -843,17 +866,7 @@ their constant is not a temperature. Range endpoints are valid.</p></td>
                  <td><a href='../proc/check_element_mass_conservation.html'>Check_element_mass_conservation</a></td>
                  <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
                  <td>Subroutine</td>
-                 <td><p>To calculate divergence of (rho * u) or divergence of (u)
-- ux (in): ux or gx
-- uy (in): uy or gy
-- uz (in): uz or gz
-- div (out): div(u) or div(g)
-- d (in): domain
-Check and report element-wise mass-conservation residuals.
-- fl (in): Flow state to check.
-- dm (in): Domain descriptor.
-- opt_isub (in): Optional substep index for diagnostics.
-- opt_str (in): Optional label appended to diagnostic messages.</p></td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/check_global_mass_balance.html'>check_global_mass_balance</a></td>
@@ -882,6 +895,18 @@ checkpoint, re-deriving is correct. The run stops on every rank unless the user 
                  <td><a href='../module/operations.html'>operations</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_stats_bundle_file_size.html'>check_stats_bundle_file_size</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Stop unless the statistics .bin holds exactly the arrays of the validated
+field list. Every entry is one full cell-centred (dccc) array, written in
+list order by stats_bundle_write1/N, and an MPI-IO read past the end of the
+file is not an error, so a truncated or padded bundle would otherwise be read
+without notice (same rule as check_bundle_file_size for restart bundles).
+Rank 0 measures the file and broadcasts the size, so every rank reaches the
+same verdict. Collective: call on all ranks.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/check_stats_fuuu_definition.html'>check_stats_fuuu_definition</a></td>
@@ -1667,13 +1692,6 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
                  <td>Subroutine</td>
                  <td><p>Defination of a procedure in the type t_fluidThermoProperty.
  to update the thermal properties based on the known temperature.</p><a href="../proc/ftp_get_thermal_properties_dimensional_from_t.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
-               </tr>
-			   <tr>
-                 <td><a href='../proc/ftp_is_t_in_scope.html'>ftp_is_T_in_scope</a></td>
-                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
-                 <td>Subroutine</td>
-                 <td><p>Defination of a procedure in the type t_fluidThermoProperty.
- to check the temperature limitations.</p><a href="../proc/ftp_is_t_in_scope.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/ftp_pchip_eval_h.html'>ftp_pchip_eval_h</a></td>
@@ -2618,19 +2636,19 @@ optionally superposed on a uniform axial velocity:</p><a href="../proc/initialis
                </tr>
 			   <tr>
                  <td><a href='../proc/initialize_domain.html'>initialize_domain</a></td>
-                 <td><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></td>
+                 <td><a href='../module/fft2decomp_interface_mod~2.html'>fft2decomp_interface_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/initialize_fd_coefficients.html'>initialize_fd_coefficients</a></td>
-                 <td><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></td>
+                 <td><a href='../module/fft2decomp_interface_mod~2.html'>fft2decomp_interface_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/initialize_fft2d_tdma_arrays.html'>initialize_fft2d_tdma_arrays</a></td>
-                 <td><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></td>
+                 <td><a href='../module/fft2decomp_interface_mod~2.html'>fft2decomp_interface_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
                </tr>
