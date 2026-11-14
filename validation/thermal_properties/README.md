@@ -6,7 +6,7 @@ filename constants in `src/modules.f90`:
 
 | `ifluid` | File | Fluid | Pressure | Temperature range | Rows | Shipped here |
 |---|---|---|---|---|---|---|
-| `scp_water` | `NIST_WATER_23.5MP.DAT` | Water | 23.5 MPa | 573.15 – 1073.15 K, step 0.1 K | 5001 | **yes** — see "Unresolved" below |
+| `scp_water` | `NIST_WATER_23.5MP.DAT` | Water | 23.5 MPa | 573.15 – 873.15 K: step 0.1 K, refined to 0.02 K in 623.15 – 673.15 K | 5001 | **yes, CoolProp-generated (MIT licence) — not NIST data**; see "Replaced" below |
 | `scp_co2` | `NIST_CO2_8MP.DAT` | Carbon dioxide | 8 MPa | 220 – 520 K, step 0.2 K | 1501 | **no — withdrawn**, see below |
 
 Both pressures are above the critical point of their fluid, which is the point:
@@ -32,6 +32,10 @@ column — differencing the rounded density reproduces it only to about 2%.
 ---
 
 ## Rights status — read before redistributing
+
+This section concerns the former NIST-derived tables: the CO₂ table was withdrawn
+with v2.2.0, and the water table was replaced by a CoolProp-generated one in
+v2.3.0. No NIST-derived table is shipped any more.
 
 Three separate questions are kept separate below, because they have different
 answers and different kinds of evidence behind them. Conflating them is how a
@@ -144,25 +148,41 @@ row-count header line and trailing whitespace, is in this repository's
 long before this change and is in no current branch. History is not rewritten,
 so the table is out of the shipped tree but not out of the repository.
 
-### Unresolved: `NIST_WATER_23.5MP.DAT`
+### Replaced: `NIST_WATER_23.5MP.DAT` (v2.3.0)
 
-**Still shipped, and its redistribution status is unresolved on exactly the
-same evidence as the CO₂ table above.** It is not kept because its rights are
-better; it is kept because withdrawing it here would achieve nothing while
-breaking a great deal:
+The water table shipped in `tests/` and here is **no longer NIST output**. From
+v2.3.0 every copy is generated with CoolProp 8.0.0 (MIT licence) on exactly the
+temperature grid of the former NIST-derived table, with:
 
-- 38 test inputs select `ifluid= scp_water`, and 26 case directories under
-  `tests/` carry their own copy of the file because the solver reads it from
-  the working directory.
-- `tests/tools/run_fluid_property_tests.py` fails without it.
-- The identical file is **already published** in this repository's history and
-  in its current released branches, so deleting it from a new commit does not
-  withdraw it from anyone.
+```bash
+python3 validation/thermal_properties/generate_property_table.py \
+    --fluid Water --pressure 23.5e6 \
+    --segments 573.15:623.15:0.1,623.15:673.15:0.02,673.15:873.15:0.1 \
+    --header-note "| generated with CoolProp 8.0.0 ..." --output NIST_WATER_23.5MP.DAT
+```
 
-Resolving it properly means either producing the permission record, or
-switching to a generated table and refreshing the affected numerical baselines
-— see below for why that is not a silent substitution. This is tracked as
-follow-up work, not closed.
+The header line records the provenance. The file name is unchanged because the
+solver opens that name (`INPUT_SCP_WATER` in `src/modules.f90`).
+
+Compared with the former table on the same grid, the maximum relative
+differences are:
+
+- enthalpy 3.7e-8, density 7.0e-10, `cp` and `beta` 1.1e-5 (all near the
+  pseudo-critical temperature);
+- viscosity 1.2% (mean 0.26%);
+- thermal conductivity 5.3% (mean 1.4%), from the newer transport correlations.
+
+The supercritical-water regression baselines were refreshed accordingly; see
+`tests/reference_update_log_*.md`.
+
+The former table was earlier described here as covering 573.15 – 1073.15 K at a
+uniform 0.1 K step. That description was wrong: it covered 573.15 – 873.15 K,
+with the 0.02 K band above.
+
+NIST-derived tables are not distributed with CHAPSim2. Users who want NIST
+values generate them from the NIST WebBook under NIST's terms and place the file
+in the case directory. Earlier releases and the repository history still
+contain the former table; history is not rewritten.
 
 ---
 
@@ -181,9 +201,10 @@ python3 validation/thermal_properties/generate_property_table.py \
     --fluid CO2 --pressure 8.0e6 --tmin 220.0 --tmax 520.0 --tstep 0.2 \
     --output NIST_CO2_8MP.DAT
 
-# the water table
+# the water table, on the grid of the shipped table
 python3 validation/thermal_properties/generate_property_table.py \
-    --fluid Water --pressure 23.5e6 --tmin 573.15 --tmax 1073.15 --tstep 0.1 \
+    --fluid Water --pressure 23.5e6 \
+    --segments 573.15:623.15:0.1,623.15:673.15:0.02,673.15:873.15:0.1 \
     --output NIST_WATER_23.5MP.DAT
 ```
 
@@ -221,8 +242,8 @@ records one — not a silent substitution.
 
 ## Citation
 
-Cite NIST, not CHAPSim2, for any property values taken from these tables. The
-citation is owed whatever the redistribution position turns out to be:
+For the shipped (CoolProp-generated) water table, cite CoolProp (below). Cite
+NIST for any property values taken from a NIST WebBook table you generate yourself:
 
 > Lemmon, E.W., Bell, I.H., Huber, M.L., McLinden, M.O., "Thermophysical
 > Properties of Fluid Systems", in *NIST Chemistry WebBook, NIST Standard

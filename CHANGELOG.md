@@ -79,6 +79,13 @@ Summary for users of v2.2.0 (tag `v2.2.0`, 2026-10-08). The entries below give t
   or regression case needs CO2; the property-interpolation harnesses skip the
   CO2 table when it is absent. Supercritical-CO2 production cases, such as the
   heated CO2 pipe, cannot be rerun from this repository alone.
+- The shipped supercritical-water table (`NIST_WATER_23.5MP.DAT`, same file
+  name and temperature grid) is now generated with CoolProp 8.0.0 (MIT
+  licence), not taken from NIST. The thermodynamic columns are unchanged to
+  1e-5 or better; viscosity changes by up to 1.2% and thermal conductivity by
+  up to 5.3%, so supercritical-water results differ from v2.2.0 and the
+  regression baselines moved. To reproduce NIST-based results, supply your own
+  table generated from the NIST WebBook.
 
 **Experimental capabilities (verified only for the configurations stated in their entries)**
 - `outlet_mass_correction = uniform_flux | split`
@@ -110,6 +117,14 @@ Summary for users of v2.2.0 (tag `v2.2.0`, 2026-10-08). The entries below give t
 - See the known limitations below.
 
 ### Added
+
+- Added `THIRD_PARTY_LICENSES.md`: the FISHPACK Software License (UCAR) for
+  the FFTPACK routines in `lib/fishpack4.1/` (the alternative Poisson FFT
+  backend), 2DECOMP&FFT, the assets of the generated documentation, and the
+  provenance of the shipped property data.
+- Added `--segments` (piecewise-uniform temperature grid) and `--header-note`
+  (provenance in the header line) to
+  `validation/thermal_properties/generate_property_table.py`.
 
 - Added the optional `[bc]` key `outlet_mass_correction` (EXPERIMENTAL, after
   `drivenfc`) for convective x-outlets. `proportional` (default, unchanged)
@@ -229,6 +244,16 @@ Summary for users of v2.2.0 (tag `v2.2.0`, 2026-10-08). The entries below give t
 - Added `known_limitation` support in `tests/tools/check_metrics.py`.
 
 ### Changed
+
+- Changed the supercritical-water property table shipped with the tests and in
+  `validation/thermal_properties/` to one generated with CoolProp 8.0.0 (MIT
+  licence) by `generate_property_table.py`, on exactly the temperature grid of
+  the former NIST-derived table (573.15 - 873.15 K, 0.1 K steps, 0.02 K in
+  623.15 - 673.15 K). The file name `NIST_WATER_23.5MP.DAT` is kept because the
+  solver opens it; the header line records the provenance. NIST Standard
+  Reference Data is not redistributed. Viscosity differs by up to 1.2% and
+  thermal conductivity by up to 5.3% from the former table; the affected
+  baselines moved (`tests/reference_update_log_2026-11-14.md`).
 
 - Changed a bundled restart to stop when the bundle manifest describes another
   geometry than the input: `icase`, the coordinate system, the domain lengths
