@@ -13,6 +13,8 @@
 ### License
 
 This software is released under the BSD-3-Clause License. See the LICENSE file for details.
+Third-party components (FISHPACK 4.1 FFTPACK, 2DECOMP&FFT, documentation assets) and the
+provenance of the shipped property data are listed in [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).
 
 ### Features
 
@@ -42,7 +44,7 @@ CHAPSim2/
 ├── build/                # Build directory for CHAPSim2
 ├── lib/                  # External libraries
 │   ├── 2decomp-fft/      # Domain decomposition and 3D FFT library 
-│   └── fishpack4.1/      # 1D/2D FFT library, for testing only 
+│   └── fishpack4.1/      # FFTPACK from FISHPACK 4.1: alternative (backup) Poisson FFT backend
 ├── tests/                # Containing 14 test cases 
 │   ├── regression/       # regression and smoke tests
 │   └── function/         # function/unit tests
