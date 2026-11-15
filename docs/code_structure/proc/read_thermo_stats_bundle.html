@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">26 statements</a>
+                 title=" 0.1% of total for procedures.">27 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -171,9 +171,9 @@
             <li class="list-group-item">
               <ul class="list-inline">
                   <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/io_tools_mod.html'>io_tools_mod</a></li>
                   <li class="list-inline-item">decomp_2d_io</li>
                   <li class="list-inline-item">decomp_2d_io_object_mpi</li>
+                  <li class="list-inline-item"><a href='../module/io_tools_mod.html'>io_tools_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -196,7 +196,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-tm~32"></span>
+              <span class="anchor" id="variable-tm~25"></span>
               type(<a href='../type/t_thermo.html'>t_thermo</a>),
             </td>
 <td>intent(inout)</td>
@@ -211,7 +211,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~268"></span>
+              <span class="anchor" id="variable-dm~202"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -257,6 +257,7 @@
 <span class="w">    </span><span class="n">iter</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">iterfrom</span>
 <span class="w">    </span><span class="k">call </span><span class="n">validate_stats_bundle_metadata</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;thermo_stats&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">thermo_stats_bundle_signature</span><span class="p">(</span><span class="n">dm</span><span class="p">),</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">                                        </span><span class="n">thermo_stats_bundle_fields</span><span class="p">(</span><span class="n">dm</span><span class="p">))</span>
+<span class="w">    </span><span class="k">call </span><span class="n">check_stats_bundle_file_size</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;thermo_stats&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">thermo_stats_bundle_fields</span><span class="p">(</span><span class="n">dm</span><span class="p">))</span>
 <span class="w">    </span><span class="k">call </span><span class="n">generate_pathfile_name</span><span class="p">(</span><span class="n">bundle_file</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;thermo_stats&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">dir_data</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;bin&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">file_exists</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">bundle_file</span><span class="p">)))</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">    </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;The thermo statistics bundle file &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">bundle_file</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot; does not exist.&quot;</span><span class="p">)</span>

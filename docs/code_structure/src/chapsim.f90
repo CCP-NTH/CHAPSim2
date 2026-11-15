@@ -1,6 +1,6 @@
 !> Main executable program for CHAPSim2.
 !>
-!> CHAPSim version 2.2.0.
+!> CHAPSim version 2.3.0.
 !>
 !> This program creates the output directories, initializes MPI, reads the input
 !> file, builds the geometry/decomposition/operators, advances the governing
@@ -45,6 +45,7 @@ subroutine initialise_chapsim
   use solver_tools_mod
   use thermo_info_mod
   use visualisation_field_mod
+  use statistics_mod, only : store_stats_prev_flow
   use wrt_debug_field_mod
   implicit none
   integer :: i
@@ -60,11 +61,21 @@ subroutine initialise_chapsim
 !------------------------------------------------------------------------------
   call Read_input_parameters
 !------------------------------------------------------------------------------
+!> post-processing mode: every output of this run goes below the window
+!> directory, before anything (the mesh checks below included) is written
+!------------------------------------------------------------------------------
+  if(is_postprocess) call Prepare_postprocess_output
+!------------------------------------------------------------------------------
 !> build up geometry information, mesh size, grid spacing/spacing, stretching factor etc...
 !------------------------------------------------------------------------------
   do i = 1, nxdomain
     call Buildup_geometry_mesh_info(domain(i))
   end do
+!------------------------------------------------------------------------------
+!> post-processing mode: no field, operator, boundary or solver set-up and no
+!> time step; Postprocess_chapsim stops the program when it is done
+!------------------------------------------------------------------------------
+  if(is_postprocess) call Postprocess_chapsim
 !------------------------------------------------------------------------------
 !> build up operation coefficients for all x-subdomains
 !------------------------------------------------------------------------------
@@ -125,9 +136,14 @@ subroutine initialise_chapsim
     ! inherits it through fl%iteration.
     if(domain(i)%is_thermo) then
       call initialise_flow_fields(flow(i), domain(i), thermo(i))
+      ! initial / restart property recovery (thermal and flow restart reads)
+      call check_property_range(thermo(i)%iteration, thermo(i)%time, 'initialisation or restart')
     else
       call initialise_flow_fields(flow(i), domain(i))
     end if
+    ! B3.5 full-step pressure statistics: the initial / restart state is the
+    ! previous completed step of the first step of this run
+    call store_stats_prev_flow(flow(i), domain(i))
     if(domain(i)%is_mhd) then
       call initialise_mhd(flow(i), mhd(i), domain(i))
       call compute_Lorentz_force(flow(i), mhd(i), domain(i))
@@ -200,6 +216,7 @@ end subroutine initialise_chapsim
 !> final iteration.
 subroutine Solve_eqs_iteration
   !use iso_fortran_env
+  use bc_convective_outlet_mod, only : write_outlet_split_state
   use continuity_eq_mod
   use solver_tools_mod!,   only : Check_cfl_diffusion, Check_cfl_convection
   !use poisson_mod
@@ -238,6 +255,9 @@ subroutine Solve_eqs_iteration
               maxmin_jx(2), maxmin_jy(2), maxmin_jz(2), &
               maxmin_lrfx(2), maxmin_lrfy(2), maxmin_lrfz(2)
 
+  ! The post-processing mode stops inside initialise_chapsim; reaching the
+  ! time loop with it set is a control-flow error, never a fallback to a DNS.
+  if(is_postprocess) call Print_error_msg('Internal error: time stepping entered in post-processing mode.')
   !==============================================================================
   ! flow advancing/marching iteration/time control
   !==============================================================================
@@ -295,11 +315,19 @@ subroutine Solve_eqs_iteration
       !------------------------------------------------------------------------------
       if(domain(i)%is_thermo) then
         call Update_PrGr(flow(i), thermo(i))
-        if ( (iter > thermo(i)%iteration) .and. &
-             (iter >= thermo(i)%nIterThermoStart) .and. (iter <= thermo(i)%nIterThermoEnd)) then
-          is_thermo(i) = .true.
-          if (nrank == 0 .and. .not. is_IO_off) &
-          write(*, wrtfmt3e) " thermal undim time, dt & phy time(s): ", thermo(i)%time, domain(i)%dt, thermo(i)%phy_time
+        ! The thermal field keeps the run clock (one run-level iteration and time; see the
+        ! restart_clock block in Read_input_parameters): its iteration and time advance with every
+        ! step up to niterthermolast, also before niterthermofirst, so its checkpoints, statistics
+        ! and qw_ramp (start_iter, end_iter) use the run iteration. The energy equation itself is
+        ! solved from niterthermofirst. Until 2026-10-30 the counter advanced only while the
+        ! equation was solved, so with niterthermofirst > niterflowfirst the thermal labels and
+        ! the qw ramp trailed the run by niterthermofirst - niterflowfirst steps.
+        if ( (iter > thermo(i)%iteration) .and. (iter <= thermo(i)%nIterThermoEnd)) then
+          if (iter >= thermo(i)%nIterThermoStart) then
+            is_thermo(i) = .true.
+            if (nrank == 0 .and. .not. is_IO_off) &
+            write(*, wrtfmt3e) " thermal undim time, dt & phy time(s): ", thermo(i)%time, domain(i)%dt, thermo(i)%phy_time
+          end if
           thermo(i)%time = thermo(i)%time  + domain(i)%dt
           thermo(i)%iteration = thermo(i)%iteration + 1
         end if
@@ -379,6 +407,8 @@ subroutine Solve_eqs_iteration
       !------------------------------------------------------------------------------
       !  update statistics
       !------------------------------------------------------------------------------
+      ! B3.5: the first sample (stat_istart + 1) pairs with this completed step
+      if (iter == domain(i)%stat_istart .and. is_flow(i)) call store_stats_prev_flow(flow(i), domain(i))
       if (iter > domain(i)%stat_istart .and. is_flow(i)) then
         if(domain(i)%is_thermo) then
           if(domain(i)%is_mhd) then
@@ -465,6 +495,7 @@ subroutine Solve_eqs_iteration
         !if(is_timing_iter) call call_cpu_time(CPU_TIME_ITER_SOLVER, iteration, niter, iter)
         if(is_flow(i)) then
           call write_instantaneous_flow(flow(i), domain(i))
+          call write_outlet_split_state(domain(i), iter)   ! experimental outlet_mass_correction = split only
           if(iter > domain(i)%stat_istart) call write_stats_flow(flow(i), domain(i))
         end if
         if(domain(i)%is_thermo .and. is_thermo(i)) then
@@ -520,6 +551,130 @@ subroutine Solve_eqs_iteration
 end subroutine Solve_eqs_iteration
 
 
+!==============================================================================
+!> Post-processing mode, step 1: create the window output directory
+!> 5_postprocess/window_<a>_<b>/ with the case layout below it and point
+!> every output directory there, except dir_data, from which the snapshots are
+!> read first. An existing window directory stops the run: earlier results
+!> are never overwritten. Called right after the input is read, before the
+!> mesh checks write 4_check.
+subroutine Prepare_postprocess_output
+  use input_general_mod, only : pp_stat_window, pp_window_root
+  use io_files_mod
+  use mpi_mod
+  use print_msg_mod
+  use statistics_mod, only : check_stats_window
+  use typeconvert_mod
+  use vars_df_mod
+  implicit none
+  character(len=128) :: root
+  logical :: exists
+  integer :: istat, i
+
+  ! every snapshot check first: a rejected window leaves nothing on disk
+  do i = 1, nxdomain
+    if(domain(i)%is_thermo) then
+      call check_stats_window(domain(i), pp_stat_window(1), pp_stat_window(2), .true., domain(i)%is_mhd, &
+        opt_flow_start = flow(i)%nIterFlowStart, opt_thermo_start = thermo(i)%nIterThermoStart)
+    else
+      call check_stats_window(domain(i), pp_stat_window(1), pp_stat_window(2), .false., domain(i)%is_mhd)
+    end if
+  end do
+
+  root = dir_postprocess//'/window_'//trim(int2str(pp_stat_window(1)))//'_'// &
+         trim(int2str(pp_stat_window(2)))
+  pp_window_root = root
+  istat = 0
+  if(nrank == 0) call execute_command_line('test -e '//trim(root), exitstat=istat)
+  ! Broadcast the integer exit status, not a LOGICAL: every MPI_BCAST buffer in this
+  ! file is INTEGER, which keeps the implicit MPI interface type-consistent.
+  call MPI_BCAST(istat, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierror)
+  exists = (istat == 0)
+  if(exists) call Print_error_msg('Post-processing output directory '//trim(root)//' already exists. '// &
+    'Results are never overwritten: move it away to rebuild this window again.')
+  if(nrank == 0) then
+    call execute_command_line('mkdir -p '//trim(root)//'/1_data '//trim(root)//'/2_visu/data '// &
+      trim(root)//'/2_visu/xdmf '//trim(root)//'/2_visu/mesh '//trim(root)//'/4_check', exitstat=istat)
+  end if
+  call MPI_BCAST(istat, 1, MPI_INTEGER, 0, MPI_COMM_WORLD, ierror)
+  if(istat /= 0) call Print_error_msg('Could not create the post-processing output directory '//trim(root))
+
+  dir_code      = trim(root)//'/0_src'
+  dir_visu      = trim(root)//'/2_visu'
+  dir_visu_data = trim(root)//'/2_visu/data'
+  dir_visu_xdmf = trim(root)//'/2_visu/xdmf'
+  dir_visu_mesh = trim(root)//'/2_visu/mesh'
+  dir_moni      = trim(root)//'/3_monitor'
+  dir_chkp      = trim(root)//'/4_check'
+  if(nrank == 0) call Print_note_msg('Post-processing mode: all output goes to '//trim(root))
+  return
+end subroutine Prepare_postprocess_output
+!==============================================================================
+!> Post-processing mode, step 2: rebuild the statistics over the window
+!> pp_stat_window = a, b from the cumulative snapshots at a and b, write them
+!> below the window directory, and stop. Only the decomposition needed by the
+!> statistics readers and writers is set up; no field is initialised, no
+!> equation is solved, no time step is taken and nothing in the case's own
+!> 1_data, 2_visu or 3_monitor is written.
+subroutine Postprocess_chapsim
+  use decomp_2d
+  use decomp_2d_constants, only : D2D_LOG_STDOUT
+  use domain_decomposition_mod, only : initialise_domain_decomposition
+  use input_general_mod, only : pp_stat_window, pp_window_root
+  use io_files_mod
+  use io_tools_mod, only : initialise_decomp_io
+  use mpi_mod
+  use print_msg_mod
+  use statistics_mod, only : read_stats_window, write_stats_window
+  use typeconvert_mod
+  use vars_df_mod
+  use visualisation_mesh_mod, only : write_visu_ini
+  implicit none
+  integer :: i, iter_a, iter_b
+
+  iter_a = pp_stat_window(1)
+  iter_b = pp_stat_window(2)
+  ! decomp_2d_setup.log would otherwise be written into the case directory
+  decomp_log = D2D_LOG_STDOUT
+  call decomp_2d_init(domain(1)%np(1), domain(1)%np(2), domain(1)%np(3), p_row, p_col, &
+                      periodic_bc=domain(1)%is_periodic)
+  do i = 1, nxdomain
+    call initialise_domain_decomposition(domain(i))
+    call initialise_decomp_io(domain(i))
+  end do
+  ! read and combine: snapshots come from the case's 1_data
+  do i = 1, nxdomain
+    if(domain(i)%is_thermo .and. domain(i)%is_mhd) then
+      call read_stats_window(domain(i), flow(i), iter_a, iter_b, tm=thermo(i), mh=mhd(i))
+    else if(domain(i)%is_thermo) then
+      call read_stats_window(domain(i), flow(i), iter_a, iter_b, tm=thermo(i))
+    else if(domain(i)%is_mhd) then
+      call read_stats_window(domain(i), flow(i), iter_a, iter_b, mh=mhd(i))
+    else
+      call read_stats_window(domain(i), flow(i), iter_a, iter_b)
+    end if
+  end do
+  ! write: from here on every output, 1_data included, is below the window root
+  dir_data = trim(pp_window_root)//'/1_data'
+  do i = 1, nxdomain
+    call write_visu_ini(domain(i))
+    if(domain(i)%is_thermo .and. domain(i)%is_mhd) then
+      call write_stats_window(domain(i), flow(i), iter_a, iter_b, pp_window_root, tm=thermo(i), mh=mhd(i))
+    else if(domain(i)%is_thermo) then
+      call write_stats_window(domain(i), flow(i), iter_a, iter_b, pp_window_root, tm=thermo(i))
+    else if(domain(i)%is_mhd) then
+      call write_stats_window(domain(i), flow(i), iter_a, iter_b, pp_window_root, mh=mhd(i))
+    else
+      call write_stats_window(domain(i), flow(i), iter_a, iter_b, pp_window_root)
+    end if
+  end do
+  if(nrank == 0) call Print_debug_mid_msg('Post-processing completed: statistical window '// &
+    trim(int2str(iter_a))//' ... '//trim(int2str(iter_b))//' written to '//trim(pp_window_root)// &
+    '; 0 time steps advanced.')
+  call Finalise_mpi
+  stop 0
+end subroutine Postprocess_chapsim
+!==============================================================================
 !> Finalize CHAPSim after the solver loop.
 !>
 !> Records final timing information and finalizes MPI.

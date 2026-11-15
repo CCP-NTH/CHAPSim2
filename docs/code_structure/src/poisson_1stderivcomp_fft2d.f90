@@ -633,8 +633,22 @@ subroutine inversion5_v2(aaa,eee,spI)
         mi = m + i
         do k = spI%yst(3), spI%yen(3)
            do j = spI%yst(1), spI%yen(1)
-              if (dabs(rl(aaa(j,m,k,3))) > MINP) tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
-              if (dabs(iy(aaa(j,m,k,3))) > MINP) tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
+              ! A zero pivot leaves nothing to eliminate (the column below it is
+              ! zero for these matrices, e.g. the singular (0,0) mode), so the
+              ! multiplier is zero. Without the else branch tmp1/tmp2 kept the
+              ! previous line's value (undefined on the first pass), coupling
+              ! independent (j,k) systems. Same fix as inversion5_v1, 2686f87;
+              ! reproducer: tests/tools/check_inversion5_zero_pivot.py.
+              if (abs_prec(rl(aaa(j,m,k,3))) > epsilon) then
+                 tmp1 = rl(aaa(j,mi,k,3-i)) / rl(aaa(j,m,k,3))
+              else
+                 tmp1 = zero
+              endif
+              if (abs_prec(iy(aaa(j,m,k,3))) > epsilon) then
+                 tmp2 = iy(aaa(j,mi,k,3-i)) / iy(aaa(j,m,k,3))
+              else
+                 tmp2 = zero
+              endif
               sr(j,k) = cx(tmp1, tmp2)
               eee(j,mi,k) = cx(rl(eee(j,mi,k)) - tmp1 * rl(eee(j,m,k)),&
                                iy(eee(j,mi,k)) - tmp2 * iy(eee(j,m,k)))
@@ -2906,6 +2920,12 @@ contains
     !use dbg_schemes, only: abs_prec
     use math_mod, only: cx, rl, iy!, only: abs_prec
     implicit none
+    ! zero-mode flags of the two line solves and the CHAPSIM_DIAG_YSKIP_ZERO diagnostic
+    logical :: zero_mode_r, zero_mode_i, is_diag0, is_line0
+    character(len=8) :: diag_env
+    integer :: diag_st, n0
+    real(mytype) :: d_compat, d_ax
+    real(mytype) :: d_r0(sp%ysz(2)), d_w(sp%ysz(2)), d_res(sp%ysz(2))
 
     real(mytype), dimension(:,:,:), intent(INOUT) :: rhs
 
@@ -3275,12 +3295,24 @@ contains
 ! TMDA in the Y direction (stretching grids direction)
 !-----------------------------------------------------------
     call transpose_x_to_y(cw1b,cw2b,sp)
+    call get_environment_variable('CHAPSIM_DIAG_YSKIP_ZERO', diag_env, status = diag_st)
+    is_diag0 = (diag_st == 0 .and. trim(diag_env) == '1')
     do i = sp%yst(1), sp%yen(1)
       do k = sp%yst(3), sp%yen(3)
         zero_mode = abs(rl(xk2(i))) < epsilon .and. &
                     abs(iy(xk2(i))) < epsilon .and. &
                     abs(rl(zk2(k))) < epsilon .and. &
                     abs(iy(zk2(k))) < epsilon
+        ! the flags handed to the real and the imaginary line solves
+        ! Each part of a spectral coefficient is solved as its own real line with its own
+        ! wavenumbers: with z walls (bcz = 1) waves() stores the cosine modes k - 1 and
+        ! N - k + 1 in the real and the imaginary part of zk2(k), so the singular line (zero
+        ! x and z wavenumbers, Neumann in y) is the real part of (i, k) = (1, 1) while its
+        ! imaginary part is the regular Nyquist line; the combined test above misses it.
+        ! Where real and imaginary wavenumbers coincide (periodic z, and x in either case)
+        ! the two flags equal the combined test, so those results are unchanged.
+        zero_mode_r = abs(rl(xk2(i))) < epsilon .and. abs(rl(zk2(k))) < epsilon
+        zero_mode_i = abs(iy(xk2(i))) < epsilon .and. abs(iy(zk2(k))) < epsilon
         do j = sp%yst(2), sp%yen(2)
           bbb_real(j) = bb(j) - (rl(xk2(i)) * rc2(j) + rl(zk2(k)))
           bbb_imag(j) = bb(j) - (iy(xk2(i)) * rc2(j) + iy(zk2(k)))
@@ -3288,18 +3320,44 @@ contains
           ty_real(j) = rl(cw2b(i, j, k))
           !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test31', ty(j), i, j, k
         end do
+        ! diagnostic (off by default): the real line whose wavenumbers vanish
+        is_line0 = is_diag0 .and. abs(rl(xk2(i))) < epsilon .and. abs(rl(zk2(k))) < epsilon
+        if(is_line0) then
+          d_r0(:) = ty_real(sp%yst(2):sp%yen(2))
+          d_w(1) = 1.0_mytype
+          do j = 2, sp%ysz(2)
+            d_w(j) = d_w(j - 1) * cc(sp%yst(2) + j - 2) / aa(sp%yst(2) + j - 1)
+          end do
+          d_compat = sum(d_w * d_r0) / sum(d_w)
+        end if
         call solve_yskip_tdma_line(sp%ysz(2), &
                                    ty_real(sp%yst(2):sp%yen(2)), &
                                    aa(sp%yst(2):sp%yen(2)), &
                                    bbb_real(sp%yst(2):sp%yen(2)), &
                                    cc(sp%yst(2):sp%yen(2)), &
-                                   zero_mode)
+                                   zero_mode_r)
+        if(is_line0) then
+          ! residual of the singular line operator for the solution, against the source
+          ! as given and against the source with its incompatible part removed
+          n0 = sp%ysz(2)
+          do j = 1, n0
+            d_ax = bbb_real(sp%yst(2) + j - 1) * ty_real(sp%yst(2) + j - 1)
+            if(j > 1)  d_ax = d_ax + aa(sp%yst(2) + j - 1) * ty_real(sp%yst(2) + j - 2)
+            if(j < n0) d_ax = d_ax + cc(sp%yst(2) + j - 1) * ty_real(sp%yst(2) + j)
+            d_res(j) = d_ax - d_r0(j)
+          end do
+          write(*, '(A, I5, I5, L2, 5ES13.4)') ' DIAG_YSKIP0 i,k,zero_mode, compat/max|rhs|, max|A x - rhs|/max|rhs|, '// &
+            'max|A x - (rhs - compat)|/max|rhs|, max|x|, x(n):', i, k, zero_mode_r, &
+            d_compat / max(maxval(abs(d_r0)), tiny(1.0_mytype)), maxval(abs(d_res)) / max(maxval(abs(d_r0)), tiny(1.0_mytype)), &
+            maxval(abs(d_res + d_compat)) / max(maxval(abs(d_r0)), tiny(1.0_mytype)), &
+            maxval(abs(ty_real(sp%yst(2):sp%yen(2)))), ty_real(sp%yen(2))
+        end if
         call solve_yskip_tdma_line(sp%ysz(2), &
                                    ty_imag(sp%yst(2):sp%yen(2)), &
                                    aa(sp%yst(2):sp%yen(2)), &
                                    bbb_imag(sp%yst(2):sp%yen(2)), &
                                    cc(sp%yst(2):sp%yen(2)), &
-                                   zero_mode)
+                                   zero_mode_i)
         do j =sp%yst(2), sp%yen(2)
           cw2b(i, j, k) = cmplx(ty_real(j), ty_imag(j), kind=mytype)
           !if(dabs(ty(j)) > 1.E+8) write(*,*) 'test32', ty(j), i, j, k
@@ -3544,6 +3602,8 @@ contains
 
     integer :: i,j,k
     real(mytype) :: w,wp,w1,w1p
+    real(mytype) :: wm_a, wm_b   ! the two terms of the modified wavenumber, one statement each: nvfortran
+                                 ! factorises the common factors of a*s1 + b*s2 within one expression
     complex(mytype) :: xyzk
     complex(mytype) :: ytt,xtt,ztt,yt1,xt1,yt2,xt2
     complex(mytype) :: xtt1,ytt1,ztt1,zt1,zt2,tmp1,tmp2,tmp3
@@ -3575,7 +3635,9 @@ contains
     if (bcx == 0) then
        do i = 1, nx/2 + 1
           w = twopi * real(i-1, mytype) / real(nx, mytype)
-          wp = acix6 * two * dx * sin_prec(w * half) + bcix6 * two * dx * sin_prec(three * half * w)
+          wm_a = acix6 * two * dx * sin_prec(w * half)
+          wm_b = bcix6 * two * dx * sin_prec(three * half * w)
+          wp = wm_a + wm_b
           wp = wp / (one + two * alcaix6 * cos_prec(w))
 !
           xkx(i) = cx_one_one * (real(nx, mytype) * wp / xlx)
@@ -3591,7 +3653,9 @@ contains
     else
        do i = 1, nx
           w = twopi * half * real(i-1, mytype) / real(nxm, mytype)
-          wp = acix6 * two * dx * sin_prec(w * half) + bcix6 * two * dx * sin_prec(three * half * w)
+          wm_a = acix6 * two * dx * sin_prec(w * half)
+          wm_b = bcix6 * two * dx * sin_prec(three * half * w)
+          wp = wm_a + wm_b
           wp = wp / (one + two * alcaix6 * cos_prec(w))
 !
           xkx(i) = cx_one_one * real(nxm, mytype) * wp / xlx
@@ -3608,7 +3672,9 @@ contains
     if (bcy == 0) then
        do j = 1, ny/2 + 1
           w = twopi *  real(j-1, mytype)/real(ny, mytype)
-          wp = aciy6 * two * dy * sin_prec(w * half) + bciy6 * two * dy * sin_prec(three * half * w)
+          wm_a = aciy6 * two * dy * sin_prec(w * half)
+          wm_b = bciy6 * two * dy * sin_prec(three * half * w)
+          wp = wm_a + wm_b
           wp = wp / (one + two * alcaiy6 * cos_prec(w))
 !
           if (istret == 0) yky(j) = cx_one_one * (real(ny,mytype) * wp / yly)
@@ -3625,7 +3691,9 @@ contains
     else
        do j = 1, ny
           w = twopi * half *  real(j-1, mytype)/real(nym, mytype)
-          wp = aciy6 * two * dy * sin_prec(w * half) + (bciy6 * two *dy) * sin_prec(three * half * w)
+          wm_a = aciy6 * two * dy * sin_prec(w * half)
+          wm_b = (bciy6 * two *dy) * sin_prec(three * half * w)
+          wp = wm_a + wm_b
           wp = wp / (one + two * alcaiy6 * cos_prec(w))
 !
           if (istret == 0) yky(j) = cx_one_one * (real(nym,mytype) * wp / yly)
@@ -3643,7 +3711,9 @@ contains
     if (bcz == 0) then
        do k = 1, nz/2 + 1
           w = twopi *  real(k-1, mytype)/real(nz, mytype)
-          wp = aciz6 * two * dz * sin_prec(w * half) + (bciz6 * two * dz) * sin_prec(three * half * w)
+          wm_a = aciz6 * two * dz * sin_prec(w * half)
+          wm_b = (bciz6 * two * dz) * sin_prec(three * half * w)
+          wp = wm_a + wm_b
           wp = wp / (one + two * alcaiz6 * cos_prec(w))
 !
           zkz(k) = cx_one_one * (real(nz,mytype) * wp / zlz)
@@ -3655,9 +3725,13 @@ contains
        do k= 1, nz/2 + 1
           w = pi *  real(k-1, mytype)/real(nzm, mytype)
           w1 = pi * real((nzm-k+1),mytype) / real(nzm, mytype)
-          wp = aciz6 * two * dz * sin_prec(w * half)+ (bciz6 * two * dz) * sin_prec(three * half * w)
+          wm_a = aciz6 * two * dz * sin_prec(w * half)
+          wm_b = (bciz6 * two * dz) * sin_prec(three * half * w)
+          wp = wm_a + wm_b
           wp = wp / (one + two * alcaiz6 * cos_prec(w))
-          w1p = aciz6 * two * dz * sin_prec(w1 * half) + (bciz6 * two * dz) * sin_prec(three * half * w1)
+          wm_a = aciz6 * two * dz * sin_prec(w1 * half)
+          wm_b = (bciz6 * two * dz) * sin_prec(three * half * w1)
+          w1p = wm_a + wm_b
           w1p = w1p / (one + two * alcaiz6 * cos_prec(w1))
 !
           zkz(k) = cx( real(nzm,mytype) * wp / zlz,     -real(nzm,mytype) * w1p / zlz)
@@ -3706,7 +3780,7 @@ contains
                 yt2 = yk2(j)
                 zt2 = zk2(k)
                end if
-                xyzk = xt2 + yt2 + zt2
+                xyzk = (xt2 + yt2) + zt2
                 kxyz(i,j,k) = xyzk
 !
              enddo
@@ -3752,7 +3826,7 @@ contains
                    yt2 = yk2(j)
                    zt2 = zk2(k)
                    end if
-                   xyzk = xt2 + yt2 + zt2
+                   xyzk = (xt2 + yt2) + zt2
                    kxyz(i,j,k) = xyzk
 !
                 enddo

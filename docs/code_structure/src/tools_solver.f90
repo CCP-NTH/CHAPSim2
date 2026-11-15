@@ -209,11 +209,13 @@ contains
 !------------------------------------------------------------------------------
 !  1/(Re*Pr)
 !------------------------------------------------------------------------------
-    tm%rPrRen = fl%rre * fluidparam%ftp0ref%k / fluidparam%ftp0ref%m / fluidparam%ftp0ref%cp
+    ! Parenthesised so that every compiler evaluates left to right (the standard lets a
+    ! compiler rewrite a/b/c as a/(b*c); nvfortran does, gfortran does not).
+    tm%rPrRen = ((fl%rre * fluidparam%ftp0ref%k) / fluidparam%ftp0ref%m) / fluidparam%ftp0ref%cp
 !------------------------------------------------------------------------------
 !  gravity force
 !------------------------------------------------------------------------------
-    u0 = ONE / fl%rre * fluidparam%ftp0ref%m / fluidparam%ftp0ref%d / tm%ref_l0
+    u0 = (((ONE / fl%rre) * fluidparam%ftp0ref%m) / fluidparam%ftp0ref%d) / tm%ref_l0
     tm%phy_time = tm%time * tm%ref_l0 / u0
     rtmp = tm%ref_l0 / u0 / u0 * GRAVITY
     fl%fgravity = ZERO
@@ -589,7 +591,7 @@ contains
         call Print_warning_msg("Warning: Momentum diffusion number is larger than 1. Numerical instability could occur.")
         write(*,*) 'Please reduce dt below ', dtmax_mom_work
         write(*,*) 'Recommended dt with safety factor = ', DIFF_SAFETY * dtmax_mom_work
-        write(*,*) 'Or consider increasing the mesh size / using implicit diffusion.'
+        write(*,*) 'Or consider increasing the mesh size (the diffusion terms are explicit; no implicit option exists).'
       end if
 
       if(dm%is_thermo) then
@@ -597,7 +599,7 @@ contains
           call Print_warning_msg("Warning: Energy diffusion number is larger than 1. Numerical instability could occur.")
           write(*,*) 'Please reduce dt below ', dtmax_ene_work
           write(*,*) 'Recommended dt with safety factor = ', DIFF_SAFETY * dtmax_ene_work
-          write(*,*) 'Or consider increasing the mesh size / using implicit diffusion.'
+          write(*,*) 'Or consider increasing the mesh size (the diffusion terms are explicit; no implicit option exists).'
         end if
       end if
 
@@ -621,6 +623,7 @@ contains
 ! ==========================================================================================================
   subroutine Check_cfl_convection(u, v, w, dm)
     use decomp_2d
+    use print_msg_mod
     use find_max_min_ave_mod
     use math_mod, only: abs_wp
     use operations
@@ -665,6 +668,16 @@ contains
     real(wp) :: cfl(2)
     real(wp) :: cfl_target, dt_suggest, dt_min_factor, dt_max_factor
     integer :: j
+    ! Opt-in fixed-dt mode (env CHAPSIM_B3_FIXED_DT=1, limit CHAPSIM_B3_FIXED_DT_CFLMAX,
+    ! default 1): dt is never changed; a CFL above the limit stops the run. Read once.
+    ! Needed when the inlet database is replayed one plane per step (a changed dt
+    ! would change the inflow time scale). cfl(2) is a global MPI_MAX, so every
+    ! rank takes the same branch and stops at the same point.
+    logical,  save :: is_fixed_dt_read = .false.
+    logical,  save :: is_fixed_dt = .false.
+    real(WP), save :: fixed_dt_cflmax = 1.0_WP
+    character(len=32) :: envval
+    integer :: envlen, envstat
 !------------------------------------------------------------------------------
 ! Initialisation
 !------------------------------------------------------------------------------
@@ -727,6 +740,28 @@ contains
     !     write(*, wrtfmt1e) 'dt reduced to ', dm%dt
     !   end if
     ! end if
+
+    if(.not. is_fixed_dt_read) then
+      is_fixed_dt_read = .true.
+      call get_environment_variable('CHAPSIM_B3_FIXED_DT', envval, envlen, envstat)
+      is_fixed_dt = (envstat == 0 .and. envlen > 0 .and. envval(1:1) == '1')
+      call get_environment_variable('CHAPSIM_B3_FIXED_DT_CFLMAX', envval, envlen, envstat)
+      if(envstat == 0 .and. envlen > 0) then
+        read(envval, *, iostat = envstat) fixed_dt_cflmax
+        if(envstat /= 0 .or. fixed_dt_cflmax <= ZERO) &
+          call Print_error_msg('CHAPSIM_B3_FIXED_DT_CFLMAX must be a positive number.')
+      end if
+      if(is_fixed_dt .and. nrank == 0) write(*, '(2X, A, ES12.4)') &
+        'fixed dt (CHAPSIM_B3_FIXED_DT): dt is never changed; stop if CFL exceeds', fixed_dt_cflmax
+    end if
+    if(is_fixed_dt) then
+      if(cfl(2) > fixed_dt_cflmax) then
+        if(nrank == 0) write(*, '(2X, A, 3ES14.6)') 'fixed dt: CFL, limit, dt:', cfl(2), fixed_dt_cflmax, dm%dt
+        call Print_error_msg('Convective CFL exceeds CHAPSIM_B3_FIXED_DT_CFLMAX with a fixed dt '// &
+          '(CHAPSIM_B3_FIXED_DT=1); the run is stopped instead of reducing dt.')
+      end if
+      return
+    end if
 
     cfl_target = 1.0_WP
     dt_min_factor = 0.8_WP
@@ -1085,6 +1120,8 @@ contains
       do k = 1, dm%dccc%zsz(3)
         accc_zpencil(:,:,k) = accc_zpencil(:,:,k) * (ONE - dm%zdamping(k) )
       end do
+      ! the damping is applied to a z-pencil copy; write it back to the argument
+      call transpose_from_z_pencil(accc_zpencil, accc_xpencil, dm%dccc, IPENCIL(1))
     end if
     return
   end subroutine

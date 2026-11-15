@@ -40,11 +40,12 @@ contains
     real(WP), intent(in)  :: strain_rate(:, :, :, :, :)
     real(WP), intent(out) :: strain_rate_mag2(:, :, :)
 
-    strain_rate_mag2(:, :, :) = strain_rate(:, :, :, 1, 1)**2 + strain_rate(:, :, :, 1, 2)**2 + &
-                                strain_rate(:, :, :, 1, 3)**2 + strain_rate(:, :, :, 2, 1)**2 + &
-                                strain_rate(:, :, :, 2, 2)**2 + strain_rate(:, :, :, 2, 3)**2 + &
-                                strain_rate(:, :, :, 3, 1)**2 + strain_rate(:, :, :, 3, 2)**2 + &
-                                strain_rate(:, :, :, 3, 3)**2
+    ! sums parenthesised in gfortran's left-to-right order (nvfortran may reassociate otherwise)
+    strain_rate_mag2(:, :, :) = (((((((strain_rate(:, :, :, 1, 1)**2 + strain_rate(:, :, :, 1, 2)**2) &
+                               & + strain_rate(:, :, :, 1, 3)**2) + strain_rate(:, :, :, 2, 1)**2) &
+                               & + strain_rate(:, :, :, 2, 2)**2) + strain_rate(:, :, :, 2, 3)**2) &
+                               & + strain_rate(:, :, :, 3, 1)**2) + strain_rate(:, :, :, 3, 2)**2) &
+                               & + strain_rate(:, :, :, 3, 3)**2
     return
   end subroutine calculate_strain_rate_magnitude_square
 
@@ -60,24 +61,24 @@ contains
       real(WP), dimension(size(velocity_gradient,1), size(velocity_gradient,2), size(velocity_gradient,3)) :: &
           trace_gradient_square
 
-      trace_gradient_square = velocity_gradient(:, :, :, 1, 1) * velocity_gradient(:, :, :, 1, 1) + &
-                              velocity_gradient(:, :, :, 1, 2) * velocity_gradient(:, :, :, 2, 1) + &
-                              velocity_gradient(:, :, :, 1, 3) * velocity_gradient(:, :, :, 3, 1) + &
-                              velocity_gradient(:, :, :, 2, 1) * velocity_gradient(:, :, :, 1, 2) + &
-                              velocity_gradient(:, :, :, 2, 2) * velocity_gradient(:, :, :, 2, 2) + &
-                              velocity_gradient(:, :, :, 2, 3) * velocity_gradient(:, :, :, 3, 2) + &
-                              velocity_gradient(:, :, :, 3, 1) * velocity_gradient(:, :, :, 1, 3) + &
-                              velocity_gradient(:, :, :, 3, 2) * velocity_gradient(:, :, :, 2, 3) + &
+      trace_gradient_square = (((((((velocity_gradient(:, :, :, 1, 1) * velocity_gradient(:, :, :, 1, 1) + &
+                              velocity_gradient(:, :, :, 1, 2) * velocity_gradient(:, :, :, 2, 1)) + &
+                              velocity_gradient(:, :, :, 1, 3) * velocity_gradient(:, :, :, 3, 1)) + &
+                              velocity_gradient(:, :, :, 2, 1) * velocity_gradient(:, :, :, 1, 2)) + &
+                              velocity_gradient(:, :, :, 2, 2) * velocity_gradient(:, :, :, 2, 2)) + &
+                              velocity_gradient(:, :, :, 2, 3) * velocity_gradient(:, :, :, 3, 2)) + &
+                              velocity_gradient(:, :, :, 3, 1) * velocity_gradient(:, :, :, 1, 3)) + &
+                              velocity_gradient(:, :, :, 3, 2) * velocity_gradient(:, :, :, 2, 3)) + &
                               velocity_gradient(:, :, :, 3, 3) * velocity_gradient(:, :, :, 3, 3)
 
       do i = 1, 3
           do j = 1, 3
               wale_tensor(:, :, :, i, j) = 0.5_WP * &
-                  (velocity_gradient(:, :, :, i, 1) * velocity_gradient(:, :, :, 1, j) + &
-                    velocity_gradient(:, :, :, i, 2) * velocity_gradient(:, :, :, 2, j) + &
-                    velocity_gradient(:, :, :, i, 3) * velocity_gradient(:, :, :, 3, j) + &
-                    velocity_gradient(:, :, :, j, 1) * velocity_gradient(:, :, :, 1, i) + &
-                    velocity_gradient(:, :, :, j, 2) * velocity_gradient(:, :, :, 2, i) + &
+                  (((((velocity_gradient(:, :, :, i, 1) * velocity_gradient(:, :, :, 1, j) + &
+                    velocity_gradient(:, :, :, i, 2) * velocity_gradient(:, :, :, 2, j)) + &
+                    velocity_gradient(:, :, :, i, 3) * velocity_gradient(:, :, :, 3, j)) + &
+                    velocity_gradient(:, :, :, j, 1) * velocity_gradient(:, :, :, 1, i)) + &
+                    velocity_gradient(:, :, :, j, 2) * velocity_gradient(:, :, :, 2, i)) + &
                     velocity_gradient(:, :, :, j, 3) * velocity_gradient(:, :, :, 3, i))
               if (i == j) then
                   wale_tensor(:, :, :, i, j) = wale_tensor(:, :, :, i, j) - &
@@ -96,11 +97,11 @@ contains
     real(WP), intent(in)  :: wale_tensor(:, :, :, :, :)
     real(WP), intent(out) :: wale_tensor_mag2(:, :, :)
 
-    wale_tensor_mag2(:, :, :) = wale_tensor(:, :, :, 1, 1)**2 + wale_tensor(:, :, :, 1, 2)**2 + &
-                                wale_tensor(:, :, :, 1, 3)**2 + wale_tensor(:, :, :, 2, 1)**2 + &
-                                wale_tensor(:, :, :, 2, 2)**2 + wale_tensor(:, :, :, 2, 3)**2 + &
-                                wale_tensor(:, :, :, 3, 1)**2 + wale_tensor(:, :, :, 3, 2)**2 + &
-                                wale_tensor(:, :, :, 3, 3)**2
+    wale_tensor_mag2(:, :, :) = (((((((wale_tensor(:, :, :, 1, 1)**2 + wale_tensor(:, :, :, 1, 2)**2) &
+                               & + wale_tensor(:, :, :, 1, 3)**2) + wale_tensor(:, :, :, 2, 1)**2) &
+                               & + wale_tensor(:, :, :, 2, 2)**2) + wale_tensor(:, :, :, 2, 3)**2) &
+                               & + wale_tensor(:, :, :, 3, 1)**2) + wale_tensor(:, :, :, 3, 2)**2) &
+                               & + wale_tensor(:, :, :, 3, 3)**2
     return
   end subroutine calculate_wale_tensor_magnitude_square
 !==========================================================================================================

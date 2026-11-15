@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title="<p> 7.2% of total for derived types.</p>Including implementation: 35 statements,  7.2% of total for derived types.">35 statements</a>
+                 title="<p> 7.3% of total for derived types.</p>Including implementation: 38 statements,  7.3% of total for derived types.">38 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -137,10 +137,10 @@
       </a>
       <div id="vars-0" class="collapse">
         <div class="list-group list-group-flush">
-            <a class="list-group-item" href="../type/t_thermo.html#variable-ifluid~2">ifluid</a>
+            <a class="list-group-item" href="../type/t_thermo.html#variable-ifluid~3">ifluid</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-inittype~2">inittype</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-iterfrom~4">iterfrom</a>
-            <a class="list-group-item" href="../type/t_thermo.html#variable-iteration~3">iteration</a>
+            <a class="list-group-item" href="../type/t_thermo.html#variable-iteration~5">iteration</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-niterthermostart">nIterThermoStart</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-niterthermoend">nIterThermoEnd</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-is_rhoh_compensated">is_rhoh_compensated</a>
@@ -164,6 +164,9 @@
             <a class="list-group-item" href="../type/t_thermo.html#variable-ene_rhs">ene_rhs</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-ene_rhs0">ene_rhs0</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-fbcx_rhoh_rhs0~3">fbcx_rhoh_rhs0</a>
+            <a class="list-group-item" href="../type/t_thermo.html#variable-fbcx_dhat">fbcx_dhat</a>
+            <a class="list-group-item" href="../type/t_thermo.html#variable-fbcx_dhat_rhs0">fbcx_dhat_rhs0</a>
+            <a class="list-group-item" href="../type/t_thermo.html#variable-is_fbcx_dhat_valid">is_fbcx_dhat_valid</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-fbcz_rhoh_rhs0">fbcz_rhoh_rhs0</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-nstat_samples~2">nstat_samples</a>
             <a class="list-group-item" href="../type/t_thermo.html#variable-tavg_h">tavg_h</a>
@@ -224,7 +227,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-ifluid~2"></span>
+              <span class="anchor" id="variable-ifluid~3"></span>
               integer,
             </td>
               <td>public</td>
@@ -275,7 +278,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iteration~3"></span>
+              <span class="anchor" id="variable-iteration~5"></span>
               integer,
             </td>
               <td>public</td>
@@ -683,6 +686,57 @@
         </tr>
         <tr>
             <td>
+              <span class="anchor" id="variable-fbcx_dhat"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>fbcx_dhat</strong>(:,:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-fbcx_dhat_rhs0"></span>
+              real(kind=WP),
+            </td>
+              <td>public,</td>
+            <td>
+              allocatable
+            </td>
+            <td>::</td>
+            <td><strong>fbcx_dhat_rhs0</strong>(:,:)</td>
+                <td></td>
+                <td></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-is_fbcx_dhat_valid"></span>
+              logical,
+            </td>
+              <td>public</td>
+            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>is_fbcx_dhat_valid</strong></td>
+<td> =</td>
+                <td>.false.</td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
               <span class="anchor" id="variable-fbcz_rhoh_rhs0"></span>
               real(kind=WP),
             </td>
@@ -828,6 +882,15 @@
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ene_rhs</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">! current step rhs</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">ene_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span><span class="w"> </span><span class="c">! last step rhs</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_rhoh_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">!</span>
+<span class="w">    </span><span class="c">! Bc convective x-outlet: transported density at the outlet face (slot 2)</span>
+<span class="w">    </span><span class="c">! and its ghost (slot 4), advanced with the same convective-outlet operator</span>
+<span class="w">    </span><span class="c">! and RK3 weights as rho*h, and its RK history.</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_dhat</span><span class="p">(:,</span><span class="w"> </span><span class="p">:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcx_dhat_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span>
+<span class="w">    </span><span class="c">! .false.: fbcx_dhat is (re)set from the outlet density fbcx_ftp%d at the next</span>
+<span class="w">    </span><span class="c">! outlet update (fresh start, legacy or per-field restart); .true. after an</span>
+<span class="w">    </span><span class="c">! exact Bc bundle restart.</span>
+<span class="w">    </span><span class="kt">logical</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">is_fbcx_dhat_valid</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
 <span class="w">    </span><span class="kt">real</span><span class="p">(</span><span class="n">WP</span><span class="p">),</span><span class="w"> </span><span class="k">allocatable</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">fbcz_rhoh_rhs0</span><span class="p">(:,</span><span class="w"> </span><span class="p">:)</span><span class="w">  </span><span class="c">!</span>
 
 <span class="w">    </span><span class="c">! Counted sample population of the tavg_* arrays below; see the same member</span>

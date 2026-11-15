@@ -90,6 +90,29 @@
 			 <thead><tr><th>Procedure</th><th>Location</th><th>Procedure Type</th><th>Description</th></tr></thead>
 			 <tbody>
 			   <tr>
+                 <td><a href='../proc/abort_if_nonfinite_continuity.html'>abort_if_nonfinite_continuity</a></td>
+                 <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>To calculate divergence of (rho * u) or divergence of (u)
+- ux (in): ux or gx
+- uy (in): uy or gy
+- uz (in): uz or gz
+- div (out): div(u) or div(g)
+- d (in): domain
+Check and report element-wise mass-conservation residuals.
+- fl (in): Flow state to check.
+- dm (in): Domain descriptor.
+- opt_isub (in): Optional substep index for diagnostics.
+- opt_str (in): Optional label appended to diagnostic messages.
+Stops the run on every rank if div(g) + drho/dt holds a NaN or an infinity, or if the
+projected-source amplitude is not finite. Called by all ranks on every continuity check:
+one local count (ieee_is_finite, which does not signal under -ffpe-trap) and one integer
+allreduce, both unconditional, so no rank can wait in a collective the others skip. On
+failure each offending rank reports its count and first cell (global index), rank 0 a
+summary, then MPI_ABORT (the pattern of check_property_range). Finite values are untouched.
+The GPU build applies the same check.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/abs_cdp.html'>abs_cdp</a></td>
                  <td><a href='../module/math_mod.html'>math_mod</a></td>
                  <td>Function</td>
@@ -275,6 +298,12 @@ Allocate flow-variable arrays for the current domain decomposition.
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/append_window_meta_keys.html'>append_window_meta_keys</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/apply_case_geometry_defaults.html'>apply_case_geometry_defaults</a></td>
                  <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
                  <td>Subroutine</td>
@@ -305,6 +334,22 @@ Allocate flow-variable arrays for the current domain decomposition.
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/apply_inlet_temperature_default.html'>apply_inlet_temperature_default</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Resolve the <code>tini</code> token of the temperature BCs once all sections are read
+(independent of the order of [thermo] and [bc]):
+  Dirichlet side given as tini : value := tini (the documented default).
+  Dirichlet side given a number: explicit; kept unchanged, never replaced,
+                                 range-checked in Convert_thermal_input_2undim
+                                 (so 0 K or a negative value stops the run).
+  Neumann side given as tini   : error (the value is a heat flux there).
+  other types (periodic, interior, convective, profile, database): the value
+                                 is not used; the token is ignored.
+An explicit x-inlet temperature different from tini is allowed, with a
+warning: the uniform initial field (tini) then differs from the inlet plane.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/apply_mesh_stretching_defaults.html'>apply_mesh_stretching_defaults</a></td>
                  <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
                  <td>Subroutine</td>
@@ -321,6 +366,15 @@ Allocate flow-variable arrays for the current domain decomposition.
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/assign_instantaneous_xinlet_tinterp.html'>assign_instantaneous_xinlet_tinterp</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Inlet planes for the temporal replay: plane l of the current block, blended
+with plane l+1 (or plane 1 of the next block when use_next) with weight alpha.
+blend = .false. (a sample time, or the held last plane) copies the stored
+plane unchanged.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/assign_wave_values.html'>assign_wave_values</a></td>
@@ -398,7 +452,9 @@ Allocate flow-variable arrays for the current domain decomposition.
                  <td><a href='../proc/bilinear_interp_xinlet_point_halo.html'>bilinear_interp_xinlet_point_halo</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
-                 <td></td>
+                 <td><p>zsrc is the search array from build_xinlet_z_search_coords: in a periodic
+z direction it carries one periodic image at each end and kshift = -1 maps
+its bracket index to the global source index (0 and n+1 = halo images).</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/binary_search_loc2index.html'>binary_search_loc2index</a></td>
@@ -411,6 +467,40 @@ Allocate flow-variable arrays for the current domain decomposition.
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/budget_face_x.html'>budget_face_x</a></td>
+                 <td><a href='../module/budget_diag_mod.html'>budget_diag_mod</a></td>
+                 <td>Function</td>
+                 <td><p>int f(iface, :, :) dA over an x-face plane of an x-pencil face array
+(dA = dy dz, dy = h2/(ds/dy) at cell centres, dz = h3 (* r_c in cylindrical)).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/budget_face_y.html'>budget_face_y</a></td>
+                 <td><a href='../module/budget_diag_mod.html'>budget_diag_mod</a></td>
+                 <td>Function</td>
+                 <td><p>int f(:, jface, :) dA over a y-face plane of a y-pencil face array (dA = dx dz;
+in cylindrical coordinates the flux arrays of the energy RHS already carry r).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/budget_face_z.html'>budget_face_z</a></td>
+                 <td><a href='../module/budget_diag_mod.html'>budget_diag_mod</a></td>
+                 <td>Function</td>
+                 <td><p>int f(:, :, kface) dA over a z-face plane of a z-pencil face array (dA = dx dy).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/budget_mass_stage.html'>budget_mass_stage</a></td>
+                 <td><a href='../module/eq_momentum_mod.html'>eq_momentum_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>B3 conservation diagnostics: mass terms of RK stage isub and, after the last
+stage, one line per step in 3_monitor/domain1_budget.log (rank 0). Columns:
+ 1 time  2 H=int rho h dV  3 dH  4 B_xin,conv  5 B_xout,conv  6 B_xin,cond  7 B_xout,cond
+ 8 B_ylow (conv+cond)  9 B_yhigh (conv+cond; walls: heat input)  10 B_z (all)  11 S_comp
+ 12 sum B  13 int R_H dV (RK)  14 R_tele = (13)-(12)  15 R_H = dH-(13)-(11)  16 R_Hb = dH-(12)-(11)
+ 17 M_EOS  18 dM_EOS  19 M_in  20 M_out  21 int rho_t dV (RK, alpha)  22 int c dV (RK, alpha)
+ 23 R_M = (21)+(20)-(19)-(22)  24 dM_EOS-(21)  25 M_hat  26 M_hat-M_EOS  27 cumulative (22)
+(B_* are boundary contributions to int R_H dV, RK3-integrated over the step; M_in/M_out are
+ the alpha-weighted mass inflow/outflow; R_tele is the discrete telescoping residual.)</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/build_bc_symm_operation.html'>build_bc_symm_operation</a></td>
@@ -445,6 +535,15 @@ Allocate flow-variable arrays for the current domain decomposition.
                  <td><a href='../module/visualisation_mesh_mod.html'>visualisation_mesh_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/build_pchip_slopes.html'>build_pchip_slopes</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Set the PCHIP node slopes d(.)/dh of the non-dimensional table (once, at
+table load, property_interp = pchip only). Requires h strictly increasing
+along the T-sorted table, and dT/dh &gt; 0 at every node so that
+cp = 1/(dT/dh) is finite; stops otherwise.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/build_up_fft2decomp_interface.html'>build_up_fft2decomp_interface</a></td>
@@ -490,6 +589,21 @@ Allocate flow-variable arrays for the current domain decomposition.
                  <td><a href='../module/io_field_interpolation_mod.html'>io_field_interpolation_mod</a></td>
                  <td>Subroutine</td>
                  <td><p>Carry the stored convective-outlet state across to the target mesh.</p><a href="../proc/build_up_interp_target_xoutlet_state.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/build_xinlet_z_search_coords.html'>build_xinlet_z_search_coords</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Source z coordinates used for the inlet database search. In a periodic z
+direction the array is extended by one periodic image at each end,
+  zsrc_ext = [ zsrc(n) - lzz, zsrc(1:n), zsrc(1) + lzz ],
+so that targets between zsrc(n) and lzz (or below zsrc(1)) are bracketed
+by the source points across the seam instead of being clamped to the end
+value. Bracket index e in zsrc_ext then maps to global source index
+e + kshift with kshift = -1 (global 0 and n+1 are the periodic halo cells
+filled by update_halo). Non-periodic z: zsrc_ext = zsrc, kshift = 0, i.e.
+unchanged behaviour. Interior targets get the same bracket and weights as
+without the extension.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/buildup_fluidparam.html'>Buildup_fluidparam</a></td>
@@ -702,6 +816,20 @@ Scope:  mpi    called-freq    xdomain
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/check_bundle_file_size.html'>check_bundle_file_size</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Stop unless the .bin of a bundle holds exactly the arrays its validated
+metadata lists. The readers take each array at the offset that follows from
+field_shapes, and an MPI-IO read past the end of the file is not an error, so
+a truncated, padded or differently laid-out file would otherwise be read
+without notice (read_one_3d_array makes the same check for a per-field file).
+Rank 0 measures the file and broadcasts the size, so that every rank reaches
+the same verdict and stops together. Collective: call on all ranks.
+- field_shapes (in): 'name=n1,n2,n3;...' as the reader expects it, already
+  compared with the metadata by validate_bundle_metadata.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/check_cfl_convection.html'>Check_cfl_convection</a></td>
                  <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
                  <td>Subroutine</td>
@@ -725,20 +853,20 @@ MPI : x-pencil
                  <td><a href="../proc/check_current_conservation.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/check_dirichlet_bc_temperatures.html'>check_dirichlet_bc_temperatures</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Stop the run before the simulation if a prescribed (nominal Dirichlet)
+boundary temperature lies outside the property range. Values are still
+dimensional (K). Sides whose temperature BC is not Dirichlet (Neumann heat
+flux, periodic, interior, convective, profile, database) are not checked:
+their constant is not a temperature. Range endpoints are valid.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/check_element_mass_conservation.html'>Check_element_mass_conservation</a></td>
                  <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
                  <td>Subroutine</td>
-                 <td><p>To calculate divergence of (rho * u) or divergence of (u)
-- ux (in): ux or gx
-- uy (in): uy or gy
-- uz (in): uz or gz
-- div (out): div(u) or div(g)
-- d (in): domain
-Check and report element-wise mass-conservation residuals.
-- fl (in): Flow state to check.
-- dm (in): Domain descriptor.
-- opt_isub (in): Optional substep index for diagnostics.
-- opt_str (in): Optional label appended to diagnostic messages.</p></td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/check_global_mass_balance.html'>check_global_mass_balance</a></td>
@@ -747,10 +875,55 @@ Check and report element-wise mass-conservation residuals.
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/check_legacy_fbcx_state.html'>check_legacy_fbcx_state</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>A checkpoint without fbcx_thermal_state whose stored x-boundary thermal state on the correlation
+property path is not reproduced bit for bit by the rebuild cannot be classified: if another build
+wrote it after an energy step, re-deriving the state moves it by the iterative inverse's tolerance
+(a jump of order 1e-8 in rho*h at the outlet); if it is an initial-state
+checkpoint, re-deriving is correct. The run stops on every rank unless the user chooses.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_property_range.html'>check_property_range</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Collective check for out-of-range thermodynamic states.</p><a href="../proc/check_property_range.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/check_size.html'>check_size</a></td>
                  <td><a href='../module/operations.html'>operations</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_stats_bundle_file_size.html'>check_stats_bundle_file_size</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Stop unless the statistics .bin holds exactly the arrays of the validated
+field list. Every entry is one full cell-centred (dccc) array, written in
+list order by stats_bundle_write1/N, and an MPI-IO read past the end of the
+file is not an error, so a truncated or padded bundle would otherwise be read
+without notice (same rule as check_bundle_file_size for restart bundles).
+Rank 0 measures the file and broadcasts the size, so every rank reaches the
+same verdict. Collective: call on all ranks.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_stats_fuuu_definition.html'>check_stats_fuuu_definition</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Flow statistics that hold t_avg_fuuu must have been accumulated with its current definition,
+rho u_i u_j u_k (key fuuu_definition rho). Files without the key hold rho T u_i u_j u_k; adding
+new samples to them would average two different quantities, so a restart stops.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_stats_window.html'>check_stats_window</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Metadata checks of the window, every group, before anything is read or
+written: needs only the input (no decomposition), so the post-processing
+mode runs it before it creates its output directory, and an incompatible
+window leaves nothing behind.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/check_t_in_property_range.html'>check_T_in_property_range</a></td>
@@ -758,6 +931,141 @@ Check and report element-wise mass-conservation residuals.
                  <td>Subroutine</td>
                  <td><p>\brief Stop the run if a dimensional temperature lies outside the interval
 the property correlations support, naming the property that sets that end.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_thermo_flow_iteration.html'>check_thermo_flow_iteration</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>A thermal restart from checkpoint iter must start from the thermal state written at flow step
+iter (the flow is restarted from the same label). Stops when the recorded flow step differs: the
+energy equation of the run that wrote it started after the flow, so the two checkpoints with
+this label hold different steps (with the same stored time), and continuing would couple a
+thermal field to a flow field of another step without notice. A checkpoint written before the
+record existed cannot be checked: warning.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_thermo_interp_metadata.html'>check_thermo_interp_metadata</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Restart policy for the property interpolation (all ranks; rank 0 reads and
+broadcasts, so every rank takes the same decision):
+  record linear -&gt; run linear: allowed;  record pchip -&gt; run pchip: allowed;
+  record and run differ: stop;
+  no record (checkpoint written before property_interp existed, i.e. with
+  linear interpolation): allowed for linear, as before; stop for pchip;
+  unreadable record, or domain/iteration not matching the checkpoint: stop.
+A change of interpolation at a restart is rejected because the stored
+density and rho_hat belong to the writing mode's property relation: the new
+mode would relax rho in one step and keep a permanent rho_hat offset.
+Enthalpy advection (optional fifth line; absent = cd2, which includes every
+checkpoint written before the key existed), checked after the property
+interpolation, whose rules above are not affected:
+  same mode: allowed;
+  different mode, enthalpy_advection_restart = strict (default): stop;
+  different mode, allow_switch: allowed with a warning and recorded in the
+    sixth line of later records, unless the statistics would continue across
+    the change (stat_level &gt; 0, iteration &gt; stat_istart, run clock
+    continued): then stop until the statistics window is reset;
+  unrecognised fifth or sixth line: stop.
+The stored state does not depend on the face reconstruction, so a switch is
+admissible numerically; it is gated because it changes the scheme of a run
+(reproducibility) and would mix two schemes in one averaging window.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_thermo_key_placement.html'>check_thermo_key_placement</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Stop if the input file holds an optional [thermo] key line (keyname) that
+the [thermo] reader did not consume at its position, or holds it more than
+once. Section readers skip lines they do not expect, so a misplaced key
+would otherwise be ignored silently. No effect on inputs without the key.
+Keys checked: property_interp (after rhoh_recovery, else qw_ramp, else
+inout_buffer), enthalpy_advection (directly after property_interp, or
+where property_interp would go when it is absent) and
+enthalpy_advection_restart (directly after enthalpy_advection, or where it
+would go).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_window_checkpoint.html'>check_window_checkpoint</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_window_group.html'>check_window_group</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_window_joint_thermo.html'>check_window_joint_thermo</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Read the cumulative statistics at iterations iter_a and iter_b, check that
+they belong to one continuous accumulation, and leave the window averages
+over iter_a+1 ... iter_b in fl (tm, mh), with nstat_samples = N_b - N_a and
+iteration = iter_b. All metadata checks of all groups run before any large
+array is read. The snapshots are read through init_stats_flow / _thermo /
+_mhd, the unchanged restart readers, for both layouts.
+Whether the flow and thermal statistics of the window cover the same
+solver steps. Each field labels its files with its own counter, which
+advances only while that field is advanced, so identical labels do not
+imply identical steps; neither the statistics nor the time and checkpoint
+manifests record the offset. What is known comes from the input (the input
+of the run segment that wrote snapshot b) and the restart convention: a
+segment starts both counters at iteration_start s, and the flow / thermal
+field is first advanced at max(s+1, niterflowfirst) / max(s+1,
+niterthermofirst). Within the segment the thermal labels therefore trail
+the flow labels by the difference of the two, and are aligned again only
+at the next restart.
+  offset /= 0 and b &gt; s : snapshot b of the two groups belongs to different
+                          steps - a positively identified mismatch: stop
+  offset == 0, a &gt;= s   : the window lies in a segment in which both
+                          equations start together - consistent
+  otherwise             : earlier segments are not described by the input
+                          or the files - not established (recorded, not
+                          claimed as verified)</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_window_snapshot.html'>check_window_snapshot</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_window_variance.html'>check_window_variance</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_xinlet_constant_dt.html'>check_xinlet_constant_dt</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>The sample-time lattice is fixed by the dt the ratio was validated with.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_xinlet_database_dt.html'>check_xinlet_database_dt</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>ndb_sampling_dt must equal the sampling interval recorded in the bundle
+metadata ('dt' line written by write_xoutlet_database_bundle).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/check_xinlet_database_halo_layout.html'>check_xinlet_database_halo_layout</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Guard for the halo exchange used by the inlet interpolation. update_halo
+(2decomp) fills halo layer m on each side only from the adjacent rank, so a
+layer is valid only if m does not exceed that neighbour's local extent of the
+source block; deeper layers are not filled reliably. need(1:4) are the
+source layers this rank reads below/above its block in y and z (global
+indices of the bracketing source points, see compute_xinlet_database_halo_level).
+The neighbouring block extents are taken from the actual decomposition
+(all ranks' source blocks), so uneven distributions, the staggered location
+of the field (dsrc) and periodic wrap in z are covered. An incompatible
+processor grid stops the run before any interpolated value is used; the grid
+is never changed here.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/cleanup_visu_slice_bundle_wrapper_xdmf.html'>cleanup_visu_slice_bundle_wrapper_xdmf</a></td>
@@ -786,6 +1094,24 @@ the property correlations support, naming the property that sets that end.</p></
 			   <tr>
                  <td><a href='../proc/cleanup_xoutlet_database_per_field_files.html'>cleanup_xoutlet_database_per_field_files</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/combine_window_flow.html'>combine_window_flow</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/combine_window_mhd.html'>combine_window_mhd</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/combine_window_thermo.html'>combine_window_thermo</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
                </tr>
@@ -1203,6 +1529,13 @@ the property correlations support, naming the property that sets that end.</p></
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/fbcx_thermal_state_metadata_file.html'>fbcx_thermal_state_metadata_file</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Name of the metadata file that carries fbcx_thermal_state: the flow-bundle metadata in the bundled
+layout, the sidecar of domainN_flow_xoutlet_<iter>.bin in the per-field layout.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/file_exists.html'>file_exists</a></td>
                  <td><a href='../module/io_files_mod.html'>io_files_mod</a></td>
                  <td>Function</td>
@@ -1361,11 +1694,17 @@ cell-centred z-boundary property plane.</p><a href="../proc/fill_fbcz_from_cc_un
  to update the thermal properties based on the known temperature.</p><a href="../proc/ftp_get_thermal_properties_dimensional_from_t.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
-                 <td><a href='../proc/ftp_is_t_in_scope.html'>ftp_is_T_in_scope</a></td>
+                 <td><a href='../proc/ftp_pchip_eval_h.html'>ftp_pchip_eval_h</a></td>
                  <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
                  <td>Subroutine</td>
-                 <td><p>Defination of a procedure in the type t_fluidThermoProperty.
- to check the temperature limitations.</p><a href="../proc/ftp_is_t_in_scope.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+                 <td><p>Locate the table interval [h(i1), h(i1+1)] containing this%h (exact
+comparisons) and evaluate the cubic Hermite interpolants there:
+  y(h) = H00 y1 + H10 dh m1 + H01 y2 + H11 dh m2,  s = (h - h1)/dh,
+  H00 = (1+2s)(1-s)^2, H10 = s(1-s)^2, H01 = s^2(3-2s), H11 = s^2(s-1);
+sets t, d, m, k, sigma_e, b, and cp = 1/(dT/dh) (non-dimensional: with
+h = (h<em> - h0</em>)/(cp0 T0) and T = T<em>/T0, dT/dh = cp0 dT</em>/dh* = 1/cp).
+h outside the table is recorded (collective stop by check_property_range)
+and the end value used; no extrapolation.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/ftp_print.html'>ftp_print</a></td>
@@ -1643,6 +1982,12 @@ Compute divergence of vector components on staggered layouts.
 coefficient (mu_sgs, or mu_sgs/Pr_sgs) onto the faces where it is used.</p><a href="../proc/get_ibc_for_sgs_coef_c2p.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/get_midp_c2p_koren_1d.html'>Get_midp_C2P_koren_1D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/get_name_bc.html'>get_name_bc</a></td>
                  <td><a href='../module/boundary_conditions_mod.html'>boundary_conditions_mod</a></td>
                  <td>Function</td>
@@ -1882,6 +2227,12 @@ Scope:  mpi            called-freq    xdomain     module
 - fo (out): the output array of interpolated variable</p></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/get_x_midp_c2p_koren_3d.html'>Get_x_midp_C2P_koren_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/get_x_midp_p2c_1d.html'>Get_x_midp_P2C_1D</a></td>
                  <td><a href='../module/operations.html'>operations</a></td>
                  <td>Subroutine</td>
@@ -1960,6 +2311,12 @@ Scope:  mpi            called-freq    xdomain     module
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/get_y_midp_c2p_koren_3d.html'>Get_y_midp_C2P_koren_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/get_y_midp_p2c_1d.html'>Get_y_midp_P2C_1D</a></td>
                  <td><a href='../module/operations.html'>operations</a></td>
                  <td>Subroutine</td>
@@ -2027,6 +2384,12 @@ Scope:  mpi            called-freq    xdomain     module
                </tr>
 			   <tr>
                  <td><a href='../proc/get_z_midp_c2p_3d.html'>Get_z_midp_C2P_3D</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/get_z_midp_c2p_koren_3d.html'>Get_z_midp_C2P_koren_3D</a></td>
                  <td><a href='../module/operations.html'>operations</a></td>
                  <td>Subroutine</td>
                  <td></td>
@@ -2377,10 +2740,25 @@ Return: Parsed integer value when conversion succeeds.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/is_same_bits.html'>is_same_bits</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Function</td>
+                 <td><p>True when a and b have the same bit pattern (the restart exactness test;
+unlike a == b it separates +0 and -0 and needs no real equality comparison).</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/is_same_decomp.html'>is_same_decomp</a></td>
                  <td><a href='../module/decomp_operation_mod.html'>decomp_operation_mod</a></td>
                  <td>Function</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/is_true_on_all_ranks.html'>is_true_on_all_ranks</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Function</td>
+                 <td><p>Logical AND over all ranks. The restored provenance must be one value for the run: rank 0 writes
+it to the metadata of the next checkpoint, and with the bit test a point may fall back on any rank.
+Reduced as an INTEGER, like the other MPI buffers of this file.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/is_valid_number_3d.html'>is_valid_number_3D</a></td>
@@ -2401,8 +2779,47 @@ Return: Parsed integer value when conversion succeeds.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/koren_face_value.html'>koren_face_value</a></td>
+                 <td><a href='../module/operations.html'>operations</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/lcg_random.html'>lcg_random</a></td>
                  <td><a href='../module/random_number_generation_mod.html'>random_number_generation_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/legacy_fbcx_policy.html'>legacy_fbcx_policy</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Function</td>
+                 <td><p>CHAPSIM_LEGACY_FBCX_STATE, for checkpoints written before the fbcx_thermal_state key existed:
+'' (default: stop where the state cannot be verified), 'keep' (keep the x-boundary states rebuilt
+from the restored (rho<em>h, rho_hat), as for a 'rebuild' checkpoint) or 'rederive' (re-derive them
+from the stored (rho, rho</em>h) pair, the behaviour before the key).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/les_restart_fields.html'>les_restart_fields</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/les_restart_shapes.html'>les_restart_shapes</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/load_xinlet_block_current.html'>load_xinlet_block_current</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/load_xinlet_block_next.html'>load_xinlet_block_next</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
                </tr>
@@ -2554,6 +2971,18 @@ Return: Parsed integer value when conversion succeeds.</p></td>
                  <td><p>\brief Parse one side of an electrical boundary condition from [mhd].</p><a href="../proc/parse_ebc_side.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/parse_enthalpy_advection.html'>parse_enthalpy_advection</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Parse the optional [thermo] key enthalpy_advection (see the [thermo] reader).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/parse_enthalpy_advection_restart.html'>parse_enthalpy_advection_restart</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Parse the optional [thermo] key enthalpy_advection_restart (see the [thermo] reader).</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/parse_existing_output_policy.html'>parse_existing_output_policy</a></td>
                  <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
                  <td>Subroutine</td>
@@ -2638,6 +3067,18 @@ Return: Parsed integer value when conversion succeeds.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/parse_outlet_mass_correction.html'>parse_outlet_mass_correction</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Parse the optional [bc] key outlet_mass_correction (see the [bc] reader).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/parse_property_interp.html'>parse_property_interp</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Parse the optional [thermo] key property_interp (see the [thermo] reader).</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/parse_restart_clock.html'>parse_restart_clock</a></td>
                  <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
                  <td>Subroutine</td>
@@ -2656,6 +3097,12 @@ Return: Parsed integer value when conversion succeeds.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/parse_rhoh_recovery.html'>parse_rhoh_recovery</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Parse the optional [thermo] key rhoh_recovery (see the [thermo] reader).</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/parse_rstret.html'>parse_rstret</a></td>
                  <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
                  <td>Subroutine</td>
@@ -2666,6 +3113,37 @@ Return: Parsed integer value when conversion succeeds.</p></td>
                  <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/parse_thermal_outlet_pair.html'>parse_thermal_outlet_pair</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Parse the optional [thermo] key thermal_outlet_pair (see the [thermo] reader).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/pchip_h_from_t.html'>pchip_h_from_t</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Inverse of the PCHIP T(h): the h with T_cubic(h) = t. The interval comes from
+the T nodes (T_i = T(h_i), T increasing), the root from a bracketed Newton
+iteration in s = (h - h1)/dh on [0, 1], falling back to bisection whenever a
+Newton step leaves the bracket. T_cubic is monotone on the interval, so the
+root is unique; iteration stops when the bracket is below 4 ulp of s.
+t outside the table is recorded and the end value used.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/pchip_node_slopes.html'>pchip_node_slopes</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Monotone (Fritsch-Butland) node slopes of y(x) for strictly increasing x:
+the PCHIP slopes. Interior node: weighted harmonic mean of the adjacent
+secants when they have the same sign, zero otherwise (local extremum).
+End nodes: three-point one-sided estimate, limited so the end interval stays
+shape-preserving (same rule as Fritsch &amp; Carlson 1980 / Moler, Numerical
+Computing with MATLAB, pchip). The resulting cubic Hermite interpolant
+preserves monotonicity of the data and stays within adjacent node values.
+- x, y (in): node abscissae (strictly increasing) and values.
+- m (out): slopes dy/dx at the nodes.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/plot_burgers_profile.html'>Plot_burgers_profile</a></td>
@@ -2711,6 +3189,23 @@ Return: Parsed integer value when conversion succeeds.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/postprocess_chapsim.html'>Postprocess_chapsim</a></td>
+                 <td><a href='../sourcefile/chapsim.f90.html'>chapsim.f90</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Post-processing mode, step 2: rebuild the statistics over the window
+pp_stat_window = a, b from the cumulative snapshots at a and b, write them
+below the window directory, and stop. Only the decomposition needed by the
+statistics readers and writers is set up; no field is initialised, no
+equation is solved, no time step is taken and nothing in the case's own
+1_data, 2_visu or 3_monitor is written.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/pp_note.html'>pp_note</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/prepare_compact_coefficients.html'>Prepare_compact_coefficients</a></td>
                  <td><a href='../module/operations.html'>operations</a></td>
                  <td>Subroutine</td>
@@ -2735,6 +3230,17 @@ Scope:  mpi    called-freq    xdomain
                  <td><a href='../module/io_tools_mod.html'>io_tools_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/prepare_postprocess_output.html'>Prepare_postprocess_output</a></td>
+                 <td><a href='../sourcefile/chapsim.f90.html'>chapsim.f90</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Post-processing mode, step 1: create the window output directory
+5_postprocess/window_<a>_<b>/ with the case layout below it and point
+every output directory there, except dir_data, from which the snapshots are
+read first. An existing window directory stops the run: earlier results
+are never overwritten. Called right after the input is read, before the
+mesh checks write 4_check.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/prepare_tdma_1deri_c2c_rhs_array.html'>Prepare_TDMA_1deri_C2C_RHS_array</a></td>
@@ -2951,6 +3457,13 @@ This subroutine is called repeatly to update the RHS of the TDMA algorithm
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/read_fbcx_thermal_state_metadata.html'>read_fbcx_thermal_state_metadata</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Function</td>
+                 <td><p>fbcx_thermal_state of the checkpoint of iteration iter in the read layout: 'rebuild', 'initial',
+or '' (key or sidecar absent: a checkpoint written before the key existed).</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/read_flow_restart_bundle.html'>read_flow_restart_bundle</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
@@ -2991,6 +3504,14 @@ This subroutine is called repeatly to update the RHS of the TDMA algorithm
                  <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_flow_xoutlet_state_per_field.html'>read_flow_xoutlet_state_per_field</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Per-field restart layout: read the convective x-outlet state written by
+write_flow_xoutlet_state_per_field. A per-field checkpoint written before that
+file existed is read as before (outlet from its initial state), with a warning.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/read_input_parameters.html'>Read_input_parameters</a></td>
@@ -3040,6 +3561,13 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/read_instantaneous_xinlet_tinterp.html'>read_instantaneous_xinlet_tinterp</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Inlet database replay with linear interpolation in time
+(ndb_sampling_dt = R dt, R = ndb_time_ratio &gt; 1).</p><a href="../proc/read_instantaneous_xinlet_tinterp.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/read_interp_xinlet_database_bundle_field.html'>read_interp_xinlet_database_bundle_field</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
@@ -3050,6 +3578,21 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_les_restart_state.html'>read_les_restart_state</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Restore the LES state of a heated LES continuation (write_les_restart_state).
+Called by initialise_flow_fields after the initial WALE call, whose tVisc it
+replaces. A checkpoint written before the LES state was stored has none:
+then tVisc stays the one WALE computed from the restart field and Pr_sgs
+keeps its allocation value, the high-Peclet limit, as at a fresh start; the
+first energy substep then differs from the uninterrupted run, and the
+continuation is not bit-continuous. A warning says so.
+- fl (inout): receives tVisc.
+- tm (inout): receives prSgs.
+- dm (in): Domain descriptor and restart layout.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/read_metadata_line.html'>read_metadata_line</a></td>
@@ -3076,6 +3619,25 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/read_outlet_split_state.html'>read_outlet_split_state</a></td>
+                 <td><a href='../module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>outlet_mass_correction = split: read the state of iteration iter (restart). If the
+file is absent the previous-step correction is unknown and S = 0 for one step.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_postprocess_keys.html'>read_postprocess_keys</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Read and check the [process] keys of the post-processing mode. Every
+problem stops the run here: with is_postprocess set, an invalid or missing
+key must never fall through to a DNS.
+  pp_stat_window = a, b   required; window of samples a+1 ... b
+The output directory is fixed (5_postprocess/window_<a>_<b>/) and is not an
+input; a pp_output_dir key from an earlier development version is rejected
+rather than silently ignored.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/read_restart_metadata.html'>read_restart_metadata</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
@@ -3094,6 +3656,25 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/read_stats_window.html'>read_stats_window</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Read the cumulative statistics at iterations iter_a and iter_b, already
+checked by check_stats_window, and leave the window averages over
+iter_a+1 ... iter_b in fl (tm, mh), with nstat_samples = N_b - N_a and
+iteration = iter_b. The snapshots are read through init_stats_flow /
+_thermo / _mhd, the unchanged restart readers, for both layouts.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_temperature_bc_line.html'>read_temperature_bc_line</a></td>
+                 <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Read one temperature BC line, <code>ifbc?_t= ibc1, ibc2, value1, value2</code>.
+A value field may be the token <code>tini</code> (case-insensitive): "not specified,
+use the initial temperature". Any number is an explicit specification and is
+never replaced (it is range-checked later where it is a temperature).</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/read_thermo_restart_bundle.html'>read_thermo_restart_bundle</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
@@ -3104,6 +3685,20 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
                  <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_window_meta.html'>read_window_meta</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/read_xinlet_block.html'>read_xinlet_block</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Read database block blk (planes ndbbuf<em>blk ... ndbbuf</em>blk + ndbbuf - 1) into
+fbcx_q*_inl1/2 through the same bundled / per-field readers (and spatial
+interpolation) as the step-indexed replay.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/read_xoutlet_bundle_metadata.html'>read_xoutlet_bundle_metadata</a></td>
@@ -3146,6 +3741,26 @@ Read, validate, and distribute all input parameters.</p><a href="../proc/read_in
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/rebuild_thermal_boundary_states.html'>Rebuild_thermal_boundary_states</a></td>
+                 <td><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Rebuild the thermal boundary states (fbc<em>_ftp, including the Neumann wall and outlet states, which
+are not stored) from the current interior (rho</em>h, rho), keeping every interior field. This is the
+second half of Update_thermal_properties; its first half re-derives the interior through the
+property inverse, which does not return the stored values bit for bit, so the interior is saved
+and put back. Used after a thermal restart (restore_thermo_variables_from_restart) and after a
+fresh thermal initialisation, so that both start from boundary states consistent with the
+interior and the boundary conditions, and a fresh run equals a restart from its step-0 state.
+Transported density (Bc): the boundary density is rho_hat when restored, otherwise rho (rho_hat =
+rho at a fresh start).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/record_out_of_range.html'>record_out_of_range</a></td>
+                 <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>\brief Record one out-of-range state on this rank (see n_oor_local).</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/record_sgs_coef_bc.html'>record_sgs_coef_bc</a></td>
@@ -3220,6 +3835,21 @@ face set, classified by the coefficient boundary codes.</p><a href="../proc/reco
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/report_bc_consistency.html'>report_bc_consistency</a></td>
+                 <td><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Bc (transported-density recovery) diagnostic: thermodynamic consistency of the recovered
+state, max|rho_hat - rho_EOS| and max|rho h - rho_EOS h| / max|rho h|.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/report_outlet_backflow.html'>report_outlet_backflow</a></td>
+                 <td><a href='../module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>thermal_outlet_pair = zero_gradient: count outlet faces with inflow (g_b &lt; 0)
+once per step and report them on rank 0 (first occurrence, then every 1000
+steps while backflow persists). Diagnostic only; the face state is unchanged.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/require_stats_restart_file.html'>require_stats_restart_file</a></td>
                  <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
                  <td>Subroutine</td>
@@ -3249,6 +3879,14 @@ face set, classified by the coefficient boundary codes.</p><a href="../proc/reco
                  <td>Subroutine</td>
                  <td><p>\brief Map the named electrical boundary condition onto the IBC_* code the
        operators and the Poisson solver understand.</p><a href="../proc/resolve_electrical_bc.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/restore_fbcx_outlet_thermo_bc.html'>restore_fbcx_outlet_thermo_bc</a></td>
+                 <td><a href='../module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Bc restart: rebuild the convective x-outlet thermal state (slots 2, 4)
+from the restored advected rho*h (fbcx_ftp%rhoh) and rho_hat (fbcx_dhat),
+exactly as at the end of update_fbcx_convective_outlet_thermo.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/restore_flow_variables_from_restart.html'>restore_flow_variables_from_restart</a></td>
@@ -3561,6 +4199,41 @@ validity range, remembering which correlation binds each end.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/stats_meta_key.html'>stats_meta_key</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Function</td>
+                 <td><p>Value of a trailing key of a statistics metadata file ('' when the key or the file is absent).</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/stats_window_combine.html'>stats_window_combine</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/stats_window_mean.html'>stats_window_mean</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/store_stats_prev_flow.html'>store_stats_prev_flow</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>B3.5: store u and grad(u) of the current completed state as the previous
+step of the next full-step pressure-statistics sample. Called after the
+initial / restart state is set up and at iter == stat_istart (the first
+sample is taken at stat_istart + 1); later samples update it themselves.
+A restart therefore needs no extra field: the restart state is the
+previous completed step of the first step after the restart.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/swap_xinlet_block_buffers.html'>swap_xinlet_block_buffers</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/tan_dp.html'>tan_dp</a></td>
                  <td><a href='../module/math_mod.html'>math_mod</a></td>
                  <td>Function</td>
@@ -3676,6 +4349,18 @@ validity range, remembering which correlation binds each end.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/thermo_restart_fields.html'>thermo_restart_fields</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/thermo_restart_fields_bc_extra.html'>thermo_restart_fields_bc_extra</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Function</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/thermo_restart_fields_legacy.html'>thermo_restart_fields_legacy</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Function</td>
                  <td></td>
@@ -3955,6 +4640,16 @@ This subroutine is called once in initialise_chapsim.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/write_fbcx_thermal_state_metadata.html'>write_fbcx_thermal_state_metadata</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Records where the x-boundary thermal states (fbcx_ftp) of a heated run with a convective outlet
+came from: 'rebuild' when the time loop's property update has built them from (rho*h, rho_hat)
+(any checkpoint after an energy step, or one restored from such a checkpoint), 'initial' otherwise
+(a checkpoint of the initial state). Bundled layout: appended after field_shapes, so readers that
+validate the fixed keys are unaffected. Per-field layout: one-line sidecar file.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/write_flow_restart_bundle.html'>write_flow_restart_bundle</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
@@ -3991,6 +4686,16 @@ This subroutine is called once in initialise_chapsim.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/write_flow_xoutlet_state_per_field.html'>write_flow_xoutlet_state_per_field</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Per-field restart layout: the convective x-outlet state (planes, their RHS
+histories and, for a thermal run, the stored boundary (rho, rho*h)) is written
+as one extra file domain1_flow_xoutlet_<iter>.bin, in exactly the form and by
+the same routines as the tail of the flow bundle, so both layouts restore the
+same outlet state.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/write_instantaneous_flow.html'>write_instantaneous_flow</a></td>
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
@@ -4015,6 +4720,12 @@ This subroutine is called once in initialise_chapsim.</p></td>
 			   <tr>
                  <td><a href='../proc/write_json_real.html'>write_json_real</a></td>
                  <td><a href='../module/regression_test_mod.html'>regression_test_mod</a></td>
+                 <td>Subroutine</td>
+                 <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_les_restart_state.html'>write_les_restart_state</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
                </tr>
@@ -4079,6 +4790,13 @@ This subroutine is called once in initialise_chapsim.</p></td>
                  <td></td>
                </tr>
 			   <tr>
+                 <td><a href='../proc/write_outlet_split_state.html'>write_outlet_split_state</a></td>
+                 <td><a href='../module/bc_convective_outlet_mod.html'>bc_convective_outlet_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>outlet_mass_correction = split: write the state (the summed stage corrections of
+the step just completed) next to the flow checkpoint of iteration iter.</p></td>
+               </tr>
+			   <tr>
                  <td><a href='../proc/write_plane_bin.html'>write_plane_bin</a></td>
                  <td><a href='../module/visualisation_field_mod.html'>visualisation_field_mod</a></td>
                  <td>Subroutine</td>
@@ -4089,6 +4807,16 @@ This subroutine is called once in initialise_chapsim.</p></td>
                  <td><a href='../module/visualisation_field_mod.html'>visualisation_field_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_pr_fullstep_sidecar.html'>write_pr_fullstep_sidecar</a></td>
+                 <td><a href='../module/visualisation_field_mod.html'>visualisation_field_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Write flow variables to visualisation files.
+- fl (in): Flow state.
+- dm (in): Domain descriptor.
+- suffix (in): Optional suffix appended to the visualisation file name.
+B3.5: metadata of the experimental full-step pressure field 'pr_fullstep'.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/write_restart_metadata.html'>write_restart_metadata</a></td>
@@ -4148,6 +4876,47 @@ This subroutine is called once in initialise_chapsim.</p></td>
                  <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
                  <td>Subroutine</td>
                  <td></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_stats_window.html'>write_stats_window</a></td>
+                 <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Write the window averages left by read_stats_window with the ordinary
+statistics writers, in the layout they were read in, as a run with
+stat_istart = iter_a would have written them at iter_b. The caller has
+already pointed dir_data and dir_visu* below out_root. Writes the
+provenance record out_root/stat_window_provenance.dat.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_thermo_flow_iteration.html'>write_thermo_flow_iteration</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Records the flow step at which a thermal checkpoint is written ('flow_iteration <n>'). Thermal
+checkpoints are labelled by tm%iteration, which follows the run clock (chapsim.f90), so the record
+equals the label. Builds before 2026-10-30 advanced tm%iteration only while the energy equation was
+solved: with niterthermofirst &gt; niterflowfirst the label was lower than the flow step, and a thermal
+checkpoint could carry the label of an earlier flow checkpoint with the same stored time; the
+record lets a restart detect such a pair. Bundled layout: appended after field_shapes of the thermal
+bundle metadata (readers that validate the fixed keys ignore it); per-field layout: one-line
+sidecar domain<d><em>thermo_clock</em><iter>.dat.</p></td>
+               </tr>
+			   <tr>
+                 <td><a href='../proc/write_thermo_interp_metadata.html'>write_thermo_interp_metadata</a></td>
+                 <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
+                 <td>Subroutine</td>
+                 <td><p>Write the property-interpolation record of a thermal checkpoint,
+domain<d><em>thermo_interp_meta</em><iter>.dat (rank 0):
+  CHAPSim_thermo_interp_v1 / domain <d> / iteration <iter> /
+  property_interp <linear|pchip>
+  [enthalpy_advection <cd2|koren>]   (optional fifth line)
+  [enthalpy_advection_switch <from>-&gt;<to> <iteration>]   (optional sixth line)
+A separate text file, so the existing binary and metadata formats are
+unchanged; it is paired with the checkpoint by domain and iteration. The
+fifth line is written by a koren run, and by any run that carries a switch
+record; the sixth line records the latest permitted change of
+enthalpy_advection at a restart. A cd2 run without a switch record writes
+neither, so its record is unchanged; readers that predate the lines ignore
+them.</p></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/write_thermo_property.html'>Write_thermo_property</a></td>
@@ -4211,10 +4980,7 @@ This subroutine is called once in initialise_chapsim.</p></td>
                  <td><a href='../proc/write_visu_flow.html'>write_visu_flow</a></td>
                  <td><a href='../module/visualisation_field_mod.html'>visualisation_field_mod</a></td>
                  <td>Subroutine</td>
-                 <td><p>Write flow variables to visualisation files.
-- fl (in): Flow state.
-- dm (in): Domain descriptor.
-- suffix (in): Optional suffix appended to the visualisation file name.</p></td>
+                 <td></td>
                </tr>
 			   <tr>
                  <td><a href='../proc/write_visu_ini.html'>write_visu_ini</a></td>

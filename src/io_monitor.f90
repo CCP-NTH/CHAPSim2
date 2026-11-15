@@ -4,6 +4,7 @@
 !> writes rank-0 JSON files for comparison against reference values.
 module regression_test_mod
   use precision_mod, only: WP, MPI_REAL_WP
+  use parameters_constant_mod, only: is_pbar_output
   implicit none
   private
   !
@@ -25,6 +26,8 @@ module regression_test_mod
     !real(wp) :: wall_shear_integral
     real(wp) :: mean_dpdx
     real(wp) :: pressure_drop
+    real(wp) :: mean_dpdx_pbar = 0.0_wp      ! B3.4 experimental (RK3-weighted pressure)
+    real(wp) :: pressure_drop_pbar = 0.0_wp
     ! thermal metrics
     real(wp) :: bulk_massflux(3)
     real(wp) :: bulk_enthalpy
@@ -285,6 +288,10 @@ contains
     call write_json_real(unit, 'total mass drift from run start', metrics%total_mass_drift, last=.false.)
     call write_json_real(unit, 'global pressure drop',  metrics%pressure_drop,    last=.false.)
     call write_json_real(unit, 'mean dpdx',             metrics%mean_dpdx,        last=.false.)
+    if(is_pbar_output) then
+      call write_json_real(unit, 'global pressure drop (full-step pressure, t_mid)', metrics%pressure_drop_pbar, last=.false.)
+      call write_json_real(unit, 'mean dpdx (full-step pressure, t_mid)', metrics%mean_dpdx_pbar, last=.false.)
+    end if
     ! momentum
     call write_json_real(unit, 'total kinetic energy',  metrics%kinetic_energy,   last=.false.)
     call write_json_real(unit, 'bulk velocity ux',      metrics%bulk_velocity(1), last=.false.)
@@ -413,7 +420,8 @@ contains
         !open(newunit = myunit, file = trim(flname), status="old", position="append", action="write")
       else
         open(newunit = myunit, file = trim(flname), status="new", action="write")
-        write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
+        ! bulk history, not a probe: pt-id 0 (i was unassigned here; its value depended on the compiler)
+        write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", 0
         write(myunit, *) "# columns description:"
         write(myunit, *) "# column  1 : time"
         write(myunit, *) "# column  2 : global mass balance"
@@ -444,7 +452,7 @@ contains
         !open(newunit = myunit, file = trim(flname), status="old", position="append", action="write")
       else
         open(newunit = myunit, file = trim(flname), status="new", action="write")
-        write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
+        write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", 0   ! bulk history, not a probe
         write(myunit, *) "# columns: time; physical mass residual at bulk, inlet, outlet;"
         write(myunit, *) "#          projected mass residual at bulk, inlet, outlet; global mass flux imbalance;"
         write(myunit, *) "#          physical Poisson compatibility defect; explicit uniform Poisson-source correction;"
@@ -545,6 +553,21 @@ contains
         end if
         close(myunit)
       end if
+      ! B3: companion file of the full-step pressure (legacy file format unchanged)
+      if(is_pbar_output) then
+        keyword = "monitor_pt"//trim(int2str(i))//"_pr_fullstep"
+        call generate_pathfile_name(flname, dm%idom, keyword, dir_moni, 'dat')
+        inquire(file = trim(flname), exist = exist)
+        if(.not. exist) then
+          open(newunit = myunit, file = trim(flname), status="new", action="write")
+          write(myunit, *) "# domain-id : ", dm%idom, "pt-id : ", i
+          write(myunit, *) "# probe pts location ",  dm%probexyz(1:3, i)
+          write(myunit, '(A)') " # pr_fullstep = RK3 full-step effective pressure of the step [t-dt, t] "// &
+                               "(midpoint t-dt/2); the 'p' column of the _flow file is the internal stage pressure"
+          write(myunit, '(A)') " # iteration, t (completed step), t_mid, pr_fullstep"
+          close(myunit)
+        end if
+      end if
     end do
     end if
     call mpi_barrier(MPI_COMM_WORLD, ierror)
@@ -585,6 +608,7 @@ contains
     integer :: ioerr, myunit
 
     real(WP) :: bulk_MKE, bulk_q(3), bulk_g(3), bulk_m, bulk_h, mean_dpdx, pressure_drop
+    real(WP) :: mean_dpdx_pbar, pressure_drop_pbar
     real(WP) :: bulk_fbcx(2), bulk_fbcy(2), bulk_fbcz(2)
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: apcc_xpencil
     real(WP), dimension( dm%dcpc%xsz(1), dm%dcpc%xsz(2), dm%dcpc%xsz(3) ) :: acpc
@@ -653,6 +677,19 @@ contains
     else
     pressure_drop = ZERO
     end if
+    ! B3.4 experimental: the same diagnostics from the RK3-weighted pressure Pbar
+    mean_dpdx_pbar = ZERO
+    pressure_drop_pbar = ZERO
+    if(is_pbar_output .and. fl%is_pres_rk_valid) then
+      call Get_x_1der_C2C_3D(fl%pres_rk, accc1, dm, dm%iAccuracy, dm%ibcx_pr(:), dm%fbcx_pr)
+      call Get_volumetric_average_3d(dm, dm%dccc, accc1, mean_dpdx_pbar,  SPACE_AVERAGE, 'dpdx_pbar')
+      if(dm%ibcx_pr(1)/=IBC_PERIODIC) then
+        call Get_area_average_2d_for_fbcx(dm, dm%dccc, fl%pres_rk, bulk_fbcx, SPACE_INTEGRAL, 'varx')
+        pressure_drop_pbar = bulk_fbcx(1) - bulk_fbcx(2)
+      end if
+      if(nrank == 0) write(*, '(A, ES16.8, A, 2ES18.9)') '  full-step pressure Pbar (RK3, step [t-dt,t], t_mid =', &
+                       fl%time - HALF * dm%dt, '): mean dpdx, global pressure drop:', mean_dpdx_pbar, pressure_drop_pbar
+    end if
     !
     ! bulk streamwise velocity
     bulk_q = ZERO
@@ -698,6 +735,8 @@ contains
       metrics%bulk_velocity(:) = bulk_q(:)
       metrics%pressure_drop    = pressure_drop
       metrics%mean_dpdx        = mean_dpdx
+      metrics%mean_dpdx_pbar     = mean_dpdx_pbar
+      metrics%pressure_drop_pbar = pressure_drop_pbar
       if(dm%is_thermo .and. present(tm)) then
         metrics%bulk_massflux(:) = bulk_g(:)
         metrics%bulk_enthalpy    = ftp_bulk%h
@@ -827,6 +866,15 @@ contains
             fl%qz(ix, iy, iz), fl%pres(ix, iy, iz), fl%pcor(ix, iy, iz)
         end if
         close(myunit)
+        if(is_pbar_output .and. fl%is_pres_rk_valid) then
+          keyword = "monitor_pt"//trim(int2str(i))//"_pr_fullstep"
+          call generate_pathfile_name(flname, dm%idom, keyword, dir_moni, 'dat')
+          open(newunit = myunit, file = trim(flname), status = "old", action = "write", position = "append", &
+               iostat = ioerr, iomsg = iotxt)
+          if(ioerr /= 0) call Print_error_msg('Problem opening full-step pressure probe file')
+          write(myunit, '(I12, 1X, 3ES23.15)') fl%iteration, fl%time, fl%time - 0.5_WP * dm%dt, fl%pres_rk(ix, iy, iz)
+          close(myunit)
+        end if
     end do
 
     return

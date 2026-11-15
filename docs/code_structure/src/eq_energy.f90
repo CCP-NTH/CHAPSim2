@@ -4,6 +4,7 @@
 !> viscosity, conductivity, and related property fields, and computes density
 !> time-derivative information needed by variable-property flow.
 module eq_energy_mod
+  use budget_diag_mod
   use decomp_2d
   use operations
   use precision_mod, only : WP
@@ -26,7 +27,9 @@ module eq_energy_mod
   private :: add_sgs_enthalpy_flux
   public  :: Calculate_drhodt
   public  :: Update_thermal_properties
+  public  :: Rebuild_thermal_boundary_states
   public  :: Solve_energy_eq
+  private :: report_bc_consistency
   public  :: PR_SGS_INF
 contains
 !==============================================================================
@@ -91,6 +94,15 @@ contains
     ! damp drho/dt near in/out b.c.
     !------------------------------------------------------------
     if(is_damping_drhodt) call damping_drhodt(fl%drhodt, dm)
+    !------------------------------------------------------------
+    ! Bc (transported-density recovery): keep the physical rho_t of the last two stages for the
+    ! transported density (the same stage history that the energy convective
+    ! flux sees through div(g) = -rho_t + c, without the compatibility part c).
+    !------------------------------------------------------------
+    if(is_bc_recovery) then
+      fl%drhodt_m2 = fl%drhodt_m1
+      fl%drhodt_m1 = fl%drhodt
+    end if
 
     return
   end subroutine Calculate_drhodt
@@ -105,7 +117,7 @@ contains
   !>   Prandtl number is left untouched, which is what the restart path wants.
   !> - opt_ren (in): Current bulk Reynolds number, needed to put opt_tVisc and the
   !>   molecular viscosity on the same scale.
-  subroutine Update_thermal_properties(dens, visc, tm, dm, opt_tVisc, opt_ren)
+  subroutine Update_thermal_properties(dens, visc, tm, dm, opt_tVisc, opt_ren, opt_dens_bc)
     use boundary_conditions_mod
     use cylindrical_rn_mod
     use operations
@@ -118,6 +130,10 @@ contains
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(inout) :: dens, visc
     real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(in), optional :: opt_tVisc
     real(WP), intent(in), optional :: opt_ren
+    ! Bc (transported-density recovery): density estimate interpolated to Neumann-wall faces
+    ! (rho_hat); default is the updated dens, as in the original code
+    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ), intent(in), optional :: opt_dens_bc
+    real(WP), dimension( dm%dccc%xsz(1), dm%dccc%xsz(2), dm%dccc%xsz(3) ) :: dens_bc
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: dh_pcc, d_pcc
     real(WP), dimension( dm%dccc%ysz(1), dm%dccc%ysz(2), dm%dccc%ysz(3) ) :: dh_ypencil, d_ypencil
     real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: dh_cpc_ypencil, d_cpc_ypencil
@@ -169,13 +185,18 @@ contains
       end do
     end do
 
+    if(present(opt_dens_bc)) then
+      dens_bc = opt_dens_bc
+    else
+      dens_bc = dens
+    end if
 !------------------------------------------------------------------------------
 !  BC - x
 !------------------------------------------------------------------------------
   if( dm%ibcx_Tm(1) == IBC_NEUMANN .or. &
       dm%ibcx_Tm(2) == IBC_NEUMANN) then
     call Get_x_midp_C2P_3D(tm%rhoh, dh_pcc, dm, dm%iAccuracy, dm%ibcx_ftp) ! exterpolation, check
-    call Get_x_midp_C2P_3D(dens,d_pcc, dm, dm%iAccuracy, dm%ibcx_ftp)
+    call Get_x_midp_C2P_3D(dens_bc,d_pcc, dm, dm%iAccuracy, dm%ibcx_ftp)
     if(dm%ibcx_Tm(1) == IBC_NEUMANN .and. &
        dm%dpcc%xst(1) == 1) then
       do j = 1, size(dm%fbcx_ftp, 2)
@@ -222,7 +243,7 @@ contains
       call axis_mirror_fbcy(dh_cpc_ypencil, IPENCIL(2), fbcy_c4c, dm%knc_sym, dm%dcpc, is_ynode = .true., is_odd = .false., &
                             axis_mode = AXIS_RECON_M0, assign_axis_to_var = .true., nr = 0)
     end if
-    call transpose_x_to_y(dens, d_ypencil, dm%dccc)
+    call transpose_x_to_y(dens_bc, d_ypencil, dm%dccc)
     call Get_y_midp_C2P_3D(d_ypencil, d_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp)
     if(dm%icase == ICASE_PIPE) then
       fbcy_c4c(:,:,:) = dm%fbcy_ftp(:,:,:)%d
@@ -264,7 +285,7 @@ contains
     call transpose_y_to_z(dh_ypencil, dh_zpencil, dm%dccc)
     call Get_z_midp_C2P_3D(dh_zpencil, dh_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp) ! exterpolation, check
 
-    call transpose_x_to_y(dens, d_ypencil, dm%dccc)
+    call transpose_x_to_y(dens_bc, d_ypencil, dm%dccc)
     call transpose_y_to_z(d_ypencil, d_zpencil, dm%dccc)
     call Get_z_midp_C2P_3D(d_zpencil, d_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp) ! exterpolation, check
 
@@ -296,6 +317,51 @@ contains
 
   return
   end subroutine Update_thermal_properties
+!==============================================================================
+  !> Rebuild the thermal boundary states (fbc*_ftp, including the Neumann wall and outlet states, which
+  !> are not stored) from the current interior (rho*h, rho), keeping every interior field. This is the
+  !> second half of Update_thermal_properties; its first half re-derives the interior through the
+  !> property inverse, which does not return the stored values bit for bit, so the interior is saved
+  !> and put back. Used after a thermal restart (restore_thermo_variables_from_restart) and after a
+  !> fresh thermal initialisation, so that both start from boundary states consistent with the
+  !> interior and the boundary conditions, and a fresh run equals a restart from its step-0 state.
+  !> Transported density (Bc): the boundary density is rho_hat when restored, otherwise rho (rho_hat =
+  !> rho at a fresh start).
+  subroutine Rebuild_thermal_boundary_states(fl, tm, dm)
+    use parameters_constant_mod
+    use udf_type_mod
+    implicit none
+    type(t_domain), intent(inout) :: dm
+    type(t_flow),   intent(inout) :: fl
+    type(t_thermo), intent(inout) :: tm
+    real(WP), allocatable :: dens_keep(:, :, :), visc_keep(:, :, :), temp_keep(:, :, :)
+    real(WP), allocatable :: henth_keep(:, :, :), kcond_keep(:, :, :), econd_keep(:, :, :)
+
+    allocate(dens_keep, source = fl%dDens)
+    allocate(visc_keep, source = fl%mVisc)
+    allocate(temp_keep, source = tm%tTemp)
+    allocate(henth_keep, source = tm%hEnth)
+    allocate(kcond_keep, source = tm%kCond)
+    allocate(econd_keep, source = tm%eCond)
+
+    if(is_bc_recovery .and. fl%is_bc_state_restored) then
+      call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm, opt_dens_bc = fl%dDens_hat)
+    else if(is_bc_recovery) then
+      ! rho_hat = rho: pass the saved input density, not fl%dDens itself, which is also the first
+      ! (inout) argument and is overwritten with the re-derived density before opt_dens_bc is read
+      call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm, opt_dens_bc = dens_keep)
+    else
+      call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm)
+    end if
+
+    fl%dDens = dens_keep
+    fl%mVisc = visc_keep
+    tm%tTemp = temp_keep
+    tm%hEnth = henth_keep
+    tm%kCond = kcond_keep
+    tm%eCond = econd_keep
+    deallocate(dens_keep, visc_keep, temp_keep, henth_keep, kcond_keep, econd_keep)
+  end subroutine Rebuild_thermal_boundary_states
 !==============================================================================
   subroutine Calculate_energy_fractional_step(rhs0, rhs1, dtmp, dm, isub)
     use parameters_constant_mod
@@ -529,6 +595,8 @@ contains
     use thermo_info_mod
     use udf_type_mod
     use wrt_debug_field_mod
+    use find_max_min_ave_mod, only : Get_volumetric_average_3d
+    use parameters_constant_mod, only : ienth_adv, IENTH_ADV_KOREN
     implicit none
     ! arguments
     type(t_domain), intent(in) :: dm
@@ -549,6 +617,7 @@ contains
     real(WP), dimension( dm%dccc%zsz(1), dm%dccc%zsz(2), dm%dccc%zsz(3) ) :: accc_zpencil
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: accp_zpencil
 
+    real(WP), dimension( dm%dcpc%ysz(1), dm%dcpc%ysz(2), dm%dcpc%ysz(3) ) :: gy_cpc_ypencil
     real(WP), dimension( dm%dccp%zsz(1), dm%dccp%zsz(2), dm%dccp%zsz(3) ) :: gz_ccp_zpencil
 
     real(WP), dimension( dm%dpcc%xsz(1), dm%dpcc%xsz(2), dm%dpcc%xsz(3) ) :: hEnth_pcc_xpencil
@@ -583,15 +652,30 @@ contains
     fbcx_4cc(:, :, :) = dm%fbcx_ftp(:, :, :)%h
     fbcy_c4c(:, :, :) = dm%fbcy_ftp(:, :, :)%h
     fbcz_cc4(:, :, :) = dm%fbcz_ftp(:, :, :)%h
+    ! face mass fluxes in the pencil of their direction (also used by koren)
+    call transpose_x_to_y(gy, gy_cpc_ypencil, dm%dcpc)
+    call transpose_x_to_y(gz,           accp_ypencil,     dm%dccp)   ! intermediate, accp_ypencil = gz_ypencil
+    call transpose_y_to_z(accp_ypencil, gz_ccp_zpencil,   dm%dccp)
     call Get_x_midp_C2P_3D(tm%hEnth, hEnth_pcc_xpencil, dm, dm%iAccuracy, dm%ibcx_ftp(:), fbcx_4cc ) ! for d(g_x h_pcc))/dy
+    ! enthalpy_advection = koren: Koren face values replace the cd2 ones except at
+    ! non-interior end faces (b.c. values); see Get_midp_C2P_koren_1D
+    if(ienth_adv == IENTH_ADV_KOREN) &
+    call Get_x_midp_C2P_koren_3D(tm%hEnth, gx, hEnth_pcc_xpencil, dm, dm%ibcx_ftp(:), fbcx_4cc)
     call transpose_x_to_y (tm%hEnth, accc_ypencil, dm%dccc)                     !accc_ypencil = hEnth_ypencil
     call Get_y_midp_C2P_3D(accc_ypencil, hEnth_cpc_ypencil, dm, dm%iAccuracy, dm%ibcy_ftp(:), fbcy_c4c)! for d(g_y h_cpc)/dy
+    ! pipe: the axis halo of fbcy_c4c holds the theta+pi cells, so the face next
+    ! to the axis has its far-upwind cell; the axis face itself is then set by
+    ! axis_mirror_fbcy below, as for cd2
+    if(ienth_adv == IENTH_ADV_KOREN) &
+    call Get_y_midp_C2P_koren_3D(accc_ypencil, gy_cpc_ypencil, hEnth_cpc_ypencil, dm, dm%ibcy_ftp(:), fbcy_c4c)
     if(dm%icase == ICASE_PIPE) then
       call axis_mirror_fbcy(hEnth_cpc_ypencil, IPENCIL(2), fbcy_c4c, dm%knc_sym, dm%dcpc, is_ynode = .true., is_odd = .false., &
                             axis_mode = AXIS_RECON_M0, assign_axis_to_var = .true., nr = 0)
     end if
     call transpose_y_to_z (accc_ypencil, accc_zpencil, dm%dccc) !ccc_zpencil = hEnth_zpencil
     call Get_z_midp_C2P_3D(accc_zpencil, hEnth_ccp_zpencil, dm, dm%iAccuracy, dm%ibcz_ftp(:), fbcz_cc4) ! for d(g_z h_ccp)/dz
+    if(ienth_adv == IENTH_ADV_KOREN) &
+    call Get_z_midp_C2P_koren_3D(accc_zpencil, gz_ccp_zpencil, hEnth_ccp_zpencil, dm, dm%ibcz_ftp(:), fbcz_cc4)
 !------------------------------------------------------------------------------
 !    k --> k_pcc
 !      --> k_ypencil --> k_cpc_ypencil
@@ -635,6 +719,12 @@ contains
     ! whenever no velocity component has a Dirichlet/interior x-b.c., and
     ! buildup_ghost_cells_P then formed fp(0) = 2*MAXP - fi(2).
     call extract_dirichlet_fbcx(fbcx_4cc, apcc_xpencil, dm%dpcc)
+    ! B3 budget diagnostics (read-only): boundary contribution of the face flux
+    ! f = -g_x h_F to int R_H dV is f(out) - f(in)
+    if(is_budget_diag .and. .not. dm%is_periodic(1)) then
+      bflux(1) = - budget_face_x(dm, apcc_xpencil, 1)
+      bflux(2) =   budget_face_x(dm, apcc_xpencil, size(apcc_xpencil, 1))
+    end if
     !------PDE------
     call Get_x_1der_P2C_3D(apcc_xpencil, accc_xpencil, dm, dm%iAccuracy, ebcx_conv, fbcx_4cc)
     tm%ene_rhs = tm%ene_rhs + accc_xpencil
@@ -646,10 +736,13 @@ contains
 ! conv-y-e, y-pencil : d (gy * h_cpc) / dy  * (1/r)
 !------------------------------------------------------------------------------
     !------bulk------
-    call transpose_x_to_y(gy, acpc_ypencil,   dm%dcpc)   ! for d(g_y h)/dy
-    acpc_ypencil = - acpc_ypencil * hEnth_cpc_ypencil
+    acpc_ypencil = - gy_cpc_ypencil * hEnth_cpc_ypencil
     !------b.c.------
     call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
+    if(is_budget_diag .and. .not. dm%is_periodic(2)) then
+      bflux(5) = - budget_face_y(dm, acpc_ypencil, 1)
+      bflux(6) =   budget_face_y(dm, acpc_ypencil, size(acpc_ypencil, 2))
+    end if
     !------PDE------
     call Get_y_1der_P2C_3D(acpc_ypencil, accc_ypencil, dm, dm%iAccuracy, ebcy_conv, fbcy_c4c)
     if(dm%icoordinate == ICYLINDRICAL) &
@@ -663,12 +756,14 @@ contains
 ! conv-z-e, z-pencil : d (gz * h_ccp) / dz   * (1/r)
 !------------------------------------------------------------------------------
     !------bulk------
-    call transpose_x_to_y(gz,           accp_ypencil,     dm%dccp)   ! intermediate, accp_ypencil = gz_ypencil
-    call transpose_y_to_z(accp_ypencil, gz_ccp_zpencil,   dm%dccp)   ! for d(g_z h)/dz
     accp_zpencil = - gz_ccp_zpencil * hEnth_ccp_zpencil
     ! if(dm%icoordinate == ICYLINDRICAL) &
     ! call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
     call extract_dirichlet_fbcz(fbcz_cc4, accp_zpencil, dm%dccp)
+    if(is_budget_diag .and. .not. dm%is_periodic(3)) then
+      bflux(9)  = - budget_face_z(dm, accp_zpencil, 1)
+      bflux(10) =   budget_face_z(dm, accp_zpencil, size(accp_zpencil, 3))
+    end if
     !------PDE------
     call Get_z_1der_P2C_3D( accp_zpencil, accc_zpencil, dm, dm%iAccuracy, ebcz_conv, fbcz_cc4)
     if(dm%icoordinate == ICYLINDRICAL) &
@@ -690,6 +785,10 @@ contains
     apcc_xpencil = apcc_xpencil * kCond_pcc_xpencil
     !------B.C.------
     call extract_dirichlet_fbcx(fbcx_4cc, apcc_xpencil, dm%dpcc)
+    if(is_budget_diag .and. .not. dm%is_periodic(1)) then
+      bflux(3) = - budget_face_x(dm, apcc_xpencil, 1) * tm%rPrRen
+      bflux(4) =   budget_face_x(dm, apcc_xpencil, size(apcc_xpencil, 1)) * tm%rPrRen
+    end if
     !------PDE------f
     call Get_x_1der_P2C_3D(apcc_xpencil, accc_xpencil, dm, dm%iAccuracy, ebcx_difu, fbcx_4cc)
     tm%ene_rhs = tm%ene_rhs + accc_xpencil * tm%rPrRen
@@ -722,6 +821,10 @@ contains
     call multiple_cylindrical_rn(acpc_ypencil, dm%dcpc, dm%rp, 1, IPENCIL(2))
     !------B.C.------
     call extract_dirichlet_fbcy(fbcy_c4c, acpc_ypencil, dm%dcpc, dm, is_reversed = .true.)
+    if(is_budget_diag .and. .not. dm%is_periodic(2)) then
+      bflux(7) = - budget_face_y(dm, acpc_ypencil, 1) * tm%rPrRen
+      bflux(8) =   budget_face_y(dm, acpc_ypencil, size(acpc_ypencil, 2)) * tm%rPrRen
+    end if
     !------PDE------
     call Get_y_1der_P2C_3D(acpc_ypencil, accc_ypencil, dm, dm%iAccuracy, ebcy_difu, fbcy_c4c) ! check, dirichlet, r treatment
     if(dm%icoordinate == ICYLINDRICAL) &
@@ -741,6 +844,10 @@ contains
     if(dm%icoordinate == ICYLINDRICAL) &
     call multiple_cylindrical_rn(accp_zpencil, dm%dccp, dm%rci, 1, IPENCIL(3))
     call extract_dirichlet_fbcz(fbcz_cc4, accp_zpencil, dm%dccp)
+    if(is_budget_diag .and. .not. dm%is_periodic(3)) then
+      bflux(11) = - budget_face_z(dm, accp_zpencil, 1) * tm%rPrRen
+      bflux(12) =   budget_face_z(dm, accp_zpencil, size(accp_zpencil, 3)) * tm%rPrRen
+    end if
     !------PDE------
     call Get_z_1der_P2C_3D(accp_zpencil, accc_zpencil, dm, dm%iAccuracy, ebcz_difu, fbcz_cc4)
     if(dm%icoordinate == ICYLINDRICAL) &
@@ -769,6 +876,7 @@ contains
     call wrt_3d_pt_debug(tm%ene_rhs, dm%dccc, tm%iteration, isub, 'energy_rhs@bf stepping') ! debug_ww
     write(*,*) 'rhs-e', tm%ene_rhs(1, 1:4, 1)
 #endif
+    if(is_budget_diag) call Get_volumetric_average_3d(dm, dm%dccc, tm%ene_rhs, vrhs, SPACE_INTEGRAL, 'R_H')
     call Calculate_energy_fractional_step(tm%ene_rhs0, tm%ene_rhs, dm%dccc, dm, isub)
     return
   end subroutine Compute_energy_rhs
@@ -808,8 +916,22 @@ contains
     gz = fl%gz
     ! backup density every RK stage
     fl%dDens0 = fl%dDens
+    ! B3 budget diagnostics (read-only): step baseline at the start of stage 1
+    if(is_budget_diag .and. isub == 1) then
+      bflux = 0.0_WP; bflux_prev = 0.0_WP; bflux_step = 0.0_WP
+      vrhs = 0.0_WP; vrhs_prev = 0.0_WP; vrhs_step = 0.0_WP; scomp_step = 0.0_WP
+      mflux_in_step = 0.0_WP; mflux_out_step = 0.0_WP; drhodt_int_step = 0.0_WP; c_int_step = 0.0_WP
+      call Get_volumetric_average_3d(dm, dm%dccc, tm%rhoh,  h_old, SPACE_INTEGRAL, 'H')
+      call Get_volumetric_average_3d(dm, dm%dccc, fl%dDens, m_old, SPACE_INTEGRAL, 'M')
+      mhat_old = m_old
+      if(is_bc_recovery) call Get_volumetric_average_3d(dm, dm%dccc, fl%dDens_hat, mhat_old, SPACE_INTEGRAL, 'Mhat')
+    end if
     ! compute b.c. info from convective b.c. if specified.
-    call compute_convective_outlet_thermo(tm, dm, isub)
+    if(is_bc_recovery) then
+      call compute_convective_outlet_thermo(tm, dm, isub, opt_dens_hat = fl%dDens_hat)
+    else
+      call compute_convective_outlet_thermo(tm, dm, isub)
+    end if
     !
     if(tm%is_rhoh_compensated) then
       call Get_volumetric_average_3d(dm, dm%dccc, tm%rhoh, rhoh(1), SPACE_AVERAGE)
@@ -822,10 +944,31 @@ contains
     end if
     !  update rho * h
     tm%rhoh = tm%rhoh + tm%ene_rhs
+    ! B3 budget: RK3 combination of this stage's boundary fluxes and int R_H dV,
+    ! with the same weights as the rho*h update (dt (gamma_k F^(k-1) + zeta_k F^(k-2)))
+    if(is_budget_diag) then
+      bflux_step = bflux_step + dm%dt * (dm%tGamma(isub) * bflux + dm%tZeta(isub) * bflux_prev)
+      vrhs_step  = vrhs_step  + dm%dt * (dm%tGamma(isub) * vrhs  + dm%tZeta(isub) * vrhs_prev)
+      bflux_prev = bflux
+      vrhs_prev  = vrhs
+    end if
     !
     if(tm%is_rhoh_compensated) then
       call Get_volumetric_average_3d(dm, dm%dccc, tm%rhoh, rhoh(2), SPACE_AVERAGE)
       tm%rhoh = tm%rhoh - (rhoh(2) - rhoh(1))
+      ! uniform rho*h shift = volume source of the compensation
+      if(is_budget_diag) scomp_step = scomp_step - (rhoh(2) - rhoh(1)) * dm%vol
+    end if
+    !----------------------------------------------------------------------
+    ! Bc (transported-density recovery): advance the transported density with the energy
+    ! equation's RK3 weights and use it as the density estimate of the
+    ! recovery, so that h = (rho h)/rho_hat exactly (table branch: the second
+    ! pass of ftp_refresh_thermal_properties_from_DH returns the same h).
+    !----------------------------------------------------------------------
+    if(is_bc_recovery) then
+      fl%dDens_hat = fl%dDens_hat + dm%dt * (dm%tGamma(isub) * fl%drhodt_m1 + &
+                                             dm%tZeta (isub) * fl%drhodt_m2)
+      fl%dDens = fl%dDens_hat
     end if
     !  update other properties from rho * h for domain + b.c.
     !  For an LES run this also refreshes tm%prSgs from the properties just
@@ -835,15 +978,56 @@ contains
     !  and is the sequence the model is specified against. On the very first
     !  substep the lagged field is the one initialise_flow_fields seeded from the
     !  initial condition, so the subgrid flux is defined from the start.
+    if(is_bc_recovery) then
+      if(dm%LES_model /= ILES_NONE) then
+        call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm, &
+                                       opt_tVisc = fl%tVisc, opt_ren = fl%ren, opt_dens_bc = fl%dDens_hat)
+      else
+        call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm, opt_dens_bc = fl%dDens_hat)
+      end if
+      if(isub == dm%nsubitr) call report_bc_consistency(fl, tm, dm)
+    else
     if(dm%LES_model /= ILES_NONE) then
       call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm, &
                                      opt_tVisc = fl%tVisc, opt_ren = fl%ren)
     else
       call Update_thermal_properties(fl%dDens, fl%mVisc, tm, dm)
     end if
+    end if
+    fl%is_fbcx_thermal_rebuilt = .true.   ! the x-boundary states now come from the time-loop rebuild
     if (dm%icase == ICASE_PIPE) call update_fbcy_cc_thermo_halo(tm, dm)
+    ! all recovery sweeps of this stage (outlet planes, cells, boundary states)
+    ! are done: stop on all ranks if any of them met an out-of-range state
+    call check_property_range(tm%iteration, tm%time, 'energy equation, RK stage '//achar(iachar('0') + isub))
+    if(is_budget_diag .and. isub == dm%nsubitr) &
+      call Get_volumetric_average_3d(dm, dm%dccc, tm%rhoh, h_new, SPACE_INTEGRAL, 'H')
 
   return
   end subroutine
+
+!==============================================================================
+  !> Bc (transported-density recovery) diagnostic: thermodynamic consistency of the recovered
+  !> state, max|rho_hat - rho_EOS| and max|rho h - rho_EOS h| / max|rho h|.
+  subroutine report_bc_consistency(fl, tm, dm)
+    use mpi_mod
+    use precision_mod, only : MPI_REAL_WP
+    use parameters_constant_mod
+    use udf_type_mod
+    use wtformat_mod
+    implicit none
+    type(t_flow),   intent(in) :: fl
+    type(t_thermo), intent(in) :: tm
+    type(t_domain), intent(in) :: dm
+    real(WP) :: loc(3), glb(3)
+    loc(1) = maxval(abs(fl%dDens_hat - fl%dDens))
+    loc(2) = maxval(abs(tm%rhoh - fl%dDens * tm%hEnth))
+    loc(3) = maxval(abs(tm%rhoh))
+    call mpi_allreduce(loc, glb, 3, MPI_REAL_WP, MPI_MAX, MPI_COMM_WORLD, ierror)
+    if(nrank == 0) then
+      write(*, wrtfmt1e) 'Bc max|rho_hat - rho_EOS| :', glb(1)
+      write(*, wrtfmt1e) 'Bc max|rhoh - rho_EOS h|/max|rhoh| :', glb(2) / max(glb(3), tiny(ONE))
+    end if
+    return
+  end subroutine report_bc_consistency
 
 end module eq_energy_mod

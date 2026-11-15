@@ -1,0 +1,417 @@
+<!-- -*- mode: jinja2 -*- -->
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+      <meta name="description" content="A finite difference-based incompressible DNS solver with heat transfer for fluids with variable properties.">
+    <meta name="author" content="Wei Wang" >
+    <link rel="icon" href="../favicon.png">
+
+    <title>check_thermo_interp_metadata &ndash; CHAPSim2</title>
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <!-- Font Awesome -->
+    <link href="../css/fontawesome.min.css" rel="stylesheet">
+    <link href="../css/brands.min.css" rel="stylesheet">
+    <link href="../css/regular.min.css" rel="stylesheet">
+    <link href="../css/solid.min.css" rel="stylesheet">
+    <link href="../css/v4-font-face.min.css" rel="stylesheet">
+    <link href="../css/v4-shims.min.css" rel="stylesheet">
+    <!-- MathJax -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        TeX: { equationNumbers: { autoNumber: "AMS" } }
+      });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?config=TeX-AMS-MML_HTMLorMML" async
+            integrity="sha256-DViIOMYdwlM/axqoGDPeUyf0urLoHMN4QACBKyB58Uw=" crossorigin="anonymous"></script>
+    <!-- Other scripts and stylesheets -->
+    <link href="../css/local.css" rel="stylesheet">
+    <link href="../css/pygments.css" rel="stylesheet">
+    <script src="../js/svg-pan-zoom.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Fixed navbar -->
+    <div class="container-fluid mb-sm-4 mb-xl-2">
+      <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+          <a class="navbar-brand" href="../index.html">CHAPSim2 </a>
+          <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbar"
+                  aria-expanded="false" aria-controls="navbar" aria-label="Toggle navigation">
+                  <span class="navbar-toggler-icon">
+          </button>
+
+          <div id="navbar" class="navbar-collapse collapse">
+            <ul class="navbar-nav">
+                  <li class="nav-item">
+                    <a class="nav-link" href="../lists/files.html">Source Files</a>
+                  </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/modules.html">Modules</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/procedures.html">Procedures</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/absint.html">Abstract Interfaces</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../lists/types.html">Derived Types</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="../program/chapsim.html">Program</a>
+                </li>
+            </ul>
+              <div class="d-flex align-items-end flex-grow-1">
+                <form action="../search.html" role="search" class="ms-auto">
+                  <input type="text" class="form-control" aria-label="Search" placeholder="Search" name="q" id="tipue_search_input" autocomplete="off" required>
+                </form>
+              </div>
+          </div><!--/.nav-collapse -->
+        </div>
+      </nav>
+    </div>
+
+    <div class="container">
+  <div class="row">
+    <h1>check_thermo_interp_metadata
+      <small>Subroutine</small>
+      
+    </h1>
+      <div class="container p-2 mb-4 bg-light border rounded-3">
+    <div class="row align-items-center justify-content-between" id="info-bar">
+      <div class="col">
+        <ul class="list-inline" style="margin-bottom:0px;display:inline">
+            <li class="list-inline-item" id="meta-license"><i class="fa fa-legal"></i> BSD-3-Clause</li>
+
+            <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
+              <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
+                 title=" 0.3% of total for procedures.">96 statements</a>
+            </li>
+
+            <li class="list-inline-item" id="source-file">
+              <i class="fa fa-code"></i>
+              <a href="../src/io_restart.f90"> Source File</a>
+            </li>
+        </ul>
+      </div>
+      <div class="col">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb justify-content-end mb-0">
+                <li class="breadcrumb-item"><a href='../sourcefile/io_restart.f90.html'>io_restart.f90</a></li>
+                <li class="breadcrumb-item"><a href='../module/io_restart_mod.html'>io_restart_mod</a></li>
+            <li class="breadcrumb-item active" aria-current="page">check_thermo_interp_metadata</li>
+          </ol>
+        </nav>
+      </div>
+    </div>
+  </div>
+  <script>
+    // Enable Bootstrap tooltips
+    (function () {
+      const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]')
+      const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl))
+    })();
+  </script>
+
+  </div>
+  
+  <div class="row">
+    <div class="col-md-3 hidden-xs hidden-sm visible-md visible-lg">
+      <div id="sidebar">
+      <h3>Contents</h3>
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+    <div class="card card-primary">
+      <div class="card-header text-left"><h3 class="card-title">Source Code</h3></div>
+      <div class="list-group">
+        <a class="list-group-item" href="../proc/check_thermo_interp_metadata.html#src">check_thermo_interp_metadata</a>
+      </div>
+    </div>
+
+
+  </div>
+
+    </div>
+    
+    <div class="col-md-9" id='text'>
+    <h2>private  subroutine check_thermo_interp_metadata(dm, iter)  
+</h2>
+        <div class="card mb-4">
+      <h3 class="card-header card-title bg-light">Uses</h3>
+      <div class="card-body">
+        <ul class="list-group list-group-flush">
+            <li class="list-group-item">
+              <ul class="list-inline">
+                  <li class="list-inline-item"><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/mpi_mod.html'>mpi_mod</a></li>
+              </ul>
+            </li>
+        </ul>
+      </div>
+    </div>
+
+
+    <p>Restart policy for the property interpolation (all ranks; rank 0 reads and
+broadcasts, so every rank takes the same decision):
+  record linear -&gt; run linear: allowed;  record pchip -&gt; run pchip: allowed;
+  record and run differ: stop;
+  no record (checkpoint written before property_interp existed, i.e. with
+  linear interpolation): allowed for linear, as before; stop for pchip;
+  unreadable record, or domain/iteration not matching the checkpoint: stop.
+A change of interpolation at a restart is rejected because the stored
+density and rho_hat belong to the writing mode's property relation: the new
+mode would relax rho in one step and keep a permanent rho_hat offset.
+Enthalpy advection (optional fifth line; absent = cd2, which includes every
+checkpoint written before the key existed), checked after the property
+interpolation, whose rules above are not affected:
+  same mode: allowed;
+  different mode, enthalpy_advection_restart = strict (default): stop;
+  different mode, allow_switch: allowed with a warning and recorded in the
+    sixth line of later records, unless the statistics would continue across
+    the change (stat_level &gt; 0, iteration &gt; stat_istart, run clock
+    continued): then stop until the statistics window is reset;
+  unrecognised fifth or sixth line: stop.
+The stored state does not depend on the face reconstruction, so a switch is
+admissible numerically; it is gated because it changes the scheme of a run
+(reproducibility) and would mix two schemes in one averaging window.</p>
+
+
+    <h3>Arguments</h3>
+        <table class="table table-striped varlist">
+    <thead>
+      <tr>
+        <th scope="col">Type</th>
+<th scope="col">Intent</th><th scope="col">Optional</th>        <th scope="col">Attributes</th>
+        <th scope="col"></th>
+        <th scope="col">Name</th>
+        <th scope="col"></th>
+    </thead>
+    <tbody>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-dm~86"></span>
+              type(<a href='../type/t_domain.html'>t_domain</a>),
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>dm</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+        <tr>
+            <td>
+              <span class="anchor" id="variable-iter~15"></span>
+              integer,
+            </td>
+<td>intent(in)</td>
+              <td></td>            <td>
+              
+            </td>
+            <td>::</td>
+            <td><strong>iter</strong></td>
+            <td>
+                
+            </td>
+        </tr>
+    </tbody>
+  </table>
+
+    <br>
+
+
+    
+    
+
+    
+    
+
+
+
+    
+    <section>
+    <h2><span class="anchor" id="src"></span>Source Code</h2>
+    <div class="hl codehilite"><pre><span></span><span class="w">  </span><span class="k">subroutine </span><span class="n">check_thermo_interp_metadata</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
+<span class="w">    </span><span class="k">use </span><span class="n">mpi_mod</span>
+<span class="w">    </span><span class="k">use </span><span class="n">typeconvert_mod</span>
+<span class="w">    </span><span class="k">implicit none</span>
+<span class="k">    type</span><span class="p">(</span><span class="n">t_domain</span><span class="p">),</span><span class="w"> </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">dm</span>
+<span class="w">    </span><span class="kt">integer</span><span class="p">,</span><span class="w">        </span><span class="k">intent</span><span class="p">(</span><span class="n">in</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">iter</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="mi">256</span><span class="p">)</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">meta_file</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="n">mode</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="mi">80</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">header</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="mi">16</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">other</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="mi">64</span><span class="p">)</span><span class="w">  </span><span class="kd">::</span><span class="w"> </span><span class="n">note_a</span><span class="p">,</span><span class="w"> </span><span class="n">note_b</span><span class="p">,</span><span class="w"> </span><span class="n">note_read</span>
+<span class="w">    </span><span class="kt">character</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="w">   </span><span class="kd">::</span><span class="w"> </span><span class="n">mode_ckpt</span><span class="p">,</span><span class="w"> </span><span class="n">mode_run</span>
+<span class="w">    </span><span class="kt">integer</span><span class="w"> </span><span class="kd">::</span><span class="w"> </span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="n">ios</span><span class="p">,</span><span class="w"> </span><span class="n">idom_read</span><span class="p">,</span><span class="w"> </span><span class="n">iter_read</span><span class="p">,</span><span class="w"> </span><span class="n">code</span><span class="p">,</span><span class="w"> </span><span class="n">iadv_read</span>
+<span class="w">    </span><span class="c">! code: 0 no record, 1 linear, 2 pchip, -1 unreadable/invalid, -2 domain/iteration mismatch</span>
+<span class="w">    </span><span class="k">call </span><span class="n">generate_pathfile_name</span><span class="p">(</span><span class="n">meta_file</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;thermo_interp_meta&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">dir_data</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;dat&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span>
+<span class="w">    </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span>
+<span class="w">    </span><span class="n">iadv_read</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IENTH_ADV_CD2</span>
+<span class="w">    </span><span class="n">note_read</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;&#39;</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      if</span><span class="p">(</span><span class="n">file_exists</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">meta_file</span><span class="p">)))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span>
+<span class="w">        </span><span class="k">open</span><span class="p">(</span><span class="n">newunit</span><span class="o">=</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="k">file</span><span class="o">=</span><span class="nb">trim</span><span class="p">(</span><span class="n">meta_file</span><span class="p">),</span><span class="w"> </span><span class="n">status</span><span class="o">=</span><span class="s1">&#39;old&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">action</span><span class="o">=</span><span class="s1">&#39;read&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iostat</span><span class="o">=</span><span class="n">ios</span><span class="p">)</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">ios</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">          read</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;(A)&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iostat</span><span class="o">=</span><span class="n">ios</span><span class="p">)</span><span class="w"> </span><span class="n">header</span>
+<span class="w">          </span><span class="k">if</span><span class="p">(</span><span class="n">ios</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">header</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;CHAPSim_thermo_interp_v1&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">            read</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">iostat</span><span class="o">=</span><span class="n">ios</span><span class="p">)</span><span class="w"> </span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="n">idom_read</span>
+<span class="w">            </span><span class="k">if</span><span class="p">(</span><span class="n">ios</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;domain&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">              read</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">iostat</span><span class="o">=</span><span class="n">ios</span><span class="p">)</span><span class="w"> </span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="n">iter_read</span>
+<span class="w">              </span><span class="k">if</span><span class="p">(</span><span class="n">ios</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;iteration&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                read</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">iostat</span><span class="o">=</span><span class="n">ios</span><span class="p">)</span><span class="w"> </span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="n">mode</span>
+<span class="w">                </span><span class="k">if</span><span class="p">(</span><span class="n">ios</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;property_interp&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                  if</span><span class="p">(</span><span class="n">idom_read</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="w"> </span><span class="p">.</span><span class="nb">or</span><span class="p">.</span><span class="w"> </span><span class="n">iter_read</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">iter</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                    </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">2</span>
+<span class="w">                  </span><span class="k">else if</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;linear&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                    </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span>
+<span class="w">                  </span><span class="k">else if</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;pchip&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                    </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">2</span>
+<span class="w">                  </span><span class="k">end if</span>
+<span class="k">                  if</span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                    read</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">iostat</span><span class="o">=</span><span class="n">ios</span><span class="p">)</span><span class="w"> </span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="n">mode</span>
+<span class="w">                    </span><span class="k">if</span><span class="p">(</span><span class="n">ios</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                      if</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;enthalpy_advection&#39;</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;koren&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                        </span><span class="n">iadv_read</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">IENTH_ADV_KOREN</span>
+<span class="w">                      </span><span class="k">else if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;enthalpy_advection&#39;</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;cd2&#39;</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                        </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span>
+<span class="w">                      </span><span class="k">end if</span>
+<span class="k">                      if</span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                        read</span><span class="p">(</span><span class="n">u</span><span class="p">,</span><span class="w"> </span><span class="o">*</span><span class="p">,</span><span class="w"> </span><span class="n">iostat</span><span class="o">=</span><span class="n">ios</span><span class="p">)</span><span class="w"> </span><span class="n">label</span><span class="p">,</span><span class="w"> </span><span class="n">note_a</span><span class="p">,</span><span class="w"> </span><span class="n">note_b</span>
+<span class="w">                        </span><span class="k">if</span><span class="p">(</span><span class="n">ios</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                          if</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="n">label</span><span class="p">)</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="s1">&#39;enthalpy_advection_switch&#39;</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">                            </span><span class="n">note_read</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">note_a</span><span class="p">)</span><span class="o">//</span><span class="s1">&#39; &#39;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">note_b</span><span class="p">)</span>
+<span class="w">                          </span><span class="k">else</span>
+<span class="k">                            </span><span class="n">code</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="o">-</span><span class="mi">1</span>
+<span class="w">                          </span><span class="k">end if</span>
+<span class="k">                        end if</span>
+<span class="k">                      end if</span>
+<span class="k">                    end if</span>
+<span class="k">                  end if</span>
+<span class="k">                end if</span>
+<span class="k">              end if</span>
+<span class="k">            end if</span>
+<span class="k">          end if</span>
+<span class="k">          close</span><span class="p">(</span><span class="n">u</span><span class="p">)</span>
+<span class="w">        </span><span class="k">end if</span>
+<span class="k">      end if</span>
+<span class="k">    end if</span>
+<span class="k">    call </span><span class="n">mpi_bcast</span><span class="p">(</span><span class="n">code</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INTEGER</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">ierror</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">mpi_bcast</span><span class="p">(</span><span class="n">iadv_read</span><span class="p">,</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_INTEGER</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">ierror</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">mpi_bcast</span><span class="p">(</span><span class="n">note_read</span><span class="p">,</span><span class="w"> </span><span class="nb">len</span><span class="p">(</span><span class="n">note_read</span><span class="p">),</span><span class="w"> </span><span class="n">MPI_CHARACTER</span><span class="p">,</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span><span class="w"> </span><span class="n">MPI_COMM_WORLD</span><span class="p">,</span><span class="w"> </span><span class="n">ierror</span><span class="p">)</span>
+<span class="w">    </span><span class="k">select case</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Unreadable or invalid interpolation record &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">meta_file</span><span class="p">)</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot; (expected lines: CHAPSim_thermo_interp_v1, domain &lt;d&gt;, iteration &lt;n&gt;, property_interp linear|pchip&quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;, optionally enthalpy_advection cd2|koren and enthalpy_advection_switch &lt;from&gt;-&gt;&lt;to&gt; &lt;iteration&gt;).&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+<span class="w">      </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Interpolation record &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">meta_file</span><span class="p">)</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot; names another domain or iteration; it does not belong to this thermal checkpoint.&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">iprop_interp</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IPROP_INTERP_PCHIP</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Thermal checkpoint at iteration &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">iter</span><span class="p">))</span><span class="o">//</span><span class="s2">&quot; has no interpolation record (&quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">meta_file</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;): it was written &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;before property_interp existed, i.e. with linear interpolation, and cannot be continued with &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;property_interp = pchip. Restart with linear, or start a fresh thermal field (inittm /= restart).&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_note_msg</span><span class="p">(</span><span class="s2">&quot;Thermal checkpoint has no interpolation record (written before &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;property_interp existed); continuing with linear interpolation, as before.&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">case </span><span class="n">default</span>
+<span class="w">      </span><span class="k">if</span><span class="p">((</span><span class="n">code</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="p">.</span><span class="n">neqv</span><span class="p">.</span><span class="w"> </span><span class="p">(</span><span class="n">iprop_interp</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IPROP_INTERP_PCHIP</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
+<span class="k">        </span><span class="n">other</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;linear&#39;</span>
+<span class="w">        </span><span class="k">if</span><span class="p">(</span><span class="n">code</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">2</span><span class="p">)</span><span class="w"> </span><span class="n">other</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;pchip&#39;</span>
+<span class="w">        </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Thermal checkpoint at iteration &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">iter</span><span class="p">))</span><span class="o">//</span><span class="s2">&quot; was written with &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">          </span><span class="s2">&quot;property_interp = &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;, which differs from this run. Changing the property &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">          </span><span class="s2">&quot;interpolation at a restart is not supported (the stored density belongs to the other &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">          </span><span class="s2">&quot;interpolation); restart with property_interp = &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">other</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;, or start a fresh thermal &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">          </span><span class="s2">&quot;field (inittm /= restart).&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="k">end if</span>
+<span class="k">    end select</span>
+<span class="w">    </span><span class="c">! enthalpy advection: the provenance of the checkpoint is carried forward</span>
+<span class="w">    </span><span class="n">enth_adv_switch_note</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">note_read</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">iadv_read</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="n">ienth_adv</span><span class="p">)</span><span class="w"> </span><span class="k">then</span>
+<span class="k">      </span><span class="n">mode_ckpt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;cd2&#39;</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">iadv_read</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IENTH_ADV_KOREN</span><span class="p">)</span><span class="w"> </span><span class="n">mode_ckpt</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;koren&#39;</span>
+<span class="w">      </span><span class="n">mode_run</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;cd2&#39;</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">ienth_adv</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IENTH_ADV_KOREN</span><span class="p">)</span><span class="w"> </span><span class="n">mode_run</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;koren&#39;</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(.</span><span class="nb">not</span><span class="p">.</span><span class="w"> </span><span class="n">is_enth_adv_switch_allowed</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Thermal checkpoint at iteration &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">iter</span><span class="p">))</span><span class="o">//</span><span class="s2">&quot; was advanced with enthalpy_advection = &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_ckpt</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;; this run &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;requests enthalpy_advection = &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_run</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;. Changing the enthalpy advection scheme at a &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;restart requires enthalpy_advection_restart = allow_switch in [thermo]; otherwise restart with &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;enthalpy_advection = &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_ckpt</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;, or start a fresh thermal field (inittm /= restart).&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">stat_level</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">ISTATL0</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">iter</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">stat_istart</span><span class="w"> </span><span class="p">.</span><span class="nb">and</span><span class="p">.</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">restart_clock</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">RESTART_CLOCK_CONTINUE</span><span class="p">)</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;enthalpy_advection changes from &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_ckpt</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot; to &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_run</span><span class="p">)</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot; at the restart from iteration &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">iter</span><span class="p">))</span><span class="o">//</span><span class="s2">&quot;, but the statistics averaging window &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;(stat_istart = &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">stat_istart</span><span class="p">))</span><span class="o">//</span><span class="s2">&quot;) would continue across the change. Set &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;stat_istart &gt;= &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">iter</span><span class="p">))</span><span class="o">//</span><span class="s2">&quot; to start a new averaging window at the restart (or &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;restart the run clock), or keep enthalpy_advection = &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_ckpt</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;.&quot;</span><span class="p">)</span>
+<span class="w">      </span><span class="n">enth_adv_switch_note</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_ckpt</span><span class="p">)</span><span class="o">//</span><span class="s1">&#39;-&gt;&#39;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_run</span><span class="p">)</span><span class="o">//</span><span class="s1">&#39; &#39;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">iter</span><span class="p">))</span>
+<span class="w">      </span><span class="k">if</span><span class="p">(</span><span class="n">nrank</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">Print_warning_msg</span><span class="p">(</span><span class="s2">&quot;ENTHALPY ADVECTION SCHEME CHANGED AT RESTART: the thermal &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot;checkpoint at iteration &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">int2str</span><span class="p">(</span><span class="n">iter</span><span class="p">))</span><span class="o">//</span><span class="s2">&quot; was advanced with enthalpy_advection = &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_ckpt</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;; this run continues it with enthalpy_advection = &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">mode_run</span><span class="p">)</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="s2">&quot; (enthalpy_advection_restart = allow_switch). Recorded as &#39;enthalpy_advection_switch &quot;</span><span class="o">//</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="w">        </span><span class="nb">trim</span><span class="p">(</span><span class="n">enth_adv_switch_note</span><span class="p">)</span><span class="o">//</span><span class="s2">&quot;&#39; in later thermal checkpoint records.&quot;</span><span class="p">)</span>
+<span class="w">    </span><span class="k">end if</span>
+<span class="k">    return</span>
+<span class="k">  end subroutine </span><span class="n">check_thermo_interp_metadata</span>
+</pre></div>
+
+    </section>
+    <br>
+    
+    </div>
+  </div>
+
+      <hr>
+    </div> <!-- /container -->
+    <footer>
+      <div class="container">
+        <div class="row justify-content-between">
+          <div class="col">
+            <p>
+              CHAPSim2
+ was developed by Wei Wang<br>              &copy; 2026 BSD-3-Clause
+</p>
+          </div>
+          <div class="col">
+            <p class="text-end">
+              Documentation generated by
+              <a href="https://github.com/Fortran-FOSS-Programmers/ford">FORD</a>
+            </p>
+          </div>
+        </div>
+        <br>
+      </div> <!-- /container -->
+    </footer>
+  </body>
+</html>

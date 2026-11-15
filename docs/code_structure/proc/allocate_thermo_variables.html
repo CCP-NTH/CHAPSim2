@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">40 statements</a>
+                 title=" 0.1% of total for procedures.">44 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -170,11 +170,11 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/mpi_mod.html'>mpi_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -215,7 +215,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~2"></span>
+              <span class="anchor" id="variable-dm~7"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -278,6 +278,8 @@
 
 <span class="k">    if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <span class="k">      allocate</span><span class="w"> </span><span class="p">(</span><span class="n">tm</span><span class="p">%</span><span class="n">fbcx_rhoh_rhs0</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)));</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">fbcx_rhoh_rhs0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
+<span class="w">      </span><span class="k">allocate</span><span class="w"> </span><span class="p">(</span><span class="n">tm</span><span class="p">%</span><span class="n">fbcx_dhat</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)));</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">fbcx_dhat</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ONE</span>
+<span class="w">      </span><span class="k">allocate</span><span class="w"> </span><span class="p">(</span><span class="n">tm</span><span class="p">%</span><span class="n">fbcx_dhat_rhs0</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)));</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">fbcx_dhat_rhs0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>
 <span class="w">    </span><span class="k">end if</span>
 <span class="k">    if</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">is_conv_outlet</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span><span class="w"> </span><span class="k">then</span>
 <span class="k">      allocate</span><span class="w"> </span><span class="p">(</span><span class="n">tm</span><span class="p">%</span><span class="n">fbcz_rhoh_rhs0</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">zsz</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">)));</span><span class="w"> </span><span class="n">tm</span><span class="p">%</span><span class="n">fbcz_rhoh_rhs0</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ZERO</span>

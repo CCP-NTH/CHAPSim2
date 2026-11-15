@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">42 statements</a>
+                 title=" 0.1% of total for procedures.">43 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -181,7 +181,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~215"></span>
+              <span class="anchor" id="variable-dm~105"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -196,7 +196,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-iter~42"></span>
+              <span class="anchor" id="variable-iter~24"></span>
               integer,
             </td>
 <td>intent(in)</td>
@@ -323,6 +323,9 @@
 <span class="w">    </span><span class="n">expected_shapes</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">xoutlet_database_shapes_from_dims</span><span class="p">(</span><span class="n">ndbbuf_src</span><span class="p">,</span><span class="w"> </span><span class="n">nc_src</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">nc_src</span><span class="p">(</span><span class="mi">3</span><span class="p">),</span><span class="w"> </span><span class="n">np_src</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span><span class="w"> </span><span class="n">np_src</span><span class="p">(</span><span class="mi">3</span><span class="p">))</span>
 <span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="nb">trim</span><span class="p">(</span><span class="k">value</span><span class="p">)</span><span class="w"> </span><span class="o">/=</span><span class="w"> </span><span class="nb">trim</span><span class="p">(</span><span class="n">expected_shapes</span><span class="p">))</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">    </span><span class="k">call </span><span class="n">Print_error_msg</span><span class="p">(</span><span class="s2">&quot;Bundle field-shape mismatch in &quot;</span><span class="o">//</span><span class="nb">trim</span><span class="p">(</span><span class="n">meta_file</span><span class="p">))</span>
+<span class="w">    </span><span class="c">! the .bin must hold exactly the six planes the validated shapes list (a short</span>
+<span class="w">    </span><span class="c">! file would otherwise be replayed with stale or zero planes); collective</span>
+<span class="w">    </span><span class="k">call </span><span class="n">check_bundle_file_size</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;xoutlet_database&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">iter</span><span class="p">,</span><span class="w"> </span><span class="n">expected_shapes</span><span class="p">,</span><span class="w"> </span><span class="n">meta_file</span><span class="p">)</span>
 
 <span class="w">    </span><span class="k">return</span>
 <span class="k">  end subroutine </span><span class="n">read_xoutlet_bundle_metadata</span>

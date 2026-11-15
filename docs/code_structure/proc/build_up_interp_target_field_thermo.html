@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">52 statements</a>
+                 title=" 0.2% of total for procedures.">53 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -170,11 +170,11 @@
         <ul class="list-group list-group-flush">
             <li class="list-group-item">
               <ul class="list-inline">
-                  <li class="list-inline-item"><a href='../module/io_restart_mod.html'>io_restart_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/print_msg_mod.html'>print_msg_mod</a></li>
-                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
                   <li class="list-inline-item"><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/udf_type_mod.html'>udf_type_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/io_restart_mod.html'>io_restart_mod</a></li>
                   <li class="list-inline-item"><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></li>
+                  <li class="list-inline-item"><a href='../module/print_msg_mod.html'>print_msg_mod</a></li>
               </ul>
             </li>
         </ul>
@@ -389,6 +389,16 @@ rather than re-deriving it, so the inconsistency would survive the restart.</p>
 <span class="w">    </span><span class="c">! Rebuild the dependent properties on the table manifold. Same recipe as</span>
 <span class="w">    </span><span class="c">! Update_thermal_properties: (rhoh, d) in, the full state out, including a</span>
 <span class="w">    </span><span class="c">! density corrected onto the table.</span>
+<span class="w">    </span><span class="c">!</span>
+<span class="w">    </span><span class="c">! rho*h is then stored from that state, rhoh = rho_EOS(h) h (ftp%rhoh), not</span>
+<span class="w">    </span><span class="c">! kept at its interpolated value: output_interp_target_field sets</span>
+<span class="w">    </span><span class="c">! rho_hat = rho_EOS, and the interpolated pair (rhoh_i, rho_i) gives</span>
+<span class="w">    </span><span class="c">! h = rhoh_i/rho_i with rho_i /= rho_EOS(h) wherever the interpolation cuts</span>
+<span class="w">    </span><span class="c">! across a density gradient, so the first recovery h = rhoh/rho_hat of the</span>
+<span class="w">    </span><span class="c">! remapped run would jump by h (rho_i - rho_EOS)/rho_EOS</span>
+<span class="w">    </span><span class="c">! (tests/restart_remap_thermo). This is thermodynamic consistency, not</span>
+<span class="w">    </span><span class="c">! conservation: local rho*h changes by h (rho_EOS - rho_i), and the</span>
+<span class="w">    </span><span class="c">! trilinear interpolation is not conservative either.</span>
 <span class="w">    </span><span class="c">!--------------------------------------------------------------------------</span>
 <span class="w">    </span><span class="k">do </span><span class="n">k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">dm_tgt</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
 <span class="w">      </span><span class="k">do </span><span class="n">j</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="n">dm_tgt</span><span class="p">%</span><span class="n">dccc</span><span class="p">%</span><span class="n">xsz</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
@@ -396,6 +406,7 @@ rather than re-deriving it, so the inconsistency would survive the restart.</p>
 <span class="w">          </span><span class="n">ftp</span><span class="p">%</span><span class="n">rhoh</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tm_tgt</span><span class="p">%</span><span class="n">rhoh</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span>
 <span class="w">          </span><span class="n">ftp</span><span class="p">%</span><span class="n">d</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">fl_tgt</span><span class="p">%</span><span class="n">dDens</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span>
 <span class="w">          </span><span class="k">call </span><span class="n">ftp_refresh_thermal_properties_from_DH</span><span class="p">(</span><span class="n">ftp</span><span class="p">)</span>
+<span class="w">          </span><span class="n">tm_tgt</span><span class="p">%</span><span class="n">rhoh</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ftp</span><span class="p">%</span><span class="n">rhoh</span>
 <span class="w">          </span><span class="n">tm_tgt</span><span class="p">%</span><span class="n">hEnth</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ftp</span><span class="p">%</span><span class="n">h</span>
 <span class="w">          </span><span class="n">tm_tgt</span><span class="p">%</span><span class="n">tTemp</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ftp</span><span class="p">%</span><span class="n">T</span>
 <span class="w">          </span><span class="n">tm_tgt</span><span class="p">%</span><span class="n">kCond</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">j</span><span class="p">,</span><span class="w"> </span><span class="n">k</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ftp</span><span class="p">%</span><span class="n">k</span>

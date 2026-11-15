@@ -254,7 +254,7 @@ contains
     implicit none
     character(*), intent(in) :: pathname
     character(len=256) :: relpath
-    integer :: ndata, nvisu, nvisu_data, nvisu_mesh, nvisu_xdmf
+    integer :: ndata, nvisu, nvisu_data, nvisu_mesh, nvisu_xdmf, nroot
 
     relpath = trim(pathname)
     ndata = len_trim(dir_data)
@@ -283,7 +283,11 @@ contains
     end if
     if(len_trim(pathname) > ndata) then
       if(pathname(1:ndata) == trim(dir_data)) then
-        relpath = '../../'//trim(pathname)
+        ! The xdmf files sit two levels below the output root, which is the
+        ! case directory normally and <root>/ when the post-processing mode
+        ! redirects the outputs; dir_visu is '<root>/2_visu', so strip <root>/.
+        nroot = nvisu - len('2_visu')
+        relpath = '../../'//trim(pathname(nroot + 1:))
         return
       end if
     end if

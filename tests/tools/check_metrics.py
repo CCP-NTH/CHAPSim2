@@ -115,6 +115,11 @@ def check_metric(key, new_val, ref_val, tol_entry):
 # -------------------------------------------------
 # Loop over metrics
 # -------------------------------------------------
+# A tolerance entry may carry "known_limitation": "<reason>". The reference value
+# of such a metric is the documented output of the algorithm, not a physical
+# expectation (e.g. mass in a sealed isobaric domain). It stays gated: a change
+# beyond tolerance is still an unexpected solver regression, reported as such.
+N_LIMIT = 0
 for key, ref_val in ref.items():
     if key not in new:
         die(f"Missing metric in new results: '{key}'")
@@ -123,8 +128,18 @@ for key, ref_val in ref.items():
         print(f"[SKIP ] {key:35s} (no tolerance defined)")
         continue
 
+    reason = tol[key].get("known_limitation") if isinstance(tol[key], dict) else None
+    if reason:
+        N_LIMIT += 1
+        print(f"[LIMIT] {key:35s} documented modelling limitation (reference = algorithm output, "
+              f"not a physical expectation): {reason}")
     if check_metric(key, new[key], ref_val, tol[key]):
+        if reason:
+            print(f"[FAIL ] {key}: changed beyond tolerance - unexpected regression of a documented-limitation metric")
         FAILED = True
+
+if N_LIMIT:
+    print(f"\n{N_LIMIT} metric(s) carry a documented modelling limitation (see [LIMIT] lines)")
 
 
 # -------------------------------------------------
