@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.1% of total for procedures.">36 statements</a>
+                 title=" 0.1% of total for procedures.">37 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -181,7 +181,7 @@
     <tbody>
         <tr>
             <td>
-              <span class="anchor" id="variable-fl~54"></span>
+              <span class="anchor" id="variable-fl~45"></span>
               type(<a href='../type/t_flow.html'>t_flow</a>),
             </td>
 <td>intent(in)</td>
@@ -196,7 +196,7 @@
         </tr>
         <tr>
             <td>
-              <span class="anchor" id="variable-dm~197"></span>
+              <span class="anchor" id="variable-dm~80"></span>
               type(<a href='../type/t_domain.html'>t_domain</a>),
             </td>
 <td>intent(in)</td>
@@ -264,6 +264,7 @@
 
 <span class="w">    </span><span class="k">call </span><span class="n">write_bundle_metadata</span><span class="p">(</span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;flow_restart&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="p">,</span><span class="w"> </span><span class="p">&amp;</span>
 <span class="w">      </span><span class="n">flow_restart_fields</span><span class="p">(</span><span class="n">dm</span><span class="p">),</span><span class="w"> </span><span class="n">flow_restart_shapes</span><span class="p">(</span><span class="n">dm</span><span class="p">),</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="nb">time</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dt</span><span class="p">)</span>
+<span class="w">    </span><span class="k">call </span><span class="n">write_fbcx_thermal_state_metadata</span><span class="p">(</span><span class="n">fl</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">,</span><span class="w"> </span><span class="n">RESTART_LAYOUT_BUNDLED</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">write_checkpoint_manifest</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="nb">time</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">dt</span><span class="p">)</span>
 <span class="w">    </span><span class="k">call </span><span class="n">remove_legacy_restart_metadata</span><span class="p">(</span><span class="n">dm</span><span class="p">%</span><span class="n">idom</span><span class="p">,</span><span class="w"> </span><span class="s1">&#39;flow_meta&#39;</span><span class="p">,</span><span class="w"> </span><span class="n">fl</span><span class="p">%</span><span class="n">iteration</span><span class="p">,</span><span class="w"> </span><span class="n">dm</span><span class="p">%</span><span class="n">existing_output_policy</span><span class="p">)</span>
 

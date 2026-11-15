@@ -115,241 +115,253 @@
                  <td><p>Boundary-condition orchestration for flow, thermo, MHD, and pipe-axis treatment.</p><a href="../module/boundary_conditions_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
 <!--active-->			   <tr class="">
+                 <td><a href='../module/budget_diag_mod.html'>budget_diag_mod</a></td>
+                 <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
+                 <td><p>B3.5/B3 conservation diagnostics (opt-in, env CHAPSIM_B3_BUDGET=1).
+Read-only accumulators of the discrete mass and rho*h budgets, built from the
+solver's own boundary-face fluxes and the RK3 weights. They never feed back
+into the solution. Conventions (undimensional):
+  energy: d/dt int(rho h) dV = int R_H dV,  R_H = D(-g h_F) + (1/(Re Pr0)) D(kappa_F G T)
+          int R_H dV = sum over boundary faces of (f_out - f_in) dA for a
+          telescoping (CD2) divergence with the solver's cell volumes
+  mass:   D g^k = -rho_t^k + c^k  (c = closed-domain compatibility correction)</p></td>
+               </tr>
+<!---->			   <tr class="active">
                  <td><a href='../module/burgers_eq_mod.html'>burgers_eq_mod</a></td>
                  <td><a href='../sourcefile/test_algrithms.f90.html'>test_algrithms.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/checkpoint_metadata_mod.html'>checkpoint_metadata_mod</a></td>
                  <td><a href='../sourcefile/io_metadata.f90.html'>io_metadata.f90</a></td>
                  <td><p>Shared text metadata helpers for restartable checkpoint outputs.</p></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/code_performance_mod.html'>code_performance_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/continuity_eq_mod.html'>continuity_eq_mod</a></td>
                  <td><a href='../sourcefile/eq_continuity.f90.html'>eq_continuity.f90</a></td>
                  <td><p>Divergence and mass-conservation diagnostics.</p><a href="../module/continuity_eq_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/convert_primary_conservative_mod.html'>convert_primary_conservative_mod</a></td>
                  <td><a href='../sourcefile/para_conversion.f90.html'>para_conversion.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/cubic_spline_interpolation.html'>cubic_spline_interpolation</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td><a href="../module/cubic_spline_interpolation.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/cylindrical_rn_mod.html'>cylindrical_rn_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/decomp_2d_poisson.html'>decomp_2d_poisson</a></td>
                  <td><a href='../sourcefile/poisson_1stderivcomp_fft2d.f90.html'>poisson_1stderivcomp_fft2d.f90</a></td>
                  <td><p>!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!</p><a href="../module/decomp_2d_poisson.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/decomp_extended_mod.html'>decomp_extended_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/decomp_operation_mod.html'>decomp_operation_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/domain_decomposition_mod.html'>domain_decomposition_mod</a></td>
                  <td><a href='../sourcefile/domain_decomposition.f90.html'>domain_decomposition.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/eq_energy_mod.html'>eq_energy_mod</a></td>
                  <td><a href='../sourcefile/eq_energy.f90.html'>eq_energy.f90</a></td>
                  <td><p>Energy equation and variable-property update routines.</p><a href="../module/eq_energy_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/eq_momentum_mod.html'>eq_momentum_mod</a></td>
                  <td><a href='../sourcefile/eq_momentum2.f90.html'>eq_momentum2.f90</a></td>
                  <td><p>Momentum-equation solver and pressure-correction workflow.</p><a href="../module/eq_momentum_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/evenodd_mod.html'>EvenOdd_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/fft2decomp_interface_mod.html'>fft2decomp_interface_mod</a></td>
                  <td><a href='../sourcefile/poisson_1stderivcomp_fft2d.f90.html'>poisson_1stderivcomp_fft2d.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/fft2decomp_interface_mod~2.html'>fft2decomp_interface_mod</a></td>
                  <td><a href='../sourcefile/.poisson_1stderivcomp_fft2d_refactored.f90.html'>.poisson_1stderivcomp_fft2d_refactored.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/find_max_min_ave_mod.html'>find_max_min_ave_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/fishpack_fft.html'>fishpack_fft</a></td>
                  <td><a href='../sourcefile/poisson_fishpack.f90.html'>poisson_fishpack.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/flatten_index_mod.html'>flatten_index_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/flow_gradient_mod.html'>flow_gradient_mod</a></td>
                  <td><a href='../sourcefile/flow_gradient.f90.html'>flow_gradient.f90</a></td>
                  <td><p>Cell-centred velocity and physical velocity-gradient tensor.</p><a href="../module/flow_gradient_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/flow_thermo_initialiasation.html'>flow_thermo_initialiasation</a></td>
                  <td><a href='../sourcefile/initialisation.f90.html'>initialisation.f90</a></td>
                  <td><p>Flow and thermal field allocation and initialisation.</p><a href="../module/flow_thermo_initialiasation.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/geometry_mod.html'>geometry_mod</a></td>
                  <td><a href='../sourcefile/geometry.f90.html'>geometry.f90</a></td>
                  <td><p>Source file geometry.f90.</p><a href="../module/geometry_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/input_general_mod.html'>input_general_mod</a></td>
                  <td><a href='../sourcefile/input_general.f90.html'>input_general.f90</a></td>
                  <td><p>Read and validate the main CHAPSim input file.</p><a href="../module/input_general_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/io_field_interpolation_mod.html'>io_field_interpolation_mod</a></td>
                  <td><a href='../sourcefile/io_restart.f90.html'>io_restart.f90</a></td>
                  <td><p>Field interpolation support for restarting on a different mesh.</p><a href="../module/io_field_interpolation_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/io_files_mod.html'>io_files_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/io_monitor_mod.html'>io_monitor_mod</a></td>
                  <td><a href='../sourcefile/io_monitor.f90.html'>io_monitor.f90</a></td>
                  <td><p>Monitor-history output for mass, bulk, probe, and regression diagnostics.</p><a href="../module/io_monitor_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/io_restart_mod.html'>io_restart_mod</a></td>
                  <td><a href='../sourcefile/io_restart.f90.html'>io_restart.f90</a></td>
                  <td><p>Restart and instantaneous-field I/O.</p><a href="../module/io_restart_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/io_tools_mod.html'>io_tools_mod</a></td>
                  <td><a href='../sourcefile/io_tools.f90.html'>io_tools.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/les_mod.html'>les_mod</a></td>
                  <td><a href='../sourcefile/eq_les.f90.html'>eq_les.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/math_mod.html'>math_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/mhd_mod.html'>mhd_mod</a></td>
                  <td><a href='../sourcefile/eq_mhd.f90.html'>eq_mhd.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/mpi_mod.html'>mpi_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/operations.html'>operations</a></td>
                  <td><a href='../sourcefile/basics_operations2.f90.html'>basics_operations2.f90</a></td>
                  <td><p>Source file operations.f90.</p><a href="../module/operations.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/parameters_constant_mod.html'>parameters_constant_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/pentadiagonal_solver_mod.html'>pentadiagonal_solver_mod</a></td>
                  <td><a href='../sourcefile/.poisson_1stderivcomp_fft2d_refactored.f90.html'>.poisson_1stderivcomp_fft2d_refactored.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/poisson_interface_mod.html'>poisson_interface_mod</a></td>
                  <td><a href='../sourcefile/poisson_interface.f90.html'>poisson_interface.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/precision_mod.html'>precision_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/print_msg_mod.html'>print_msg_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/random_number_generation_mod.html'>random_number_generation_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td><a href="../module/random_number_generation_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/regression_test_mod.html'>regression_test_mod</a></td>
                  <td><a href='../sourcefile/io_monitor.f90.html'>io_monitor.f90</a></td>
                  <td><p>Regression-test metric container and JSON writer.</p><a href="../module/regression_test_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/solver_tools_mod.html'>solver_tools_mod</a></td>
                  <td><a href='../sourcefile/tools_solver.f90.html'>tools_solver.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/statistics_mod.html'>statistics_mod</a></td>
                  <td><a href='../sourcefile/post_statistics.f90.html'>post_statistics.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/thermo_info_mod.html'>thermo_info_mod</a></td>
                  <td><a href='../sourcefile/input_thermo.f90.html'>input_thermo.f90</a></td>
                  <td><p>Source file input_thermo.f90.</p><a href="../module/thermo_info_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/transpose_extended_mod.html'>transpose_extended_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/tridiagonal_matrix_algorithm.html'>tridiagonal_matrix_algorithm</a></td>
                  <td><a href='../sourcefile/basics_algorithms.f90.html'>basics_algorithms.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/typeconvert_mod.html'>typeconvert_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/udf_type_mod.html'>udf_type_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/util_mod.html'>util_mod</a></td>
                  <td><a href='../sourcefile/input_general.f90.html'>input_general.f90</a></td>
                  <td><p>Source file input_general.f90.
@@ -358,47 +370,47 @@ Author: Wei Wang wei.wang@stfc.ac.uk
 Date: 11-05-2022, checked.
 Small input-parsing utility helpers.</p></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/vars_df_mod.html'>vars_df_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/visualisation_field_mod.html'>visualisation_field_mod</a></td>
                  <td><a href='../sourcefile/io_visulisation.f90.html'>io_visulisation.f90</a></td>
                  <td><p>High-level visualisation output for flow, thermal, MHD, and generic fields.</p><a href="../module/visualisation_field_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/visualisation_mesh_mod.html'>visualisation_mesh_mod</a></td>
                  <td><a href='../sourcefile/io_visulisation.f90.html'>io_visulisation.f90</a></td>
                  <td><p>Mesh-file generation for visualisation output.</p><a href="../module/visualisation_mesh_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/visualisation_spatial_average_mod.html'>visualisation_spatial_average_mod</a></td>
                  <td><a href='../sourcefile/post_statistics.f90.html'>post_statistics.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/visualisation_xdmf_io_mod.html'>visualisation_xdmf_io_mod</a></td>
                  <td><a href='../sourcefile/io_visulisation.f90.html'>io_visulisation.f90</a></td>
                  <td><p>Low-level XDMF writer helpers for CHAPSim visualisation output.</p><a href="../module/visualisation_xdmf_io_mod.html" class="pull-right"><emph>Read more&hellip;</emph></a></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/wave_number_mod.html'>wave_number_mod</a></td>
                  <td><a href='../sourcefile/.poisson_1stderivcomp_fft2d_refactored.f90.html'>.poisson_1stderivcomp_fft2d_refactored.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			   <tr class="">
+<!---->			   <tr class="active">
                  <td><a href='../module/wrt_debug_field_mod.html'>wrt_debug_field_mod</a></td>
                  <td><a href='../sourcefile/tools_general.f90.html'>tools_general.f90</a></td>
                  <td></td>
                </tr>
-<!---->			   <tr class="active">
+<!--active-->			   <tr class="">
                  <td><a href='../module/wtformat_mod.html'>wtformat_mod</a></td>
                  <td><a href='../sourcefile/modules.f90.html'>modules.f90</a></td>
                  <td></td>
                </tr>
-<!--active-->			 </tbody></table>
+<!---->			 </tbody></table>
              
         </div>
       </div>

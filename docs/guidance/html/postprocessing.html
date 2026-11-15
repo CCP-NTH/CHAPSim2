@@ -249,7 +249,7 @@
 <td>Detailed budgets and advanced diagnostics</td>
 </tr>
 </tbody></table>
-<p>Control sampling behavior with <code>stat_istart</code>, <code>stat_nskip</code>, and related parameters to ensure statistics are collected only after the transient initial condition phase.</p>
+<p>Use <code>stat_istart</code> to start the accumulation after the transient initial condition phase. Statistics are accumulated on every cell (<code>stat_nskip</code> is reserved and not implemented). To exclude a transient afterwards, rebuild the statistics over a chosen interval with the statistical-window mode (<code>is_postprocess = .true.</code>, <code>pp_stat_window</code>).</p>
 <h2>Statistics Across a Restart</h2>
 <p>The time-averaged fields (<code>t_avg_*</code>) are checkpointed together with the instantaneous fields and are reloaded on restart, so a run split into several segments gives the same averages as one uninterrupted run. The reload happens when all of the following hold:</p>
 <ul>
@@ -259,6 +259,69 @@
 </ul>
 <p>The number of samples already folded in is stored in the statistics manifest (<code>domain&lt;N&gt;_&lt;group&gt;_stats_meta_&lt;iter&gt;.dat</code>, keys <code>stat_istart</code> and <code>nsamples</code>) and restored with it, so the averaging weight stays correct even when the sample stream has a gap — for example when the flow restarts but the thermal field is initialised afresh, or when a frozen-field window (<code>niterflowfirst</code>/<code>niterthermofirst</code>) suppresses sampling. <code>stat_istart</code> is validated against the value in the manifest and the run stops if it has changed, because the stored average cannot be re-weighted onto a different window. Checkpoints written before these keys existed still load; the sample count then falls back to <code>iter - stat_istart</code> and a warning is printed.</p>
 <p><strong>The <code>Euu</code> spectra are the exception.</strong> They are not checkpointed, so after a restart they average only the post-restart samples while the <code>t_avg_*</code> fields average the whole run. Both windows are stated in the spectrum output header (<code># samples</code> and <code># window_first_iter</code>); read them before comparing a spectrum with a time-averaged profile from the same file set.</p>
+<h2>Statistical-Window Reconstruction</h2>
+<p>Every stored statistic is a <strong>cumulative running mean</strong> of one equally weighted sample per iteration, from <code>stat_istart + 1</code> up to the iteration it was written at; the statistics files hold means, not sums, and the sample count <code>N</code> of each group (flow, thermo, MHD) in its manifest. Statistics therefore never form a fixed or rolling window by themselves. The post-processing mode rebuilds the average over any interval between two statistics checkpoints <code>a &lt; b</code> without repeating the simulation:</p>
+<p>A(a:b) = (N_b A_b - N_a A_a) / (N_b - N_a)</p>
+<p>applied to every stored raw moment (<code>&lt;u_i&gt;</code>, <code>&lt;u_i u_j&gt;</code>, <code>&lt;rho u_i u_j&gt;</code>, <code>&lt;j_i u_j&gt;</code>, ...). The result is exactly what a run with <code>stat_istart = a</code> would have written at <code>b</code>. Rms values, Reynolds stresses, turbulent kinetic energy and Favre fluxes are <strong>not</strong> differenced: form them from the reconstructed raw moments with the usual post-processing scripts, e.g. <code>&lt;u&#x27;v&#x27;&gt; = &lt;uv&gt; - &lt;u&gt;&lt;v&gt;</code>.</p>
+<p><strong>Running it.</strong> Use the case&#x27;s own <code>input_chapsim.ini</code> — the input of the job that wrote snapshot <code>b</code> — in the case directory, with two keys in <code>[process]</code>:</p>
+<pre><code class="language-ini">[process]
+is_prerun= .false.
+is_postprocess= .true.
+pp_stat_window= 68000, 88000</code></pre>
+<p>and launch the same executable as for the simulation (any rank count; the statistics files are decomposition-independent). <code>stat_istart</code>, <code>stat_level</code>, <code>restart_data_layout</code>, the mesh and the thermal/MHD switches must be those of the run that wrote the statistics. The snapshots are read from <code>1_data</code>; both <code>a</code> and <code>b</code> must be statistics checkpoints (multiples of <code>ckpt_nfre</code> or the last iteration of a job), except <code>a = stat_istart</code>, the empty origin.</p>
+<p><strong>What it does and does not do.</strong> The mode reads the input and the mesh, checks the snapshots, reads them, rebuilds the window and writes it, then stops. It never initialises a field, solves an equation, takes a time step, writes a checkpoint or touches anything in <code>1_data</code>, <code>2_visu</code>, <code>3_monitor</code> or <code>4_check</code>. A missing or invalid key stops the run; it never falls back to a simulation. Everything is written below the fixed directory <code>5_postprocess/window_&lt;a&gt;_&lt;b&gt;/</code> (one subdirectory per window; the location is not an input):</p>
+<table><thead><tr>
+<th>Path</th>
+<th>Content</th>
+</tr></thead><tbody>
+<tr>
+<td><code>1_data/domain1_&lt;group&gt;_stats_&lt;b&gt;.bin</code>, <code>..._meta_&lt;b&gt;.dat</code></td>
+<td>window averages in the layout they were read in; manifest with <code>stat_istart a</code>, <code>nsamples N_b-N_a</code> and the appended keys <code>derived stat_window</code>, <code>window_start</code>, <code>window_end</code>, <code>source_stat_istart</code>, <code>source_nsamples</code>, <code>kappa</code></td>
+</tr>
+<tr>
+<td><code>2_visu/...</code></td>
+<td>the usual <code>tsp_avg_*</code> profiles / planes (and per-field 3-D <code>t_avg_*</code> visualisation), same names and formats</td>
+</tr>
+<tr>
+<td><code>4_check/</code></td>
+<td>mesh checks of this run</td>
+</tr>
+<tr>
+<td><code>stat_window_provenance.dat</code></td>
+<td>window, origin, counts, times, every check made, precision diagnostics and limitations</td>
+</tr>
+</tbody></table>
+<p>An existing <code>window_&lt;a&gt;_&lt;b&gt;</code> directory stops the run: results are never overwritten. The output is <strong>derived data</strong>: do not put it back into <code>1_data</code> or use it to continue an accumulation.</p>
+<p><strong>Checks.</strong> Before anything is written the run stops, with a diagnostic, if:</p>
+<ul>
+<li>a snapshot or its manifest is missing, or its format, group, signature (<code>stat_level</code>, thermal switch, experimental pressure statistics) or field list differs from the input;</li>
+<li>a manifest has no sample count (<code>nsamples</code>, <code>stat_istart</code>) — files written before 2026-10-06 (<code>bb0c2f48</code>); counts are never inferred from iteration numbers;</li>
+<li>its <code>stat_istart</code> differs from the input (a restart that started a fresh window);</li>
+<li><code>N_b - N_a</code> differs from <code>b - a</code> for any group: the group was not sampled at every iteration of the window (a fresh thermal field at a restart, a frozen field, a reset that kept <code>stat_istart</code>); continuous sampling is required;</li>
+<li>an intermediate statistics checkpoint (multiples of <code>ckpt_nfre</code>) breaks the continuity;</li>
+<li>a bundled file does not hold exactly the listed fields on the input mesh (truncated file or different mesh), or the mesh recorded in <code>flow_restart_meta</code> at <code>a</code> or <code>b</code> differs from the input;</li>
+<li>the flow and thermal statistics are known to cover different solver steps (see below).</li>
+</ul>
+<p>After the snapshots are read, and before any statistics are written, it also stops if a reconstructed variance (<code>&lt;u_i u_i&gt; - &lt;u_i&gt;^2</code>, its Favre form, <code>&lt;T T&gt; - &lt;T&gt;^2</code>, <code>&lt;j_i j_i&gt; - &lt;j_i&gt;^2</code>, ...) is negative beyond round-off; the window directory then holds only the mesh files and must be removed before a retry.</p>
+<p><strong>Flow and thermal statistics of one window.</strong> Flow and thermal statistics are labelled by the run iteration: the thermal clock advances with the flow also before <code>niterthermofirst</code>, and thermal statistics files record this as <code>label_clock run</code>. If both thermal snapshots carry the key, the joint interval is recorded as <strong>consistent</strong>; if only snapshot b does, the earlier end was written by an older build and alignment there is recorded as <strong>not established</strong>.</p>
+<p>Builds before 2026-10-30 labelled thermal files with a counter that advanced only while the energy equation was solved, and did not record the offset. For such files the mode derives it from the input and the restart convention: a run segment starts both counters at its start iteration <code>s</code> (<code>irestartfrom</code>, or 0), and the flow / energy equation are first advanced at <code>max(s+1, niterflowfirst)</code> / <code>max(s+1, niterthermofirst)</code>. The mode then</p>
+<ul>
+<li><strong>stops</strong> if these differ and <code>b &gt; s</code>: the thermal labels trail the flow labels inside the segment, so the two groups do not describe the same interval;</li>
+<li>records the joint interval as <strong>consistent</strong> if they agree and the window lies in the segment (<code>a &gt;= s</code>);</li>
+<li>records it as <strong>not established</strong> if the window reaches before <code>s</code>: earlier segments are not described by the input or the files. The reconstruction is written, but compatibility is not claimed.</li>
+</ul>
+<p>The MHD statistics share the flow counter and are always consistent with the flow statistics. The status is the <code>joint_interval</code> entry of <code>stat_window_provenance.dat</code>. A run that has only one statistics group is not affected.</p>
+<p><strong>Precision.</strong> Differencing two cumulative means amplifies their rounding by <code>kappa = (N_a + N_b)/(N_b - N_a)</code>, reported per group (a warning above 1e3). Negative variances within <code>16 kappa N_b eps &lt;ff&gt;</code> are counted as round-off and left unclipped in the raw moments; clip them to zero when forming rms values.</p>
+<p><strong>Interpretation and limitations.</strong></p>
+<ul>
+<li>The averages are <strong>iteration-weighted</strong>, as the stored statistics are; they equal the physical-time average only for a constant time step. A warning is printed if <code>dt</code> differs between the two snapshots.</li>
+<li>The statistics files record no code version, Reynolds/Prandtl/Hartmann number, magnetic field, boundary conditions or <code>dt</code> history. A physics or scheme change at a restart inside the window, or a field whose definition changed between solver versions, cannot be detected; the mesh can be checked only where <code>flow_restart_meta</code> was kept.</li>
+<li>Flow/thermal interval alignment rests on the input of the segment that wrote <code>b</code> (above); for windows reaching into earlier segments it is reported as not established.</li>
+<li>The reconstruction rebuilds averages over a chosen interval; it does not by itself establish that the flow was statistically stationary over it, or that the averages have converged.</li>
+<li>Not reconstructable, because the moments are not accumulated: density variance (<code>&lt;rho rho&gt;</code>), enthalpy variance (<code>&lt;h h&gt;</code>, <code>&lt;rho h h&gt;</code>), Favre temperature variance (<code>&lt;rho T T&gt;</code>), pressure rms (<code>&lt;p p&gt;</code>, except the experimental full-step pressure statistics), electric-potential rms (<code>&lt;phi phi&gt;</code>), Favre triple moments, and the <code>Euu</code> spectra (not checkpointed). <code>t_avg_fuuu</code> holds <code>&lt;rho T u_i u_j u_k&gt;</code> as accumulated, not the Favre triple moment its name suggests (open question, see the backlog).</li>
+<li>Memory: two snapshots of a group are held at once, comparable to the statistics part of the simulation itself; run production-size cases on at least as many ranks as the simulation.</li>
+</ul>
+<p>For 2-periodic cases the profile script <code>validation/tools/scripts/rebuild_tavg_from_new_start.py</code> applies the same formula to the <code>tsp_avg</code> profiles, but derives the counts from iteration numbers and checks nothing; prefer this mode where the statistics checkpoints exist.</p>
 <h2>Mesh and Setup Checks</h2>
 <p>Before trusting a new case, inspect the mesh:</p>
 <pre><code class="language-bash">python3 validation/tools/scripts/plot_check_mesh.py</code></pre>

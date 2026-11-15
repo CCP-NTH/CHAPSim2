@@ -95,7 +95,7 @@
 
             <li class="list-inline-item" id="statements"><i class="fa fa-list-ol"></i>
               <a data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-html="true"
-                 title=" 0.2% of total for procedures.">51 statements</a>
+                 title=" 0.2% of total for procedures.">56 statements</a>
             </li>
 
             <li class="list-inline-item" id="source-file">
@@ -251,6 +251,12 @@ This subroutine is called once after reading the table.
 <span class="w">    </span><span class="c">! to sort input date (dimensional) based on Temperature (small to big)</span>
 <span class="w">    </span><span class="c">!------------------------------------------------------------------------------</span>
 <span class="w">    </span><span class="k">call </span><span class="n">ftplist_sort_t_small2big</span>
+<span class="w">    </span><span class="c">! Temperature interval of the table (dimensional): the property range used by</span>
+<span class="w">    </span><span class="c">! check_T_in_property_range, e.g. for prescribed boundary temperatures.</span>
+<span class="w">    </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">TP0min</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">ftplist</span><span class="p">(</span><span class="mi">1</span><span class="p">)%</span><span class="n">t</span>
+<span class="w">    </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">TP0max</span><span class="w">    </span><span class="o">=</span><span class="w"> </span><span class="n">ftplist</span><span class="p">(</span><span class="n">fluidparam</span><span class="p">%</span><span class="n">nlist</span><span class="p">)%</span><span class="n">t</span>
+<span class="w">    </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">TP0minsrc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;the first row of the property table&#39;</span>
+<span class="w">    </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">TP0maxsrc</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s1">&#39;the last row of the property table&#39;</span>
 <span class="w">    </span><span class="c">!------------------------------------------------------------------------------</span>
 <span class="w">    </span><span class="c">! to update reference of thermal properties</span>
 <span class="w">    </span><span class="c">!------------------------------------------------------------------------------</span>
@@ -279,6 +285,8 @@ This subroutine is called once after reading the table.
 <span class="w">    </span><span class="n">fluidparam</span><span class="p">%</span><span class="n">dhmax</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">ftplist</span><span class="p">(</span><span class="n">i</span><span class="p">)%</span><span class="n">rhoh</span><span class="w"> </span><span class="c">! undim</span>
 
 <span class="w">    </span><span class="n">is_ftplist_dim</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">.</span><span class="n">false</span><span class="p">.</span>
+<span class="w">    </span><span class="c">! slopes of the non-dimensional table; linear mode does not touch them</span>
+<span class="w">    </span><span class="k">if</span><span class="p">(</span><span class="n">iprop_interp</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">IPROP_INTERP_PCHIP</span><span class="p">)</span><span class="w"> </span><span class="k">call </span><span class="n">build_pchip_slopes</span>
 
 <span class="w">    </span><span class="k">return</span>
 <span class="k">  end subroutine </span><span class="n">buildup_property_relations_from_table</span>

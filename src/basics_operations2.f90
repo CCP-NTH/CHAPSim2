@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-!                      CHAPSim version 2.2.0
+!                      CHAPSim version 2.3.0
 !                      --------------------------
 ! This file is part of CHAPSim, a general-purpose CFD tool.
 !
@@ -278,6 +278,12 @@ module operations
   public  :: Get_x_midp_C2P_3D
   public  :: Get_y_midp_C2P_3D
   public  :: Get_z_midp_C2P_3D
+
+  private :: koren_face_value
+  private :: Get_midp_C2P_koren_1D
+  public  :: Get_x_midp_C2P_koren_3D
+  public  :: Get_y_midp_C2P_koren_3D
+  public  :: Get_z_midp_C2P_koren_3D
 
   private :: Prepare_TDMA_1deri_C2C_RHS_array
   private :: Get_x_1der_C2C_1D
@@ -5486,4 +5492,190 @@ contains
     return
   end subroutine
 
+!==============================================================================
+! Koren-limited face values for the convective flux g*h_f of the rho*h equation
+! (enthalpy_advection = koren). Used in place of the C2P midpoint interpolation
+! of h; the caller keeps the staggered face mass flux g and the P2C divergence.
+!
+! MUSCL face value, upwind cell U, far-upwind UU, downwind D picked by sign(g):
+!   h_f = h_U + 1/2 psi(r) (h_U - h_UU),  r = (h_D - h_U)/(h_U - h_UU),
+!   psi(r) = max(0, min(2r, (1+2r)/3, 2))                       (Koren 1993)
+! evaluated without the division: with a = h_U - h_UU, b = h_D - h_U,
+!   psi(r) a = sign(a) min(2|a|, 2|b|, (|a|+2|b|)/3)  if a, b have one strict sign,
+!            = 0                                       otherwise,
+! which is the same value for every a /= 0 and the r -> +-inf limit for a = 0.
+! No tolerance is used. |h_f - h_U| <= |b| and sign(h_f - h_U) = sign(b), so h_f
+! lies between h_U and h_D; in floating point too, since the 2|b| branch returns
+! h_D itself. On smooth monotone data psi = (1+2r)/3 (kappa = 1/3).
+!
+! Index space: the stencil is in cell index, as is the cd2 midpoint 0.5(h_L+h_R).
+! The stretched y grid is a mapping y(s) with faces at integer s and centres at
+! the mapped half points (geometry.f90, 'nd' and 'cl'), so the reconstruction is
+! the uniform-grid scheme in s and the metric stays in the P2C derivative.
+!
+! Lines are whole in the pencil of their direction; the values beyond the ends
+! are the two ghost cells of buildup_ghost_cells_C from the same ibc/fbc as cd2
+! (periodic wrap, interior/axis halo in fbc, Dirichlet/Neumann reflection).
+! Faces kept from the cd2 input (fo on entry):
+!   - a non-periodic end face whose ibc is not IBC_INTERIOR (its b.c. value);
+! First-order upwind (h_f = h_U) is used where the far-upwind cell would be a
+! ghost of an end with no ghost cells (ibc not interior/periodic/symmetric/
+! asymmetric/Dirichlet/Neumann). No documented thermal b.c. reaches it: the
+! ftp ends are Dirichlet for walls (Tw or qw), inlets and Neumann, convective
+! or database outlets (config_calc_basic_ibc, bc_general), so it applies only
+! to an undocumented b.c. code passed through unchanged. No other face changes
+! order.
+!==============================================================================
+  pure function koren_face_value(huu, hu, hd) result(hf)
+    real(WP), intent(in) :: huu, hu, hd
+    real(WP) :: hf
+    real(WP) :: a, b, s
+
+    a = hu - huu
+    b = hd - hu
+    if( (a > ZERO .and. b > ZERO) .or. (a < ZERO .and. b < ZERO) ) then
+      s = min(TWO * abs(a), (abs(a) + TWO * abs(b)) / THREE)
+      if(s >= TWO * abs(b)) then
+        ! the 2|b| branch is h_f = h_D exactly; hu + b can round one ulp past hd
+        hf = hd
+      else
+        hf = hu + HALF * sign(s, a)
+      end if
+    else
+      hf = hu
+    end if
+    return
+  end function koren_face_value
+!==============================================================================
+  subroutine Get_midp_C2P_koren_1D(fi, g, fo, ibc, fbc, dp)
+    use parameters_constant_mod
+    implicit none
+    real(WP), intent(in)    :: fi(:)   ! cell values, 1:nc
+    real(WP), intent(in)    :: g(:)    ! face mass flux, 1:np
+    real(WP), intent(inout) :: fo(:)   ! in: cd2 face values; out: Koren
+    integer,  intent(in)    :: ibc(2)
+    real(WP), intent(in)    :: fbc(4)
+    real(WP), intent(in)    :: dp(4)
+
+    real(WP) :: fc(-1:2)
+    real(WP) :: e(-1:size(fi) + 2)
+    logical  :: has_ghost(2)
+    integer  :: nc, np, i, iu, iuu, id
+
+    nc = size(fi)
+    np = size(fo)
+    call buildup_ghost_cells_C(fi(:), ibc(:), fc(-1:2), fbc(:), dp(:))
+    e(-1)     = fc(-1)
+    e(0)      = fc(0)
+    e(1:nc)   = fi(1:nc)
+    e(nc + 1) = fc(1)
+    e(nc + 2) = fc(2)
+    do i = 1, 2
+      has_ghost(i) = (ibc(i) == IBC_INTERIOR   .or. ibc(i) == IBC_PERIODIC  .or. &
+                      ibc(i) == IBC_SYMMETRIC  .or. ibc(i) == IBC_ASYMMETRIC .or. &
+                      ibc(i) == IBC_DIRICHLET  .or. ibc(i) == IBC_NEUMANN)
+    end do
+    ! face i lies between cells i-1 and i (np = nc periodic, nc+1 otherwise)
+    do i = 1, np
+      if(ibc(1) /= IBC_PERIODIC) then
+        if(i == 1  .and. ibc(1) /= IBC_INTERIOR) cycle
+        if(i == np .and. ibc(2) /= IBC_INTERIOR) cycle
+      end if
+      if(g(i) >= ZERO) then
+        iu = i - 1; iuu = i - 2; id = i
+      else
+        iu = i;     iuu = i + 1; id = i - 1
+      end if
+      if( (iuu < 1 .and. .not. has_ghost(1)) .or. (iuu > nc .and. .not. has_ghost(2)) ) then
+        fo(i) = e(iu)
+      else
+        fo(i) = koren_face_value(e(iuu), e(iu), e(id))
+      end if
+    end do
+    return
+  end subroutine Get_midp_C2P_koren_1D
+!==============================================================================
+  subroutine Get_x_midp_C2P_koren_3D(fi3d, g3d, fo3d, dm, ibc, fbc2d)
+    use udf_type_mod
+    implicit none
+    real(WP),       intent(in)    :: fi3d(:, :, :)
+    real(WP),       intent(in)    :: g3d(:, :, :)
+    real(WP),       intent(inout) :: fo3d(:, :, :)
+    type(t_domain), intent(in)    :: dm
+    integer,        intent(in)    :: ibc(2)
+    real(WP),       intent(in)    :: fbc2d(:, :, :)
+    real(WP) :: fo(size(fo3d, 1)), dp(4)
+    integer  :: j, k
+
+    call check_size("fo/g", 1, size(fo3d,1), size(g3d,1), "nx mismatch in Get_x_midp_C2P_koren_3D")
+    ! as Get_x_midp_C2P_1D
+    dp(1) = dm%h(1)
+    dp(3) = dm%h(1) * THREE
+    dp(2) = dm%h(1)
+    dp(4) = dm%h(1) * THREE
+    do k = 1, size(fi3d, 3)
+      do j = 1, size(fi3d, 2)
+        fo(:) = fo3d(:, j, k)
+        call Get_midp_C2P_koren_1D(fi3d(:, j, k), g3d(:, j, k), fo, ibc, fbc2d(1:4, j, k), dp)
+        fo3d(:, j, k) = fo(:)
+      end do
+    end do
+    return
+  end subroutine Get_x_midp_C2P_koren_3D
+!==============================================================================
+  subroutine Get_y_midp_C2P_koren_3D(fi3d, g3d, fo3d, dm, ibc, fbc2d)
+    use udf_type_mod
+    implicit none
+    real(WP),       intent(in)    :: fi3d(:, :, :)
+    real(WP),       intent(in)    :: g3d(:, :, :)
+    real(WP),       intent(inout) :: fo3d(:, :, :)
+    type(t_domain), intent(in)    :: dm
+    integer,        intent(in)    :: ibc(2)
+    real(WP),       intent(in)    :: fbc2d(:, :, :)
+    real(WP) :: fo(size(fo3d, 2)), dp(4)
+    integer  :: i, k
+
+    call check_size("fo/g", 2, size(fo3d,2), size(g3d,2), "ny mismatch in Get_y_midp_C2P_koren_3D")
+    ! as Get_y_midp_C2P_1D: physical spacings for the Neumann ghost cells
+    dp(1) = (dm%yc(1) - dm%yp(1)) * TWO
+    dp(3) = (dm%yc(2) - dm%yp(1)) * TWO
+    dp(2) = (dm%yp(dm%np(2)) - dm%yc(dm%nc(2)  )) * TWO
+    dp(4) = (dm%yp(dm%np(2)) - dm%yc(dm%nc(2)-1)) * TWO
+    do k = 1, size(fi3d, 3)
+      do i = 1, size(fi3d, 1)
+        fo(:) = fo3d(i, :, k)
+        call Get_midp_C2P_koren_1D(fi3d(i, :, k), g3d(i, :, k), fo, ibc, fbc2d(i, 1:4, k), dp)
+        fo3d(i, :, k) = fo(:)
+      end do
+    end do
+    return
+  end subroutine Get_y_midp_C2P_koren_3D
+!==============================================================================
+  subroutine Get_z_midp_C2P_koren_3D(fi3d, g3d, fo3d, dm, ibc, fbc2d)
+    use udf_type_mod
+    implicit none
+    real(WP),       intent(in)    :: fi3d(:, :, :)
+    real(WP),       intent(in)    :: g3d(:, :, :)
+    real(WP),       intent(inout) :: fo3d(:, :, :)
+    type(t_domain), intent(in)    :: dm
+    integer,        intent(in)    :: ibc(2)
+    real(WP),       intent(in)    :: fbc2d(:, :, :)
+    real(WP) :: fo(size(fo3d, 3)), dp(4)
+    integer  :: i, j
+
+    call check_size("fo/g", 3, size(fo3d,3), size(g3d,3), "nz mismatch in Get_z_midp_C2P_koren_3D")
+    ! as Get_z_midp_C2P_1D
+    dp(1) = dm%h(3)
+    dp(3) = dm%h(3) * THREE
+    dp(2) = dm%h(3)
+    dp(4) = dm%h(3) * THREE
+    do j = 1, size(fi3d, 2)
+      do i = 1, size(fi3d, 1)
+        fo(:) = fo3d(i, j, :)
+        call Get_midp_C2P_koren_1D(fi3d(i, j, :), g3d(i, j, :), fo, ibc, fbc2d(i, j, 1:4), dp)
+        fo3d(i, j, :) = fo(:)
+      end do
+    end do
+    return
+  end subroutine Get_z_midp_C2P_koren_3D
 end module

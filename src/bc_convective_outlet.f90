@@ -13,7 +13,19 @@ module bc_convective_outlet_mod
   private :: compute_fbcx_convective_outlet_flow
   private :: compute_fbcz_convective_outlet_flow
   public  :: compute_convective_outlet_thermo
+  private :: report_outlet_backflow
+  public  :: restore_fbcx_outlet_thermo_bc
   public  :: compute_convective_outlet_flow
+  public  :: write_outlet_split_state
+  private :: read_outlet_split_state
+  !----------------------------------------------------------------------------
+  ! outlet_mass_correction = split: sum of the stage corrections R over the
+  ! current step (accumulating) and over the previous complete step. Only state
+  ! of the method; written to 1_data/domain<id>_outlet_split_<iter>.dat with each
+  ! checkpoint and read back at a restart (absent file: S = 0 for one step).
+  !----------------------------------------------------------------------------
+  real(WP), save :: split_rsum_acc = 0.0_WP, split_rsum_prev = 0.0_WP
+  logical,  save :: split_acc_complete = .false., split_has_prev = .false., split_init_done = .false.
 !------------------------------------------------------------------------------
 ! The convective-outlet velocity correction is commented out below, along with
 ! these three declarations. It was written to test whether the convective outlet
@@ -245,7 +257,7 @@ module bc_convective_outlet_mod
   !   return
   ! end subroutine
   !==============================================================================
-  subroutine enforce_domain_mass_balance_dyn_fbc(drhodt, dm)
+  subroutine enforce_domain_mass_balance_dyn_fbc(drhodt, dm, isub, iter)
     use bc_dirichlet_mod
     use cylindrical_rn_mod
     use find_max_min_ave_mod
@@ -254,9 +266,13 @@ module bc_convective_outlet_mod
     implicit none
     real(WP), dimension(:,:,:), intent(in) :: drhodt
     type(t_domain), intent(inout) :: dm
+    integer, intent(in) :: isub, iter
     type(DECOMP_INFO) :: dtmp
     real(WP) :: scale, mass_imbalance(8)
+    real(WP) :: rslow, rfast
     REAL(WP) :: rsign(3)
+    real(WP) :: area_x(2), dflux
+    real(WP), dimension(4, dm%dpcc%xsz(2), dm%dpcc%xsz(3)) :: ones_fbcx
     !
     ! CASE 2 (inlet/outlet, supercritical) -- ASSUMPTION: net dilatation is
     ! PHYSICAL (mdot_in - mdot_out = d/dt integral(rho) dV). We enforce global
@@ -295,6 +311,59 @@ module bc_convective_outlet_mod
       write(*,'(9ES18.9)') scale, mass_imbalance(1:8)
     end if
 #endif
+    ! split: R_k = S_k + F_k. S_k = alpha_k * sum_j R_j(previous step) is the slow
+    ! part (the previous step's total correction shared by the sub-step lengths
+    ! alpha_k dt) and is applied proportionally, g_b <- g_b (1 + S_k/mdot_out);
+    ! the stage-periodic remainder F_k = R_k - S_k is applied as a uniform
+    ! mass-flux increment F_k/A_out. sum_out A_f g_b(new) = mdot_out + R_k exactly.
+    ! Before a complete previous step is known (start, or a restart without the
+    ! state file) S_k = 0 and the whole R_k is applied uniformly.
+    if(ioutlet_mass_correction == IOUTLET_MASS_SPLIT .and. dm%is_conv_outlet(1)) then
+      if(.not. split_init_done) then
+        call read_outlet_split_state(dm, iter - 1)
+        split_init_done = .true.
+      end if
+      if(isub == 1) then
+        split_has_prev = split_acc_complete
+        split_rsum_prev = split_rsum_acc
+        split_rsum_acc = ZERO
+        split_acc_complete = .false.
+      end if
+      rslow = ZERO
+      if(split_has_prev) rslow = dm%tAlpha(isub) * split_rsum_prev
+      rfast = mass_imbalance(8) - rslow
+      ones_fbcx = ONE
+      call Get_area_average_2d_for_fbcx(dm, dm%dpcc, ones_fbcx, area_x, SPACE_INTEGRAL, 'fbcx')
+      dflux = rfast / area_x(2)
+      if(dm%is_thermo) then
+        dm%fbcx_gx(2, :, :) = dm%fbcx_gx(2, :, :) * (ONE + rslow / mass_imbalance(2)) + dflux
+        dm%fbcx_qx(2, :, :) = dm%fbcx_gx(2, :, :) / dm%fbcx_ftp(2, :, :)%d
+      else
+        dm%fbcx_qx(2, :, :) = dm%fbcx_qx(2, :, :) * (ONE + rslow / mass_imbalance(2)) + dflux
+      end if
+      split_rsum_acc = split_rsum_acc + mass_imbalance(8)
+      if(isub == dm%nsubitr) split_acc_complete = .true.
+      return
+    end if
+    ! uniform_flux: add the same mass-flux increment R/A_out to every x-outlet
+    ! face. A_out is the outlet-face area integral with the weights of
+    ! check_global_mass_balance (dy * r dtheta), so that
+    !   sum_out A_f (g_b + R/A_out) = mdot_out + R
+    ! closes the stage balance exactly, as the scaling does. Only the profile
+    ! of the correction differs: uniform in mass flux instead of proportional
+    ! to g_b (rho*u in thermal runs, u otherwise).
+    if(ioutlet_mass_correction == IOUTLET_MASS_UNIFORM_FLUX .and. dm%is_conv_outlet(1)) then
+      ones_fbcx = ONE
+      call Get_area_average_2d_for_fbcx(dm, dm%dpcc, ones_fbcx, area_x, SPACE_INTEGRAL, 'fbcx')
+      dflux = mass_imbalance(8) / area_x(2)
+      if(dm%is_thermo) then
+        dm%fbcx_gx(2, :, :) = dm%fbcx_gx(2, :, :) + dflux
+        dm%fbcx_qx(2, :, :) = dm%fbcx_gx(2, :, :) / dm%fbcx_ftp(2, :, :)%d
+      else
+        dm%fbcx_qx(2, :, :) = dm%fbcx_qx(2, :, :) + dflux
+      end if
+      return
+    end if
     ! scale qx/gx convective b.c.
     if(dm%is_conv_outlet(1)) then
       if(dm%is_thermo) then
@@ -550,7 +619,7 @@ module bc_convective_outlet_mod
     if(dm%is_conv_outlet(1)) call compute_fbcx_convective_outlet_flow(fl, dm, isub)
     if(dm%is_conv_outlet(3)) call compute_fbcz_convective_outlet_flow(fl, dm, isub)
     !
-    call enforce_domain_mass_balance_dyn_fbc(fl%drhodt, dm)
+    call enforce_domain_mass_balance_dyn_fbc(fl%drhodt, dm, isub, fl%iteration)
     !
     if ( .not. dm%is_thermo) then
       call enforce_velo_from_fbc(dm, fl%qx, fl%qy, fl%qz, dm%fbcx_qx, dm%fbcy_qy, dm%fbcz_qz)
@@ -582,18 +651,22 @@ module bc_convective_outlet_mod
 !    return
 !  end subroutine
 !==============================================================================
-  subroutine update_fbcx_convective_outlet_thermo(tm, dm, isub)
+  subroutine update_fbcx_convective_outlet_thermo(tm, dm, isub, opt_dens_hat)
     use thermo_info_mod
     implicit none
     ! arguments
     type(t_thermo), intent(inout) :: tm
     type(t_domain), intent(inout) :: dm
     integer,        intent(in)    :: isub
+    ! interior transported density rho_hat^{k-1} (Bc); absent for lagged_legacy
+    real(WP), dimension(:, :, :), intent(in), optional :: opt_dens_hat
     ! local variables
     real(WP) :: uxdx
-    integer :: j, k
+    integer :: j, k, n
     real(WP), dimension(4, dm%dccc%xsz(2), dm%dccc%xsz(3)) :: a4cc_xpencil
     real(WP), dimension(   dm%dccc%xsz(2), dm%dccc%xsz(3)) :: a0cc_xpencil
+    real(WP), dimension(4, dm%dccc%xsz(2), dm%dccc%xsz(3)) :: d4cc_xpencil
+    real(WP), dimension(   dm%dccc%xsz(2), dm%dccc%xsz(3)) :: d0cc_xpencil
     ! conditions
     if ( .not. dm%is_thermo) return
     if ( .not. dm%is_conv_outlet(1)) return
@@ -608,16 +681,134 @@ module bc_convective_outlet_mod
     !call enforce_domain_energy_balance_dyn_fbc(fl, dm) ! todo-check necessary?
     ! update other properties
     dm%fbcx_ftp(:, :, :)%rhoh = a4cc_xpencil
+    if(present(opt_dens_hat)) then
+      !------------------------------------------------------------------------
+      ! Bc outlet. rho*h and rho_hat both obey d(phi)/dt + U_c d(phi)/dx = 0 at
+      ! the outlet plane; they are advanced with the same discrete operator, the
+      ! same U_c and the same RK3 weights (separate histories), from the interior
+      ! rho*h^{k-1} and rho_hat^{k-1}. The face (slot 2) and ghost (slot 4) states
+      ! are then recovered with h = (rho h)/rho_hat, rho = rho_EOS(h), exactly as
+      ! in the interior (ftp%d carries rho_hat into the recovery). The refresh
+      ! returns rho = rho_EOS(h) and rhoh = rho_EOS h; the advected rho*h is put
+      ! back so that the next stage starts from H_out = rho_hat_out h_out, like
+      ! the interior H (otherwise H_out is reset by (rho_EOS - rho_hat) h).
+      !------------------------------------------------------------------------
+      ! fbcx_ftp%d is final here (the flow restart, read after the thermal
+      ! one, may restore it), so an unset rho_hat_out is initialised now.
+      if(.not. tm%is_fbcx_dhat_valid) then
+        tm%fbcx_dhat(:, :, :) = dm%fbcx_ftp(:, :, :)%d
+        tm%fbcx_dhat_rhs0(:, :) = ZERO
+        tm%is_fbcx_dhat_valid = .true.
+      end if
+      d4cc_xpencil = tm%fbcx_dhat
+      d0cc_xpencil = opt_dens_hat(dm%dccc%xsz(1), :, :)
+      call calculate_fbcx_convective_outlet(d4cc_xpencil, uxdx, tm%fbcx_dhat_rhs0, d0cc_xpencil, dm, isub)
+      !------------------------------------------------------------------------
+      ! thermal_outlet_pair = zero_gradient: the face and ghost take the last
+      ! interior cell's (rho*h, rho_hat)^{k-1}, so h_b = h(nc) and the outlet
+      ! enthalpy flux g_b h_b is the upwind outflow flux. The last-cell balances
+      ! H: dH = -dt [g_b h(nc) - g_w h_w]/dx + ...,  rho_hat: d rho_hat = -dt [g_b - g_w]/dx
+      ! (through D.g = -rho_t) give rho_hat dh = -dt g_w (h_w - h(nc))/dx + ...: the outflow
+      ! carries no face state of its own, and a uniform h stays uniform. The
+      ! convective update above is overwritten and its rhs histories are zeroed.
+      ! Backflow faces (g_b < 0) take the same last-cell state, i.e. the inflowing
+      ! fluid carries h(nc); they are counted and reported (diagnostic).
+      !------------------------------------------------------------------------
+      if(is_thermal_outlet_zero_gradient) then
+        do k = 1, size(a4cc_xpencil, 3)
+          do j = 1, size(a4cc_xpencil, 2)
+            a4cc_xpencil(2, j, k) = a0cc_xpencil(j, k)
+            a4cc_xpencil(4, j, k) = a0cc_xpencil(j, k)
+            d4cc_xpencil(2, j, k) = d0cc_xpencil(j, k)
+            d4cc_xpencil(4, j, k) = d0cc_xpencil(j, k)
+          end do
+        end do
+        tm%fbcx_rhoh_rhs0(:, :) = ZERO
+        tm%fbcx_dhat_rhs0(:, :) = ZERO
+        dm%fbcx_ftp(:, :, :)%rhoh = a4cc_xpencil
+        if(isub == 1) call report_outlet_backflow(tm, dm)
+      end if
+      tm%fbcx_dhat = d4cc_xpencil
+      do k = 1, size(dm%fbcx_ftp, 3)
+        do j = 1, size(dm%fbcx_ftp, 2)
+          do n = 2, 4, 2
+            dm%fbcx_ftp(n, j, k)%d = tm%fbcx_dhat(n, j, k)
+            call ftp_refresh_thermal_properties_from_DH(dm%fbcx_ftp(n, j, k))
+            dm%fbcx_ftp(n, j, k)%rhoh = a4cc_xpencil(n, j, k)
+          end do
+        end do
+      end do
+    else
     do j = 1, size(dm%fbcx_ftp, 2)
       do k = 1, size(dm%fbcx_ftp, 3)
         call ftp_refresh_thermal_properties_from_DH(dm%fbcx_ftp(2, j, k))
         call ftp_refresh_thermal_properties_from_DH(dm%fbcx_ftp(4, j, k))
       end do
     end do
+    end if
 
     return
   end subroutine
 
+  !==============================================================================
+  !> thermal_outlet_pair = zero_gradient: count outlet faces with inflow (g_b < 0)
+  !> once per step and report them on rank 0 (first occurrence, then every 1000
+  !> steps while backflow persists). Diagnostic only; the face state is unchanged.
+  subroutine report_outlet_backflow(tm, dm)
+    use mpi_mod
+    use wtformat_mod
+    implicit none
+    type(t_thermo), intent(in) :: tm
+    type(t_domain), intent(in) :: dm
+    integer :: j, k, nglb
+    integer, save :: nreported = 0
+    real(WP) :: rloc, rglb   ! face count carried as a real: same buffer type as the module's other reductions
+    rloc = ZERO
+    do k = 1, size(dm%fbcx_gx, 3)
+      do j = 1, size(dm%fbcx_gx, 2)
+        if(dm%fbcx_gx(2, j, k) < ZERO) rloc = rloc + ONE
+      end do
+    end do
+    call mpi_allreduce(rloc, rglb, 1, MPI_REAL_WP, MPI_SUM, MPI_COMM_WORLD, ierror)
+    nglb = nint(rglb)
+    if(nglb > 0 .and. nrank == 0) then
+      if(nreported == 0 .or. mod(tm%iteration, 1000) == 0) then
+        write(*, '(A, I8, A, I10)') ' thermal outlet (zero_gradient): backflow faces = ', nglb, &
+          ' at iteration ', tm%iteration
+        nreported = nreported + 1
+      end if
+    end if
+    return
+  end subroutine report_outlet_backflow
+  !==============================================================================
+  !> Bc restart: rebuild the convective x-outlet thermal state (slots 2, 4)
+  !> from the restored advected rho*h (fbcx_ftp%rhoh) and rho_hat (fbcx_dhat),
+  !> exactly as at the end of update_fbcx_convective_outlet_thermo.
+  subroutine restore_fbcx_outlet_thermo_bc(tm, dm)
+    use thermo_info_mod
+    implicit none
+    type(t_thermo), intent(in)    :: tm
+    type(t_domain), intent(inout) :: dm
+    real(WP) :: rhoh_adv
+    integer :: j, k, n
+
+    if ( .not. dm%is_thermo) return
+    if ( .not. dm%is_conv_outlet(1)) return
+    if ( dm%ibcx_nominal(2, 5) /= IBC_CONVECTIVE) return
+    if ( .not. tm%is_fbcx_dhat_valid) return
+    do k = 1, size(dm%fbcx_ftp, 3)
+      do j = 1, size(dm%fbcx_ftp, 2)
+        do n = 2, 4, 2
+          rhoh_adv = dm%fbcx_ftp(n, j, k)%rhoh
+          dm%fbcx_ftp(n, j, k)%d = tm%fbcx_dhat(n, j, k)
+          call ftp_refresh_thermal_properties_from_DH(dm%fbcx_ftp(n, j, k))
+          dm%fbcx_ftp(n, j, k)%rhoh = rhoh_adv
+        end do
+      end do
+    end do
+
+    return
+  end subroutine restore_fbcx_outlet_thermo_bc
   !==============================================================================
   subroutine update_fbcz_convective_outlet_thermo(tm, dm, isub)
     use thermo_info_mod
@@ -659,19 +850,24 @@ module bc_convective_outlet_mod
   end subroutine
 
   !==============================================================================
-  subroutine compute_convective_outlet_thermo(tm, dm, isub)
+  subroutine compute_convective_outlet_thermo(tm, dm, isub, opt_dens_hat)
     use udf_type_mod
     implicit none
     ! arguments
     type(t_thermo), intent(inout) :: tm
     type(t_domain), intent(inout) :: dm
     integer,        intent(in)    :: isub
+    real(WP), dimension(:, :, :), intent(in), optional :: opt_dens_hat
     !
     if(.not. dm%is_conv_outlet(1) .and. &
        .not. dm%is_conv_outlet(3)) return
     !
     if (dm%is_conv_outlet(1)) then
-      call update_fbcx_convective_outlet_thermo(tm, dm, isub)
+      if(present(opt_dens_hat)) then
+        call update_fbcx_convective_outlet_thermo(tm, dm, isub, opt_dens_hat)
+      else
+        call update_fbcx_convective_outlet_thermo(tm, dm, isub)
+      end if
     end if
     if (dm%is_conv_outlet(3)) then
       call update_fbcz_convective_outlet_thermo(tm, dm, isub)
@@ -679,5 +875,55 @@ module bc_convective_outlet_mod
 
     return
   end subroutine
+
+
+  !==============================================================================
+  !> outlet_mass_correction = split: write the state (the summed stage corrections of
+  !> the step just completed) next to the flow checkpoint of iteration iter.
+  subroutine write_outlet_split_state(dm, iter)
+    use io_files_mod, only : dir_data
+    use typeconvert_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: iter
+    integer :: u
+    if(ioutlet_mass_correction /= IOUTLET_MASS_SPLIT) return
+    if(nrank /= 0) return
+    open(newunit = u, file = trim(dir_data)//'/domain'//trim(int2str(dm%idom))//'_outlet_split_'// &
+         trim(int2str(iter))//'.dat', status = 'replace', action = 'write')
+    write(u, '(I12,ES26.17E3,L3)') iter, split_rsum_acc, split_acc_complete
+    close(u)
+  end subroutine write_outlet_split_state
+  !==============================================================================
+  !> outlet_mass_correction = split: read the state of iteration iter (restart). If the
+  !> file is absent the previous-step correction is unknown and S = 0 for one step.
+  subroutine read_outlet_split_state(dm, iter)
+    use io_files_mod, only : dir_data
+    use print_msg_mod
+    use typeconvert_mod
+    implicit none
+    type(t_domain), intent(in) :: dm
+    integer, intent(in) :: iter
+    character(len=256) :: fname
+    logical :: exists
+    integer :: u, it_file, ios
+    real(WP) :: rsum
+    logical :: complete
+    if(iter <= 0) return
+    fname = trim(dir_data)//'/domain'//trim(int2str(dm%idom))//'_outlet_split_'//trim(int2str(iter))//'.dat'
+    inquire(file = trim(fname), exist = exists)
+    if(.not. exists) then
+      if(nrank == 0) call Print_warning_msg('outlet_mass_correction = split: no state file '//trim(fname)// &
+        '; the first step applies the whole correction uniformly.')
+      return
+    end if
+    open(newunit = u, file = trim(fname), status = 'old', action = 'read')
+    read(u, *, iostat = ios) it_file, rsum, complete
+    close(u)
+    if(ios /= 0 .or. it_file /= iter) call Print_error_msg('outlet_mass_correction = split: unreadable state file '// &
+      trim(fname))
+    split_rsum_acc = rsum
+    split_acc_complete = complete
+  end subroutine read_outlet_split_state
 
 end module

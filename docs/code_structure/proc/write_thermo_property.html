@@ -269,7 +269,6 @@
 <span class="w">    </span><span class="c">!   ftp%rhoh = dhmin + (dhmax - dhmin) * real(i - 1, WP) / real(n - 1, WP)</span>
 <span class="w">    </span><span class="c">!   !write(*,*) ftp%rhoh</span>
 <span class="w">    </span><span class="c">!   call ftp_refresh_thermal_properties_from_DH(ftp)</span>
-<span class="w">    </span><span class="c">!   call ftp_is_T_in_scope(ftp)</span>
 <span class="w">    </span><span class="c">!   write(ftp_unit1, &#39;(8ES13.5)&#39;) ftp%h, ftp%t, ftp%d, ftp%m, ftp%k, ftp%cp, ftp%b, ftp%rhoh, ftp%drhoh_drho</span>
 <span class="w">    </span><span class="c">!   call ftp_convert_undim_to_dim(ftp, ftp_dim)</span>
 <span class="w">    </span><span class="c">!   write(ftp_unit2, &#39;(8ES13.5)&#39;) ftp_dim%h, ftp_dim%t, ftp_dim%d, ftp_dim%m, ftp_dim%k, ftp_dim%cp, ftp_dim%b, ftp_dim%rhoh</span>
